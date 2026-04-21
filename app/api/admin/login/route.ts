@@ -10,22 +10,27 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "leoanthonybons@gmail.com";
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
-    if (!email || !password) return NextResponse.json({ error: "Missing credentials" }, { status: 400 });
+    const normalizedEmail = typeof email === "string" ? email.trim() : "";
+    const submittedPassword = typeof password === "string" ? password.trim() : "";
+    if (!normalizedEmail || !submittedPassword) {
+      return NextResponse.json({ error: "Missing credentials" }, { status: 400 });
+    }
 
-    if (email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    if (normalizedEmail.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
     // Check hash in env (preferred), fallback to plain text comparison if hash not set
-    const hash = process.env.ADMIN_PASSWORD_HASH;
-    const plain = process.env.ADMIN_PASSWORD_PLAIN;
+    const hash = process.env.ADMIN_PASSWORD_HASH?.trim();
+    const plain = process.env.ADMIN_PASSWORD_PLAIN?.trim();
 
     let ok = false;
     if (hash) {
-      ok = await bcrypt.compare(password, hash);
-    } else if (plain) {
+      ok = await bcrypt.compare(submittedPassword, hash);
+    }
+    if (!ok && plain) {
       // First-boot: password matches plain, and we generate the hash for user to store
-      if (password === plain) {
+      if (submittedPassword === plain) {
         ok = true;
         const newHash = await bcrypt.hash(plain, 10);
         console.log("====== ADMIN SETUP ======");
@@ -41,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     // Sign JWT for admin session (7 days)
     const secret = new TextEncoder().encode(process.env.ADMIN_JWT_SECRET ?? "fallback-change-me");
-    const token = await new SignJWT({ admin: true, email })
+    const token = await new SignJWT({ admin: true, email: normalizedEmail })
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime("7d")
       .setIssuedAt()
@@ -52,7 +57,7 @@ export async function POST(request: NextRequest) {
     await sb.from("admin_audit_log").insert({
       action: "admin_login",
       target_type: "system",
-      target_id: email,
+      target_id: normalizedEmail,
       details: { ip: request.headers.get("x-forwarded-for") ?? "unknown" },
     });
 
