@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 
 // Env-stored admin credentials — on first login, if ADMIN_PASSWORD_HASH is not set,
@@ -38,8 +39,18 @@ export async function POST(request: NextRequest) {
         console.log("Then you can remove ADMIN_PASSWORD_PLAIN.");
         console.log("=========================");
       }
-    } else {
-      return NextResponse.json({ error: "Admin not configured. Set ADMIN_PASSWORD_PLAIN in env vars." }, { status: 500 });
+    }
+    if (!ok) {
+      const authClient = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { auth: { autoRefreshToken: false, persistSession: false } }
+      );
+      const { data, error } = await authClient.auth.signInWithPassword({
+        email: normalizedEmail,
+        password: submittedPassword,
+      });
+      ok = !error && data.user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
     }
 
     if (!ok) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
