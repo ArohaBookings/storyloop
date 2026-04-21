@@ -3,6 +3,8 @@
 -- Run this entire file in your Supabase SQL Editor
 -- ============================================================
 
+create extension if not exists pgcrypto;
+
 -- User profiles (one per auth user)
 create table if not exists public.profiles (
   id uuid references auth.users(id) on delete cascade primary key,
@@ -69,9 +71,13 @@ alter table public.stories enable row level security;
 alter table public.admin_audit_log enable row level security;
 
 -- Users can only see/edit their own data
+drop policy if exists "own_profile" on public.profiles;
+drop policy if exists "own_profile_update" on public.profiles;
 create policy "own_profile" on public.profiles for select using (auth.uid() = id);
 create policy "own_profile_update" on public.profiles for update using (auth.uid() = id);
 
+drop policy if exists "own_children" on public.child_profiles;
+drop policy if exists "own_stories" on public.stories;
 create policy "own_children" on public.child_profiles for all using (auth.uid() = user_id);
 create policy "own_stories" on public.stories for all using (auth.uid() = user_id);
 
