@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.875rem;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-font-smoothing: antialiased; }
+  body {
+    @apply bg-paper text-ink-800 font-body;
+    font-feature-settings: "ss01", "cv11";
+  }
+  h1, h2, h3, h4, h5 {
+    @apply font-display;
+    font-feature-settings: "ss01";
+  }
+  ::selection {
+    background: rgba(232, 193, 85, 0.35);
+    color: #1a1817;
+  }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: #faf6f3; }
+  ::-webkit-scrollbar-thumb { background: #d2b89e; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #bd9573; }
+}
+
+@layer utilities {
+  .text-gradient-warm {
+    background: linear-gradient(135deg, #a87851 0%, #8c5e3d 50%, #6f4930 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl border border-clay-100 shadow-soft;
+  }
+
+  .card-warm {
+    @apply bg-cream-50 rounded-2xl border border-clay-200 shadow-warm;
+  }
+
+  .btn-primary {
+    @apply bg-clay-700 hover:bg-clay-800 text-paper font-semibold rounded-xl px-6 py-3 text-sm transition-all duration-200 shadow-warm hover:shadow-clay active:scale-[0.98] inline-flex items-center justify-center gap-2;
+  }
+
+  .btn-secondary {
+    @apply bg-white hover:bg-cream-50 text-ink-700 font-semibold rounded-xl px-6 py-3 text-sm border border-clay-200 hover:border-clay-300 transition-all inline-flex items-center justify-center gap-2;
+  }
+
+  .btn-ghost {
+    @apply text-ink-600 hover:text-ink-900 hover:bg-cream-100 rounded-xl px-4 py-2 text-sm font-medium transition-all inline-flex items-center gap-2;
+  }
+
+  .input {
+    @apply w-full bg-white border border-clay-200 rounded-xl px-4 py-3 text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-clay-400/30 focus:border-clay-400 transition-all;
+  }
+
+  .label {
+    @apply block text-xs font-bold text-ink-600 mb-1.5 uppercase tracking-wider;
+  }
+
+  .section-title {
+    @apply text-xs font-bold text-clay-600 uppercase tracking-[0.2em];
+  }
+
+  .paper-texture {
+    background-image:
+      radial-gradient(circle at 2px 2px, rgba(168,120,81,0.05) 1px, transparent 0);
+    background-size: 32px 32px;
+  }
+
+  .scribble-underline {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 10'%3E%3Cpath d='M 0 5 Q 50 0, 100 5 T 200 5' stroke='%23a87851' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 100% 8px;
+    padding-bottom: 10px;
+  }
+
+  .animate-fade-up { animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) forwards; }
+  .animate-fade-up-1 { animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.1s both; }
+  .animate-fade-up-2 { animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.2s both; }
+  .animate-fade-up-3 { animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.3s both; }
+  .animate-fade-up-4 { animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.4s both; }
+  .animate-fade-up-5 { animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.5s both; }
+}
