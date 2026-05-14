@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateLearningStory } from "@/lib/ai/generate";
+import { getOrCreateProfile } from "@/lib/supabase/profiles";
 
 // In-memory rate limit for demo mode (per-IP)
 const demoRateLimit = new Map<string, { count: number; resetAt: number }>();
@@ -51,11 +52,10 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Sign in to generate stories" }, { status: 401 });
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("plan, stories_this_month, subscription_status")
-      .eq("id", user.id)
-      .single();
+    const profile = await getOrCreateProfile(user);
+    if (profile.is_active === false) {
+      return NextResponse.json({ error: "Your account has been disabled. Contact support." }, { status: 403 });
+    }
 
     const plan = profile?.plan ?? "free";
     const used = profile?.stories_this_month ?? 0;

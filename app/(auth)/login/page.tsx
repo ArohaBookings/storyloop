@@ -11,12 +11,17 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [redirect, setRedirect] = useState("/dashboard");
+  const [notice, setNotice] = useState("");
   const router = useRouter();
   const supabase = createClient();
 
   useEffect(() => {
-    const nextPath = new URLSearchParams(window.location.search).get("redirect");
+    const params = new URLSearchParams(window.location.search);
+    const nextPath = params.get("redirect");
     if (nextPath) setRedirect(nextPath);
+    if (params.get("disabled") === "1") {
+      setNotice("This account has been disabled. Contact support if you think this is a mistake.");
+    }
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -46,6 +51,7 @@ export default function LoginPage() {
           <p className="text-sm text-ink-500 mb-6">Sign in to keep writing beautiful stories.</p>
 
           <form onSubmit={handleLogin} className="space-y-4">
+            {notice && <div className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">{notice}</div>}
             <div><label className="label">Email</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" className="input" /></div>
             <div><label className="label">Password</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} required autoComplete="current-password" className="input" /></div>
             {error && <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{error}</div>}

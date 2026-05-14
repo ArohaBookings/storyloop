@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { getOrCreateProfile } from "@/lib/supabase/profiles";
 
 const ALLOWED_PLANS = new Set(["free", "educator", "centre"]);
 
@@ -45,6 +46,10 @@ export async function POST(request: NextRequest) {
         );
       }
       throw createError;
+    }
+
+    if (createdUser.user) {
+      await getOrCreateProfile(createdUser.user);
     }
 
     const supabase = await createClient();

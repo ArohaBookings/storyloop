@@ -1,17 +1,20 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import DashboardNav from "@/components/app/DashboardNav";
+import { getOrCreateProfile } from "@/lib/supabase/profiles";
+
+export const dynamic = "force-dynamic";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name, plan, stories_this_month")
-    .eq("id", user.id)
-    .single();
+  const profile = await getOrCreateProfile(user);
+
+  if (profile.is_active === false) {
+    redirect("/login?disabled=1");
+  }
 
   return (
     <div className="flex h-screen bg-paper overflow-hidden">

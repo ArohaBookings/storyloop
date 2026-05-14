@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
+import { getOrCreateProfile } from "@/lib/supabase/profiles";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-06-20" });
+function getStripe() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-06-20" });
+}
 
 function getPriceId(plan: string, currency: string) {
   if (currency === "NZD") {
@@ -20,12 +23,13 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const stripe = getStripe();
 
     const { plan, currency = "AUD" } = await request.json();
     const priceId = getPriceId(plan, currency);
     if (!priceId) return NextResponse.json({ error: "Invalid plan or price not configured" }, { status: 400 });
 
-    const { data: profile } = await supabase.from("profiles").select("stripe_customer_id, full_name").eq("id", user.id).single();
+    const profile = await getOrCreateProfile(user);
 
     let customerId = profile?.stripe_customer_id;
     if (!customerId) {
