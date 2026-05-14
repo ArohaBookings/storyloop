@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const stripe = getStripe();
+    const origin = request.nextUrl.origin;
 
     const { plan, currency = "AUD" } = await request.json();
     const priceId = getPriceId(plan, currency);
@@ -47,8 +48,8 @@ export async function POST(request: NextRequest) {
       mode: "subscription",
       payment_method_types: ["card"],
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?upgraded=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing`,
+      success_url: `${origin}/dashboard?upgraded=true`,
+      cancel_url: `${origin}/billing`,
       allow_promotion_codes: true,
       subscription_data: {
         trial_period_days: 7,
