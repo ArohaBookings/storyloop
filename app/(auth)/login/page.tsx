@@ -4,12 +4,14 @@ import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
+const DEFAULT_REDIRECT = "/dashboard";
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [redirect, setRedirect] = useState("/dashboard");
+  const [redirect, setRedirect] = useState(DEFAULT_REDIRECT);
   const [notice, setNotice] = useState("");
   const supabase = createClient();
 
@@ -26,8 +28,27 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true); setError("");
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) { setError(error.message); setLoading(false); }
-    else { window.location.replace(redirect); }
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const adminResponse = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (adminResponse.ok) {
+        const nextPath = redirect === DEFAULT_REDIRECT ? "/admin" : redirect;
+        window.location.replace(nextPath);
+        return;
+      }
+    } catch {}
+
+    window.location.replace(redirect);
   };
 
   return (

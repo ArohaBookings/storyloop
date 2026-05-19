@@ -2,11 +2,21 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getMonthlyStoryLimit, getStoryAllowanceLabel } from "@/lib/story-limits";
 
-const NAV = [
+const ADMIN_EMAIL = "leoanthonybons@gmail.com";
+
+type NavItem = {
+  href: string;
+  icon: typeof LayoutDashboard;
+  label: string;
+  highlight?: boolean;
+  activePath?: string;
+};
+
+const NAV: NavItem[] = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/generate", icon: Sparkles, label: "New story", highlight: true },
   { href: "/history", icon: History, label: "Story history" },
@@ -53,6 +63,10 @@ export default function DashboardNav({
   });
   const planInfo = PLAN_LABEL[plan] ?? PLAN_LABEL.free;
   const initials = userName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+  const isAdminUser = userEmail.toLowerCase() === ADMIN_EMAIL;
+  const navItems: NavItem[] = isAdminUser
+    ? [...NAV, { href: "/api/admin/session", activePath: "/admin", icon: ShieldAlert, label: "Admin" }]
+    : NAV;
 
   const Content = () => (
     <div className="flex flex-col h-full">
@@ -65,8 +79,11 @@ export default function DashboardNav({
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {NAV.map(({ href, icon: Icon, label, highlight }) => {
-          const active = href === "/dashboard" ? pathname === href : pathname.startsWith(href);
+        {navItems.map(({ href, icon: Icon, label, highlight, activePath }) => {
+          const resolvedActivePath = activePath ?? href;
+          const active = resolvedActivePath === "/dashboard"
+            ? pathname === resolvedActivePath
+            : pathname.startsWith(resolvedActivePath);
           return (
             <Link key={href} href={href} onClick={() => setMobileOpen(false)}
               className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${

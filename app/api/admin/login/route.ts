@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { SignJWT } from "jose";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { ADMIN_EMAIL, createAdminSessionToken, isAdminEmail } from "@/lib/admin-session";
 import { createAdminSupabase } from "@/lib/supabase/admin";
-
-// Env-stored admin credentials — on first login, if ADMIN_PASSWORD_HASH is not set,
-// we hash ADMIN_PASSWORD_PLAIN once and tell user to put the hash in env vars.
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "leoanthonybons@gmail.com";
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,7 +13,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing credentials" }, { status: 400 });
     }
 
-    if (normalizedEmail.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    if (!isAdminEmail(normalizedEmail)) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
@@ -50,18 +46,12 @@ export async function POST(request: NextRequest) {
         email: normalizedEmail,
         password: submittedPassword,
       });
-      ok = !error && data.user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+      ok = !error && isAdminEmail(data.user?.email);
     }
 
     if (!ok) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
 
-    // Sign JWT for admin session (7 days)
-    const secret = new TextEncoder().encode(process.env.ADMIN_JWT_SECRET ?? "fallback-change-me");
-    const token = await new SignJWT({ admin: true, email: normalizedEmail })
-      .setProtectedHeader({ alg: "HS256" })
-      .setExpirationTime("7d")
-      .setIssuedAt()
-      .sign(secret);
+    const token = await createAdminSessionToken(normalizedEmail);
 
     // Log login to audit
     const sb = createAdminSupabase();

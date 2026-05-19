@@ -35,18 +35,18 @@ export default function GeneratePage() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
-  const audioInputRef = useRef<HTMLInputElement | null>(null);
-  const [preferDeviceRecorder, setPreferDeviceRecorder] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [suggestUploadFallback, setSuggestUploadFallback] = useState(false);
 
   useEffect(() => {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (tz?.includes("Auckland")) setLocation("NZ");
     if (typeof window !== "undefined") {
-      const prefersTouchRecorder =
-        /Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent) || window.navigator.maxTouchPoints > 1;
-      if (prefersTouchRecorder) {
-        setPreferDeviceRecorder(true);
-      }
+      const touchDevice =
+        /Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent) ||
+        window.navigator.maxTouchPoints > 1 ||
+        window.matchMedia?.("(pointer: coarse)").matches;
+      setIsTouchDevice(touchDevice);
     }
 
     void fetch("/api/me")
@@ -142,6 +142,29 @@ export default function GeneratePage() {
     return window.isSecureContext && !!window.navigator.mediaDevices?.getUserMedia && typeof MediaRecorder !== "undefined";
   };
 
+  const getMicrophoneErrorMessage = (error: unknown) => {
+    if (error instanceof DOMException) {
+      if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
+        return "Microphone permission was denied. Allow microphone access for StoryLoop and try Record again, or upload an audio file instead.";
+      }
+      if (error.name === "NotFoundError" || error.name === "DevicesNotFoundError") {
+        return "No microphone was found on this device. Check your microphone and try again, or upload an audio file instead.";
+      }
+      if (error.name === "NotReadableError" || error.name === "TrackStartError") {
+        return "Your microphone is busy or unavailable right now. Close other apps using it and try again.";
+      }
+      if (error.name === "SecurityError") {
+        return "Microphone recording needs a secure browser session. Open StoryLoop over HTTPS and try again.";
+      }
+    }
+
+    if (!canUseLiveRecording()) {
+      return "This browser can't record directly here. Try Safari or Chrome on your phone, or upload an audio file instead.";
+    }
+
+    return "We couldn't access your microphone. Check browser permissions and try again, or upload an audio file instead.";
+  };
+
   const pickRecordingType = () => {
     if (typeof window === "undefined" || typeof MediaRecorder === "undefined") return "";
     return [
@@ -187,11 +210,6 @@ export default function GeneratePage() {
     }
   };
 
-  const openDeviceRecorder = () => {
-    setPreferDeviceRecorder(true);
-    audioInputRef.current?.click();
-  };
-
   const handleAudioFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = "";
@@ -205,13 +223,9 @@ export default function GeneratePage() {
       return;
     }
 
-    if (preferDeviceRecorder || !canUseLiveRecording()) {
-      openDeviceRecorder();
-      return;
-    }
-
     try {
       setError("");
+      setSuggestUploadFallback(false);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
       recordedChunksRef.current = [];
@@ -253,13 +267,16 @@ export default function GeneratePage() {
       mediaRecorderRef.current = recorder;
       recorder.start(250);
       setRecording(true);
-    } catch {
+    } catch (recordingError) {
       stopMediaStream();
-      setPreferDeviceRecorder(true);
-      audioInputRef.current?.click();
-      setError("Live microphone access is blocked here, so we switched to your device recorder. If it doesn't open, tap Record again.");
+      setSuggestUploadFallback(true);
+      setError(getMicrophoneErrorMessage(recordingError));
     }
   };
+
+  const liveRecordingSupported = canUseLiveRecording();
+  const recordButtonLabel = isTouchDevice ? "Record" : "Live mic";
+  const showRecordButton = !recording && liveRecordingSupported;
 
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-6xl">
@@ -273,30 +290,40 @@ export default function GeneratePage() {
           <div className="card p-6">
             <div className="flex items-center justify-between mb-2">
               <label className="label mb-0">Observations</label>
-              <button
-                onClick={toggleRecording}
-                disabled={loading || transcribing}
-                className={`text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                  recording ? "bg-red-500 text-white animate-pulse" : "bg-cream-100 text-clay-700 hover:bg-cream-200"
-                }`}
-              >
-                {recording ? (
-                  <>
+              <div className="flex items-center gap-2">
+                {recording && (
+                  <button
+                    onClick={toggleRecording}
+                    disabled={loading || transcribing}
+                    className="text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all bg-red-500 text-white animate-pulse"
+                  >
                     <Square className="w-3 h-3" /> Stop
-                  </>
-                ) : (
-                  <>
-                    <Mic className="w-3 h-3" /> {preferDeviceRecorder ? "Record" : "Voice"}
-                  </>
+                  </button>
                 )}
-              </button>
+                {showRecordButton && (
+                  <button
+                    onClick={toggleRecording}
+                    disabled={loading || transcribing}
+                    className="text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all bg-cream-100 text-clay-700 hover:bg-cream-200"
+                  >
+                    <Mic className="w-3 h-3" /> {recordButtonLabel}
+                  </button>
+                )}
+                <label
+                  htmlFor="voice-note-input"
+                  className={`text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
+                    loading || transcribing ? "bg-cream-50 text-ink-400 pointer-events-none" : "bg-cream-100 text-clay-700 hover:bg-cream-200"
+                  }`}
+                >
+                  <Mic className="w-3 h-3" /> Upload audio
+                </label>
+              </div>
             </div>
             <input
-              ref={audioInputRef}
+              id="voice-note-input"
               type="file"
-              accept="audio/*,.m4a,.mp3,.mp4,.mpeg,.mpga,.wav,.webm"
-              capture="user"
-              className="hidden"
+              accept="audio/*,.m4a,.mp3,.mpeg,.mpga,.wav,.webm"
+              className="sr-only"
               onChange={handleAudioFileChange}
             />
             <textarea
@@ -310,7 +337,8 @@ export default function GeneratePage() {
               {observations.length} characters · Aim for at least 3-4 quick points
               {recording ? " · Recording now..." : ""}
               {transcribing ? " · Turning your voice note into text..." : ""}
-              {!recording && !transcribing && preferDeviceRecorder ? " · On phone this opens your device recorder." : ""}
+              {!recording && !transcribing && isTouchDevice && liveRecordingSupported ? " · On phone, Record will ask for microphone access." : ""}
+              {!recording && !transcribing && suggestUploadFallback ? " · Upload audio is the fallback if mic access is blocked." : ""}
             </p>
           </div>
 
