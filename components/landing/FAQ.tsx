@@ -3,11 +3,11 @@
 const FAQS = [
   { q: "Is StoryLoop NQF and EYLF compliant?", a: "Yes. Every story is structured to align with the EYLF (Early Years Learning Framework) and reference appropriate learning outcomes. Our templates were reviewed by experienced early childhood educators and centre directors to ensure they meet NQF documentation standards." },
   { q: "Does this replace my own professional judgement?", a: "No, and it shouldn't. StoryLoop drafts the story from your observations. You review, edit, and sign off — that professional oversight is essential. Think of it as removing the blank-page problem, not your voice." },
-  { q: "What about child privacy? Is my data safe?", a: "Absolutely critical to us. Your observations are never used to train AI models. All data is stored securely in Australian data centres. You can delete any child profile or story at any time. We are fully compliant with Australian Privacy Principles." },
+  { q: "What about child privacy? Is my data safe?", a: "Absolutely critical to us. Your observations are never used to train AI models. Data is stored securely, access-controlled, and kept separate from model training. If you need a specific privacy workflow for your service, we can work through it with you." },
   { q: "Can I use it offline?", a: "Not yet — StoryLoop runs in your browser. Voice recording and story generation need an internet connection. We're working on a mobile app that will support offline mode later in 2026." },
-  { q: "Do you support Te Whāriki for New Zealand?", a: "Yes. When you set your centre location to New Zealand, stories align with Te Whāriki learning outcomes and principles rather than EYLF." },
-  { q: "Can my whole team use one account?", a: "The Centre plan includes up to 10 educator accounts under one centre. Each educator has their own login but you share child profiles and branding." },
-  { q: "What happens if I cancel?", a: "You keep access until the end of your billing period. After that, you can still sign in and export your existing stories for 90 days, then your data is deleted." },
+  { q: "Do you support Te Whāriki for New Zealand?", a: "Yes. When you choose New Zealand, StoryLoop shifts to a Te Whariki lens and can surface learning dispositions, social and emotional learning links, natural te reo Maori, and whanau-facing wording. It also supports Kowhiti Whakapae-style social and emotional noticing and careful Tapasa-informed cultural responsiveness when relevant." },
+  { q: "Can my whole team use one account?", a: "The Centre plan is designed for services that want shared billing, rollout support, and admin visibility. If you need a specific multi-user setup, contact us and we’ll map the right workflow with you." },
+  { q: "What happens if I cancel?", a: "You keep access until the end of your billing period. After that your account drops back to the free tier while it remains active, so you can still sign in and access saved stories." },
   { q: "Is there a discount for NDIS / not-for-profit centres?", a: "Yes. Email hello@storyloop.app with your ACNC registration and we'll offer a 30% discount on the Centre plan." },
 ];
 

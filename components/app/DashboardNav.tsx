@@ -2,8 +2,9 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, X, BookOpen } from "lucide-react";
+import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { getMonthlyStoryLimit, getStoryAllowanceLabel } from "@/lib/story-limits";
 
 const NAV = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -18,8 +19,20 @@ const PLAN_LABEL: Record<string, { label: string; colour: string }> = {
   centre: { label: "Centre", colour: "bg-sage-100 text-sage-700" },
 };
 
-export default function DashboardNav({ userEmail, userName, plan, storiesUsed }: {
-  userEmail: string; userName: string; plan: string; storiesUsed: number;
+export default function DashboardNav({
+  userEmail,
+  userName,
+  plan,
+  storiesUsed,
+  monthlyStoryLimitOverride,
+  appliedAccessCode,
+}: {
+  userEmail: string;
+  userName: string;
+  plan: string;
+  storiesUsed: number;
+  monthlyStoryLimitOverride: number | null;
+  appliedAccessCode: string | null;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -28,7 +41,16 @@ export default function DashboardNav({ userEmail, userName, plan, storiesUsed }:
 
   const handleLogout = async () => { await supabase.auth.signOut(); router.push("/"); router.refresh(); };
 
-  const limit = plan === "free" ? 3 : 99999;
+  const limit = getMonthlyStoryLimit({
+    plan,
+    monthly_story_limit_override: monthlyStoryLimitOverride,
+    applied_access_code: appliedAccessCode,
+  });
+  const allowanceLabel = getStoryAllowanceLabel({
+    plan,
+    monthly_story_limit_override: monthlyStoryLimitOverride,
+    applied_access_code: appliedAccessCode,
+  });
   const planInfo = PLAN_LABEL[plan] ?? PLAN_LABEL.free;
   const initials = userName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
 
@@ -60,17 +82,18 @@ export default function DashboardNav({ userEmail, userName, plan, storiesUsed }:
       </nav>
 
       {/* Usage indicator */}
-      {plan === "free" && (
+      {limit !== null && (
         <div className="px-3 pb-3">
           <div className="bg-cream-50 border border-clay-200 rounded-xl p-3">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold text-clay-700 uppercase tracking-wider">Free stories</span>
+              <span className="text-[10px] font-bold text-clay-700 uppercase tracking-wider">Monthly allowance</span>
               <span className="text-xs font-bold text-ink-900">{storiesUsed}/{limit}</span>
             </div>
             <div className="w-full h-1.5 bg-clay-100 rounded-full overflow-hidden mb-2">
               <div className="h-full bg-clay-500 rounded-full transition-all" style={{ width: `${Math.min((storiesUsed/limit)*100,100)}%` }} />
             </div>
-            <Link href="/billing" className="text-xs font-semibold text-clay-700 hover:text-clay-900">Upgrade for unlimited →</Link>
+            <p className="text-[11px] text-ink-600 mb-1.5">{allowanceLabel}</p>
+            <Link href="/billing" className="text-xs font-semibold text-clay-700 hover:text-clay-900">View plans →</Link>
           </div>
         </div>
       )}
@@ -81,6 +104,7 @@ export default function DashboardNav({ userEmail, userName, plan, storiesUsed }:
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-ink-800 truncate">{userName}</p>
             <span className={`inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full ${planInfo.colour} mt-0.5`}>{planInfo.label}</span>
+            {appliedAccessCode && <p className="text-[10px] text-clay-700 mt-1">{appliedAccessCode.toUpperCase()} access</p>}
           </div>
           <button onClick={handleLogout} title="Sign out" className="text-ink-400 hover:text-ink-700 transition-colors p-1">
             <LogOut className="w-3.5 h-3.5" />

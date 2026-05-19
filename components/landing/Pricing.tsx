@@ -4,15 +4,15 @@ import { useState, useEffect } from "react";
 import { Check } from "lucide-react";
 
 const PLANS_AUD = [
-  { name: "Free", price: 0, stories: "3 stories/month", cta: "Start free", features: ["3 stories per month", "EYLF alignment", "Copy & export", "No credit card required"], priceId: null },
-  { name: "Educator", price: 19, stories: "Unlimited stories", cta: "Start 7-day free trial", features: ["Unlimited learning stories", "Save unlimited child profiles", "Voice input", "PDF export", "All 3 tone styles", "Story history (12 months)", "Email support"], priceId: "educator", popular: true },
-  { name: "Centre", price: 49, stories: "Whole team access", cta: "Start 7-day free trial", features: ["Everything in Educator", "Up to 10 educators", "Shared child profiles", "Centre branding on exports", "Bulk PDF export", "Priority support", "NQF reporting templates"], priceId: "centre" },
+  { name: "Free", price: 0, stories: "3 stories/month", cta: "Start free", features: ["3 stories per month", "EYLF or Te Whariki alignment", "Copy into your workflow", "No credit card required"], priceId: null },
+  { name: "Educator", price: 19, stories: "Unlimited stories", cta: "Choose Educator", features: ["Unlimited learning stories", "Voice notes", "All 3 tone styles", "Story history", "Email support"], priceId: "educator", popular: true },
+  { name: "Centre", price: 49, stories: "Unlimited stories for your rollout", cta: "Choose Centre", features: ["Everything in Educator", "Shared billing", "Priority support", "Team rollout planning", "Admin oversight"], priceId: "centre" },
 ];
 
 const PLANS_NZD = [
-  { name: "Free", price: 0, stories: "3 stories/month", cta: "Start free", features: ["3 stories per month", "EYLF/Te Whāriki alignment", "Copy & export", "No credit card required"], priceId: null },
-  { name: "Educator", price: 21, stories: "Unlimited stories", cta: "Start 7-day free trial", features: ["Unlimited learning stories", "Save unlimited child profiles", "Voice input", "PDF export", "All 3 tone styles", "Story history (12 months)", "Email support"], priceId: "educator", popular: true },
-  { name: "Centre", price: 55, stories: "Whole team access", cta: "Start 7-day free trial", features: ["Everything in Educator", "Up to 10 educators", "Shared child profiles", "Centre branding on exports", "Bulk PDF export", "Priority support", "NQF reporting templates"], priceId: "centre" },
+  { name: "Free", price: 0, stories: "3 stories/month", cta: "Start free", features: ["3 stories per month", "EYLF/Te Whariki alignment", "Copy into your workflow", "No credit card required"], priceId: null },
+  { name: "Educator", price: 21, stories: "Unlimited stories", cta: "Choose Educator", features: ["Unlimited learning stories", "Voice notes", "All 3 tone styles", "Story history", "Email support"], priceId: "educator", popular: true },
+  { name: "Centre", price: 55, stories: "Unlimited stories for your rollout", cta: "Choose Centre", features: ["Everything in Educator", "Shared billing", "Priority support", "Team rollout planning", "Admin oversight"], priceId: "centre" },
 ];
 
 export default function Pricing() {
@@ -34,7 +34,7 @@ export default function Pricing() {
           <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-900 mb-4">
             Pay less than one lunch break of saved time.
           </h2>
-          <p className="text-ink-600 mb-6">One story saved = 30 mins back with the children.</p>
+          <p className="text-ink-600 mb-6">Start with a simple draft, then review and tweak it before it goes anywhere.</p>
 
           {/* Currency toggle */}
           <div className="inline-flex bg-white border border-clay-200 rounded-xl p-1">

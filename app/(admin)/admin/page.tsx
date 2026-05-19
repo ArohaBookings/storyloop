@@ -3,10 +3,12 @@ import { verifyAdmin } from "@/lib/admin-auth";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import Link from "next/link";
 import { Users, TrendingUp, DollarSign, BookOpen, LogOut, ShieldAlert, Activity } from "lucide-react";
+import { getMonthlyStoryLimit } from "@/lib/story-limits";
 
 export const metadata = { title: "Admin · StoryLoop" };
 
 const PRICES: Record<string, number> = { educator: 19, centre: 49 };
+const REVENUE_STATUSES = new Set(["active", "trialing", "admin_override"]);
 
 export default async function AdminPage() {
   const session = await verifyAdmin();
@@ -24,14 +26,19 @@ export default async function AdminPage() {
   ] = await Promise.all([
     sb.from("profiles").select("*", { count: "exact", head: true }),
     sb.from("profiles").select("*", { count: "exact", head: true }).neq("plan", "free"),
-    sb.from("profiles").select("id, full_name, plan, stories_this_month, subscription_status, created_at, email").order("created_at", { ascending: false }).limit(12),
+    sb.from("profiles")
+      .select("id, full_name, plan, stories_this_month, subscription_status, created_at, email, monthly_story_limit_override, applied_access_code")
+      .order("created_at", { ascending: false })
+      .limit(12),
     sb.from("stories").select("*", { count: "exact", head: true }),
     sb.from("stories").select("id, child_name, age_group, created_at, profiles!inner(full_name, email)").order("created_at", { ascending: false }).limit(8),
     sb.from("admin_audit_log").select("action, target_type, target_id, created_at, details").order("created_at", { ascending: false }).limit(8),
-    sb.from("profiles").select("plan").neq("plan", "free"),
+    sb.from("profiles").select("plan, subscription_status").neq("plan", "free"),
   ]);
 
-  const mrr = (payingUsers ?? []).reduce((s, p) => s + (PRICES[p.plan] ?? 0), 0);
+  const mrr = (payingUsers ?? []).reduce((sum, user) => {
+    return REVENUE_STATUSES.has(user.subscription_status) ? sum + (PRICES[user.plan] ?? 0) : sum;
+  }, 0);
 
   const PLAN_BADGE: Record<string, string> = {
     free: "bg-ink-800 text-ink-300",
@@ -102,10 +109,17 @@ export default async function AdminPage() {
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">{u.full_name ?? "—"}</p>
                         <p className="text-xs text-ink-500 truncate">{u.email}</p>
+                        {u.applied_access_code && <p className="text-[10px] text-clay-400 mt-0.5">{u.applied_access_code.toUpperCase()} access</p>}
                       </div>
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0">
-                      <span className="text-xs text-ink-500">{u.stories_this_month ?? 0} stories</span>
+                      <span className="text-xs text-ink-500">
+                        {u.stories_this_month ?? 0}
+                        {(() => {
+                          const limit = getMonthlyStoryLimit(u);
+                          return limit === null ? "" : `/${limit}`;
+                        })()} stories
+                      </span>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${PLAN_BADGE[u.plan] ?? PLAN_BADGE.free}`}>{u.plan}</span>
                     </div>
                   </div>

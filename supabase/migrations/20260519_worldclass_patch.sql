@@ -1,71 +1,13 @@
--- ============================================================
--- STORYLOOP — Supabase Database Schema v1.0
--- Run this entire file in your Supabase SQL Editor
--- ============================================================
-
-create extension if not exists pgcrypto;
 create schema if not exists private;
 revoke all on schema private from public;
 grant usage on schema private to postgres, service_role;
-
--- User profiles (one per auth user)
-create table if not exists public.profiles (
-  id uuid references auth.users(id) on delete cascade primary key,
-  email text,
-  full_name text,
-  plan text default 'free',  -- free | educator | centre
-  subscription_status text default 'free',  -- free | trialing | active | past_due | cancelled | admin_override
-  stripe_customer_id text unique,
-  stripe_subscription_id text,
-  trial_ends_at timestamptz,
-  current_period_end timestamptz,
-  stories_this_month int default 0,
-  total_stories int default 0,
-  monthly_story_limit_override int,
-  applied_access_code text,
-  story_preferences jsonb not null default '{}'::jsonb,
-  is_active boolean default true,
-  created_at timestamptz default now(),
-  last_reset_at timestamptz default now()
-);
 
 alter table public.profiles add column if not exists monthly_story_limit_override int;
 alter table public.profiles add column if not exists applied_access_code text;
 alter table public.profiles add column if not exists story_preferences jsonb not null default '{}'::jsonb;
 
--- Child profiles (optional - saved for quicker story creation)
-create table if not exists public.child_profiles (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references public.profiles(id) on delete cascade not null,
-  name text not null,
-  age_group text,
-  interests text[],
-  developmental_focus text,
-  notes text,
-  created_at timestamptz default now()
-);
-
--- Stories
-create table if not exists public.stories (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references public.profiles(id) on delete cascade not null,
-  child_id uuid references public.child_profiles(id) on delete set null,
-  child_name text,
-  age_group text,
-  observations text,
-  story_text text not null,
-  outcomes text[],
-  next_steps text[],
-  tone text default 'warm',
-  location text default 'AU',
-  word_count int,
-  metadata jsonb not null default '{}'::jsonb,
-  created_at timestamptz default now()
-);
-
 alter table public.stories add column if not exists metadata jsonb not null default '{}'::jsonb;
 
--- Private access codes for complimentary allowances and stored preferences
 create table if not exists private.access_codes (
   code text primary key,
   label text,
@@ -82,43 +24,18 @@ create table if not exists private.access_codes (
 
 grant all on table private.access_codes to postgres, service_role;
 
--- Admin audit log
-create table if not exists public.admin_audit_log (
-  id uuid default gen_random_uuid() primary key,
-  action text not null,
-  target_type text,
-  target_id text,
-  details jsonb,
-  created_at timestamptz default now()
-);
-
--- ============================================================
--- ROW LEVEL SECURITY
--- ============================================================
-alter table public.profiles enable row level security;
-alter table public.child_profiles enable row level security;
-alter table public.stories enable row level security;
-alter table public.admin_audit_log enable row level security;
-
--- Users can only see/edit their own data
 drop policy if exists "own_profile" on public.profiles;
 drop policy if exists "own_profile_update" on public.profiles;
-create policy "own_profile" on public.profiles for select using ((select auth.uid()) = id);
-create policy "own_profile_update" on public.profiles for update using ((select auth.uid()) = id);
-
 drop policy if exists "own_children" on public.child_profiles;
 drop policy if exists "own_stories" on public.stories;
+
+create policy "own_profile" on public.profiles for select using ((select auth.uid()) = id);
+create policy "own_profile_update" on public.profiles for update using ((select auth.uid()) = id);
 create policy "own_children" on public.child_profiles for all using ((select auth.uid()) = user_id);
 create policy "own_stories" on public.stories for all using ((select auth.uid()) = user_id);
-
--- Admin audit log: service-role only (no public access)
--- (access via API routes using createAdminSupabase())
 drop policy if exists "admin_audit_locked" on public.admin_audit_log;
 create policy "admin_audit_locked" on public.admin_audit_log for all using (false) with check (false);
 
--- ============================================================
--- AUTO-CREATE PROFILE ON SIGNUP
--- ============================================================
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
@@ -134,17 +51,9 @@ end;
 $$ language plpgsql security definer
 set search_path = public;
 
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute procedure public.handle_new_user();
-
 revoke all on function public.handle_new_user() from public, anon, authenticated;
 grant execute on function public.handle_new_user() to postgres, service_role;
 
--- ============================================================
--- MONTHLY USAGE RESET (called from a cron)
--- ============================================================
 create or replace function public.reset_monthly_usage()
 returns void as $$
 begin
@@ -249,13 +158,4 @@ set label = excluded.label,
     max_redemptions = excluded.max_redemptions,
     is_active = excluded.is_active;
 
--- ============================================================
--- INDEXES
--- ============================================================
-create index if not exists idx_stories_user on public.stories(user_id);
-create index if not exists idx_stories_created on public.stories(created_at desc);
 create index if not exists idx_stories_child on public.stories(child_id);
-create index if not exists idx_children_user on public.child_profiles(user_id);
-create index if not exists idx_audit_created on public.admin_audit_log(created_at desc);
-create index if not exists idx_profiles_plan on public.profiles(plan);
-create index if not exists idx_profiles_stripe on public.profiles(stripe_customer_id);

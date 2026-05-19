@@ -39,7 +39,7 @@ export default function Footer() {
             <h4 className="font-display font-bold text-paper mb-4 text-sm">Sister products</h4>
             <ul className="space-y-3 text-sm">
               <li>
-                <a href="https://aria.care" target="_blank" rel="noopener" className="group block">
+                <a href="https://ariacare.app" target="_blank" rel="noopener" className="group block">
                   <span className="text-paper font-semibold group-hover:text-cream-200 transition-colors">Aria Care →</span>
                   <p className="text-xs text-ink-400 mt-0.5">AI operating system for NDIS providers</p>
                 </a>

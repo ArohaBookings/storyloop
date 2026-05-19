@@ -1,11 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Check, Loader2, CreditCard, ExternalLink } from "lucide-react";
+import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
 
 const PLANS_AUD = [
-  { name: "Free", price: 0, key: "free", stories: "3 stories per month", features: ["3 stories/month", "EYLF alignment", "Story history"] },
-  { name: "Educator", price: 19, key: "educator", stories: "Unlimited stories", features: ["Unlimited stories", "Voice input", "PDF export", "All tone styles", "Email support"], popular: true },
-  { name: "Centre", price: 49, key: "centre", stories: "Up to 10 educators", features: ["Everything in Educator", "10 educators", "Shared child profiles", "Centre branding", "Priority support"] },
+  { name: "Free", price: 0, key: "free", stories: "3 stories per month", features: ["3 stories/month", "EYLF or Te Whariki alignment", "Story history"] },
+  { name: "Educator", price: 19, key: "educator", stories: "Unlimited stories", features: ["Unlimited stories", "Voice notes", "All tone styles", "Story history", "Email support"], popular: true },
+  { name: "Centre", price: 49, key: "centre", stories: "Unlimited stories for your rollout", features: ["Everything in Educator", "Shared billing", "Priority support", "Team rollout planning", "Admin oversight"] },
 ];
 const PLANS_NZD = PLANS_AUD.map(p => ({ ...p, price: p.price === 0 ? 0 : p.price === 19 ? 21 : 55 }));
 
@@ -41,6 +42,9 @@ export default function BillingPage() {
 
   const plans = currency === "AUD" ? PLANS_AUD : PLANS_NZD;
   const currentPlan = profile?.plan ?? "free";
+  const limit = getMonthlyStoryLimit(profile ?? {});
+  const remaining = getRemainingStories(profile ?? {});
+  const allowanceLabel = getStoryAllowanceLabel(profile ?? {});
 
   return (
     <div className="p-6 md:p-8 max-w-5xl">
@@ -60,7 +64,14 @@ export default function BillingPage() {
                 {profile?.subscription_status ?? "free"}
               </span>
             </div>
-            <p className="text-sm text-ink-600 mt-1">{profile?.stories_this_month ?? 0} stories used this month</p>
+            <p className="text-sm text-ink-600 mt-1">
+              {profile?.stories_this_month ?? 0} stories used this month
+              {limit !== null ? ` · ${remaining ?? 0} left` : ""}
+            </p>
+            <p className="text-xs text-clay-700 mt-1">{allowanceLabel}</p>
+            {profile?.applied_access_code && (
+              <p className="text-xs text-ink-500 mt-1">Complimentary access code: {profile.applied_access_code.toUpperCase()}</p>
+            )}
           </div>
           {currentPlan !== "free" && (
             <button onClick={handlePortal} disabled={loading === "portal"} className="btn-secondary">

@@ -2,8 +2,8 @@ import { Mic, Cpu, Download } from "lucide-react";
 
 const STEPS = [
   { num: "01", icon: Mic, title: "Capture the moment", desc: "Voice record a 30-second observation after play, or type 3-5 quick bullets. No formal structure needed." },
-  { num: "02", icon: Cpu, title: "StoryLoop writes it", desc: "AI turns your notes into a full EYLF-aligned learning story with reflection and extension suggestions." },
-  { num: "03", icon: Download, title: "Review, tweak, publish", desc: "Edit anything that's not quite right, export as PDF, copy to your documentation system. Done." },
+  { num: "02", icon: Cpu, title: "StoryLoop shapes it", desc: "StoryLoop turns rough notes into a first draft with curriculum links, dispositions, and practical next steps." },
+  { num: "03", icon: Download, title: "Review, tweak, publish", desc: "Edit anything that needs your touch, then copy it into your usual documentation system." },
 ];
 
 export default function HowItWorks() {

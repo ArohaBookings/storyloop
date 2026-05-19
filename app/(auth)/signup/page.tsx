@@ -8,14 +8,18 @@ export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [accessCode, setAccessCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [plan, setPlan] = useState("free");
   const router = useRouter();
 
   useEffect(() => {
-    const selectedPlan = new URLSearchParams(window.location.search).get("plan");
+    const params = new URLSearchParams(window.location.search);
+    const selectedPlan = params.get("plan");
+    const code = params.get("code");
     if (selectedPlan) setPlan(selectedPlan);
+    if (code) setAccessCode(code);
   }, []);
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -25,7 +29,7 @@ export default function SignupPage() {
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password, plan }),
+      body: JSON.stringify({ name, email, password, plan, accessCode }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -54,12 +58,22 @@ export default function SignupPage() {
           </div>
 
           <h1 className="font-display text-2xl font-bold text-ink-900 mb-1">Start free</h1>
-          <p className="text-sm text-ink-500 mb-6">3 free stories, no credit card.</p>
+          <p className="text-sm text-ink-500 mb-6">3 free stories, no credit card. Have a complimentary code? Add it below.</p>
 
           <form onSubmit={handleSignup} className="space-y-4">
             <div><label className="label">Your name</label><input value={name} onChange={e => setName(e.target.value)} required autoComplete="name" className="input" placeholder="Jane Smith" /></div>
             <div><label className="label">Email</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" className="input" placeholder="you@centre.com.au" /></div>
             <div><label className="label">Password</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} required autoComplete="new-password" minLength={8} className="input" placeholder="At least 8 characters" /></div>
+            <div>
+              <label className="label">Special access code</label>
+              <input
+                value={accessCode}
+                onChange={e => setAccessCode(e.target.value)}
+                autoComplete="off"
+                className="input"
+                placeholder="Optional"
+              />
+            </div>
             {error && <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{error}</div>}
             <button type="submit" disabled={loading} className="btn-primary w-full py-3">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create free account"}

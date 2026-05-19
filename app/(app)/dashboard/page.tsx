@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Sparkles, Clock, BookOpen, TrendingUp } from "lucide-react";
+import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
 
 export const metadata = { title: "Dashboard" };
 
@@ -9,7 +10,11 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   const [{ data: profile }, { data: recentStories, count: totalStories }] = await Promise.all([
-    supabase.from("profiles").select("full_name, plan, stories_this_month").eq("id", user!.id).single(),
+    supabase
+      .from("profiles")
+      .select("full_name, plan, stories_this_month, monthly_story_limit_override, applied_access_code")
+      .eq("id", user!.id)
+      .single(),
     supabase.from("stories").select("id, story_text, outcomes, age_group, child_name, created_at", { count: "exact" })
       .eq("user_id", user!.id).order("created_at", { ascending: false }).limit(3),
   ]);
@@ -17,6 +22,9 @@ export default async function DashboardPage() {
   const firstName = profile?.full_name?.split(" ")[0] ?? "there";
   const plan = profile?.plan ?? "free";
   const used = profile?.stories_this_month ?? 0;
+  const limit = getMonthlyStoryLimit(profile ?? {});
+  const remaining = getRemainingStories(profile ?? {});
+  const allowanceLabel = getStoryAllowanceLabel(profile ?? {});
 
   const greeting = (() => {
     const h = new Date().getHours();
@@ -50,9 +58,23 @@ export default async function DashboardPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {[
-          { label: "Stories this month", value: used, icon: BookOpen, sub: plan === "free" ? `${3 - used} free left` : "Unlimited" },
+          {
+            label: "Stories this month",
+            value: used,
+            icon: BookOpen,
+            sub: limit === null ? "Unlimited" : `${remaining ?? 0} left · ${allowanceLabel}`,
+          },
           { label: "Total stories", value: totalStories ?? 0, icon: TrendingUp, sub: "Lifetime" },
-          { label: "Current plan", value: plan.charAt(0).toUpperCase() + plan.slice(1), icon: Clock, sub: plan === "free" ? "Upgrade for more" : "Active" },
+          {
+            label: "Current plan",
+            value: plan.charAt(0).toUpperCase() + plan.slice(1),
+            icon: Clock,
+            sub: profile?.applied_access_code
+              ? `${profile.applied_access_code.toUpperCase()} complimentary access`
+              : plan === "free"
+                ? "Upgrade for more"
+                : "Active",
+          },
         ].map(({ label, value, icon: Icon, sub }) => (
           <div key={label} className="card p-5">
             <div className="flex items-center gap-2.5 mb-3">

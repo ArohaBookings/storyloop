@@ -1,14 +1,14 @@
 import { Mic, FileText, Users, Clock, Shield, Heart, Sparkles, Download } from "lucide-react";
 
 const FEATURES = [
-  { icon: Mic, title: "Voice or text input", desc: "Tap the mic, speak what you observed. Or type a few bullet points. Takes 20 seconds." },
-  { icon: FileText, title: "EYLF aligned", desc: "Every story references appropriate EYLF learning outcomes automatically. NQS-ready." },
-  { icon: Users, title: "Remembers your children", desc: "Save child profiles with age, interests, developmental focus. Stories get more personalised over time." },
-  { icon: Sparkles, title: "Multiple tones", desc: "Warm and narrative, concise and observational, or detailed and reflective. You choose." },
-  { icon: Download, title: "Export to anywhere", desc: "Copy to clipboard, download as PDF, or send straight to your documentation system." },
-  { icon: Clock, title: "Saves 10+ hours/week", desc: "What used to take 30 minutes now takes 30 seconds. Scale it across your whole team." },
-  { icon: Heart, title: "Written in your voice", desc: "Not generic AI slop. Warm, authentic language that sounds like you actually wrote it." },
-  { icon: Shield, title: "Privacy first", desc: "Your observations are never used to train AI. Data stays in Australia. Full NQF compliance." },
+  { icon: Mic, title: "Voice or text input", desc: "Tap the mic and speak what you noticed, or type a few quick bullet points. StoryLoop cleans it up from there." },
+  { icon: FileText, title: "EYLF and Te Whariki ready", desc: "Stories link to the right curriculum without turning into policy-speak." },
+  { icon: Users, title: "Story history built in", desc: "Every story stays saved in one place so you can revisit, copy, and refine it later." },
+  { icon: Sparkles, title: "Multiple tones", desc: "Choose warm, concise, or reflective depending on the educator style you want to start from." },
+  { icon: Download, title: "Easy to copy across", desc: "Copy the finished story straight into your existing documentation system or family update flow." },
+  { icon: Clock, title: "Cuts down rewriting", desc: "Start from a usable first draft instead of a blank page at the end of the day." },
+  { icon: Heart, title: "Sounds like an educator", desc: "More grounded, less robotic. The goal is a draft you can recognise and edit quickly." },
+  { icon: Shield, title: "Privacy first", desc: "Your observations are never used to train AI models. Data is access-controlled and stored securely." },
 ];
 
 export default function Features() {
@@ -21,7 +21,7 @@ export default function Features() {
             Built by people who actually<br/>
             <span className="italic text-clay-700">understand the job.</span>
           </h2>
-          <p className="text-ink-600 text-lg">Not a generic ChatGPT wrapper. Trained on EYLF, NQS, and what educators actually write.</p>
+          <p className="text-ink-600 text-lg">Built around real educator workflow, not generic AI theatre.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">

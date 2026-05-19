@@ -52,7 +52,7 @@ export default function AboutPage() {
               night. Teachers, educators, support workers. The documentation burden is crushing the people who care most.
             </p>
             <p>
-              So I built StoryLoop: a tool that turns a few quick observations into a beautifully written,
+              So I built StoryLoop: a tool that turns a few quick observations into a clear,
               EYLF-aligned learning story in under 30 seconds. Not to replace the educator's voice — to protect it.
               To give them back the hours they should be spending with their family, not on a laptop at 10pm.
             </p>
@@ -70,11 +70,11 @@ export default function AboutPage() {
                 <p className="text-xs text-ink-600">AI learning stories for early childhood educators</p>
                 <p className="text-[10px] text-clay-600 mt-2 font-mono">YOU ARE HERE</p>
               </a>
-              <a href="https://aria.care" target="_blank" rel="noopener" className="card p-5 hover:border-clay-300 transition-all">
+              <a href="https://ariacare.app" target="_blank" rel="noopener" className="card p-5 hover:border-clay-300 transition-all">
                 <Users className="w-6 h-6 text-clay-700 mb-3" />
                 <h3 className="font-display font-bold text-ink-900 mb-1">Aria Care</h3>
                 <p className="text-xs text-ink-600">AI operating system for NDIS disability support providers</p>
-                <p className="text-[10px] text-ink-400 mt-2 font-mono">aria.care →</p>
+                <p className="text-[10px] text-ink-400 mt-2 font-mono">ariacare.app →</p>
               </a>
               <a href="https://arohaai.app" target="_blank" rel="noopener" className="card p-5 hover:border-clay-300 transition-all">
                 <Code2 className="w-6 h-6 text-clay-700 mb-3" />
@@ -96,7 +96,7 @@ export default function AboutPage() {
                 "Fair pricing. Always. I'm not trying to milk you — I'm trying to build something sustainable you can actually afford.",
                 "Your data is yours. Never sold, never used to train AI models, stored in Australia.",
                 "Real support. Email me directly. I read every message. I reply.",
-                "No lock-in. Cancel anytime. Export everything. I'd rather earn your trust than trap you.",
+                "No lock-in. Cancel anytime. Keep access to what you've written while your account stays active.",
                 "Honest roadmap. If I'm building something, I'll tell you. If it's going to be late, I'll tell you that too.",
               ].map((promise, i) => (
                 <li key={i} className="flex items-start gap-3 text-ink-700">

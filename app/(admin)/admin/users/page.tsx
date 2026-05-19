@@ -2,11 +2,14 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { ArrowLeft, Search, Loader2, Mail, Key, Ban, CheckCircle, ChevronDown, RefreshCw } from "lucide-react";
+import { getMonthlyStoryLimit, getStoryAllowanceLabel } from "@/lib/story-limits";
 
 interface User {
   id: string; email: string; full_name: string; plan: string;
   subscription_status: string; stories_this_month: number; created_at: string;
   is_active: boolean;
+  monthly_story_limit_override: number | null;
+  applied_access_code: string | null;
 }
 
 const PLAN_BADGE: Record<string, string> = {
@@ -71,7 +74,7 @@ export default function AdminUsersPage() {
             <table className="w-full min-w-[800px]">
               <thead>
                 <tr className="border-b border-ink-800 bg-ink-800/30">
-                  {["User", "Plan", "Status", "Stories", "Joined", "Actions"].map(h => (
+                  {["User", "Plan", "Status", "Usage", "Joined", "Actions"].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-ink-500 uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -87,12 +90,22 @@ export default function AdminUsersPage() {
                         <div>
                           <p className="text-sm font-medium">{u.full_name ?? "—"}</p>
                           <p className="text-xs text-ink-500">{u.email}</p>
+                          {u.applied_access_code && <p className="text-[10px] text-clay-400 mt-0.5">{u.applied_access_code.toUpperCase()} access</p>}
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3"><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${PLAN_BADGE[u.plan] ?? PLAN_BADGE.free}`}>{u.plan}</span></td>
                     <td className="px-4 py-3"><span className="text-xs text-ink-400">{u.subscription_status ?? "—"}</span></td>
-                    <td className="px-4 py-3"><span className="text-sm">{u.stories_this_month ?? 0}</span></td>
+                    <td className="px-4 py-3">
+                      <span className="text-sm">
+                        {u.stories_this_month ?? 0}
+                        {(() => {
+                          const limit = getMonthlyStoryLimit(u);
+                          return limit === null ? "" : `/${limit}`;
+                        })()}
+                      </span>
+                      <p className="text-[10px] text-ink-500 mt-0.5">{getStoryAllowanceLabel(u)}</p>
+                    </td>
                     <td className="px-4 py-3"><span className="text-xs text-ink-500">{new Date(u.created_at).toLocaleDateString("en-AU")}</span></td>
                     <td className="px-4 py-3 relative">
                       <button onClick={() => setOpenActions(openActions === u.id ? null : u.id)}

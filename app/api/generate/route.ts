@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateLearningStory } from "@/lib/ai/generate";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getMonthlyStoryLimit, getRemainingStories } from "@/lib/story-limits";
+import { mergeStoryPreferences, normalizeFramework, normalizeTone } from "@/lib/story-options";
 
 // In-memory rate limit for demo mode (per-IP)
 const demoRateLimit = new Map<string, { count: number; resetAt: number }>();
@@ -24,10 +26,6 @@ function checkDemoRateLimit(ip: string): boolean {
   return true;
 }
 
-const PLAN_LIMITS: Record<string, number> = {
-  free: 3, educator: 99999, centre: 99999,
-};
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -43,8 +41,21 @@ export async function POST(request: NextRequest) {
       if (!checkDemoRateLimit(ip)) {
         return NextResponse.json({ error: "Demo limit reached. Sign up to keep going — it's free." }, { status: 429 });
       }
-      const result = await generateLearningStory({ observations, ageGroup, location });
-      return NextResponse.json({ story: result.story, outcomes: result.outcomes, nextSteps: result.nextSteps });
+      const result = await generateLearningStory({
+        observations,
+        ageGroup,
+        framework: normalizeFramework(typeof location === "string" ? location : undefined),
+      });
+      return NextResponse.json({
+        story: result.story,
+        outcomes: result.outcomes,
+        learningSummary: result.learningSummary,
+        learningDispositions: result.learningDispositions,
+        socialEmotionalLinks: result.socialEmotionalLinks,
+        culturalConnections: result.culturalConnections,
+        whanauConnection: result.whanauConnection,
+        nextSteps: result.nextSteps,
+      });
     }
 
     // AUTHENTICATED MODE
@@ -57,20 +68,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Your account has been disabled. Contact support." }, { status: 403 });
     }
 
-    const plan = profile?.plan ?? "free";
-    const used = profile?.stories_this_month ?? 0;
-    const limit = PLAN_LIMITS[plan] ?? 3;
+    const plan = profile.plan ?? "free";
+    const used = profile.stories_this_month ?? 0;
+    const preferences = mergeStoryPreferences(profile.story_preferences);
+    const framework = normalizeFramework(
+      typeof location === "string" ? location : preferences.defaultFramework
+    );
+    const resolvedTone = normalizeTone(typeof tone === "string" ? tone : preferences.preferredTone);
+    const limit = getMonthlyStoryLimit(profile);
 
-    if (used >= limit) {
+    if (limit !== null && used >= limit) {
       return NextResponse.json({
         error: plan === "free"
-          ? "You've used your 3 free stories this month. Upgrade for unlimited."
+          ? profile.applied_access_code
+            ? `You've used your ${limit} complimentary stories this month.`
+            : "You've used your 3 free stories this month. Upgrade for unlimited."
           : "Monthly limit reached.",
         upgradeRequired: plan === "free",
       }, { status: 403 });
     }
 
-    const result = await generateLearningStory({ observations, ageGroup, childName, tone, location });
+    const result = await generateLearningStory({
+      observations,
+      ageGroup,
+      childName,
+      tone: resolvedTone,
+      framework,
+      preferences,
+    });
 
     // Save to history
     const { data: saved } = await supabase.from("stories").insert({
@@ -81,21 +106,42 @@ export async function POST(request: NextRequest) {
       next_steps: result.nextSteps,
       age_group: ageGroup ?? result.childAge,
       child_name: childName,
-      tone: tone ?? "warm",
-      location: location ?? "AU",
+      tone: resolvedTone,
+      location: framework,
       word_count: result.wordCount,
+      metadata: {
+        learningSummary: result.learningSummary,
+        learningDispositions: result.learningDispositions,
+        socialEmotionalLinks: result.socialEmotionalLinks,
+        culturalConnections: result.culturalConnections,
+        whanauConnection: result.whanauConnection,
+      },
     }).select("id").single();
 
     // Increment usage
-    await supabase.from("profiles").update({ stories_this_month: used + 1 }).eq("id", user.id);
+    await supabase
+      .from("profiles")
+      .update({
+        stories_this_month: used + 1,
+        total_stories: (profile.total_stories ?? 0) + 1,
+      })
+      .eq("id", user.id);
 
     return NextResponse.json({
       success: true,
       storyId: saved?.id,
       story: result.story,
       outcomes: result.outcomes,
+      learningSummary: result.learningSummary,
+      learningDispositions: result.learningDispositions,
+      socialEmotionalLinks: result.socialEmotionalLinks,
+      culturalConnections: result.culturalConnections,
+      whanauConnection: result.whanauConnection,
       nextSteps: result.nextSteps,
-      remaining: limit === 99999 ? "unlimited" : limit - used - 1,
+      remaining:
+        limit === null
+          ? "unlimited"
+          : getRemainingStories({ ...profile, stories_this_month: used + 1 }),
     });
   } catch (error) {
     console.error("Generate error:", error);

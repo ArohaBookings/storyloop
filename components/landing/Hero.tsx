@@ -23,17 +23,17 @@ export default function Hero() {
         <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold text-ink-900 leading-[1.02] tracking-tight text-center mb-6 animate-fade-up-1">
           Turn <span className="italic font-semibold text-clay-700">three bullet points</span>
           <br />
-          into a <span className="scribble-underline">beautiful learning story</span>.
+          into a <span className="scribble-underline">learning story you can actually use</span>.
         </h1>
 
         <p className="text-center text-lg md:text-xl text-ink-600 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-up-2">
-          StoryLoop writes EYLF-aligned learning stories from a quick voice note or a few bullet points.
-          Spend less time documenting. More time with the children.
+          StoryLoop turns a quick voice note or a few rough observations into EYLF and Te Whariki aligned documentation that still sounds like an educator.
+          Spend less time rewriting. More time with the children.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-14 animate-fade-up-3">
           <Link href="/signup" className="btn-primary text-base px-8 py-4 group">
-            <Sparkles className="w-4 h-4" /> Start free — 3 stories free
+            <Sparkles className="w-4 h-4" /> Start free — 3 stories included
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
           <a href="#live-demo" className="btn-secondary text-base px-8 py-4">
@@ -43,7 +43,7 @@ export default function Hero() {
 
         {/* Trust bar */}
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-ink-500 animate-fade-up-4">
-          {["Free to try", "No credit card", "EYLF aligned", "Works on phone"].map(item => (
+          {["Free to try", "No credit card", "EYLF + Te Whariki", "Works on phone"].map(item => (
             <span key={item} className="flex items-center gap-1.5">
               <Check className="w-4 h-4 text-sage-500" />
               {item}

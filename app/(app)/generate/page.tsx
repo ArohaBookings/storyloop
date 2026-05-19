@@ -1,7 +1,8 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Sparkles, Loader2, Copy, Check, Download, Mic, Square, RefreshCw, AlertCircle } from "lucide-react";
+import { Sparkles, Loader2, Copy, Check, Mic, Square, RefreshCw, AlertCircle } from "lucide-react";
+import { normalizeFramework, normalizeTone, type StoryFrameworkId, type StoryTone } from "@/lib/story-options";
 
 const PLACEHOLDERS = [
   "• Ruby (2yo) built a block tower\n• Got frustrated when it fell\n• Tried 4 more times, each bigger\n• Clapped when it stayed up",
@@ -13,33 +14,85 @@ export default function GeneratePage() {
   const [observations, setObservations] = useState("");
   const [childName, setChildName] = useState("");
   const [ageGroup, setAgeGroup] = useState("");
-  const [tone, setTone] = useState<"warm" | "concise" | "reflective">("warm");
-  const [location, setLocation] = useState<"AU" | "NZ">("AU");
+  const [tone, setTone] = useState<StoryTone>("warm");
+  const [location, setLocation] = useState<StoryFrameworkId>("AU");
   const [story, setStory] = useState("");
   const [outcomes, setOutcomes] = useState<string[]>([]);
   const [nextSteps, setNextSteps] = useState<string[]>([]);
+  const [learningSummary, setLearningSummary] = useState("");
+  const [learningDispositions, setLearningDispositions] = useState<string[]>([]);
+  const [socialEmotionalLinks, setSocialEmotionalLinks] = useState<string[]>([]);
+  const [culturalConnections, setCulturalConnections] = useState<string[]>([]);
+  const [whanauConnection, setWhanauConnection] = useState("");
   const [remaining, setRemaining] = useState<string | number>("");
   const [loading, setLoading] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
   const [error, setError] = useState("");
   const [upgradeRequired, setUpgradeRequired] = useState(false);
   const [copied, setCopied] = useState(false);
   const [recording, setRecording] = useState(false);
   const [placeholder] = useState(() => PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)]);
-  const recognitionRef = useRef<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
-    // Auto-detect NZ by timezone
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (tz?.includes("Auckland")) setLocation("NZ");
+
+    void fetch("/api/me")
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => {
+        const preferences = data?.profile?.story_preferences;
+        if (preferences?.defaultFramework) {
+          setLocation(normalizeFramework(preferences.defaultFramework));
+        }
+        if (preferences?.preferredTone) {
+          setTone(normalizeTone(preferences.preferredTone));
+        }
+      })
+      .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    return () => {
+      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+    };
+  }, []);
+
+  const resetOutput = () => {
+    setStory("");
+    setOutcomes([]);
+    setNextSteps([]);
+    setLearningSummary("");
+    setLearningDispositions([]);
+    setSocialEmotionalLinks([]);
+    setCulturalConnections([]);
+    setWhanauConnection("");
+  };
+
   const handleGenerate = async () => {
-    if (observations.trim().length < 10) { setError("Please add more detail (at least 10 characters)"); return; }
-    setLoading(true); setError(""); setStory(""); setOutcomes([]); setNextSteps([]); setUpgradeRequired(false);
+    if (observations.trim().length < 10) {
+      setError("Please add more detail (at least 10 characters)");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    resetOutput();
+    setUpgradeRequired(false);
+
     try {
       const res = await fetch("/api/generate", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ observations, childName: childName || undefined, ageGroup: ageGroup || undefined, tone, location }),
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          observations,
+          childName: childName || undefined,
+          ageGroup: ageGroup || undefined,
+          tone,
+          location,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -47,88 +100,207 @@ export default function GeneratePage() {
         if (data.upgradeRequired) setUpgradeRequired(true);
         return;
       }
-      setStory(data.story); setOutcomes(data.outcomes ?? []); setNextSteps(data.nextSteps ?? []);
+
+      setStory(data.story);
+      setOutcomes(data.outcomes ?? []);
+      setNextSteps(data.nextSteps ?? []);
+      setLearningSummary(data.learningSummary ?? "");
+      setLearningDispositions(data.learningDispositions ?? []);
+      setSocialEmotionalLinks(data.socialEmotionalLinks ?? []);
+      setCulturalConnections(data.culturalConnections ?? []);
+      setWhanauConnection(data.whanauConnection ?? "");
       setRemaining(data.remaining);
-    } catch (e) {
+    } catch {
       setError("Something went wrong. Please try again.");
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(story);
-    setCopied(true); setTimeout(() => setCopied(false), 2000);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  const toggleRecording = () => {
-    if (typeof window === "undefined") return;
-    const SR = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
-    if (!SR) { setError("Voice input isn't supported in this browser. Try Chrome or Safari."); return; }
+  const stopMediaStream = () => {
+    mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+    mediaStreamRef.current = null;
+  };
+
+  const pickRecordingType = () => {
+    if (typeof window === "undefined" || typeof MediaRecorder === "undefined") return "";
+    return [
+      "audio/webm;codecs=opus",
+      "audio/webm",
+      "audio/mp4",
+      "audio/mpeg",
+    ].find((type) => MediaRecorder.isTypeSupported(type)) ?? "";
+  };
+
+  const getAudioExtension = (mimeType: string) => {
+    if (mimeType.includes("mp4")) return "m4a";
+    if (mimeType.includes("mpeg")) return "mp3";
+    return "webm";
+  };
+
+  const toggleRecording = async () => {
     if (recording) {
-      recognitionRef.current?.stop(); setRecording(false); return;
+      mediaRecorderRef.current?.stop();
+      return;
     }
-    const recognition = new SR();
-    recognition.continuous = true; recognition.interimResults = true; recognition.lang = location === "NZ" ? "en-NZ" : "en-AU";
-    recognition.onresult = (event: any) => {
-      let final = ""; let interim = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const t = event.results[i][0].transcript;
-        if (event.results[i].isFinal) final += t;
-        else interim += t;
-      }
-      if (final) setObservations(prev => prev + (prev ? " " : "") + final);
-    };
-    recognition.onend = () => setRecording(false);
-    recognition.onerror = () => setRecording(false);
-    recognitionRef.current = recognition;
-    recognition.start(); setRecording(true);
+
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      setError("Voice input isn't supported in this browser. Please type your notes instead.");
+      return;
+    }
+
+    try {
+      setError("");
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+      recordedChunksRef.current = [];
+
+      const preferredType = pickRecordingType();
+      const recorder = preferredType ? new MediaRecorder(stream, { mimeType: preferredType }) : new MediaRecorder(stream);
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onerror = () => {
+        setRecording(false);
+        setTranscribing(false);
+        stopMediaStream();
+        setError("We couldn't record that voice note. Please try again.");
+      };
+
+      recorder.onstop = async () => {
+        setRecording(false);
+        stopMediaStream();
+
+        if (recordedChunksRef.current.length === 0) {
+          return;
+        }
+
+        try {
+          setTranscribing(true);
+          const mimeType = recorder.mimeType || recordedChunksRef.current[0]?.type || "audio/webm";
+          const blob = new Blob(recordedChunksRef.current, { type: mimeType });
+          const file = new File([blob], `storyloop-note.${getAudioExtension(mimeType)}`, { type: mimeType });
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("framework", location);
+
+          const response = await fetch("/api/transcribe", {
+            method: "POST",
+            body: formData,
+          });
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error ?? "Voice transcription failed.");
+          }
+
+          if (data.text) {
+            setObservations((previous) => (previous ? `${previous.trim()}\n${data.text}` : data.text));
+          }
+        } catch (voiceError) {
+          setError(voiceError instanceof Error ? voiceError.message : "Voice transcription failed.");
+        } finally {
+          setTranscribing(false);
+        }
+      };
+
+      mediaRecorderRef.current = recorder;
+      recorder.start(250);
+      setRecording(true);
+    } catch {
+      stopMediaStream();
+      setError("Microphone access was blocked or unavailable.");
+    }
   };
 
   return (
     <div className="p-6 md:p-8 max-w-6xl">
       <div className="mb-7">
         <h1 className="font-display text-3xl font-bold text-ink-900 mb-1">New learning story</h1>
-        <p className="text-ink-600 text-sm">Add your observations below. We'll shape them into a beautiful, EYLF-aligned story.</p>
+        <p className="text-ink-600 text-sm">Add your observations below. We&apos;ll shape them into a clear, educator-ready story with practical curriculum links.</p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-5">
-        {/* Input side */}
         <div className="space-y-4">
           <div className="card p-6">
             <div className="flex items-center justify-between mb-2">
               <label className="label mb-0">Observations</label>
-              <button onClick={toggleRecording} className={`text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                recording ? "bg-red-500 text-white animate-pulse" : "bg-cream-100 text-clay-700 hover:bg-cream-200"
-              }`}>
-                {recording ? <><Square className="w-3 h-3" /> Stop</> : <><Mic className="w-3 h-3" /> Voice</>}
+              <button
+                onClick={toggleRecording}
+                disabled={loading || transcribing}
+                className={`text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                  recording ? "bg-red-500 text-white animate-pulse" : "bg-cream-100 text-clay-700 hover:bg-cream-200"
+                }`}
+              >
+                {recording ? (
+                  <>
+                    <Square className="w-3 h-3" /> Stop
+                  </>
+                ) : (
+                  <>
+                    <Mic className="w-3 h-3" /> Voice
+                  </>
+                )}
               </button>
             </div>
-            <textarea value={observations} onChange={e => setObservations(e.target.value)} rows={10}
+            <textarea
+              value={observations}
+              onChange={(e) => setObservations(e.target.value)}
+              rows={10}
               placeholder={placeholder}
-              className="input font-mono text-sm leading-relaxed resize-none" />
-            <p className="text-xs text-ink-500 mt-2">{observations.length} characters · Aim for at least 3-4 quick points</p>
+              className="input font-mono text-sm leading-relaxed resize-none"
+            />
+            <p className="text-xs text-ink-500 mt-2">
+              {observations.length} characters · Aim for at least 3-4 quick points
+              {recording ? " · Recording now..." : ""}
+              {transcribing ? " · Turning your voice note into text..." : ""}
+            </p>
           </div>
 
           <div className="card p-6 space-y-4">
             <p className="section-title">Personalise (optional)</p>
             <div className="grid grid-cols-2 gap-3">
-              <div><label className="label">Child's name</label><input value={childName} onChange={e => setChildName(e.target.value)} className="input" placeholder="Ruby" /></div>
-              <div><label className="label">Age group</label>
-                <select value={ageGroup} onChange={e => setAgeGroup(e.target.value)} className="input">
+              <div>
+                <label className="label">Child&apos;s name</label>
+                <input value={childName} onChange={(e) => setChildName(e.target.value)} className="input" placeholder="Ruby" />
+              </div>
+              <div>
+                <label className="label">Age group</label>
+                <select value={ageGroup} onChange={(e) => setAgeGroup(e.target.value)} className="input">
                   <option value="">Choose...</option>
-                  <option>0-12 months</option><option>1-2 years</option><option>2-3 years</option>
-                  <option>3-4 years</option><option>4-5 years</option><option>Mixed group</option>
+                  <option>0-12 months</option>
+                  <option>1-2 years</option>
+                  <option>2-3 years</option>
+                  <option>3-4 years</option>
+                  <option>4-5 years</option>
+                  <option>Mixed group</option>
                 </select>
               </div>
             </div>
             <div>
               <label className="label">Tone</label>
               <div className="grid grid-cols-3 gap-2">
-                {(["warm", "concise", "reflective"] as const).map(t => (
-                  <button key={t} onClick={() => setTone(t)}
+                {(["warm", "concise", "reflective"] as const).map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => setTone(option)}
                     className={`text-xs font-semibold py-2 rounded-lg border capitalize transition-all ${
-                      tone === t ? "bg-clay-700 text-paper border-clay-700" : "bg-white text-ink-600 border-clay-200 hover:border-clay-400"
-                    }`}>
-                    {t}
+                      tone === option
+                        ? "bg-clay-700 text-paper border-clay-700"
+                        : "bg-white text-ink-600 border-clay-200 hover:border-clay-400"
+                    }`}
+                  >
+                    {option}
                   </button>
                 ))}
               </div>
@@ -136,20 +308,33 @@ export default function GeneratePage() {
             <div>
               <label className="label">Framework</label>
               <div className="grid grid-cols-2 gap-2">
-                {(["AU", "NZ"] as const).map(l => (
-                  <button key={l} onClick={() => setLocation(l)}
+                {(["AU", "NZ"] as const).map((framework) => (
+                  <button
+                    key={framework}
+                    onClick={() => setLocation(framework)}
                     className={`text-xs font-semibold py-2 rounded-lg border transition-all ${
-                      location === l ? "bg-clay-700 text-paper border-clay-700" : "bg-white text-ink-600 border-clay-200 hover:border-clay-400"
-                    }`}>
-                    {l === "AU" ? "🇦🇺 EYLF" : "🇳🇿 Te Whāriki"}
+                      location === framework
+                        ? "bg-clay-700 text-paper border-clay-700"
+                        : "bg-white text-ink-600 border-clay-200 hover:border-clay-400"
+                    }`}
+                  >
+                    {framework === "AU" ? "🇦🇺 EYLF" : "🇳🇿 Te Whariki"}
                   </button>
                 ))}
               </div>
             </div>
           </div>
 
-          <button onClick={handleGenerate} disabled={loading || observations.length < 10} className="btn-primary w-full py-4 text-base">
-            {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Writing your story...</> : <><Sparkles className="w-4 h-4" /> Generate story</>}
+          <button onClick={handleGenerate} disabled={loading || transcribing || observations.length < 10} className="btn-primary w-full py-4 text-base">
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" /> Writing your story...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4" /> Generate story
+              </>
+            )}
           </button>
 
           {error && (
@@ -157,19 +342,24 @@ export default function GeneratePage() {
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <div>
                 <p>{error}</p>
-                {upgradeRequired && <Link href="/billing" className="font-bold underline mt-1 inline-block">Upgrade now →</Link>}
+                {upgradeRequired && (
+                  <Link href="/billing" className="font-bold underline mt-1 inline-block">
+                    Upgrade now →
+                  </Link>
+                )}
               </div>
             </div>
           )}
         </div>
 
-        {/* Output side */}
         <div className="card-warm p-6 min-h-[500px] flex flex-col sticky top-4">
           <div className="flex items-center justify-between mb-4">
             <p className="section-title">Your learning story</p>
             {story && (
               <div className="flex items-center gap-2">
-                <button onClick={handleGenerate} className="btn-ghost text-xs"><RefreshCw className="w-3 h-3" /> Regenerate</button>
+                <button onClick={handleGenerate} className="btn-ghost text-xs">
+                  <RefreshCw className="w-3 h-3" /> Regenerate
+                </button>
                 <button onClick={handleCopy} className="btn-ghost text-xs">
                   {copied ? <Check className="w-3 h-3 text-sage-600" /> : <Copy className="w-3 h-3" />}
                   {copied ? "Copied" : "Copy"}
@@ -189,18 +379,95 @@ export default function GeneratePage() {
               <div className="flex-1 text-ink-800 whitespace-pre-wrap leading-relaxed font-display font-normal">
                 {story}
               </div>
-              {(outcomes.length > 0 || nextSteps.length > 0) && (
-                <div className="mt-5 pt-5 border-t border-clay-200 space-y-3">
+
+              {(learningSummary ||
+                outcomes.length > 0 ||
+                learningDispositions.length > 0 ||
+                socialEmotionalLinks.length > 0 ||
+                culturalConnections.length > 0 ||
+                nextSteps.length > 0 ||
+                whanauConnection ||
+                remaining !== "") && (
+                <div className="mt-5 pt-5 border-t border-clay-200 space-y-4">
+                  {learningSummary && (
+                    <div>
+                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">What this learning shows</p>
+                      <p className="text-sm text-ink-700">{learningSummary}</p>
+                    </div>
+                  )}
+
                   {outcomes.length > 0 && (
                     <div>
                       <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Linked outcomes</p>
                       <div className="flex gap-1.5 flex-wrap">
-                        {outcomes.map(o => <span key={o} className="text-xs font-mono bg-white border border-clay-200 text-clay-700 px-2 py-1 rounded-md">{o}</span>)}
+                        {outcomes.map((outcome) => (
+                          <span key={outcome} className="text-xs font-mono bg-white border border-clay-200 text-clay-700 px-2 py-1 rounded-md">
+                            {outcome}
+                          </span>
+                        ))}
                       </div>
                     </div>
                   )}
+
+                  {learningDispositions.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Learning dispositions</p>
+                      <div className="flex gap-1.5 flex-wrap">
+                        {learningDispositions.map((item) => (
+                          <span key={item} className="text-xs font-mono bg-cream-50 border border-clay-200 text-clay-700 px-2 py-1 rounded-md">
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {socialEmotionalLinks.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Social and emotional learning</p>
+                      <div className="flex gap-1.5 flex-wrap">
+                        {socialEmotionalLinks.map((item) => (
+                          <span key={item} className="text-xs font-mono bg-sage-50 border border-sage-100 text-sage-700 px-2 py-1 rounded-md">
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {culturalConnections.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Cultural and language links</p>
+                      <ul className="space-y-1 text-sm text-ink-700">
+                        {culturalConnections.map((item) => (
+                          <li key={item}>• {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {nextSteps.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Possible next steps</p>
+                      <ul className="space-y-1 text-sm text-ink-700">
+                        {nextSteps.map((item) => (
+                          <li key={item}>• {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {whanauConnection && (
+                    <div>
+                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Family or whanau link</p>
+                      <p className="text-sm text-ink-700">{whanauConnection}</p>
+                    </div>
+                  )}
+
                   {remaining !== "" && (
-                    <p className="text-xs text-ink-500">{typeof remaining === "string" ? remaining : `${remaining} stories remaining this month`}</p>
+                    <p className="text-xs text-ink-500">
+                      {typeof remaining === "string" ? remaining : `${remaining} stories remaining this month`}
+                    </p>
                   )}
                 </div>
               )}

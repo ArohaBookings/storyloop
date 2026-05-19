@@ -1,31 +1,35 @@
 const EXAMPLES = [
   {
     input: "Sienna (2yo) watered plants with watering can. Talked about worms. Filled & refilled can 6 times.",
-    output: `Sienna's fascination with the garden continued today as she took charge of watering our vegetable patch. With focused determination, she carried the watering can back and forth to the tap, refilling it six times across the morning. Each journey became a small expedition — Sienna pausing to crouch and peer at the soil, whispering about the worms she could see wriggling in the damp earth. Her persistence and genuine investment in caring for our living space demonstrates a deepening sense of agency and connection with nature.
+    output: `Sienna spent a long time in the garden today, carrying the watering can backwards and forwards to the tap and filling it again and again. She noticed the worms in the damp soil and stopped to look closely before going back to watering. Sienna stayed with this job for a long stretch of time and showed real care for the plants and the space around her.
+
+**What this learning shows:** Sienna is building persistence, curiosity, and a growing sense of responsibility for the environment.
 
 **Linked learning outcomes:** EYLF Outcome 2.4 — Children become socially responsible and show respect for the environment.
 
-**Next steps:** Extend Sienna's interest by introducing magnifying glasses for closer worm observation, and invite her to help plant new seedlings.`,
+**Next steps:** Offer magnifying glasses for closer worm observation and invite Sienna to help with planting so she can keep following this interest.`,
     age: "2 years",
   },
   {
     input: "Marcus (4) building blocks, got frustrated when tower fell. Took deep breath, tried again. Proud when it stood.",
-    output: `Marcus demonstrated remarkable emotional growth during block play today. Working to construct a tall tower, he experienced the familiar frustration of his structure collapsing — but rather than giving up, something wonderful happened. Marcus paused, took a deliberate deep breath, and set to rebuilding with renewed focus. When his tower finally stood tall, his face lit up with quiet pride. He stepped back, hands on hips, and declared "I did it by myself."
+    output: `Marcus was building a tall block tower today when it fell over. He looked frustrated, paused, took a deep breath, and started again. Marcus stayed with the challenge until the tower stood, then proudly said, "I did it by myself."
 
-This moment reflects Marcus's developing self-regulation skills and his growing confidence as a persistent learner.
+**What this learning shows:** Marcus is strengthening self-regulation, persistence, and confidence when things do not go to plan.
 
 **Linked learning outcomes:** EYLF Outcome 3.2 — Children take increasing responsibility for their own wellbeing. Outcome 4.1 — Children develop dispositions for learning such as persistence.
 
-**Next steps:** Celebrate Marcus's self-regulation strategy openly with the group, and offer more challenging construction materials.`,
+**Next steps:** Notice the strategy Marcus used, name it with him, and offer more chances to practise managing frustration in play.`,
     age: "4 years",
   },
   {
-    input: "Whole group story time, toddlers sitting in circle. Emma pointed at duck in book, said 'quack'. First word today.",
-    output: `A beautiful moment of shared learning unfolded during group story time today. As we read 'Hello Ducky' together, the toddlers gathered in our circle, entirely captivated. When we turned to a page featuring a bright yellow duck, Emma's eyes widened. She extended her small finger toward the image and said, clear and deliberate: "quack." The room paused — this was Emma's first spoken word in our setting, and the connection between a picture, a sound, and her growing understanding was unmistakable.
+    input: "Whole group story time in Aotearoa. Emma pointed at duck in book, said 'quack'. Smiled when other tamariki joined in.",
+    output: `During story time today, Emma pointed to the duck in the book and said "quack" as the other tamariki watched and joined in. She smiled when the group repeated the sound with her and stayed engaged in the shared reading.
 
-**Linked learning outcomes:** EYLF Outcome 5.1 — Children interact verbally and non-verbally with others for a range of purposes. Outcome 5.2 — Children engage with a range of texts.
+**What this learning shows:** Emma is growing confidence as a communicator and is using shared group moments to connect language with meaning.
 
-**Next steps:** Celebrate Emma's emerging communication with her family, and introduce more animal sound books during quiet time.`,
+**Linked learning outcomes:** Mana reo | Communication. Mana tangata | Contribution.
+
+**Next steps:** Revisit animal sound books, keep using shared waiata and story prompts, and share this language moment with whanau.`,
     age: "Toddler",
   },
 ];
@@ -39,7 +43,7 @@ export default function Examples() {
           <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-900 mb-4">
             Stories educators are actually <span className="italic text-clay-700">proud</span> to publish.
           </h2>
-          <p className="text-ink-600">Real inputs, real outputs. No generic templates, no AI slop.</p>
+          <p className="text-ink-600">Real inputs, grounded outputs, and language that feels closer to the floor than a content generator.</p>
         </div>
 
         <div className="space-y-6">

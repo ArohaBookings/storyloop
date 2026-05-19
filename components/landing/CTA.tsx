@@ -15,7 +15,7 @@ export default function CTA() {
               Get your evenings back.
             </h2>
             <p className="text-ink-600 text-lg mb-8 max-w-xl mx-auto">
-              Stop writing learning stories at 10pm. Start your 3 free stories today — no credit card, no commitment.
+              Start with a usable draft instead of a blank page. Try your first 3 stories free — no credit card, no commitment.
             </p>
             <Link href="/signup" className="btn-primary text-base px-8 py-4 group">
               Start free

@@ -40,7 +40,7 @@ const structuredData = {
     { "@type": "Offer", "price": "49", "priceCurrency": "AUD", "name": "Centre plan" },
   ],
   "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "47" },
-  "publisher": { "@type": "Organization", "name": "Aria Care", "url": "https://aria.care" },
+  "publisher": { "@type": "Organization", "name": "Aria Care", "url": "https://ariacare.app" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
