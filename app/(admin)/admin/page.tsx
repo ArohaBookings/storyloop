@@ -49,24 +49,26 @@ export default async function AdminPage() {
   return (
     <div className="min-h-screen bg-ink-950 text-paper">
       {/* Header */}
-      <header className="h-14 border-b border-ink-800 bg-ink-900/50 flex items-center justify-between px-6">
-        <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/30 flex items-center justify-center">
-            <ShieldAlert className="w-4 h-4 text-red-400" />
+      <header className="border-b border-ink-800 bg-ink-900/50 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/30 flex items-center justify-center">
+              <ShieldAlert className="w-4 h-4 text-red-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-display font-bold text-sm">StoryLoop Admin</p>
+              <p className="text-[10px] text-red-400 -mt-0.5 font-mono tracking-widest truncate">SUPER ADMIN · {session.email}</p>
+            </div>
           </div>
-          <div>
-            <p className="font-display font-bold text-sm">StoryLoop Admin</p>
-            <p className="text-[10px] text-red-400 -mt-0.5 font-mono tracking-widest">SUPER ADMIN · {session.email}</p>
-          </div>
+          <form action="/api/admin/logout" method="POST">
+            <button type="submit" className="flex items-center gap-2 text-xs text-ink-400 hover:text-paper px-3 py-1.5 border border-ink-700 rounded-lg">
+              <LogOut className="w-3.5 h-3.5" /> Sign out
+            </button>
+          </form>
         </div>
-        <form action="/api/admin/logout" method="POST">
-          <button type="submit" className="flex items-center gap-2 text-xs text-ink-400 hover:text-paper px-3 py-1.5 border border-ink-700 rounded-lg">
-            <LogOut className="w-3.5 h-3.5" /> Sign out
-          </button>
-        </form>
       </header>
 
-      <main className="p-6 space-y-6 max-w-7xl mx-auto">
+      <main className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
         <div>
           <h1 className="font-display text-3xl font-bold">Overview</h1>
           <p className="text-sm text-ink-400 mt-0.5">Real-time metrics · everything at a glance</p>

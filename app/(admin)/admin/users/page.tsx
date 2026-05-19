@@ -50,15 +50,15 @@ export default function AdminUsersPage() {
 
   return (
     <div className="min-h-screen bg-ink-950 text-paper">
-      <header className="h-14 border-b border-ink-800 bg-ink-900/50 flex items-center px-6 gap-4">
+      <header className="min-h-14 border-b border-ink-800 bg-ink-900/50 flex items-center px-4 sm:px-6 gap-4">
         <Link href="/admin" className="flex items-center gap-1.5 text-xs text-ink-400 hover:text-paper"><ArrowLeft className="w-3.5 h-3.5" /> Back</Link>
         <h1 className="font-semibold">User management</h1>
       </header>
 
-      <main className="p-6 max-w-7xl mx-auto">
+      <main className="p-4 sm:p-6 max-w-7xl mx-auto">
         {toast && <div className="mb-4 px-4 py-3 bg-clay-500/20 border border-clay-500/30 text-clay-300 rounded-xl text-sm">{toast}</div>}
 
-        <div className="flex items-center justify-between mb-5 gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-5 gap-3">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500" />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or email..."

@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -12,7 +11,6 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [redirect, setRedirect] = useState("/dashboard");
   const [notice, setNotice] = useState("");
-  const router = useRouter();
   const supabase = createClient();
 
   useEffect(() => {
@@ -29,7 +27,7 @@ export default function LoginPage() {
     setLoading(true); setError("");
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) { setError(error.message); setLoading(false); }
-    else { router.push(redirect); router.refresh(); }
+    else { window.location.replace(redirect); }
   };
 
   return (

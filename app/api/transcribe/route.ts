@@ -6,7 +6,7 @@ import { STORY_FRAMEWORKS, normalizeFramework } from "@/lib/story-options";
 
 export const runtime = "nodejs";
 
-const MAX_AUDIO_BYTES = 10 * 1024 * 1024;
+const MAX_AUDIO_BYTES = 25 * 1024 * 1024;
 
 let openAIClient: OpenAI | null = null;
 
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (upload.size > MAX_AUDIO_BYTES) {
-      return NextResponse.json({ error: "Voice notes must be under 10 MB." }, { status: 400 });
+      return NextResponse.json({ error: "Voice notes must be under 25 MB." }, { status: 400 });
     }
 
     const requestedFramework =
@@ -59,7 +59,6 @@ export async function POST(request: NextRequest) {
     const transcription = await getOpenAI().audio.transcriptions.create({
       file: upload,
       model: "gpt-4o-mini-transcribe",
-      language: "en",
       prompt: STORY_FRAMEWORKS[framework].transcriptionPrompt,
     });
 

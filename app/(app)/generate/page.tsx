@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Sparkles, Loader2, Copy, Check, Mic, Square, RefreshCw, AlertCircle } from "lucide-react";
 import { normalizeFramework, normalizeTone, type StoryFrameworkId, type StoryTone } from "@/lib/story-options";
@@ -35,10 +35,19 @@ export default function GeneratePage() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
+  const audioInputRef = useRef<HTMLInputElement | null>(null);
+  const [preferDeviceRecorder, setPreferDeviceRecorder] = useState(false);
 
   useEffect(() => {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (tz?.includes("Auckland")) setLocation("NZ");
+    if (typeof window !== "undefined") {
+      const prefersTouchRecorder =
+        /Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent) || window.navigator.maxTouchPoints > 1;
+      if (prefersTouchRecorder) {
+        setPreferDeviceRecorder(true);
+      }
+    }
 
     void fetch("/api/me")
       .then((response) => response.ok ? response.json() : null)
@@ -128,6 +137,11 @@ export default function GeneratePage() {
     mediaStreamRef.current = null;
   };
 
+  const canUseLiveRecording = () => {
+    if (typeof window === "undefined") return false;
+    return window.isSecureContext && !!window.navigator.mediaDevices?.getUserMedia && typeof MediaRecorder !== "undefined";
+  };
+
   const pickRecordingType = () => {
     if (typeof window === "undefined" || typeof MediaRecorder === "undefined") return "";
     return [
@@ -144,14 +158,55 @@ export default function GeneratePage() {
     return "webm";
   };
 
+  const transcribeAudioFile = async (file: File) => {
+    try {
+      setTranscribing(true);
+      setError("");
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("framework", location);
+
+      const response = await fetch("/api/transcribe", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Voice transcription failed.");
+      }
+
+      if (data.text) {
+        setObservations((previous) => (previous ? `${previous.trim()}\n${data.text}` : data.text));
+      }
+    } catch (voiceError) {
+      setError(voiceError instanceof Error ? voiceError.message : "Voice transcription failed.");
+    } finally {
+      setTranscribing(false);
+    }
+  };
+
+  const openDeviceRecorder = () => {
+    setPreferDeviceRecorder(true);
+    audioInputRef.current?.click();
+  };
+
+  const handleAudioFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    await transcribeAudioFile(file);
+  };
+
   const toggleRecording = async () => {
     if (recording) {
       mediaRecorderRef.current?.stop();
       return;
     }
 
-    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
-      setError("Voice input isn't supported in this browser. Please type your notes instead.");
+    if (preferDeviceRecorder || !canUseLiveRecording()) {
+      openDeviceRecorder();
       return;
     }
 
@@ -186,31 +241,12 @@ export default function GeneratePage() {
         }
 
         try {
-          setTranscribing(true);
           const mimeType = recorder.mimeType || recordedChunksRef.current[0]?.type || "audio/webm";
           const blob = new Blob(recordedChunksRef.current, { type: mimeType });
           const file = new File([blob], `storyloop-note.${getAudioExtension(mimeType)}`, { type: mimeType });
-          const formData = new FormData();
-          formData.append("file", file);
-          formData.append("framework", location);
-
-          const response = await fetch("/api/transcribe", {
-            method: "POST",
-            body: formData,
-          });
-          const data = await response.json();
-
-          if (!response.ok) {
-            throw new Error(data.error ?? "Voice transcription failed.");
-          }
-
-          if (data.text) {
-            setObservations((previous) => (previous ? `${previous.trim()}\n${data.text}` : data.text));
-          }
+          await transcribeAudioFile(file);
         } catch (voiceError) {
           setError(voiceError instanceof Error ? voiceError.message : "Voice transcription failed.");
-        } finally {
-          setTranscribing(false);
         }
       };
 
@@ -219,12 +255,14 @@ export default function GeneratePage() {
       setRecording(true);
     } catch {
       stopMediaStream();
-      setError("Microphone access was blocked or unavailable.");
+      setPreferDeviceRecorder(true);
+      audioInputRef.current?.click();
+      setError("Live microphone access is blocked here, so we switched to your device recorder. If it doesn't open, tap Record again.");
     }
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-6xl">
+    <div className="p-4 sm:p-6 md:p-8 max-w-6xl">
       <div className="mb-7">
         <h1 className="font-display text-3xl font-bold text-ink-900 mb-1">New learning story</h1>
         <p className="text-ink-600 text-sm">Add your observations below. We&apos;ll shape them into a clear, educator-ready story with practical curriculum links.</p>
@@ -248,11 +286,19 @@ export default function GeneratePage() {
                   </>
                 ) : (
                   <>
-                    <Mic className="w-3 h-3" /> Voice
+                    <Mic className="w-3 h-3" /> {preferDeviceRecorder ? "Record" : "Voice"}
                   </>
                 )}
               </button>
             </div>
+            <input
+              ref={audioInputRef}
+              type="file"
+              accept="audio/*,.m4a,.mp3,.mp4,.mpeg,.mpga,.wav,.webm"
+              capture="user"
+              className="hidden"
+              onChange={handleAudioFileChange}
+            />
             <textarea
               value={observations}
               onChange={(e) => setObservations(e.target.value)}
@@ -264,6 +310,7 @@ export default function GeneratePage() {
               {observations.length} characters · Aim for at least 3-4 quick points
               {recording ? " · Recording now..." : ""}
               {transcribing ? " · Turning your voice note into text..." : ""}
+              {!recording && !transcribing && preferDeviceRecorder ? " · On phone this opens your device recorder." : ""}
             </p>
           </div>
 
@@ -352,7 +399,7 @@ export default function GeneratePage() {
           )}
         </div>
 
-        <div className="card-warm p-6 min-h-[500px] flex flex-col sticky top-4">
+        <div className="card-warm p-6 min-h-[420px] md:min-h-[500px] flex flex-col md:sticky md:top-4">
           <div className="flex items-center justify-between mb-4">
             <p className="section-title">Your learning story</p>
             {story && (
