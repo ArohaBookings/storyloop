@@ -76,27 +76,73 @@ function toShortStringArray(value: unknown, limit = 6) {
   );
 }
 
+function formatStoryText(value: unknown) {
+  const story = typeof value === "string" ? value.trim() : "";
+  if (!story || story.includes("\n\n")) return story;
+
+  const sentences = story.match(/[^.!?]+[.!?]+(?:["']|$)/g)?.map((sentence) => sentence.trim()) ?? [];
+  if (sentences.length < 3) return story;
+
+  const splitAt = Math.ceil(sentences.length / 2);
+  return `${sentences.slice(0, splitAt).join(" ")}\n\n${sentences.slice(splitAt).join(" ")}`;
+}
+
+function preserveInitialCase(source: string, replacement: string) {
+  return source[0] === source[0]?.toUpperCase()
+    ? replacement.charAt(0).toUpperCase() + replacement.slice(1)
+    : replacement;
+}
+
+function localiseSpelling(text: string) {
+  return text
+    .replace(/\bcolors\b/gi, (match) => preserveInitialCase(match, "colours"))
+    .replace(/\bcolored\b/gi, (match) => preserveInitialCase(match, "coloured"))
+    .replace(/\bcoloring\b/gi, (match) => preserveInitialCase(match, "colouring"))
+    .replace(/\bcolor\b/gi, (match) => preserveInitialCase(match, "colour"))
+    .replace(/\bbehavior\b/gi, (match) => preserveInitialCase(match, "behaviour"))
+    .replace(/\bfavorite\b/gi, (match) => preserveInitialCase(match, "favourite"))
+    .replace(/\bcenter\b/gi, (match) => preserveInitialCase(match, "centre"))
+    .replace(/\bcategorize\b/gi, (match) => preserveInitialCase(match, "categorise"))
+    .replace(/\bcategorizes\b/gi, (match) => preserveInitialCase(match, "categorises"))
+    .replace(/\bcategorized\b/gi, (match) => preserveInitialCase(match, "categorised"))
+    .replace(/\bcategorizing\b/gi, (match) => preserveInitialCase(match, "categorising"))
+    .replace(/\bcategorization\b/gi, (match) => preserveInitialCase(match, "categorisation"))
+    .replace(/\borganize\b/gi, (match) => preserveInitialCase(match, "organise"))
+    .replace(/\borganizes\b/gi, (match) => preserveInitialCase(match, "organises"))
+    .replace(/\borganized\b/gi, (match) => preserveInitialCase(match, "organised"))
+    .replace(/\borganizing\b/gi, (match) => preserveInitialCase(match, "organising"))
+    .replace(/\borganization\b/gi, (match) => preserveInitialCase(match, "organisation"))
+    .replace(/\brecognize\b/gi, (match) => preserveInitialCase(match, "recognise"))
+    .replace(/\brecognizes\b/gi, (match) => preserveInitialCase(match, "recognises"))
+    .replace(/\brecognized\b/gi, (match) => preserveInitialCase(match, "recognised"))
+    .replace(/\brecognizing\b/gi, (match) => preserveInitialCase(match, "recognising"));
+}
+
+function localiseStringArray(values: string[]) {
+  return values.map(localiseSpelling);
+}
+
 function normaliseStoryResult(result: Partial<StoryResult>): StoryResult {
-  const story = typeof result.story === "string" ? result.story.trim() : "";
+  const story = localiseSpelling(formatStoryText(result.story));
   const learningSummary =
     typeof result.learningSummary === "string" && result.learningSummary.trim()
-      ? result.learningSummary.trim()
+      ? localiseSpelling(result.learningSummary.trim())
       : "Learning is visible through the child's actions, choices, and responses in this moment.";
   const whanauConnection =
     typeof result.whanauConnection === "string" && result.whanauConnection.trim()
-      ? result.whanauConnection.trim()
+      ? localiseSpelling(result.whanauConnection.trim())
       : "This is a moment families can build on by talking about the same ideas and interests together.";
 
   return {
     story,
-    outcomes: toShortStringArray(result.outcomes, 4),
+    outcomes: localiseStringArray(toShortStringArray(result.outcomes, 4)),
     learningSummary,
-    learningDispositions: toShortStringArray(result.learningDispositions, 4),
-    socialEmotionalLinks: toShortStringArray(result.socialEmotionalLinks, 4),
-    culturalConnections: toShortStringArray(result.culturalConnections, 4),
+    learningDispositions: localiseStringArray(toShortStringArray(result.learningDispositions, 4)),
+    socialEmotionalLinks: localiseStringArray(toShortStringArray(result.socialEmotionalLinks, 4)),
+    culturalConnections: localiseStringArray(toShortStringArray(result.culturalConnections, 4)),
     whanauConnection,
     childAge: typeof result.childAge === "string" && result.childAge.trim() ? result.childAge.trim() : "Not stated",
-    nextSteps: toShortStringArray(result.nextSteps, 4),
+    nextSteps: localiseStringArray(toShortStringArray(result.nextSteps, 4)),
     wordCount:
       typeof result.wordCount === "number" && Number.isFinite(result.wordCount)
         ? result.wordCount

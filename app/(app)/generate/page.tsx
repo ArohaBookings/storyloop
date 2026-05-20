@@ -1,7 +1,7 @@
 "use client";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Sparkles, Loader2, Copy, Check, Mic, Square, RefreshCw, AlertCircle } from "lucide-react";
+import { Sparkles, Loader2, Copy, Check, Mic, Square, RefreshCw, AlertCircle, X, ArrowRight } from "lucide-react";
 import { normalizeFramework, normalizeTone, type StoryFrameworkId, type StoryTone } from "@/lib/story-options";
 
 const PLACEHOLDERS = [
@@ -9,6 +9,8 @@ const PLACEHOLDERS = [
   "• Group story time\n• Jax (3) pointed at the pictures\n• Asked 'what's that' 6 times\n• Starting to predict what comes next",
   "• Outdoor play\n• Maya (4) & Sam (4) playing shopkeepers\n• Used pretend money, took turns as cashier\n• Strong language — 'that'll be five dollars please'",
 ];
+
+const UPGRADE_PROMPT_STORAGE_KEY = `storyloop-upgrade-prompt-${new Date().getFullYear()}-${new Date().getMonth() + 1}`;
 
 export default function GeneratePage() {
   const [observations, setObservations] = useState("");
@@ -31,6 +33,7 @@ export default function GeneratePage() {
   const [upgradeRequired, setUpgradeRequired] = useState(false);
   const [copied, setCopied] = useState(false);
   const [recording, setRecording] = useState(false);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [placeholder] = useState(() => PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)]);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -119,10 +122,26 @@ export default function GeneratePage() {
       setCulturalConnections(data.culturalConnections ?? []);
       setWhanauConnection(data.whanauConnection ?? "");
       setRemaining(data.remaining);
+      const shouldShowUpgradePrompt =
+        data.plan === "free" &&
+        data.storiesUsedThisMonth === 2 &&
+        !data.appliedAccessCode &&
+        typeof window !== "undefined" &&
+        window.localStorage.getItem(UPGRADE_PROMPT_STORAGE_KEY) !== "dismissed";
+      if (shouldShowUpgradePrompt) {
+        setShowUpgradePrompt(true);
+      }
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const dismissUpgradePrompt = () => {
+    setShowUpgradePrompt(false);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(UPGRADE_PROMPT_STORAGE_KEY, "dismissed");
     }
   };
 
@@ -558,6 +577,44 @@ export default function GeneratePage() {
           )}
         </div>
       </div>
+
+      {showUpgradePrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/50 px-4 py-6">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-clay-100 p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-2">You are on story 2 of 3</p>
+                <h2 className="font-display text-2xl font-bold text-ink-900 leading-tight">Keep StoryLoop ready for every child&apos;s moment.</h2>
+              </div>
+              <button
+                onClick={dismissUpgradePrompt}
+                className="w-8 h-8 flex-shrink-0 rounded-lg border border-clay-200 flex items-center justify-center text-ink-500 hover:text-ink-900 hover:bg-cream-50"
+                aria-label="Close upgrade prompt"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-sm text-ink-600 mt-3">
+              Your next free story is still included. Upgrade when you want unlimited stories, voice notes, history, and support without watching the counter.
+            </p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <Link
+                href="/billing"
+                onClick={dismissUpgradePrompt}
+                className="btn-primary justify-center py-3 text-sm"
+              >
+                View paid plans <ArrowRight className="w-4 h-4" />
+              </Link>
+              <button
+                onClick={dismissUpgradePrompt}
+                className="btn-secondary justify-center py-3 text-sm"
+              >
+                Keep writing
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

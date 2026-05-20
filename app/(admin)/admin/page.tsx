@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { verifyAdmin } from "@/lib/admin-auth";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import Link from "next/link";
-import { Users, TrendingUp, DollarSign, BookOpen, LogOut, ShieldAlert, Activity } from "lucide-react";
+import { Users, TrendingUp, DollarSign, BookOpen, LogOut, ShieldAlert, Activity, LayoutDashboard, Sparkles, LogIn } from "lucide-react";
 import { getMonthlyStoryLimit } from "@/lib/story-limits";
 
 export const metadata = { title: "Admin · StoryLoop" };
@@ -60,11 +60,22 @@ export default async function AdminPage() {
               <p className="text-[10px] text-red-400 -mt-0.5 font-mono tracking-widest truncate">SUPER ADMIN · {session.email}</p>
             </div>
           </div>
-          <form action="/api/admin/logout" method="POST">
-            <button type="submit" className="flex items-center gap-2 text-xs text-ink-400 hover:text-paper px-3 py-1.5 border border-ink-700 rounded-lg">
-              <LogOut className="w-3.5 h-3.5" /> Sign out
-            </button>
-          </form>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href="/generate" className="flex items-center gap-2 text-xs text-paper bg-clay-600 hover:bg-clay-500 px-3 py-1.5 rounded-lg">
+              <Sparkles className="w-3.5 h-3.5" /> New story
+            </Link>
+            <Link href="/dashboard" className="flex items-center gap-2 text-xs text-ink-300 hover:text-paper px-3 py-1.5 border border-ink-700 rounded-lg">
+              <LayoutDashboard className="w-3.5 h-3.5" /> User dashboard
+            </Link>
+            <Link href="/login" className="flex items-center gap-2 text-xs text-ink-300 hover:text-paper px-3 py-1.5 border border-ink-700 rounded-lg">
+              <LogIn className="w-3.5 h-3.5" /> Normal login
+            </Link>
+            <form action="/api/admin/logout" method="POST">
+              <button type="submit" className="flex items-center gap-2 text-xs text-ink-400 hover:text-paper px-3 py-1.5 border border-ink-700 rounded-lg">
+                <LogOut className="w-3.5 h-3.5" /> Sign out
+              </button>
+            </form>
+          </div>
         </div>
       </header>
 

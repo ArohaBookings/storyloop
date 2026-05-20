@@ -25,7 +25,7 @@ STYLE GUARDRAILS:
 - Avoid phrases like "beautiful moment", "remarkable", "wonderful", "deepening sense", or "fascination continued" unless the educator's notes clearly justify them.
 - If a sentence sounds polished in an AI way, rewrite it more simply.
 - Use at most one short quoted child phrase, and only if the educator provided it.
-- Prefer two short paragraphs over one long block.
+- Write the story as two short paragraphs when there is enough detail.
 
 RETURN ONLY VALID JSON WITH THIS EXACT SHAPE:
 {
@@ -75,6 +75,7 @@ VOICE GUIDANCE:
 - ${TONE_GUIDANCE[tone]}
 - Sound like a teacher or kaiako writing for colleagues and whanau, not for a sales page.
 - Keep the language simple enough that an ECE teacher would naturally use it.
+- Use local Australia/Aotearoa spelling such as colour, behaviour, centre, organise, and recognise.
 
 CULTURAL GUIDANCE:
 - ${config.culturalPrompt}
@@ -89,7 +90,7 @@ PERSISTED STORY PREFERENCES:
 - Extra notes: ${preferences.notes ?? "None"}
 
 FIELD GUIDANCE:
-- story: plain text only, 2 short paragraphs max.
+- story: plain text only, usually two short paragraphs separated by a blank line.
 - outcomes: 1-3 short curriculum links. For Australia, use EYLF outcome wording or sub-outcomes only when you are confident. For Aotearoa New Zealand, use Te Whariki strands or learning outcomes clearly.
 - learningSummary: say what goals or outcomes were being met in simple educator language.
 - learningDispositions: examples include persistence, curiosity, confidence, manaakitanga, contribution, problem solving.

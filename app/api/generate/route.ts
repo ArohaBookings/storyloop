@@ -138,6 +138,10 @@ export async function POST(request: NextRequest) {
       culturalConnections: result.culturalConnections,
       whanauConnection: result.whanauConnection,
       nextSteps: result.nextSteps,
+      plan,
+      storiesUsedThisMonth: used + 1,
+      monthlyStoryLimit: limit,
+      appliedAccessCode: profile.applied_access_code,
       remaining:
         limit === null
           ? "unlimited"
