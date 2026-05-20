@@ -1,7 +1,8 @@
 "use client";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Sparkles, Loader2, Copy, Check, Mic, Square, RefreshCw, AlertCircle, X, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Sparkles, Loader2, Copy, Check, Mic, Square, RefreshCw, AlertCircle, X, ArrowRight, Pencil, Save } from "lucide-react";
 import { normalizeFramework, normalizeTone, type StoryFrameworkId, type StoryTone } from "@/lib/story-options";
 
 const PLACEHOLDERS = [
@@ -13,12 +14,18 @@ const PLACEHOLDERS = [
 const UPGRADE_PROMPT_STORAGE_KEY = `storyloop-upgrade-prompt-${new Date().getFullYear()}-${new Date().getMonth() + 1}`;
 
 export default function GeneratePage() {
+  const router = useRouter();
   const [observations, setObservations] = useState("");
   const [childName, setChildName] = useState("");
   const [ageGroup, setAgeGroup] = useState("");
   const [tone, setTone] = useState<StoryTone>("warm");
   const [location, setLocation] = useState<StoryFrameworkId>("AU");
   const [story, setStory] = useState("");
+  const [storyId, setStoryId] = useState("");
+  const [storyDraft, setStoryDraft] = useState("");
+  const [editingStory, setEditingStory] = useState(false);
+  const [savingStory, setSavingStory] = useState(false);
+  const [storySaveMessage, setStorySaveMessage] = useState("");
   const [outcomes, setOutcomes] = useState<string[]>([]);
   const [nextSteps, setNextSteps] = useState<string[]>([]);
   const [learningSummary, setLearningSummary] = useState("");
@@ -34,14 +41,16 @@ export default function GeneratePage() {
   const [copied, setCopied] = useState(false);
   const [recording, setRecording] = useState(false);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
-  const [placeholder] = useState(() => PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)]);
+  const [placeholder, setPlaceholder] = useState(PLACEHOLDERS[0]);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [liveRecordingSupported, setLiveRecordingSupported] = useState(false);
   const [suggestUploadFallback, setSuggestUploadFallback] = useState(false);
 
   useEffect(() => {
+    setPlaceholder(PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)]);
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (tz?.includes("Auckland")) setLocation("NZ");
     if (typeof window !== "undefined") {
@@ -50,6 +59,7 @@ export default function GeneratePage() {
         window.navigator.maxTouchPoints > 1 ||
         window.matchMedia?.("(pointer: coarse)").matches;
       setIsTouchDevice(touchDevice);
+      setLiveRecordingSupported(canUseLiveRecording());
     }
 
     void fetch("/api/me")
@@ -74,6 +84,11 @@ export default function GeneratePage() {
 
   const resetOutput = () => {
     setStory("");
+    setStoryId("");
+    setStoryDraft("");
+    setEditingStory(false);
+    setSavingStory(false);
+    setStorySaveMessage("");
     setOutcomes([]);
     setNextSteps([]);
     setLearningSummary("");
@@ -114,6 +129,8 @@ export default function GeneratePage() {
       }
 
       setStory(data.story);
+      setStoryDraft(data.story);
+      setStoryId(typeof data.storyId === "string" ? data.storyId : "");
       setOutcomes(data.outcomes ?? []);
       setNextSteps(data.nextSteps ?? []);
       setLearningSummary(data.learningSummary ?? "");
@@ -122,6 +139,7 @@ export default function GeneratePage() {
       setCulturalConnections(data.culturalConnections ?? []);
       setWhanauConnection(data.whanauConnection ?? "");
       setRemaining(data.remaining);
+      router.refresh();
       const shouldShowUpgradePrompt =
         data.plan === "free" &&
         data.storiesUsedThisMonth === 2 &&
@@ -149,6 +167,61 @@ export default function GeneratePage() {
     await navigator.clipboard.writeText(story);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const startStoryEdit = () => {
+    setStoryDraft(story);
+    setStorySaveMessage("");
+    setEditingStory(true);
+  };
+
+  const cancelStoryEdit = () => {
+    setStoryDraft(story);
+    setEditingStory(false);
+    setStorySaveMessage("");
+  };
+
+  const handleSaveStory = async () => {
+    const nextStory = storyDraft.trim();
+    if (nextStory.length < 20) {
+      setError("Keep at least 20 characters in the learning story before saving.");
+      return;
+    }
+
+    setSavingStory(true);
+    setError("");
+    setStorySaveMessage("");
+
+    try {
+      if (!storyId) {
+        setStory(nextStory);
+        setStoryDraft(nextStory);
+        setEditingStory(false);
+        setStorySaveMessage("Story updated here. Generate signed-in stories to save edits to history.");
+        return;
+      }
+
+      const response = await fetch(`/api/stories/${encodeURIComponent(storyId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ story: nextStory }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Could not save story edits.");
+      }
+
+      const savedStory = data.story ?? nextStory;
+      setStory(savedStory);
+      setStoryDraft(savedStory);
+      setEditingStory(false);
+      setStorySaveMessage("Saved to story history.");
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Could not save story edits.");
+    } finally {
+      setSavingStory(false);
+    }
   };
 
   const stopMediaStream = () => {
@@ -293,7 +366,6 @@ export default function GeneratePage() {
     }
   };
 
-  const liveRecordingSupported = canUseLiveRecording();
   const recordButtonLabel = isTouchDevice ? "Record" : "Live mic";
   const showRecordButton = !recording && liveRecordingSupported;
 
@@ -454,6 +526,9 @@ export default function GeneratePage() {
                 <button onClick={handleGenerate} className="btn-ghost text-xs">
                   <RefreshCw className="w-3 h-3" /> Regenerate
                 </button>
+                <button onClick={startStoryEdit} disabled={editingStory || savingStory} className="btn-ghost text-xs disabled:opacity-50">
+                  <Pencil className="w-3 h-3" /> Edit
+                </button>
                 <button onClick={handleCopy} className="btn-ghost text-xs">
                   {copied ? <Check className="w-3 h-3 text-sage-600" /> : <Copy className="w-3 h-3" />}
                   {copied ? "Copied" : "Copy"}
@@ -470,9 +545,39 @@ export default function GeneratePage() {
             </div>
           ) : story ? (
             <div className="flex-1 flex flex-col">
-              <div className="flex-1 text-ink-800 whitespace-pre-wrap leading-relaxed font-display font-normal">
-                {story}
-              </div>
+              {editingStory ? (
+                <div className="flex-1 flex flex-col gap-3">
+                  <textarea
+                    value={storyDraft}
+                    onChange={(event) => setStoryDraft(event.target.value)}
+                    className="input min-h-[320px] flex-1 resize-y leading-relaxed font-display text-base"
+                    aria-label="Edit generated learning story"
+                  />
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <p className="text-xs text-ink-500">
+                      Adjust wording, add teacher voice, then save. Your history copy updates too.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <button onClick={cancelStoryEdit} disabled={savingStory} className="btn-secondary px-4 py-2 text-xs">
+                        Cancel
+                      </button>
+                      <button onClick={handleSaveStory} disabled={savingStory || storyDraft.trim().length < 20} className="btn-primary px-4 py-2 text-xs disabled:opacity-50">
+                        {savingStory ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                        Save story
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 text-ink-800 whitespace-pre-wrap leading-relaxed font-display font-normal">
+                  {story}
+                </div>
+              )}
+              {storySaveMessage && !editingStory && (
+                <p className="mt-3 text-xs font-semibold text-sage-700 bg-sage-50 border border-sage-100 rounded-lg px-3 py-2">
+                  {storySaveMessage}
+                </p>
+              )}
 
               {(learningSummary ||
                 outcomes.length > 0 ||

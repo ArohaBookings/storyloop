@@ -50,6 +50,10 @@ export default function DashboardNav({
   const supabase = createClient();
 
   const handleLogout = async () => { await supabase.auth.signOut(); router.push("/"); router.refresh(); };
+  const goToBilling = () => {
+    setMobileOpen(false);
+    router.push("/billing");
+  };
 
   const limit = getMonthlyStoryLimit({
     plan,
@@ -109,8 +113,14 @@ export default function DashboardNav({
             <div className="w-full h-1.5 bg-clay-100 rounded-full overflow-hidden mb-2">
               <div className="h-full bg-clay-500 rounded-full transition-all" style={{ width: `${Math.min((storiesUsed/limit)*100,100)}%` }} />
             </div>
-            <p className="text-[11px] text-ink-600 mb-1.5">{allowanceLabel}</p>
-            <Link href="/billing" className="text-xs font-semibold text-clay-700 hover:text-clay-900">View plans →</Link>
+            <p className="text-[11px] text-ink-600 mb-2">{allowanceLabel}</p>
+            <button
+              type="button"
+              onClick={goToBilling}
+              className="w-full rounded-lg bg-white border border-clay-200 px-3 py-2 text-left text-xs font-semibold text-clay-700 hover:bg-cream-100 hover:text-clay-900 transition-all"
+            >
+              View plans →
+            </button>
           </div>
         </div>
       )}
