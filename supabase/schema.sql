@@ -60,10 +60,12 @@ create table if not exists public.stories (
   location text default 'AU',
   word_count int,
   metadata jsonb not null default '{}'::jsonb,
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 
 alter table public.stories add column if not exists metadata jsonb not null default '{}'::jsonb;
+alter table public.stories add column if not exists updated_at timestamptz default now();
 
 -- Private access codes for complimentary allowances and stored preferences
 create table if not exists private.access_codes (
@@ -231,12 +233,16 @@ values (
     "preferredTone": "warm",
     "languageStyle": "plain_ece",
     "emphasis": [
-      "Te Whariki learning outcomes",
+      "Te Whāriki learning outcomes",
       "learning dispositions",
-      "Kowhiti Whakapae social and emotional learning",
-      "light te reo Maori",
-      "Tapasa-informed cultural responsiveness"
-    ]
+      "Kōwhiti Whakapae social and emotional learning",
+      "light te reo Māori",
+      "Tapasā-informed cultural responsiveness"
+    ],
+    "depthPreference": "balanced",
+    "includeTeReoLevel": "medium",
+    "includeKowhitiWhakapae": true,
+    "includeTapasa": true
   }'::jsonb,
   1,
   true

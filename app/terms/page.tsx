@@ -16,7 +16,7 @@ export default function TermsPage() {
     { h: "8. Liability", p: "To the maximum extent permitted by law, our liability is limited to the amount you paid in the 12 months prior to the claim. We are not liable for indirect or consequential damages. This does not affect your statutory rights under Australian Consumer Law or the NZ Consumer Guarantees Act." },
     { h: "9. Termination", p: "We may terminate accounts that violate these terms or engage in fraudulent activity. You can close your account at any time from Settings." },
     { h: "10. Governing law", p: "These terms are governed by the laws of New Zealand. Disputes will be resolved in New Zealand courts." },
-    { h: "11. Contact", p: "Questions about these terms: hello@storyloop.app" },
+    { h: "11. Contact", p: "Questions about these terms: hello@storyloop.space" },
   ];
 
   return (

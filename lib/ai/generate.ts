@@ -3,20 +3,28 @@ import Anthropic from "@anthropic-ai/sdk";
 import { LEARNING_STORY_PROMPT, buildUserMessage } from "./prompts";
 import {
   mergeStoryPreferences,
+  normalizeDepth,
   normalizeFramework,
+  normalizeTeReoLevel,
   normalizeTone,
+  type StoryDepth,
   type StoryFrameworkId,
   type StoryMetadata,
   type StoryPreferences,
   type StoryTone,
+  type TeReoLevel,
 } from "@/lib/story-options";
 
 export interface StoryResult extends StoryMetadata {
+  storyTitle: string;
   story: string;
   outcomes: string[];
+  curriculumLinks: string[];
   learningSummary: string;
+  childVoice: string;
   childAge: string;
   nextSteps: string[];
+  assumptions: string[];
   wordCount: number;
 }
 
@@ -87,6 +95,17 @@ function formatStoryText(value: unknown) {
   return `${sentences.slice(0, splitAt).join(" ")}\n\n${sentences.slice(splitAt).join(" ")}`;
 }
 
+function formatTitle(value: unknown) {
+  return typeof value === "string" ? value.trim().replace(/\s+/g, " ").slice(0, 90) : "";
+}
+
+function ensureStoryTitle(story: string, title: string) {
+  if (!title || !story) return story;
+  const normalisedStoryStart = story.slice(0, title.length).toLowerCase();
+  if (normalisedStoryStart === title.toLowerCase()) return story;
+  return `${title}\n\n${story}`;
+}
+
 function preserveInitialCase(source: string, replacement: string) {
   return source[0] === source[0]?.toUpperCase()
     ? replacement.charAt(0).toUpperCase() + replacement.slice(1)
@@ -123,7 +142,8 @@ function localiseStringArray(values: string[]) {
 }
 
 function normaliseStoryResult(result: Partial<StoryResult>): StoryResult {
-  const story = localiseSpelling(formatStoryText(result.story));
+  const storyTitle = localiseSpelling(formatTitle(result.storyTitle));
+  const story = localiseSpelling(ensureStoryTitle(formatStoryText(result.story), storyTitle));
   const learningSummary =
     typeof result.learningSummary === "string" && result.learningSummary.trim()
       ? localiseSpelling(result.learningSummary.trim())
@@ -132,15 +152,23 @@ function normaliseStoryResult(result: Partial<StoryResult>): StoryResult {
     typeof result.whanauConnection === "string" && result.whanauConnection.trim()
       ? localiseSpelling(result.whanauConnection.trim())
       : "This is a moment families can build on by talking about the same ideas and interests together.";
+  const childVoice =
+    typeof result.childVoice === "string" && result.childVoice.trim()
+      ? localiseSpelling(result.childVoice.trim())
+      : "";
 
   return {
+    storyTitle,
     story,
     outcomes: localiseStringArray(toShortStringArray(result.outcomes, 4)),
+    curriculumLinks: localiseStringArray(toShortStringArray(result.curriculumLinks, 4)),
     learningSummary,
+    childVoice,
     learningDispositions: localiseStringArray(toShortStringArray(result.learningDispositions, 4)),
     socialEmotionalLinks: localiseStringArray(toShortStringArray(result.socialEmotionalLinks, 4)),
     culturalConnections: localiseStringArray(toShortStringArray(result.culturalConnections, 4)),
     whanauConnection,
+    assumptions: localiseStringArray(toShortStringArray(result.assumptions, 3)),
     childAge: typeof result.childAge === "string" && result.childAge.trim() ? result.childAge.trim() : "Not stated",
     nextSteps: localiseStringArray(toShortStringArray(result.nextSteps, 4)),
     wordCount:
@@ -155,7 +183,11 @@ export async function generateLearningStory(params: {
   ageGroup?: string;
   childName?: string;
   tone?: StoryTone;
+  depth?: StoryDepth;
   framework?: StoryFrameworkId;
+  includeTeReoLevel?: TeReoLevel;
+  includeKowhitiWhakapae?: boolean;
+  includeTapasa?: boolean;
   preferences?: StoryPreferences;
 }): Promise<StoryResult> {
   const observations = params.observations
@@ -165,7 +197,13 @@ export async function generateLearningStory(params: {
 
   const tone = normalizeTone(params.tone);
   const framework = normalizeFramework(params.framework);
-  const preferences = mergeStoryPreferences(params.preferences);
+  const preferences = mergeStoryPreferences(params.preferences, {
+    preferredTone: tone,
+    depthPreference: normalizeDepth(params.depth ?? params.preferences?.depthPreference),
+    includeTeReoLevel: normalizeTeReoLevel(params.includeTeReoLevel ?? params.preferences?.includeTeReoLevel),
+    includeKowhitiWhakapae: params.includeKowhitiWhakapae ?? params.preferences?.includeKowhitiWhakapae,
+    includeTapasa: params.includeTapasa ?? params.preferences?.includeTapasa,
+  });
 
   const userContent = buildUserMessage(
     observations,

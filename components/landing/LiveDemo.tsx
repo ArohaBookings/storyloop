@@ -18,7 +18,7 @@ export default function LiveDemo() {
 
   const handleGenerate = async () => {
     if (!input.trim()) { setError("Add a few observations first"); return; }
-    if (usage >= 1) { setError("You've used your free demo. Sign up to keep going — it takes 10 seconds."); return; }
+    if (usage >= 1) { setError("You've used your free demo. Sign up to keep going with editable story history."); return; }
     setLoading(true); setError(""); setOutput("");
     try {
       const res = await fetch("/api/generate", {
@@ -40,8 +40,8 @@ export default function LiveDemo() {
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-10 animate-fade-up">
           <p className="section-title mb-3">Try it now — no signup needed</p>
-          <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-900 mb-4">See it work in 10 seconds.</h2>
-          <p className="text-ink-600 max-w-xl mx-auto">Paste some quick observations below. Watch StoryLoop turn them into a proper learning story.</p>
+          <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-900 mb-4">See the draft style.</h2>
+          <p className="text-ink-600 max-w-xl mx-auto">Paste a real observation below and see how StoryLoop turns it into an editable first draft.</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-5">

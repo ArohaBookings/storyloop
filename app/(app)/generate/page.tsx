@@ -2,8 +2,17 @@
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Sparkles, Loader2, Copy, Check, Mic, Square, RefreshCw, AlertCircle, X, ArrowRight, Pencil, Save } from "lucide-react";
-import { normalizeFramework, normalizeTone, type StoryFrameworkId, type StoryTone } from "@/lib/story-options";
+import { Sparkles, Loader2, Copy, Check, Mic, Square, RefreshCw, AlertCircle, X, ArrowRight, Pencil, Save, Download } from "lucide-react";
+import {
+  normalizeDepth,
+  normalizeFramework,
+  normalizeTeReoLevel,
+  normalizeTone,
+  type StoryDepth,
+  type StoryFrameworkId,
+  type StoryTone,
+  type TeReoLevel,
+} from "@/lib/story-options";
 
 const PLACEHOLDERS = [
   "• Ruby (2yo) built a block tower\n• Got frustrated when it fell\n• Tried 4 more times, each bigger\n• Clapped when it stayed up",
@@ -18,8 +27,14 @@ export default function GeneratePage() {
   const [observations, setObservations] = useState("");
   const [childName, setChildName] = useState("");
   const [ageGroup, setAgeGroup] = useState("");
-  const [tone, setTone] = useState<StoryTone>("warm");
+  const [tone, setTone] = useState<StoryTone>("natural");
+  const [depth, setDepth] = useState<StoryDepth>("balanced");
   const [location, setLocation] = useState<StoryFrameworkId>("AU");
+  const [includeTeReoLevel, setIncludeTeReoLevel] = useState<TeReoLevel>("low");
+  const [includeKowhitiWhakapae, setIncludeKowhitiWhakapae] = useState(false);
+  const [includeTapasa, setIncludeTapasa] = useState(false);
+  const [savingPreferences, setSavingPreferences] = useState(false);
+  const [preferencesMessage, setPreferencesMessage] = useState("");
   const [story, setStory] = useState("");
   const [storyId, setStoryId] = useState("");
   const [storyDraft, setStoryDraft] = useState("");
@@ -27,11 +42,14 @@ export default function GeneratePage() {
   const [savingStory, setSavingStory] = useState(false);
   const [storySaveMessage, setStorySaveMessage] = useState("");
   const [outcomes, setOutcomes] = useState<string[]>([]);
+  const [curriculumLinks, setCurriculumLinks] = useState<string[]>([]);
   const [nextSteps, setNextSteps] = useState<string[]>([]);
   const [learningSummary, setLearningSummary] = useState("");
+  const [childVoice, setChildVoice] = useState("");
   const [learningDispositions, setLearningDispositions] = useState<string[]>([]);
   const [socialEmotionalLinks, setSocialEmotionalLinks] = useState<string[]>([]);
   const [culturalConnections, setCulturalConnections] = useState<string[]>([]);
+  const [assumptions, setAssumptions] = useState<string[]>([]);
   const [whanauConnection, setWhanauConnection] = useState("");
   const [remaining, setRemaining] = useState<string | number>("");
   const [loading, setLoading] = useState(false);
@@ -41,6 +59,7 @@ export default function GeneratePage() {
   const [copied, setCopied] = useState(false);
   const [recording, setRecording] = useState(false);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
   const [placeholder, setPlaceholder] = useState(PLACEHOLDERS[0]);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -53,6 +72,7 @@ export default function GeneratePage() {
     setPlaceholder(PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)]);
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (tz?.includes("Auckland")) setLocation("NZ");
+    if (tz?.startsWith("Australia/")) setLocation("AU");
     if (typeof window !== "undefined") {
       const touchDevice =
         /Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent) ||
@@ -72,6 +92,18 @@ export default function GeneratePage() {
         if (preferences?.preferredTone) {
           setTone(normalizeTone(preferences.preferredTone));
         }
+        if (preferences?.depthPreference) {
+          setDepth(normalizeDepth(preferences.depthPreference));
+        }
+        if (preferences?.includeTeReoLevel) {
+          setIncludeTeReoLevel(normalizeTeReoLevel(preferences.includeTeReoLevel));
+        }
+        if (typeof preferences?.includeKowhitiWhakapae === "boolean") {
+          setIncludeKowhitiWhakapae(preferences.includeKowhitiWhakapae);
+        }
+        if (typeof preferences?.includeTapasa === "boolean") {
+          setIncludeTapasa(preferences.includeTapasa);
+        }
       })
       .catch(() => {});
   }, []);
@@ -90,11 +122,14 @@ export default function GeneratePage() {
     setSavingStory(false);
     setStorySaveMessage("");
     setOutcomes([]);
+    setCurriculumLinks([]);
     setNextSteps([]);
     setLearningSummary("");
+    setChildVoice("");
     setLearningDispositions([]);
     setSocialEmotionalLinks([]);
     setCulturalConnections([]);
+    setAssumptions([]);
     setWhanauConnection("");
   };
 
@@ -108,6 +143,8 @@ export default function GeneratePage() {
     setError("");
     resetOutput();
     setUpgradeRequired(false);
+    setShowLimitModal(false);
+    setShowUpgradePrompt(false);
 
     try {
       const res = await fetch("/api/generate", {
@@ -118,13 +155,20 @@ export default function GeneratePage() {
           childName: childName || undefined,
           ageGroup: ageGroup || undefined,
           tone,
+          depth,
           location,
+          includeTeReoLevel,
+          includeKowhitiWhakapae,
+          includeTapasa,
         }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error ?? "Failed");
-        if (data.upgradeRequired) setUpgradeRequired(true);
+        if (data.upgradeRequired) {
+          setUpgradeRequired(true);
+          setShowLimitModal(true);
+        }
         return;
       }
 
@@ -132,17 +176,21 @@ export default function GeneratePage() {
       setStoryDraft(data.story);
       setStoryId(typeof data.storyId === "string" ? data.storyId : "");
       setOutcomes(data.outcomes ?? []);
+      setCurriculumLinks(data.curriculumLinks ?? []);
       setNextSteps(data.nextSteps ?? []);
       setLearningSummary(data.learningSummary ?? "");
+      setChildVoice(data.childVoice ?? "");
       setLearningDispositions(data.learningDispositions ?? []);
       setSocialEmotionalLinks(data.socialEmotionalLinks ?? []);
       setCulturalConnections(data.culturalConnections ?? []);
+      setAssumptions(data.assumptions ?? []);
       setWhanauConnection(data.whanauConnection ?? "");
       setRemaining(data.remaining);
       router.refresh();
       const shouldShowUpgradePrompt =
         data.plan === "free" &&
-        data.storiesUsedThisMonth === 2 &&
+        data.monthlyStoryLimit === 3 &&
+        data.remaining === 1 &&
         !data.appliedAccessCode &&
         typeof window !== "undefined" &&
         window.localStorage.getItem(UPGRADE_PROMPT_STORAGE_KEY) !== "dismissed";
@@ -163,10 +211,55 @@ export default function GeneratePage() {
     }
   };
 
+  const handleSavePreferences = async () => {
+    setSavingPreferences(true);
+    setPreferencesMessage("");
+
+    try {
+      const response = await fetch("/api/me/preferences", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          defaultFramework: location,
+          preferredTone: tone,
+          depthPreference: depth,
+          includeTeReoLevel,
+          includeKowhitiWhakapae,
+          includeTapasa,
+        }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Could not save settings.");
+      }
+
+      setPreferencesMessage("Saved as your default story settings.");
+    } catch (preferenceError) {
+      setPreferencesMessage(preferenceError instanceof Error ? preferenceError.message : "Could not save settings.");
+    } finally {
+      setSavingPreferences(false);
+    }
+  };
+
   const handleCopy = async () => {
     await navigator.clipboard.writeText(story);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownload = () => {
+    if (!story || typeof window === "undefined") return;
+    const blob = new Blob([story], { type: "text/plain;charset=utf-8" });
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    const safeName = (childName || "learning-story").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    anchor.href = url;
+    anchor.download = `${safeName || "learning-story"}.txt`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.URL.revokeObjectURL(url);
   };
 
   const startStoryEdit = () => {
@@ -318,7 +411,10 @@ export default function GeneratePage() {
     try {
       setError("");
       setSuggestUploadFallback(false);
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true },
+        video: false,
+      });
       mediaStreamRef.current = stream;
       recordedChunksRef.current = [];
 
@@ -431,6 +527,11 @@ export default function GeneratePage() {
               {!recording && !transcribing && isTouchDevice && liveRecordingSupported ? " · On phone, Record will ask for microphone access." : ""}
               {!recording && !transcribing && suggestUploadFallback ? " · Upload audio is the fallback if mic access is blocked." : ""}
             </p>
+            {!liveRecordingSupported && (
+              <p className="mt-2 text-xs text-ink-500 bg-cream-50 border border-clay-100 rounded-lg px-3 py-2">
+                Voice recording is not available in this browser session. You can still type bullet points or upload an audio file from Voice Memos/Recorder.
+              </p>
+            )}
           </div>
 
           <div className="card p-6 space-y-4">
@@ -455,13 +556,36 @@ export default function GeneratePage() {
             </div>
             <div>
               <label className="label">Tone</label>
-              <div className="grid grid-cols-3 gap-2">
-                {(["warm", "concise", "reflective"] as const).map((option) => (
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  ["natural", "Natural educator"],
+                  ["warm", "Warm reflective"],
+                  ["professional", "Professional"],
+                  ["simple", "Simple"],
+                ] as const).map(([option, label]) => (
                   <button
                     key={option}
                     onClick={() => setTone(option)}
-                    className={`text-xs font-semibold py-2 rounded-lg border capitalize transition-all ${
+                    className={`text-xs font-semibold py-2 rounded-lg border transition-all ${
                       tone === option
+                        ? "bg-clay-700 text-paper border-clay-700"
+                        : "bg-white text-ink-600 border-clay-200 hover:border-clay-400"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="label">Story depth</label>
+              <div className="grid grid-cols-3 gap-2">
+                {(["concise", "balanced", "detailed"] as const).map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => setDepth(option)}
+                    className={`text-xs font-semibold py-2 rounded-lg border capitalize transition-all ${
+                      depth === option
                         ? "bg-clay-700 text-paper border-clay-700"
                         : "bg-white text-ink-600 border-clay-200 hover:border-clay-400"
                     }`}
@@ -484,11 +608,69 @@ export default function GeneratePage() {
                         : "bg-white text-ink-600 border-clay-200 hover:border-clay-400"
                     }`}
                   >
-                    {framework === "AU" ? "🇦🇺 EYLF" : "🇳🇿 Te Whariki"}
+                    {framework === "AU" ? "🇦🇺 EYLF" : "🇳🇿 Te Whāriki"}
                   </button>
                 ))}
               </div>
             </div>
+            <div>
+              <label className="label">Te reo Māori</label>
+              <div className="grid grid-cols-3 gap-2">
+                {(["low", "medium", "high"] as const).map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => setIncludeTeReoLevel(option)}
+                    className={`text-xs font-semibold py-2 rounded-lg border capitalize transition-all ${
+                      includeTeReoLevel === option
+                        ? "bg-clay-700 text-paper border-clay-700"
+                        : "bg-white text-ink-600 border-clay-200 hover:border-clay-400"
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] text-ink-500 mt-1">Applies mainly to NZ stories. StoryLoop keeps it natural, not random.</p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-2">
+              <label className="flex items-start gap-2 rounded-xl border border-clay-200 bg-white p-3 text-xs text-ink-700">
+                <input
+                  type="checkbox"
+                  checked={includeKowhitiWhakapae}
+                  onChange={(event) => setIncludeKowhitiWhakapae(event.target.checked)}
+                  className="mt-0.5 accent-clay-700"
+                />
+                <span>
+                  <span className="font-bold block text-ink-900">Kōwhiti Whakapae links</span>
+                  Add only when social/emotional, language, or maths noticing is relevant.
+                </span>
+              </label>
+              <label className="flex items-start gap-2 rounded-xl border border-clay-200 bg-white p-3 text-xs text-ink-700">
+                <input
+                  type="checkbox"
+                  checked={includeTapasa}
+                  onChange={(event) => setIncludeTapasa(event.target.checked)}
+                  className="mt-0.5 accent-clay-700"
+                />
+                <span>
+                  <span className="font-bold block text-ink-900">Tapasā lens</span>
+                  Use only when Pacific identity, whānau, language, or culture is actually present.
+                </span>
+              </label>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-t border-clay-100 pt-3">
+              <p className="text-xs text-ink-500">These settings apply to this story. Save them if this is your usual style.</p>
+              <button
+                type="button"
+                onClick={handleSavePreferences}
+                disabled={savingPreferences}
+                className="btn-secondary px-4 py-2 text-xs disabled:opacity-50"
+              >
+                {savingPreferences ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                Save defaults
+              </button>
+            </div>
+            {preferencesMessage && <p className="text-xs text-clay-700">{preferencesMessage}</p>}
           </div>
 
           <button onClick={handleGenerate} disabled={loading || transcribing || observations.length < 10} className="btn-primary w-full py-4 text-base">
@@ -502,6 +684,29 @@ export default function GeneratePage() {
               </>
             )}
           </button>
+
+          {showUpgradePrompt && (
+            <div className="rounded-2xl border border-clay-200 bg-cream-50 p-4 shadow-soft">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1">1 free story left this month</p>
+                  <p className="text-sm text-ink-700">
+                    Upgrade when you&apos;re ready to keep drafting without limits and keep your learning story backlog under control.
+                  </p>
+                  <Link href="/billing" className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-clay-700 hover:text-clay-900">
+                    Upgrade for unlimited stories <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
+                <button
+                  onClick={dismissUpgradePrompt}
+                  className="w-7 h-7 rounded-lg border border-clay-200 bg-white flex items-center justify-center text-ink-500 hover:text-ink-900"
+                  aria-label="Dismiss upgrade reminder"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="flex items-start gap-2 text-xs text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
@@ -532,6 +737,9 @@ export default function GeneratePage() {
                 <button onClick={handleCopy} className="btn-ghost text-xs">
                   {copied ? <Check className="w-3 h-3 text-sage-600" /> : <Copy className="w-3 h-3" />}
                   {copied ? "Copied" : "Copy"}
+                </button>
+                <button onClick={handleDownload} className="btn-ghost text-xs">
+                  <Download className="w-3 h-3" /> Export
                 </button>
               </div>
             )}
@@ -581,9 +789,12 @@ export default function GeneratePage() {
 
               {(learningSummary ||
                 outcomes.length > 0 ||
+                curriculumLinks.length > 0 ||
+                childVoice ||
                 learningDispositions.length > 0 ||
                 socialEmotionalLinks.length > 0 ||
                 culturalConnections.length > 0 ||
+                assumptions.length > 0 ||
                 nextSteps.length > 0 ||
                 whanauConnection ||
                 remaining !== "") && (
@@ -605,6 +816,24 @@ export default function GeneratePage() {
                           </span>
                         ))}
                       </div>
+                    </div>
+                  )}
+
+                  {curriculumLinks.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Curriculum link</p>
+                      <ul className="space-y-1 text-sm text-ink-700">
+                        {curriculumLinks.map((item) => (
+                          <li key={item}>• {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {childVoice && (
+                    <div>
+                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Child&apos;s voice</p>
+                      <p className="text-sm text-ink-700">{childVoice}</p>
                     </div>
                   )}
 
@@ -656,6 +885,17 @@ export default function GeneratePage() {
                     </div>
                   )}
 
+                  {assumptions.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Assumptions or gaps</p>
+                      <ul className="space-y-1 text-sm text-ink-700">
+                        {assumptions.map((item) => (
+                          <li key={item}>• {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
                   {whanauConnection && (
                     <div>
                       <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Family or whanau link</p>
@@ -683,38 +923,38 @@ export default function GeneratePage() {
         </div>
       </div>
 
-      {showUpgradePrompt && (
+      {showLimitModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/50 px-4 py-6">
           <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-clay-100 p-5">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-2">You are on story 2 of 3</p>
-                <h2 className="font-display text-2xl font-bold text-ink-900 leading-tight">Keep StoryLoop ready for every child&apos;s moment.</h2>
+                <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-2">Free story limit reached</p>
+                <h2 className="font-display text-2xl font-bold text-ink-900 leading-tight">You&apos;ve used your 3 free stories this month.</h2>
               </div>
               <button
-                onClick={dismissUpgradePrompt}
+                onClick={() => setShowLimitModal(false)}
                 className="w-8 h-8 flex-shrink-0 rounded-lg border border-clay-200 flex items-center justify-center text-ink-500 hover:text-ink-900 hover:bg-cream-50"
-                aria-label="Close upgrade prompt"
+                aria-label="Close limit message"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
             <p className="text-sm text-ink-600 mt-3">
-              Your next free story is still included. Upgrade when you want unlimited stories, voice notes, history, and support without watching the counter.
+              Upgrade to keep creating learning stories now, or come back next month. Your existing stories and history stay available either way.
             </p>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <Link
                 href="/billing"
-                onClick={dismissUpgradePrompt}
+                onClick={() => setShowLimitModal(false)}
                 className="btn-primary justify-center py-3 text-sm"
               >
-                View paid plans <ArrowRight className="w-4 h-4" />
+                Upgrade for unlimited stories <ArrowRight className="w-4 h-4" />
               </Link>
               <button
-                onClick={dismissUpgradePrompt}
+                onClick={() => setShowLimitModal(false)}
                 className="btn-secondary justify-center py-3 text-sm"
               >
-                Keep writing
+                Close
               </button>
             </div>
           </div>

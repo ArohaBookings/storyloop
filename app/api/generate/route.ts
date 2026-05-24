@@ -3,7 +3,14 @@ import { createClient } from "@/lib/supabase/server";
 import { generateLearningStory } from "@/lib/ai/generate";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { getMonthlyStoryLimit, getRemainingStories } from "@/lib/story-limits";
-import { mergeStoryPreferences, normalizeFramework, normalizeTone } from "@/lib/story-options";
+import {
+  mergeStoryPreferences,
+  normalizeDepth,
+  normalizeFramework,
+  normalizeTeReoLevel,
+  normalizeTone,
+  sanitizeStoryPreferences,
+} from "@/lib/story-options";
 
 // In-memory rate limit for demo mode (per-IP)
 const demoRateLimit = new Map<string, { count: number; resetAt: number }>();
@@ -29,7 +36,18 @@ function checkDemoRateLimit(ip: string): boolean {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { observations, ageGroup, childName, tone, location, demo } = body;
+    const {
+      observations,
+      ageGroup,
+      childName,
+      tone,
+      depth,
+      location,
+      includeTeReoLevel,
+      includeKowhitiWhakapae,
+      includeTapasa,
+      demo,
+    } = body;
 
     if (!observations || observations.trim().length < 10) {
       return NextResponse.json({ error: "Please add a few observations (at least 10 characters)" }, { status: 400 });
@@ -45,15 +63,24 @@ export async function POST(request: NextRequest) {
         observations,
         ageGroup,
         framework: normalizeFramework(typeof location === "string" ? location : undefined),
+        tone: normalizeTone(typeof tone === "string" ? tone : undefined),
+        depth: normalizeDepth(typeof depth === "string" ? depth : undefined),
+        includeTeReoLevel: normalizeTeReoLevel(typeof includeTeReoLevel === "string" ? includeTeReoLevel : undefined),
+        includeKowhitiWhakapae: Boolean(includeKowhitiWhakapae),
+        includeTapasa: Boolean(includeTapasa),
       });
       return NextResponse.json({
+        storyTitle: result.storyTitle,
         story: result.story,
         outcomes: result.outcomes,
+        curriculumLinks: result.curriculumLinks,
         learningSummary: result.learningSummary,
+        childVoice: result.childVoice,
         learningDispositions: result.learningDispositions,
         socialEmotionalLinks: result.socialEmotionalLinks,
         culturalConnections: result.culturalConnections,
         whanauConnection: result.whanauConnection,
+        assumptions: result.assumptions,
         nextSteps: result.nextSteps,
       });
     }
@@ -70,11 +97,31 @@ export async function POST(request: NextRequest) {
 
     const plan = profile.plan ?? "free";
     const used = profile.stories_this_month ?? 0;
-    const preferences = mergeStoryPreferences(profile.story_preferences);
+    const preferences = mergeStoryPreferences(sanitizeStoryPreferences(profile.story_preferences));
     const framework = normalizeFramework(
       typeof location === "string" ? location : preferences.defaultFramework
     );
     const resolvedTone = normalizeTone(typeof tone === "string" ? tone : preferences.preferredTone);
+    const resolvedDepth = normalizeDepth(typeof depth === "string" ? depth : preferences.depthPreference);
+    const resolvedTeReoLevel = normalizeTeReoLevel(
+      typeof includeTeReoLevel === "string" ? includeTeReoLevel : preferences.includeTeReoLevel
+    );
+    const resolvedIncludeKowhiti =
+      typeof includeKowhitiWhakapae === "boolean"
+        ? includeKowhitiWhakapae
+        : preferences.includeKowhitiWhakapae ?? false;
+    const resolvedIncludeTapasa =
+      typeof includeTapasa === "boolean"
+        ? includeTapasa
+        : preferences.includeTapasa ?? false;
+    const requestPreferences = mergeStoryPreferences(preferences, {
+      defaultFramework: framework,
+      preferredTone: resolvedTone,
+      depthPreference: resolvedDepth,
+      includeTeReoLevel: resolvedTeReoLevel,
+      includeKowhitiWhakapae: resolvedIncludeKowhiti,
+      includeTapasa: resolvedIncludeTapasa,
+    });
     const limit = getMonthlyStoryLimit(profile);
 
     if (limit !== null && used >= limit) {
@@ -93,8 +140,12 @@ export async function POST(request: NextRequest) {
       ageGroup,
       childName,
       tone: resolvedTone,
+      depth: resolvedDepth,
       framework,
-      preferences,
+      includeTeReoLevel: resolvedTeReoLevel,
+      includeKowhitiWhakapae: resolvedIncludeKowhiti,
+      includeTapasa: resolvedIncludeTapasa,
+      preferences: requestPreferences,
     });
 
     // Save to history
@@ -110,11 +161,23 @@ export async function POST(request: NextRequest) {
       location: framework,
       word_count: result.wordCount,
       metadata: {
+        storyTitle: result.storyTitle,
         learningSummary: result.learningSummary,
+        childVoice: result.childVoice,
+        curriculumLinks: result.curriculumLinks,
         learningDispositions: result.learningDispositions,
         socialEmotionalLinks: result.socialEmotionalLinks,
         culturalConnections: result.culturalConnections,
         whanauConnection: result.whanauConnection,
+        assumptions: result.assumptions,
+        storySettings: {
+          framework,
+          tone: resolvedTone,
+          depth: resolvedDepth,
+          includeTeReoLevel: resolvedTeReoLevel,
+          includeKowhitiWhakapae: resolvedIncludeKowhiti,
+          includeTapasa: resolvedIncludeTapasa,
+        },
       },
     }).select("id").single();
 
@@ -130,13 +193,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       storyId: saved?.id,
+      storyTitle: result.storyTitle,
       story: result.story,
       outcomes: result.outcomes,
+      curriculumLinks: result.curriculumLinks,
       learningSummary: result.learningSummary,
+      childVoice: result.childVoice,
       learningDispositions: result.learningDispositions,
       socialEmotionalLinks: result.socialEmotionalLinks,
       culturalConnections: result.culturalConnections,
       whanauConnection: result.whanauConnection,
+      assumptions: result.assumptions,
       nextSteps: result.nextSteps,
       plan,
       storiesUsedThisMonth: used + 1,

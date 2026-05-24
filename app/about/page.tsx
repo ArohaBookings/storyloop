@@ -4,8 +4,8 @@ import Link from "next/link";
 import { ArrowRight, Heart, Code2, Users } from "lucide-react";
 
 export const metadata = {
-  title: "About — Built by a 19-year-old for care workers everywhere",
-  description: "The story behind StoryLoop, Aria, and Aroha AI — three products built by Leo Bons, a 19-year-old founder on a mission to give care workers their time back.",
+  title: "About StoryLoop",
+  description: "The story behind StoryLoop, Aria Care, and Aroha AI: practical tools built to reduce documentation load while keeping professional judgement central.",
 };
 
 export default function AboutPage() {
@@ -52,9 +52,9 @@ export default function AboutPage() {
               night. Teachers, educators, support workers. The documentation burden is crushing the people who care most.
             </p>
             <p>
-              So I built StoryLoop: a tool that turns a few quick observations into a clear,
-              EYLF-aligned learning story in under 30 seconds. Not to replace the educator's voice — to protect it.
-              To give them back the hours they should be spending with their family, not on a laptop at 10pm.
+              So I built StoryLoop: a tool that turns real observations into editable learning story drafts with
+              Te Whāriki or EYLF links, dispositions, child voice, and next steps. Not to replace the educator's voice,
+              but to support it and reduce the blank-page backlog.
             </p>
 
             <h2 className="font-display text-3xl font-bold text-ink-900 mt-12 mb-5">The bigger mission</h2>
@@ -64,10 +64,10 @@ export default function AboutPage() {
             </p>
 
             <div className="not-prose grid grid-cols-1 md:grid-cols-3 gap-4 my-8">
-              <a href="https://storyloop.app" className="card p-5 border-2 border-clay-400 bg-cream-50">
+              <a href="https://storyloop.space" className="card p-5 border-2 border-clay-400 bg-cream-50">
                 <Heart className="w-6 h-6 text-clay-700 mb-3" />
                 <h3 className="font-display font-bold text-ink-900 mb-1">StoryLoop</h3>
-                <p className="text-xs text-ink-600">AI learning stories for early childhood educators</p>
+                <p className="text-xs text-ink-600">Learning story drafts for early childhood educators</p>
                 <p className="text-[10px] text-clay-600 mt-2 font-mono">YOU ARE HERE</p>
               </a>
               <a href="https://ariacare.app" target="_blank" rel="noopener" className="card p-5 hover:border-clay-300 transition-all">
@@ -112,7 +112,7 @@ export default function AboutPage() {
                 I'm building these products for you. Not for investors. Not for an exit. For you.
               </p>
               <p className="text-sm text-ink-500 mb-8">
-                — Leo Bons, Founder · leo@storyloop.app
+                — Leo Bons, Founder · leo@storyloop.space
               </p>
               <Link href="/signup" className="btn-primary">
                 Try StoryLoop free

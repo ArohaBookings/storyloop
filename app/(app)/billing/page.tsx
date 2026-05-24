@@ -6,7 +6,7 @@ import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } fro
 type PlanKey = "free" | "educator" | "centre";
 
 const PLANS_AUD = [
-  { name: "Free", price: 0, key: "free" as const, stories: "3 stories per month", features: ["3 stories/month", "EYLF or Te Whariki alignment", "Story history"] },
+  { name: "Free", price: 0, key: "free" as const, stories: "3 stories per month", features: ["3 stories/month", "EYLF or Te Whāriki alignment", "Story history"] },
   { name: "Educator", price: 19, key: "educator" as const, stories: "Unlimited stories", features: ["Unlimited stories", "Voice notes", "All tone styles", "Editable story history", "Email support"], popular: true },
   { name: "Centre", price: 49, key: "centre" as const, stories: "Unlimited stories for your rollout", features: ["Everything in Educator", "Shared billing", "Priority support", "Team rollout planning", "Admin oversight"] },
 ];

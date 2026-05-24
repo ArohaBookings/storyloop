@@ -11,11 +11,11 @@ export default function PrivacyPage() {
     { h: "3. Children's information", p: "If you enter a child's first name or age into StoryLoop, that information is treated as sensitive. We store it encrypted, in Australian data centres (Sydney region via Supabase on AWS ap-southeast-2). We never use this data to train AI models. You can delete any child profile or story at any time." },
     { h: "4. AI processing", p: "When you generate a story, your observations are sent to our AI provider (OpenAI or Anthropic) for processing. These providers have signed data processing agreements with us; they do not use your data to train their models. We recommend avoiding full names or identifying details in observations." },
     { h: "5. Data storage and security", p: "All data encrypted in transit (TLS 1.3) and at rest (AES-256). Row-level security ensures each user can only access their own data. Passwords hashed with bcrypt. Regular security reviews." },
-    { h: "6. Your rights", p: "You can access, correct, or delete your personal data at any time by emailing privacy@storyloop.app. We respond within 30 days. You may also export all your stories from your dashboard." },
+    { h: "6. Your rights", p: "You can access, correct, or delete your personal data at any time by emailing privacy@storyloop.space. We respond within 30 days. You may also export all your stories from your dashboard." },
     { h: "7. Cancellation and data retention", p: "When you cancel your subscription, we retain your data for 90 days so you can export it. After 90 days, all data is permanently deleted from our systems. Backups are retained for 30 days after deletion." },
     { h: "8. Cookies", p: "We use essential cookies for authentication and session management. We do not use advertising cookies or third-party trackers." },
     { h: "9. Compliance", p: "Compliant with the Australian Privacy Act 1988 and the New Zealand Privacy Act 2020. We do not transfer personal data outside of Australia and New Zealand." },
-    { h: "10. Contact", p: "Privacy questions: privacy@storyloop.app. StoryLoop is a division of Aria Care, based in New Zealand." },
+    { h: "10. Contact", p: "Privacy questions: privacy@storyloop.space. StoryLoop is a division of Aria Care, based in New Zealand." },
   ];
 
   return (

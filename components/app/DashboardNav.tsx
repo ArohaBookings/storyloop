@@ -65,6 +65,11 @@ export default function DashboardNav({
     monthly_story_limit_override: monthlyStoryLimitOverride,
     applied_access_code: appliedAccessCode,
   });
+  const usageLabel = limit === null
+    ? "Unlimited stories"
+    : appliedAccessCode
+      ? `${storiesUsed} of ${limit} complimentary stories used this month.`
+      : `${storiesUsed} of ${limit} free stories used this month.`;
   const planInfo = PLAN_LABEL[plan] ?? PLAN_LABEL.free;
   const initials = userName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
   const isAdminUser = userEmail.toLowerCase() === ADMIN_EMAIL;
@@ -113,13 +118,14 @@ export default function DashboardNav({
             <div className="w-full h-1.5 bg-clay-100 rounded-full overflow-hidden mb-2">
               <div className="h-full bg-clay-500 rounded-full transition-all" style={{ width: `${Math.min((storiesUsed/limit)*100,100)}%` }} />
             </div>
-            <p className="text-[11px] text-ink-600 mb-2">{allowanceLabel}</p>
+            <p className="text-[11px] text-ink-600 mb-1">{usageLabel}</p>
+            <p className="text-[10px] text-clay-600 mb-2">{allowanceLabel}</p>
             <button
               type="button"
               onClick={goToBilling}
               className="w-full rounded-lg bg-white border border-clay-200 px-3 py-2 text-left text-xs font-semibold text-clay-700 hover:bg-cream-100 hover:text-clay-900 transition-all"
             >
-              View plans →
+              Upgrade for unlimited stories →
             </button>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import { Mic, Cpu, Download } from "lucide-react";
 
 const STEPS = [
-  { num: "01", icon: Mic, title: "Capture the moment", desc: "Voice record a 30-second observation after play, or type 3-5 quick bullets. No formal structure needed." },
+  { num: "01", icon: Mic, title: "Capture the moment", desc: "Voice record what happened after play, or type 3-5 quick bullets. No formal structure needed." },
   { num: "02", icon: Cpu, title: "StoryLoop shapes it", desc: "StoryLoop turns rough notes into a first draft with curriculum links, dispositions, and practical next steps." },
   { num: "03", icon: Download, title: "Review, tweak, publish", desc: "Edit anything that needs your touch, then copy it into your usual documentation system." },
 ];
@@ -13,8 +13,8 @@ export default function HowItWorks() {
         <div className="text-center mb-16">
           <p className="section-title mb-3">How it works</p>
           <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-900">
-            From observation to documentation<br/>
-            <span className="italic text-clay-700">in under 60 seconds.</span>
+            From observation to editable draft<br/>
+            <span className="italic text-clay-700">without losing your voice.</span>
           </h2>
         </div>
 

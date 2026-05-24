@@ -5,7 +5,7 @@ const EXAMPLES = [
 
 **What this learning shows:** Sienna is building persistence, curiosity, and a growing sense of responsibility for the environment.
 
-**Linked learning outcomes:** EYLF Outcome 2.4 — Children become socially responsible and show respect for the environment.
+**Linked curriculum:** EYLF Outcome 2 — Children are connected with and contribute to their world, particularly showing care for the environment through repeated watering and close noticing.
 
 **Next steps:** Offer magnifying glasses for closer worm observation and invite Sienna to help with planting so she can keep following this interest.`,
     age: "2 years",
@@ -16,7 +16,7 @@ const EXAMPLES = [
 
 **What this learning shows:** Marcus is strengthening self-regulation, persistence, and confidence when things do not go to plan.
 
-**Linked learning outcomes:** EYLF Outcome 3.2 — Children take increasing responsibility for their own wellbeing. Outcome 4.1 — Children develop dispositions for learning such as persistence.
+**Linked curriculum:** EYLF Outcome 3 — Children have a strong sense of wellbeing, and Outcome 4 — Children are confident and involved learners, as Marcus used a calming strategy and stayed with the challenge.
 
 **Next steps:** Notice the strategy Marcus used, name it with him, and offer more chances to practise managing frustration in play.`,
     age: "4 years",
@@ -27,7 +27,7 @@ const EXAMPLES = [
 
 **What this learning shows:** Emma is growing confidence as a communicator and is using shared group moments to connect language with meaning.
 
-**Linked learning outcomes:** Mana reo | Communication. Mana tangata | Contribution.
+**Linked curriculum:** This links with Mana reo | Communication, particularly using gesture, sound, and shared story language to express meaning. It also connects with Mana tangata | Contribution as Emma joined a group moment and saw other tamariki respond.
 
 **Next steps:** Revisit animal sound books, keep using shared waiata and story prompts, and share this language moment with whanau.`,
     age: "Toddler",

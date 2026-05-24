@@ -4,14 +4,14 @@ import { useState, useEffect } from "react";
 import { Check } from "lucide-react";
 
 const PLANS_AUD = [
-  { name: "Free", price: 0, stories: "3 stories/month", cta: "Start free", features: ["3 stories per month", "EYLF or Te Whariki alignment", "Copy into your workflow", "No credit card required"], priceId: null },
-  { name: "Educator", price: 19, stories: "Unlimited stories", cta: "Choose Educator", features: ["Unlimited learning stories", "Voice notes", "All 3 tone styles", "Story history", "Email support"], priceId: "educator", popular: true },
+  { name: "Free", price: 0, stories: "3 stories/month", cta: "Start free", features: ["3 stories per month", "EYLF or Te Whāriki alignment", "Copy into your workflow", "No credit card required"], priceId: null },
+  { name: "Educator", price: 19, stories: "Unlimited stories", cta: "Choose Educator", features: ["Unlimited learning stories", "Voice notes", "Tone and depth controls", "Editable story history", "Email support"], priceId: "educator", popular: true },
   { name: "Centre", price: 49, stories: "Unlimited stories for your rollout", cta: "Choose Centre", features: ["Everything in Educator", "Shared billing", "Priority support", "Team rollout planning", "Admin oversight"], priceId: "centre" },
 ];
 
 const PLANS_NZD = [
-  { name: "Free", price: 0, stories: "3 stories/month", cta: "Start free", features: ["3 stories per month", "EYLF/Te Whariki alignment", "Copy into your workflow", "No credit card required"], priceId: null },
-  { name: "Educator", price: 21, stories: "Unlimited stories", cta: "Choose Educator", features: ["Unlimited learning stories", "Voice notes", "All 3 tone styles", "Story history", "Email support"], priceId: "educator", popular: true },
+  { name: "Free", price: 0, stories: "3 stories/month", cta: "Start free", features: ["3 stories per month", "EYLF/Te Whāriki alignment", "Copy into your workflow", "No credit card required"], priceId: null },
+  { name: "Educator", price: 21, stories: "Unlimited stories", cta: "Choose Educator", features: ["Unlimited learning stories", "Voice notes", "Tone and depth controls", "Editable story history", "Email support"], priceId: "educator", popular: true },
   { name: "Centre", price: 55, stories: "Unlimited stories for your rollout", cta: "Choose Centre", features: ["Everything in Educator", "Shared billing", "Priority support", "Team rollout planning", "Admin oversight"], priceId: "centre" },
 ];
 

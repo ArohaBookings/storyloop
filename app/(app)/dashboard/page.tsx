@@ -38,7 +38,7 @@ export default async function DashboardPage() {
       <div className="mb-8">
         <p className="section-title mb-2">{greeting}</p>
         <h1 className="font-display text-4xl font-bold text-ink-900">Hi {firstName}. Ready to write?</h1>
-        <p className="text-ink-600 mt-1">Turn your observations into a beautiful learning story in seconds.</p>
+        <p className="text-ink-600 mt-1">Turn real observations into editable learning story drafts with your educator judgement still at the centre.</p>
       </div>
 
       {/* Quick action */}
@@ -47,7 +47,7 @@ export default async function DashboardPage() {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="font-display text-2xl font-bold text-ink-900 mb-1">Start a new story</h2>
-            <p className="text-sm text-ink-600">Voice note, bullet points, or a messy braindump. We'll shape it.</p>
+            <p className="text-sm text-ink-600">Voice note, bullet points, or a messy braindump. StoryLoop will shape a first draft you can review.</p>
           </div>
           <Link href="/generate" className="btn-primary text-base whitespace-nowrap">
             <Sparkles className="w-4 h-4" /> New story
@@ -99,7 +99,7 @@ export default async function DashboardPage() {
           <div className="p-14 text-center">
             <BookOpen className="w-12 h-12 text-clay-300 mx-auto mb-4" />
             <p className="font-display text-lg font-bold text-ink-900 mb-1">No stories yet</p>
-            <p className="text-sm text-ink-500 mb-5">Write your first learning story — takes 30 seconds.</p>
+            <p className="text-sm text-ink-500 mb-5">Write your first learning story draft.</p>
             <Link href="/generate" className="btn-primary"><Sparkles className="w-4 h-4" /> Write first story</Link>
           </div>
         ) : (

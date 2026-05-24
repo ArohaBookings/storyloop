@@ -12,16 +12,16 @@ export default function CTA() {
               <Sparkles className="w-7 h-7 text-paper" />
             </div>
             <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-900 mb-4">
-              Get your evenings back.
+              Keep your learning story backlog under control.
             </h2>
             <p className="text-ink-600 text-lg mb-8 max-w-xl mx-auto">
-              Start with a usable draft instead of a blank page. Try your first 3 stories free — no credit card, no commitment.
+              Start with a usable first draft, then add your educator judgement before sharing. Try your first 3 stories free.
             </p>
             <Link href="/signup" className="btn-primary text-base px-8 py-4 group">
               Start free
               <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
-            <p className="text-xs text-ink-500 mt-4">3 free stories · No credit card · Set up in 30 seconds</p>
+            <p className="text-xs text-ink-500 mt-4">3 free stories · No credit card · Editable drafts</p>
           </div>
         </div>
       </div>

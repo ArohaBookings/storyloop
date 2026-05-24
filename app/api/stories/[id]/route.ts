@@ -5,6 +5,16 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
+function isMissingUpdatedAtColumn(error: unknown) {
+  return Boolean(
+    error &&
+      typeof error === "object" &&
+      "message" in error &&
+      typeof error.message === "string" &&
+      error.message.includes("updated_at")
+  );
+}
+
 export async function PATCH(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
@@ -32,22 +42,54 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "Sign in to edit stories" }, { status: 401 });
     }
 
-    const { data, error } = await supabase
+    const { data: existingStory } = await supabase
       .from("stories")
-      .update({
-        story_text: story,
-        word_count: story.split(/\s+/).filter(Boolean).length,
-      })
+      .select("metadata")
       .eq("id", id)
       .eq("user_id", user.id)
-      .select("id, story_text")
       .single();
+
+    const existingMetadata =
+      existingStory?.metadata && typeof existingStory.metadata === "object"
+        ? (existingStory.metadata as Record<string, unknown>)
+        : {};
+    const updatedAt = new Date().toISOString();
+    const updatePayload = {
+      story_text: story,
+      word_count: story.split(/\s+/).filter(Boolean).length,
+      metadata: {
+        ...existingMetadata,
+        editedAt: updatedAt,
+      },
+      updated_at: updatedAt,
+    };
+
+    let { data, error } = await supabase
+      .from("stories")
+      .update(updatePayload)
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .select("id, story_text, updated_at")
+      .single();
+
+    if (isMissingUpdatedAtColumn(error)) {
+      const { updated_at: _updatedAt, ...fallbackPayload } = updatePayload;
+      const fallback = await supabase
+        .from("stories")
+        .update(fallbackPayload)
+        .eq("id", id)
+        .eq("user_id", user.id)
+        .select("id, story_text, metadata")
+        .single();
+      data = fallback.data ? { ...fallback.data, updated_at: updatedAt } : null;
+      error = fallback.error;
+    }
 
     if (error || !data) {
       return NextResponse.json({ error: "Story not found or not editable" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, storyId: data.id, story: data.story_text });
+    return NextResponse.json({ success: true, storyId: data.id, story: data.story_text, updatedAt: data.updated_at });
   } catch (error) {
     console.error("Story update error:", error);
     return NextResponse.json({ error: "Could not save story edits" }, { status: 500 });

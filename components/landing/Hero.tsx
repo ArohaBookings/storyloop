@@ -16,19 +16,19 @@ export default function Hero() {
         <div className="flex justify-center mb-8 animate-fade-up">
           <div className="inline-flex items-center gap-2 bg-cream-100 border border-clay-200 rounded-full px-4 py-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-clay-500" />
-            <span className="text-xs font-semibold text-clay-700 tracking-wide">Built for Australian & NZ early childhood educators</span>
+            <span className="text-xs font-semibold text-clay-700 tracking-wide">Built with educator feedback for NZ & Australian ECE</span>
           </div>
         </div>
 
         <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold text-ink-900 leading-[1.02] tracking-tight text-center mb-6 animate-fade-up-1">
-          Turn <span className="italic font-semibold text-clay-700">three bullet points</span>
+          Learning stories drafted <span className="italic font-semibold text-clay-700">faster</span>{" "}
           <br />
-          into a <span className="scribble-underline">learning story you can actually use</span>.
+          without losing the <span className="scribble-underline">educator&apos;s voice</span>.
         </h1>
 
         <p className="text-center text-lg md:text-xl text-ink-600 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-up-2">
-          StoryLoop turns a quick voice note or a few rough observations into EYLF and Te Whariki aligned documentation that still sounds like an educator.
-          Spend less time rewriting. More time with the children.
+          Turn real observations into meaningful learning story drafts — with Te Whāriki or EYLF links, dispositions, next steps, and a natural educator tone.
+          StoryLoop supports the first draft while keeping educator reflection and judgement at the centre.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-14 animate-fade-up-3">
@@ -43,7 +43,7 @@ export default function Hero() {
 
         {/* Trust bar */}
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-ink-500 animate-fade-up-4">
-          {["Free to try", "No credit card", "EYLF + Te Whariki", "Works on phone"].map(item => (
+          {["Editable first drafts", "No credit card", "EYLF + Te Whāriki", "Works on phone"].map(item => (
             <span key={item} className="flex items-center gap-1.5">
               <Check className="w-4 h-4 text-sage-500" />
               {item}

@@ -15,8 +15,8 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-sm text-ink-300 leading-relaxed mb-4">
-              AI-powered learning stories for early childhood educators across Australia and New Zealand.
-              Built by Leo Bons, a 19-year-old founder on a mission to give care workers their time back.
+              Learning story drafts for early childhood educators across Aotearoa New Zealand and Australia.
+              Built to support educator voice, curriculum links, and editable documentation.
             </p>
             <Link href="/about" className="inline-block text-sm text-cream-300 hover:text-cream-100 transition-colors underline underline-offset-2">
               Read our story →
@@ -28,8 +28,10 @@ export default function Footer() {
             <h4 className="font-display font-bold text-paper mb-4 text-sm">Product</h4>
             <ul className="space-y-2 text-sm text-ink-300">
               <li><a href="#features" className="hover:text-paper transition-colors">Features</a></li>
-              <li><a href="#pricing" className="hover:text-paper transition-colors">Pricing</a></li>
-              <li><a href="#examples" className="hover:text-paper transition-colors">Examples</a></li>
+              <li><Link href="/pricing" className="hover:text-paper transition-colors">Pricing</Link></li>
+              <li><Link href="/examples" className="hover:text-paper transition-colors">Examples</Link></li>
+              <li><Link href="/te-whariki-learning-stories" className="hover:text-paper transition-colors">Te Whāriki</Link></li>
+              <li><Link href="/eylf-learning-stories" className="hover:text-paper transition-colors">EYLF</Link></li>
               <li><a href="#live-demo" className="hover:text-paper transition-colors">Try free</a></li>
             </ul>
           </div>
@@ -55,11 +57,11 @@ export default function Footer() {
         </div>
 
         <div className="pt-8 border-t border-ink-800 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-ink-500">© {new Date().getFullYear()} StoryLoop · A division of Aria Care. Proudly built in New Zealand 🇳🇿</p>
+          <p className="text-xs text-ink-500">© {new Date().getFullYear()} StoryLoop · A division of Aria Care. Proudly built in New Zealand.</p>
           <div className="flex items-center gap-5 text-xs text-ink-400">
             <Link href="/privacy" className="hover:text-paper transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-paper transition-colors">Terms</Link>
-            <a href="mailto:hello@storyloop.app" className="hover:text-paper transition-colors">Contact</a>
+            <a href="mailto:hello@storyloop.space" className="hover:text-paper transition-colors">Contact</a>
           </div>
         </div>
       </div>

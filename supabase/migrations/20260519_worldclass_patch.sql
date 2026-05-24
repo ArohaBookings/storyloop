@@ -140,12 +140,16 @@ values (
     "preferredTone": "warm",
     "languageStyle": "plain_ece",
     "emphasis": [
-      "Te Whariki learning outcomes",
+      "Te Whāriki learning outcomes",
       "learning dispositions",
-      "Kowhiti Whakapae social and emotional learning",
-      "light te reo Maori",
-      "Tapasa-informed cultural responsiveness"
-    ]
+      "Kōwhiti Whakapae social and emotional learning",
+      "light te reo Māori",
+      "Tapasā-informed cultural responsiveness"
+    ],
+    "depthPreference": "balanced",
+    "includeTeReoLevel": "medium",
+    "includeKowhitiWhakapae": true,
+    "includeTapasa": true
   }'::jsonb,
   1,
   true

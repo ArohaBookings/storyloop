@@ -1,20 +1,38 @@
-export type StoryTone = "warm" | "concise" | "reflective";
+export type StoryTone = "natural" | "warm" | "professional" | "simple";
+export type StoryDepth = "concise" | "balanced" | "detailed";
+export type TeReoLevel = "low" | "medium" | "high";
 export type StoryFrameworkId = "AU" | "NZ";
 
 export type StoryPreferences = {
   defaultFramework?: StoryFrameworkId;
   preferredTone?: StoryTone;
+  depthPreference?: StoryDepth;
+  includeTeReoLevel?: TeReoLevel;
+  includeKowhitiWhakapae?: boolean;
+  includeTapasa?: boolean;
   languageStyle?: "plain_ece";
   emphasis?: string[];
   notes?: string;
 };
 
 export type StoryMetadata = {
+  storyTitle?: string;
   learningSummary?: string;
+  childVoice?: string;
+  curriculumLinks?: string[];
   learningDispositions?: string[];
   socialEmotionalLinks?: string[];
   culturalConnections?: string[];
   whanauConnection?: string;
+  assumptions?: string[];
+  storySettings?: {
+    framework?: StoryFrameworkId;
+    tone?: StoryTone;
+    depth?: StoryDepth;
+    includeTeReoLevel?: TeReoLevel;
+    includeKowhitiWhakapae?: boolean;
+    includeTapasa?: boolean;
+  };
 };
 
 export const STORY_FRAMEWORKS = {
@@ -23,14 +41,16 @@ export const STORY_FRAMEWORKS = {
     label: "Australia",
     pickerLabel: "EYLF",
     curriculumPrompt: [
-      "Australia framework: Belonging, Being and Becoming: The Early Years Learning Framework for Australia (EYLF v2.0).",
-      "Use the five EYLF outcomes only when supported by the observation:",
+      "Australia framework: Belonging, Being and Becoming: The Early Years Learning Framework for Australia (EYLF V2.0, 2022).",
+      "Use the five EYLF learning outcomes only when supported by the observation. They are broad and observable, so link to the child's actual actions rather than dropping in a generic outcome.",
       "1. Children have a strong sense of identity.",
       "2. Children are connected with and contribute to their world.",
       "3. Children have a strong sense of wellbeing.",
       "4. Children are confident and involved learners.",
       "5. Children are effective communicators.",
-      "Name the most relevant outcome clearly and keep any interpretation grounded in what the educator actually saw.",
+      "For tinkering, testing, working theories, persistence, or problem solving, consider Outcome 4 before other outcomes.",
+      "For explaining ideas, symbols, story, gesture, or conversation, consider Outcome 5 if the observation includes communication evidence.",
+      "Name the most relevant outcome clearly and include a short why-it-links explanation.",
     ].join("\n"),
     voicePrompt:
       "Write like an experienced early childhood educator in plain Australian English. Keep the tone warm, grounded, and easy to share with families or a room leader.",
@@ -42,22 +62,24 @@ export const STORY_FRAMEWORKS = {
   NZ: {
     id: "NZ",
     label: "Aotearoa New Zealand",
-    pickerLabel: "Te Whariki",
+    pickerLabel: "Te Whāriki",
     curriculumPrompt: [
-      "Aotearoa New Zealand framework: Te Whariki.",
-      "Use Te Whariki principles, strands, goals, and learning outcomes with a local-curriculum mindset.",
-      "The five strands are Mana atua | Wellbeing, Mana whenua | Belonging, Mana tangata | Contribution, Mana reo | Communication, and Mana aoturoa | Exploration.",
+      "Aotearoa New Zealand framework: Te Whāriki.",
+      "Use Te Whāriki principles, strands, goals, and learning outcomes with a local-curriculum mindset.",
+      "The five strands are strands, not outcomes: Mana atua | Wellbeing, Mana whenua | Belonging, Mana tangata | Contribution, Mana reo | Communication, and Mana aotūroa | Exploration.",
+      "Learning outcomes sit within each strand. They are broad valued learning across knowledge, skills, attitudes, and dispositions that children develop over time.",
+      "When linking Te Whāriki, name the relevant strand and then the relevant learning outcome or outcome idea. Include a short why-it-links explanation.",
+      "For testing ideas, tools, movement, physical problem solving, working theories, or curiosity, consider Mana aotūroa | Exploration, particularly strategies for active exploration, thinking, reasoning, and problem solving.",
+      "For child voice, symbols, storytelling, explanations, or sharing thinking, consider Mana reo | Communication when the observation supports it.",
+      "For contribution, collaboration, leadership, empathy, or taking responsibility with others, consider Mana tangata | Contribution when the observation supports it.",
       "When relevant, connect the observation to learning dispositions and working theories in ways that are visible in the moment.",
-      "When social and emotional learning is evident, use a Kowhiti Whakapae-informed lens to name growing capabilities such as self-regulation, belonging, communication, or relationships.",
-      "When it fits naturally, weave in a small amount of accurate te reo Maori such as tamariki, kaiako, whanau, ako, manaakitanga, or aroha.",
-      "If Pacific identity, language, family, or values are relevant, add one respectful Tapasa-informed cultural connection without assuming heritage that was not observed.",
     ].join("\n"),
     voicePrompt:
       "Write like a thoughtful kaiako using plain, natural language. The writing should feel human, reflective, and practical rather than poetic or academic.",
     culturalPrompt:
-      "Affirm identity, language, culture, and whanau relationships when there is evidence for them. Keep cultural references specific, respectful, and light-handed.",
+      "Affirm identity, language, culture, and whānau relationships when there is evidence for them. Keep cultural references specific, respectful, and light-handed.",
     transcriptionPrompt:
-      "Transcribe an early childhood educator's voice note clearly. Preserve te reo Maori macrons when obvious, child names, and common kaiako language such as whanau, tamariki, manaakitanga, and aroha.",
+      "Transcribe an early childhood educator's voice note clearly. Preserve te reo Māori macrons when obvious, child names, and common kaiako language such as whānau, tamariki, manaakitanga, and aroha.",
   },
 } as const satisfies Record<
   StoryFrameworkId,
@@ -91,22 +113,48 @@ function sanitiseStringArray(value: unknown) {
 }
 
 export function normalizeTone(value?: string | null): StoryTone {
-  return value === "concise" || value === "reflective" ? value : "warm";
+  if (value === "natural" || value === "warm" || value === "professional" || value === "simple") {
+    return value;
+  }
+  if (value === "reflective") return "warm";
+  if (value === "concise") return "natural";
+  return "natural";
+}
+
+export function normalizeDepth(value?: string | null): StoryDepth {
+  return value === "concise" || value === "detailed" ? value : "balanced";
+}
+
+export function normalizeTeReoLevel(value?: string | null): TeReoLevel {
+  return value === "medium" || value === "high" ? value : "low";
 }
 
 export function normalizeFramework(value?: string | null): StoryFrameworkId {
   return value === "NZ" ? "NZ" : "AU";
 }
 
+function sanitizeBoolean(value: unknown): boolean | undefined {
+  if (typeof value === "boolean") return value;
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return undefined;
+}
+
 export function sanitizeStoryPreferences(value: unknown): StoryPreferences {
   const source = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
   const rawDefaultFramework = cleanString(source.defaultFramework);
   const rawPreferredTone = cleanString(source.preferredTone);
+  const rawDepthPreference = cleanString(source.depthPreference);
+  const rawTeReoLevel = cleanString(source.includeTeReoLevel);
   const notes = cleanString(source.notes);
 
   return {
     defaultFramework: rawDefaultFramework ? normalizeFramework(rawDefaultFramework) : undefined,
     preferredTone: rawPreferredTone ? normalizeTone(rawPreferredTone) : undefined,
+    depthPreference: rawDepthPreference ? normalizeDepth(rawDepthPreference) : undefined,
+    includeTeReoLevel: rawTeReoLevel ? normalizeTeReoLevel(rawTeReoLevel) : undefined,
+    includeKowhitiWhakapae: sanitizeBoolean(source.includeKowhitiWhakapae),
+    includeTapasa: sanitizeBoolean(source.includeTapasa),
     languageStyle: "plain_ece",
     emphasis: sanitiseStringArray(source.emphasis),
     notes: notes || undefined,
@@ -122,11 +170,22 @@ export function mergeStoryPreferences(
       return {
         defaultFramework: current.defaultFramework ?? merged.defaultFramework,
         preferredTone: current.preferredTone ?? merged.preferredTone,
+        depthPreference: current.depthPreference ?? merged.depthPreference,
+        includeTeReoLevel: current.includeTeReoLevel ?? merged.includeTeReoLevel,
+        includeKowhitiWhakapae: current.includeKowhitiWhakapae ?? merged.includeKowhitiWhakapae,
+        includeTapasa: current.includeTapasa ?? merged.includeTapasa,
         languageStyle: current.languageStyle ?? merged.languageStyle ?? "plain_ece",
         emphasis: dedupeStrings([...(merged.emphasis ?? []), ...(current.emphasis ?? [])]),
         notes: current.notes ?? merged.notes,
       };
     },
-    { languageStyle: "plain_ece", emphasis: [] }
+    {
+      languageStyle: "plain_ece",
+      emphasis: [],
+      depthPreference: "balanced",
+      includeTeReoLevel: "low",
+      includeKowhitiWhakapae: false,
+      includeTapasa: false,
+    }
   );
 }

@@ -1,14 +1,17 @@
 "use client";
 
 const FAQS = [
-  { q: "Is StoryLoop NQF and EYLF compliant?", a: "Yes. Every story is structured to align with the EYLF (Early Years Learning Framework) and reference appropriate learning outcomes. Our templates were reviewed by experienced early childhood educators and centre directors to ensure they meet NQF documentation standards." },
-  { q: "Does this replace my own professional judgement?", a: "No, and it shouldn't. StoryLoop drafts the story from your observations. You review, edit, and sign off — that professional oversight is essential. Think of it as removing the blank-page problem, not your voice." },
-  { q: "What about child privacy? Is my data safe?", a: "Absolutely critical to us. Your observations are never used to train AI models. Data is stored securely, access-controlled, and kept separate from model training. If you need a specific privacy workflow for your service, we can work through it with you." },
-  { q: "Can I use it offline?", a: "Not yet — StoryLoop runs in your browser. Voice recording and story generation need an internet connection. We're working on a mobile app that will support offline mode later in 2026." },
-  { q: "Do you support Te Whāriki for New Zealand?", a: "Yes. When you choose New Zealand, StoryLoop shifts to a Te Whariki lens and can surface learning dispositions, social and emotional learning links, natural te reo Maori, and whanau-facing wording. It also supports Kowhiti Whakapae-style social and emotional noticing and careful Tapasa-informed cultural responsiveness when relevant." },
-  { q: "Can my whole team use one account?", a: "The Centre plan is designed for services that want shared billing, rollout support, and admin visibility. If you need a specific multi-user setup, contact us and we’ll map the right workflow with you." },
-  { q: "What happens if I cancel?", a: "You keep access until the end of your billing period. After that your account drops back to the free tier while it remains active, so you can still sign in and access saved stories." },
-  { q: "Is there a discount for NDIS / not-for-profit centres?", a: "Yes. Email hello@storyloop.app with your ACNC registration and we'll offer a 30% discount on the Centre plan." },
+  { q: "What is StoryLoop?", a: "StoryLoop is an early childhood documentation tool that turns real educator observations, voice notes, or bullet points into editable learning story drafts." },
+  { q: "Does StoryLoop replace educator thinking?", a: "No. StoryLoop supports drafting and structure, while educators remain responsible for observation, interpretation, reflection and final editing." },
+  { q: "Can I edit the generated stories?", a: "Yes. You can edit a generated story, save changes, copy it, export it, and regenerate from the original observation using a different tone, depth, or curriculum mode." },
+  { q: "Does it support Te Whāriki?", a: "Yes. New Zealand mode supports Te Whāriki strands, learning outcome ideas, dispositions, child voice, responding, and optional Kōwhiti Whakapae or Tapasā lenses when relevant." },
+  { q: "Does it support EYLF?", a: "Yes. Australia mode supports EYLF V2.0 learning outcomes and keeps links grounded in what the educator actually observed." },
+  { q: "Can I use voice notes?", a: "Yes. Supported browsers can request microphone access for live recording. If live recording is blocked or unavailable, you can still type bullet points or upload an audio file." },
+  { q: "How many stories are free?", a: "The free plan includes 3 stories per month. Upgrade prompts are dismissible, and existing story history stays available even if the limit is reached." },
+  { q: "Is it suitable for new educators?", a: "Yes. It helps new educators see how observation, learning, curriculum, dispositions, and responding can fit together, while still requiring educator review." },
+  { q: "Is it suitable for experienced educators?", a: "Yes. Experienced educators can use it to speed up the first draft and then add their own local context, professional judgement, and final wording." },
+  { q: "Does it create generic AI stories?", a: "StoryLoop is designed to avoid generic AI phrasing by grounding every claim in the observation, using plain educator language, and linking curriculum only when evidence supports it." },
+  { q: "What about child privacy? Is my data safe?", a: "Your observations are not used to train AI models. Data is stored securely and access-controlled. Educators should still avoid unnecessary identifying details in notes." },
 ];
 
 export default function FAQ() {

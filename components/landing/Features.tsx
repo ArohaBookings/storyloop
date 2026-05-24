@@ -1,10 +1,10 @@
 import { Mic, FileText, Users, Clock, Shield, Heart, Sparkles, Download } from "lucide-react";
 
 const FEATURES = [
-  { icon: Mic, title: "Voice or text input", desc: "Tap the mic and speak what you noticed, or type a few quick bullet points. StoryLoop cleans it up from there." },
-  { icon: FileText, title: "EYLF and Te Whariki ready", desc: "Stories link to the right curriculum without turning into policy-speak." },
-  { icon: Users, title: "Story history built in", desc: "Every story stays saved in one place so you can revisit, copy, and refine it later." },
-  { icon: Sparkles, title: "Multiple tones", desc: "Choose warm, concise, or reflective depending on the educator style you want to start from." },
+  { icon: Mic, title: "Voice or text input", desc: "Record the real moment or type rough notes. If mic recording is unavailable, typing and audio upload still work." },
+  { icon: FileText, title: "EYLF and Te Whāriki aware", desc: "Stories link to the right curriculum without turning into policy-speak or treating strands as outcomes." },
+  { icon: Users, title: "Editable history", desc: "Every story stays saved so you can edit, copy, export, and regenerate from the original observation." },
+  { icon: Sparkles, title: "Educator voice controls", desc: "Choose natural educator, warm reflective, professional, or simple tone, plus concise, balanced, or detailed depth." },
   { icon: Download, title: "Easy to copy across", desc: "Copy the finished story straight into your existing documentation system or family update flow." },
   { icon: Clock, title: "Cuts down rewriting", desc: "Start from a usable first draft instead of a blank page at the end of the day." },
   { icon: Heart, title: "Sounds like an educator", desc: "More grounded, less robotic. The goal is a draft you can recognise and edit quickly." },
@@ -16,12 +16,12 @@ export default function Features() {
     <section id="features" className="py-24 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <p className="section-title mb-3">Why educators love it</p>
+          <p className="section-title mb-3">Product pillars</p>
           <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-900 mb-4">
-            Built by people who actually<br/>
-            <span className="italic text-clay-700">understand the job.</span>
+            Educator-led, curriculum-aware,<br/>
+            <span className="italic text-clay-700">and easy to edit.</span>
           </h2>
-          <p className="text-ink-600 text-lg">Built around real educator workflow, not generic AI theatre.</p>
+          <p className="text-ink-600 text-lg">Meaningful, not lengthy. Relevant, not repetitive. Child-focused, not generic.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -37,6 +37,17 @@ export default function Features() {
               </div>
             );
           })}
+        </div>
+
+        <div className="mt-12 rounded-3xl border border-clay-200 bg-cream-50 p-6 md:p-8 shadow-soft">
+          <p className="section-title mb-3">Built with educator feedback</p>
+          <h3 className="font-display text-2xl md:text-3xl font-bold text-ink-900 mb-3">
+            StoryLoop is still improving with real centre practice in mind.
+          </h3>
+          <p className="text-sm md:text-base text-ink-600 max-w-3xl leading-relaxed">
+            StoryLoop is still improving. Feedback from real educators helps shape how stories are written, linked, and structured.
+            The aim is not to replace educator judgement, but to reduce the blank-page backlog and support stronger first drafts.
+          </p>
         </div>
       </div>
     </section>
