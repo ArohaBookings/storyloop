@@ -50,7 +50,7 @@ export default async function AdminPage() {
     <div className="min-h-screen bg-ink-950 text-paper">
       {/* Header */}
       <header className="border-b border-ink-800 bg-ink-900/50 px-4 py-3 sm:px-6">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex w-full max-w-none flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/30 flex items-center justify-center">
               <ShieldAlert className="w-4 h-4 text-red-400" />
@@ -79,7 +79,7 @@ export default async function AdminPage() {
         </div>
       </header>
 
-      <main className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
+      <main className="w-full max-w-none p-4 sm:p-6 space-y-6">
         <div>
           <h1 className="font-display text-3xl font-bold">Overview</h1>
           <p className="text-sm text-ink-400 mt-0.5">Real-time metrics · everything at a glance</p>

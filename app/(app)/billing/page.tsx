@@ -70,7 +70,7 @@ export default function BillingPage() {
   const upgradeLoading = nextPlan ? loading === nextPlan || loading === "portal" : loading === "portal";
 
   return (
-    <div className="p-6 md:p-8 max-w-5xl">
+    <div className="w-full max-w-none p-4 sm:p-6 md:p-8">
       <div className="mb-8">
         <h1 className="font-display text-3xl font-bold text-ink-900">Billing & plan</h1>
         <p className="text-ink-600 text-sm mt-1">Upgrade, downgrade, or cancel anytime.</p>

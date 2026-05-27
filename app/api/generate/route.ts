@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
       const result = await generateLearningStory({
         observations,
         ageGroup,
+        childName,
         framework: normalizeFramework(typeof location === "string" ? location : undefined),
         tone: normalizeTone(typeof tone === "string" ? tone : undefined),
         depth: normalizeDepth(typeof depth === "string" ? depth : undefined),

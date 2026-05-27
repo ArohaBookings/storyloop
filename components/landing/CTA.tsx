@@ -3,8 +3,8 @@ import { ArrowRight, Sparkles } from "lucide-react";
 
 export default function CTA() {
   return (
-    <section className="py-24 px-6">
-      <div className="max-w-4xl mx-auto">
+    <section className="py-24">
+      <div className="reading-shell">
         <div className="card-warm p-14 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-warm-mesh pointer-events-none" />
           <div className="relative z-10">

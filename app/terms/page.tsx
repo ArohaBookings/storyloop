@@ -22,10 +22,10 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen bg-paper">
       <Navbar />
-      <main className="pt-32 pb-20 px-6">
-        <div className="max-w-3xl mx-auto">
+      <main className="pt-32 pb-20">
+        <div className="reading-shell">
           <Link href="/" className="text-sm text-clay-700 hover:underline mb-6 inline-block">← Back to home</Link>
-          <h1 className="font-display text-5xl font-bold text-ink-900 mb-3">Terms of Service</h1>
+          <h1 className="font-display text-4xl sm:text-5xl font-bold text-ink-900 mb-3">Terms of Service</h1>
           <p className="text-sm text-ink-500 mb-10">Last updated: {new Date().toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}</p>
           <div className="space-y-7">
             {sections.map(s => (

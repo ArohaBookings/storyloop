@@ -34,7 +34,7 @@ export default async function DashboardPage() {
   })();
 
   return (
-    <div className="p-6 md:p-8 max-w-6xl">
+    <div className="w-full max-w-none p-4 sm:p-6 md:p-8">
       <div className="mb-8">
         <p className="section-title mb-2">{greeting}</p>
         <h1 className="font-display text-4xl font-bold text-ink-900">Hi {firstName}. Ready to write?</h1>

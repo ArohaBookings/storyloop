@@ -5,14 +5,14 @@ import { Check } from "lucide-react";
 
 const PLANS_AUD = [
   { name: "Free", price: 0, stories: "3 stories/month", cta: "Start free", features: ["3 stories per month", "EYLF or Te Whāriki alignment", "Copy into your workflow", "No credit card required"], priceId: null },
-  { name: "Educator", price: 19, stories: "Unlimited stories", cta: "Choose Educator", features: ["Unlimited learning stories", "Voice notes", "Tone and depth controls", "Editable story history", "Email support"], priceId: "educator", popular: true },
-  { name: "Centre", price: 49, stories: "Unlimited stories for your rollout", cta: "Choose Centre", features: ["Everything in Educator", "Shared billing", "Priority support", "Team rollout planning", "Admin oversight"], priceId: "centre" },
+  { name: "Educator", price: 19, stories: "Unlimited stories", cta: "Start 7-day trial", features: ["Unlimited learning stories", "Voice notes", "Tone and depth controls", "Editable story history", "Email support"], priceId: "educator", popular: true },
+  { name: "Centre", price: 49, stories: "Unlimited stories for your rollout", cta: "Start 7-day trial", features: ["Everything in Educator", "Shared billing", "Priority support", "Team rollout planning", "Admin oversight"], priceId: "centre" },
 ];
 
 const PLANS_NZD = [
   { name: "Free", price: 0, stories: "3 stories/month", cta: "Start free", features: ["3 stories per month", "EYLF/Te Whāriki alignment", "Copy into your workflow", "No credit card required"], priceId: null },
-  { name: "Educator", price: 21, stories: "Unlimited stories", cta: "Choose Educator", features: ["Unlimited learning stories", "Voice notes", "Tone and depth controls", "Editable story history", "Email support"], priceId: "educator", popular: true },
-  { name: "Centre", price: 55, stories: "Unlimited stories for your rollout", cta: "Choose Centre", features: ["Everything in Educator", "Shared billing", "Priority support", "Team rollout planning", "Admin oversight"], priceId: "centre" },
+  { name: "Educator", price: 21, stories: "Unlimited stories", cta: "Start 7-day trial", features: ["Unlimited learning stories", "Voice notes", "Tone and depth controls", "Editable story history", "Email support"], priceId: "educator", popular: true },
+  { name: "Centre", price: 55, stories: "Unlimited stories for your rollout", cta: "Start 7-day trial", features: ["Everything in Educator", "Shared billing", "Priority support", "Team rollout planning", "Admin oversight"], priceId: "centre" },
 ];
 
 export default function Pricing() {
@@ -27,8 +27,8 @@ export default function Pricing() {
   const plans = currency === "AUD" ? PLANS_AUD : PLANS_NZD;
 
   return (
-    <section id="pricing" className="py-24 px-6 bg-cream-50 border-y border-clay-100">
-      <div className="max-w-6xl mx-auto">
+    <section id="pricing" className="py-24 bg-cream-50 border-y border-clay-100">
+      <div className="wide-shell">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <p className="section-title mb-3">Simple, fair pricing</p>
           <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-900 mb-4">
@@ -69,7 +69,7 @@ export default function Pricing() {
                   </li>
                 ))}
               </ul>
-              <Link href={plan.priceId ? `/signup?plan=${plan.priceId}` : "/signup"}
+              <Link href={plan.priceId ? `/signup?plan=${plan.priceId}&currency=${currency}` : "/signup"}
                 className={`block text-center py-3 rounded-xl font-semibold text-sm transition-all ${plan.popular ? "bg-cream-300 hover:bg-cream-200 text-ink-900" : "btn-secondary"}`}>
                 {plan.cta}
               </Link>

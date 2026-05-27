@@ -12,10 +12,10 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-paper">
       <Navbar />
-      <main className="pt-32 pb-20 px-6">
-        <div className="max-w-3xl mx-auto">
+      <main className="pt-32 pb-20">
+        <div className="reading-shell">
           <p className="section-title mb-3">Our story</p>
-          <h1 className="font-display text-5xl md:text-6xl font-bold text-ink-900 leading-[1.05] mb-6">
+          <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-ink-900 leading-[1.05] mb-6">
             I'm 19. I'm building tools for the people doing the hardest work.
           </h1>
 

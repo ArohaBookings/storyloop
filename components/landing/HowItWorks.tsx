@@ -8,8 +8,8 @@ const STEPS = [
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-24 px-6 bg-cream-50 border-y border-clay-100 paper-texture">
-      <div className="max-w-5xl mx-auto">
+    <section id="how-it-works" className="py-24 bg-cream-50 border-y border-clay-100 paper-texture">
+      <div className="wide-shell">
         <div className="text-center mb-16">
           <p className="section-title mb-3">How it works</p>
           <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-900">

@@ -15,7 +15,7 @@ export default function Navbar() {
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-paper/92 backdrop-blur-xl border-b border-clay-100" : "bg-transparent"}`}>
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div className="wide-shell h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5">
           <img src="/logo.svg" alt="StoryLoop" className="w-8 h-8" />
           <div>
@@ -41,7 +41,7 @@ export default function Navbar() {
       </div>
 
       {open && (
-        <div className="md:hidden bg-paper border-t border-clay-100 px-6 py-4 space-y-2">
+        <div className="md:hidden bg-paper border-t border-clay-100 px-4 py-4 space-y-2">
           {[["Features", "/#features"], ["How It Works", "/#how-it-works"], ["Examples", "/examples"], ["Pricing", "/pricing"], ["FAQ", "/faq"]].map(([label, href]) => (
             <Link key={label} href={href} className="block text-sm text-ink-600 py-2" onClick={() => setOpen(false)}>{label}</Link>
           ))}

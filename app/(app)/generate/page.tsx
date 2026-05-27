@@ -466,7 +466,7 @@ export default function GeneratePage() {
   const showRecordButton = !recording && liveRecordingSupported;
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 max-w-6xl">
+    <div className="w-full max-w-none p-4 sm:p-6 md:p-8">
       <div className="mb-7">
         <h1 className="font-display text-3xl font-bold text-ink-900 mb-1">New learning story</h1>
         <p className="text-ink-600 text-sm">Add your observations below. We&apos;ll shape them into a clear, educator-ready story with practical curriculum links.</p>
