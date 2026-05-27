@@ -55,7 +55,7 @@ export default function AdminUsersPage() {
         <h1 className="font-semibold">User management</h1>
       </header>
 
-      <main className="p-4 sm:p-6 max-w-7xl mx-auto">
+      <main className="w-full max-w-none p-4 sm:p-6">
         {toast && <div className="mb-4 px-4 py-3 bg-clay-500/20 border border-clay-500/30 text-clay-300 rounded-xl text-sm">{toast}</div>}
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-5 gap-3">

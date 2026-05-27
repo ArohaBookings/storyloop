@@ -16,8 +16,8 @@ const FAQS = [
 
 export default function FAQ() {
   return (
-    <section className="py-24 px-6">
-      <div className="max-w-3xl mx-auto">
+    <section className="py-24">
+      <div className="reading-shell max-w-4xl">
         <div className="text-center mb-12">
           <p className="section-title mb-3">Questions</p>
           <h2 className="font-display text-4xl font-bold text-ink-900">Everything educators ask.</h2>

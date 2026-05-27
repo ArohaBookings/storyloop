@@ -36,8 +36,8 @@ const EXAMPLES = [
 
 export default function Examples() {
   return (
-    <section id="examples" className="py-24 px-6">
-      <div className="max-w-6xl mx-auto">
+    <section id="examples" className="py-24">
+      <div className="wide-shell">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <p className="section-title mb-3">Real examples</p>
           <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-900 mb-4">

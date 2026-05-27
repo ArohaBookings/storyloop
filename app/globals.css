@@ -7,10 +7,16 @@
     --radius: 0.875rem;
   }
   * { box-sizing: border-box; }
-  html { -webkit-font-smoothing: antialiased; }
+  html {
+    -webkit-font-smoothing: antialiased;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
   body {
     @apply bg-paper text-ink-800 font-body;
     font-feature-settings: "ss01", "cv11";
+    max-width: 100%;
+    overflow-x: hidden;
   }
   h1, h2, h3, h4, h5 {
     @apply font-display;
@@ -64,6 +70,18 @@
 
   .section-title {
     @apply text-xs font-bold text-clay-600 uppercase tracking-[0.2em];
+  }
+
+  .wide-shell {
+    width: min(100%, 1600px);
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 2.2vw, 2.5rem);
+  }
+
+  .reading-shell {
+    width: min(100%, 1120px);
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 2.2vw, 2.5rem);
   }
 
   .paper-texture {

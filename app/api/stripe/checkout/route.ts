@@ -7,6 +7,10 @@ function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-06-20" });
 }
 
+function normaliseCurrency(value: unknown) {
+  return value === "NZD" ? "NZD" : "AUD";
+}
+
 function getPriceId(plan: string, currency: string) {
   if (currency === "NZD") {
     if (plan === "educator") return process.env.STRIPE_PRICE_EDUCATOR_NZD;
@@ -26,8 +30,9 @@ export async function POST(request: NextRequest) {
     const stripe = getStripe();
     const origin = request.nextUrl.origin;
 
-    const { plan, currency = "AUD" } = await request.json();
-    const priceId = getPriceId(plan, currency);
+    const { plan, currency } = await request.json();
+    const selectedCurrency = normaliseCurrency(currency);
+    const priceId = getPriceId(plan, selectedCurrency);
     if (!priceId) return NextResponse.json({ error: "Invalid plan or price not configured" }, { status: 400 });
 
     const profile = await getOrCreateProfile(user);
@@ -46,6 +51,7 @@ export async function POST(request: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: "subscription",
+      client_reference_id: user.id,
       payment_method_types: ["card"],
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/dashboard?upgraded=true`,
@@ -53,9 +59,9 @@ export async function POST(request: NextRequest) {
       allow_promotion_codes: true,
       subscription_data: {
         trial_period_days: 7,
-        metadata: { user_id: user.id, plan },
+        metadata: { user_id: user.id, plan, currency: selectedCurrency },
       },
-      metadata: { user_id: user.id, plan },
+      metadata: { user_id: user.id, plan, currency: selectedCurrency },
     });
 
     return NextResponse.json({ url: session.url });

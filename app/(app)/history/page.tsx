@@ -17,7 +17,7 @@ export default async function HistoryPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="p-6 md:p-8 max-w-5xl">
+    <div className="w-full max-w-none p-4 sm:p-6 md:p-8">
       <div className="flex items-center justify-between mb-7">
         <div>
           <h1 className="font-display text-3xl font-bold text-ink-900">Your stories</h1>

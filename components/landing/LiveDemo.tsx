@@ -36,8 +36,8 @@ export default function LiveDemo() {
   const handleCopy = async () => { await navigator.clipboard.writeText(output); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
   return (
-    <section id="live-demo" className="py-20 px-6 bg-cream-50 border-y border-clay-100">
-      <div className="max-w-5xl mx-auto">
+    <section id="live-demo" className="py-20 bg-cream-50 border-y border-clay-100">
+      <div className="wide-shell">
         <div className="text-center mb-10 animate-fade-up">
           <p className="section-title mb-3">Try it now — no signup needed</p>
           <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-900 mb-4">See the draft style.</h2>
