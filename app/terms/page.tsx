@@ -1,8 +1,19 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 
-export const metadata = { title: "Terms of Service" };
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description: "StoryLoop terms for early childhood educators using AI-assisted learning story drafts, billing, subscriptions, and saved story history.",
+  alternates: { canonical: "/terms" },
+  openGraph: {
+    title: "StoryLoop Terms of Service",
+    description: "Terms for using StoryLoop learning story drafting, billing, subscriptions, and saved story history.",
+    url: "https://storyloop.space/terms",
+    type: "article",
+  },
+};
 
 export default function TermsPage() {
   const sections = [

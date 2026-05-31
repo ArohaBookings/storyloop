@@ -20,7 +20,6 @@ export const metadata: Metadata = {
     "early childhood teacher documentation",
   ],
   authors: [{ name: "StoryLoop by Aria Care" }],
-  alternates: { canonical: "/" },
   openGraph: {
     title: "StoryLoop — Learning stories drafted faster, without losing educator voice",
     description: "Editable learning story drafts for early childhood educators, with Te Whāriki or EYLF links, dispositions, child voice, and next steps.",
