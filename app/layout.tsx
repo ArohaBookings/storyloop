@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "StoryLoop — Learning stories drafted faster, without losing educator voice",
     description: "Editable learning story drafts for early childhood educators, with Te Whāriki or EYLF links, dispositions, child voice, and next steps.",
-    url: "https://storyloop.space",
+    url: "https://storyloop.space/",
     siteName: "StoryLoop",
     type: "website",
     locale: "en_AU",
@@ -46,7 +46,7 @@ const structuredData = {
   "description": "Learning story drafting assistant for early childhood educators using Te Whāriki and EYLF-aligned curriculum links.",
   "applicationCategory": "EducationalApplication",
   "operatingSystem": "Web",
-  "url": "https://storyloop.space",
+  "url": "https://storyloop.space/",
   "offers": [
     { "@type": "Offer", "price": "0", "priceCurrency": "AUD", "name": "Free plan" },
     { "@type": "Offer", "price": "19", "priceCurrency": "AUD", "name": "Educator plan" },

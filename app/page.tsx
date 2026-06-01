@@ -11,9 +11,9 @@ import CTA from "@/components/landing/CTA";
 import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/" },
+  alternates: { canonical: "https://storyloop.space/" },
   openGraph: {
-    url: "https://storyloop.space",
+    url: "https://storyloop.space/",
     type: "website",
   },
 };
