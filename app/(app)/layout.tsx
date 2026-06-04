@@ -36,6 +36,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         storiesUsed={profile?.stories_this_month ?? 0}
         monthlyStoryLimitOverride={profile?.monthly_story_limit_override ?? null}
         appliedAccessCode={profile?.applied_access_code ?? null}
+        subscriptionStatus={profile?.subscription_status ?? null}
       />
       <main className="flex-1 overflow-y-auto">{children}</main>
     </div>

@@ -1,7 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Check, Loader2, CreditCard, ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { AlertTriangle, Check, Loader2, CreditCard, ExternalLink, LifeBuoy } from "lucide-react";
 import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
+import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
 
 type PlanKey = "free" | "educator" | "centre";
 
@@ -68,6 +70,16 @@ export default function BillingPage() {
   const remaining = getRemainingStories(profile ?? {});
   const allowanceLabel = getStoryAllowanceLabel(profile ?? {});
   const upgradeLoading = nextPlan ? loading === nextPlan || loading === "portal" : loading === "portal";
+  const billingBlocked = isBillingBlocked(profile ?? {});
+  const billingPastDue = isBillingPastDue(profile ?? {});
+  const statusLabel = billingStatusLabel(profile?.subscription_status);
+  const statusClass = billingBlocked
+    ? "bg-red-100 text-red-700"
+    : billingPastDue
+      ? "bg-amber-100 text-amber-700"
+      : profile?.subscription_status === "active" || profile?.subscription_status === "trialing" || profile?.subscription_status === "admin_override"
+        ? "bg-sage-100 text-sage-700"
+        : "bg-ink-100 text-ink-600";
 
   return (
     <div className="w-full max-w-none p-4 sm:p-6 md:p-8">
@@ -76,6 +88,38 @@ export default function BillingPage() {
         <p className="text-ink-600 text-sm mt-1">Upgrade, downgrade, or cancel anytime.</p>
       </div>
 
+      {(billingBlocked || billingPastDue) && (
+        <div className={`mb-8 rounded-3xl border p-5 shadow-soft ${billingBlocked ? "border-red-100 bg-red-50" : "border-amber-100 bg-amber-50"}`}>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className={`mt-1 h-5 w-5 flex-shrink-0 ${billingBlocked ? "text-red-700" : "text-amber-700"}`} />
+              <div>
+                <p className={`text-xs font-bold uppercase tracking-wider ${billingBlocked ? "text-red-700" : "text-amber-700"}`}>
+                  {statusLabel}
+                </p>
+                <h2 className="font-display text-2xl font-bold text-ink-900">
+                  {billingBlocked ? "Update payment to keep creating stories." : "Stripe is retrying your payment."}
+                </h2>
+                <p className="mt-1 text-sm text-ink-700">
+                  {billingBlocked
+                    ? "You can still view history and support, but new story generation pauses until payment is fixed."
+                    : "Your StoryLoop access stays on during this retry window. Update your payment method now to avoid interruption."}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button onClick={handlePortal} disabled={loading === "portal"} className="btn-primary">
+                {loading === "portal" ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+                {billingBlocked ? "Fix payment" : "Open Stripe billing"}
+              </button>
+              <Link href="/support" className="btn-secondary">
+                <LifeBuoy className="w-4 h-4" /> Support
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Current plan card */}
       <div className="card p-6 mb-8">
         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -83,8 +127,8 @@ export default function BillingPage() {
             <p className="section-title mb-2">Current plan</p>
             <div className="flex items-center gap-2">
               <h2 className="font-display text-2xl font-bold text-ink-900 capitalize">{currentPlan}</h2>
-              <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${profile?.subscription_status === "active" ? "bg-sage-100 text-sage-700" : "bg-ink-100 text-ink-600"}`}>
-                {profile?.subscription_status ?? "free"}
+              <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${statusClass}`}>
+                {statusLabel}
               </span>
             </div>
             <p className="text-sm text-ink-600 mt-1">
@@ -106,7 +150,7 @@ export default function BillingPage() {
             {currentPlan !== "free" && (
               <button onClick={handlePortal} disabled={loading === "portal"} className="btn-secondary">
                 {loading === "portal" ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
-                Manage subscription
+                {billingBlocked ? "Fix payment" : "Manage subscription"}
               </button>
             )}
           </div>

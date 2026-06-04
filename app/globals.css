@@ -105,3 +105,14 @@
   .animate-fade-up-4 { animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.4s both; }
   .animate-fade-up-5 { animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.5s both; }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { STORY_FRAMEWORKS, normalizeFramework } from "@/lib/story-options";
+import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
 
 export const runtime = "nodejs";
 
@@ -36,6 +37,9 @@ export async function POST(request: NextRequest) {
     const profile = await getOrCreateProfile(user);
     if (profile.is_active === false) {
       return NextResponse.json({ error: "Your account has been disabled. Contact support." }, { status: 403 });
+    }
+    if (isBillingBlocked(profile)) {
+      return NextResponse.json(billingBlockPayload(profile), { status: 402 });
     }
 
     const formData = await request.formData();

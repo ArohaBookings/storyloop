@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { generateLearningStory } from "@/lib/ai/generate";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { getMonthlyStoryLimit, getRemainingStories } from "@/lib/story-limits";
+import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
 import {
   mergeStoryPreferences,
   normalizeDepth,
@@ -94,6 +95,9 @@ export async function POST(request: NextRequest) {
     const profile = await getOrCreateProfile(user);
     if (profile.is_active === false) {
       return NextResponse.json({ error: "Your account has been disabled. Contact support." }, { status: 403 });
+    }
+    if (isBillingBlocked(profile)) {
+      return NextResponse.json(billingBlockPayload(profile), { status: 402 });
     }
 
     const plan = profile.plan ?? "free";

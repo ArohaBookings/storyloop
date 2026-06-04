@@ -56,6 +56,7 @@ export default function GeneratePage() {
   const [transcribing, setTranscribing] = useState(false);
   const [error, setError] = useState("");
   const [upgradeRequired, setUpgradeRequired] = useState(false);
+  const [billingRequired, setBillingRequired] = useState(false);
   const [copied, setCopied] = useState(false);
   const [recording, setRecording] = useState(false);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
@@ -143,6 +144,7 @@ export default function GeneratePage() {
     setError("");
     resetOutput();
     setUpgradeRequired(false);
+    setBillingRequired(false);
     setShowLimitModal(false);
     setShowUpgradePrompt(false);
 
@@ -165,6 +167,9 @@ export default function GeneratePage() {
       const data = await res.json();
       if (!res.ok) {
         setError(data.error ?? "Failed");
+        if (data.billingRequired) {
+          setBillingRequired(true);
+        }
         if (data.upgradeRequired) {
           setUpgradeRequired(true);
           setShowLimitModal(true);
@@ -370,6 +375,7 @@ export default function GeneratePage() {
     try {
       setTranscribing(true);
       setError("");
+      setBillingRequired(false);
 
       const formData = new FormData();
       formData.append("file", file);
@@ -382,6 +388,9 @@ export default function GeneratePage() {
       const data = await response.json();
 
       if (!response.ok) {
+        if (data.billingRequired) {
+          setBillingRequired(true);
+        }
         throw new Error(data.error ?? "Voice transcription failed.");
       }
 
@@ -717,6 +726,16 @@ export default function GeneratePage() {
                   <Link href="/billing" className="font-bold underline mt-1 inline-block">
                     Upgrade now →
                   </Link>
+                )}
+                {billingRequired && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <Link href="/billing" className="font-bold underline">
+                      Fix payment →
+                    </Link>
+                    <Link href="/support" className="font-bold underline">
+                      Contact support →
+                    </Link>
+                  </div>
                 )}
               </div>
             </div>

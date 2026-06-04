@@ -65,6 +65,7 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [upgradeRequired, setUpgradeRequired] = useState(false);
+  const [billingRequired, setBillingRequired] = useState(false);
   const [currentOutcomes, setCurrentOutcomes] = useState<string[]>(story.outcomes ?? []);
   const [currentNextSteps, setCurrentNextSteps] = useState<string[]>(story.next_steps ?? []);
   const [currentMetadata, setCurrentMetadata] = useState<Record<string, unknown>>(initialMetadata);
@@ -122,6 +123,7 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
     setError("");
     setMessage("");
     setUpgradeRequired(false);
+    setBillingRequired(false);
 
     try {
       const response = await fetch(`/api/stories/${encodeURIComponent(story.id)}`, {
@@ -172,6 +174,7 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
 
       if (!response.ok) {
         setUpgradeRequired(Boolean(data.upgradeRequired));
+        setBillingRequired(Boolean(data.billingRequired));
         throw new Error(data.error ?? "Could not regenerate story.");
       }
 
@@ -305,6 +308,16 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
               <Link href="/billing" className="underline">
                 Upgrade for unlimited stories
               </Link>
+            )}
+            {billingRequired && (
+              <span className="mt-1 flex flex-wrap gap-2">
+                <Link href="/billing" className="underline">
+                  Fix payment
+                </Link>
+                <Link href="/support" className="underline">
+                  Contact support
+                </Link>
+              </span>
             )}
           </div>
         )}

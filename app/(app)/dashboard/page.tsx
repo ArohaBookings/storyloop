@@ -1,18 +1,24 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { Sparkles, Clock, BookOpen, TrendingUp } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle, LifeBuoy, Sparkles, Clock, BookOpen, TrendingUp } from "lucide-react";
 import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
+import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
 
 export const metadata = { title: "Dashboard" };
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ upgraded?: string }>;
+}) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const params = await searchParams;
 
   const [{ data: profile }, { data: recentStories, count: totalStories }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("full_name, plan, stories_this_month, monthly_story_limit_override, applied_access_code")
+      .select("full_name, plan, subscription_status, stories_this_month, monthly_story_limit_override, applied_access_code, stripe_customer_id")
       .eq("id", user!.id)
       .single(),
     supabase.from("stories").select("id, story_text, outcomes, age_group, child_name, created_at", { count: "exact" })
@@ -25,6 +31,9 @@ export default async function DashboardPage() {
   const limit = getMonthlyStoryLimit(profile ?? {});
   const remaining = getRemainingStories(profile ?? {});
   const allowanceLabel = getStoryAllowanceLabel(profile ?? {});
+  const billingBlocked = isBillingBlocked(profile ?? {});
+  const billingPastDue = isBillingPastDue(profile ?? {});
+  const upgraded = params?.upgraded === "true";
 
   const greeting = (() => {
     const h = new Date().getHours();
@@ -35,6 +44,56 @@ export default async function DashboardPage() {
 
   return (
     <div className="w-full max-w-none p-4 sm:p-6 md:p-8">
+      {upgraded && (
+        <div className="mb-6 rounded-3xl border border-sage-200 bg-gradient-to-br from-sage-50 via-white to-cream-50 p-5 shadow-warm animate-fade-up">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-sage-600 text-paper">
+                <CheckCircle className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="section-title mb-1">Purchase confirmed</p>
+                <h2 className="font-display text-2xl font-bold text-ink-900">Thanks for choosing StoryLoop.</h2>
+                <p className="mt-1 text-sm text-ink-600">
+                  Your subscription is handled securely by Stripe. You can manage billing anytime from Billing & plan.
+                </p>
+              </div>
+            </div>
+            <Link href="/billing" className="btn-secondary flex-shrink-0">
+              Manage billing <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {(billingBlocked || billingPastDue) && (
+        <div className={`mb-6 rounded-3xl border p-5 shadow-soft ${billingBlocked ? "border-red-100 bg-red-50" : "border-amber-100 bg-amber-50"}`}>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className={`mt-1 h-5 w-5 flex-shrink-0 ${billingBlocked ? "text-red-700" : "text-amber-700"}`} />
+              <div>
+                <p className={`text-xs font-bold uppercase tracking-wider ${billingBlocked ? "text-red-700" : "text-amber-700"}`}>
+                  {billingStatusLabel(profile?.subscription_status)}
+                </p>
+                <p className="mt-1 text-sm text-ink-700">
+                  {billingBlocked
+                    ? "Payment is needed before creating new stories. Your saved history stays available."
+                    : "Stripe is retrying payment. You can keep using StoryLoop during this grace period."}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Link href="/billing" className="btn-primary">
+                {billingBlocked ? "Fix payment" : "Review billing"}
+              </Link>
+              <Link href="/support" className="btn-secondary">
+                <LifeBuoy className="h-4 w-4" /> Support
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mb-8">
         <p className="section-title mb-2">{greeting}</p>
         <h1 className="font-display text-4xl font-bold text-ink-900">Hi {firstName}. Ready to write?</h1>

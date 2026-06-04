@@ -152,6 +152,7 @@ FIELD GUIDANCE:
 - learningSummary: say what learning was visible in simple educator language.
 - childVoice: include an exact supplied phrase only if the educator gave quoted wording. If there is no direct quote, summarise plainly, for example "Cooper called it his stopper." If unsure, return an empty string.
 - learningDispositions: examples include curiosity, perseverance, inventiveness, problem solving, confidence, resilience, working theories, communication, collaboration, independence, leadership, empathy, safe risk-taking, creativity.
+- If the observation shows trying again, testing, adjusting, or returning to an idea after it does not work straight away, include perseverance or persistence when that is genuinely supported.
 - socialEmotionalLinks: examples include self-regulation, turn-taking, empathy, belonging, communication, confidence with others.
 - culturalConnections: include only real or carefully neutral links such as te reo use, whānau connection, home language, community, identity, or Tapasā-informed responsiveness.
 - whanauConnection: one short sentence a family could recognise or build on at home.
