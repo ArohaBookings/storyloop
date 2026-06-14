@@ -2,7 +2,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, Mail, AlertTriangle } from "lucide-react";
+import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, Mail, AlertTriangle, Brain } from "lucide-react";
+import AnimatedLogo from "@/components/brand/AnimatedLogo";
 import { createClient } from "@/lib/supabase/client";
 import { getMonthlyStoryLimit, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
@@ -21,6 +22,7 @@ const NAV: NavItem[] = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/generate", icon: Sparkles, label: "New story", highlight: true },
   { href: "/history", icon: History, label: "Story history" },
+  { href: "/insights", icon: Brain, label: "Learning threads" },
   { href: "/billing", icon: CreditCard, label: "Billing" },
   { href: "/support", icon: LifeBuoy, label: "Support" },
 ];
@@ -87,7 +89,7 @@ export default function DashboardNav({
   const Content = () => (
     <div className="flex flex-col h-full">
       <div className="h-16 flex items-center gap-2.5 px-5 border-b border-clay-100 flex-shrink-0">
-        <img src="/logo.svg" alt="StoryLoop" className="w-8 h-8" />
+        <AnimatedLogo size={32} />
         <div>
           <span className="font-display text-lg font-bold text-ink-900">StoryLoop</span>
           <p className="text-[9px] text-clay-600 -mt-1 font-mono tracking-widest">BY ARIA CARE</p>
@@ -206,7 +208,9 @@ export default function DashboardNav({
         <Content />
       </div>
       <button className="md:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-white border border-clay-200 rounded-xl flex items-center justify-center shadow-soft"
-        onClick={() => setMobileOpen(!mobileOpen)}>
+        onClick={() => setMobileOpen(!mobileOpen)}
+        aria-label={mobileOpen ? "Close dashboard navigation" : "Open dashboard navigation"}
+        aria-expanded={mobileOpen}>
         {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
       </button>
       {mobileOpen && (

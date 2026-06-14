@@ -7,6 +7,8 @@ export type SeoPage = {
   intro: string;
   sections: Array<{ title: string; body: string }>;
   faqs: Array<{ question: string; answer: string }>;
+  reviewedAt?: string;
+  sources?: Array<{ label: string; url: string }>;
 };
 
 const sharedFaqs = [
@@ -294,6 +296,163 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       { question: "Is it suitable for new educators?", answer: "Yes. It supports structure and wording while still requiring educator review." },
       { question: "Is it suitable for experienced educators?", answer: "Yes. Experienced educators can use it to speed up the first draft and then apply their own judgement and local context." },
       { question: "Does it create generic AI stories?", answer: "StoryLoop is designed to avoid generic AI phrasing by grounding every story in the educator's observation and making curriculum links specific." },
+    ],
+  },
+  "eylf-planning-cycle": {
+    slug: "eylf-planning-cycle",
+    title: "EYLF Planning Cycle: From Observation to Response",
+    description:
+      "A practical educator guide to using observation, analysis, planning, implementation, and reflection within EYLF V2.0 documentation.",
+    kicker: "Educator guide · Australia",
+    heading: "Use the EYLF planning cycle without turning documentation into a checklist.",
+    intro:
+      "A strong learning story is one part of an ongoing cycle. The useful question is not only what happened, but what the educator noticed, how the child’s learning was interpreted, and what response was later revisited.",
+    reviewedAt: "2026-06-14",
+    sections: [
+      {
+        title: "Observe specific actions",
+        body:
+          "Record what the child did, said, changed, repeated, or communicated. Concrete details give later interpretation something real to stand on.",
+      },
+      {
+        title: "Analyse with restraint",
+        body:
+          "Connect the moment to relevant EYLF learning outcomes, principles, or practices only where the evidence supports the link. One clear connection is stronger than five generic tags.",
+      },
+      {
+        title: "Plan, respond, revisit",
+        body:
+          "Choose a practical response, then notice what happens when the interest or strategy appears again. Reflection becomes more useful when it changes what educators do next.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Does every observation need all five EYLF outcomes?",
+        answer:
+          "No. Outcomes are broad and interconnected, but documentation should use the most relevant links rather than forcing every outcome into one moment.",
+      },
+      {
+        question: "What makes a useful follow-up?",
+        answer:
+          "A useful follow-up names something observable to revisit, such as a strategy, phrase, relationship, working theory, or way the child responds to a new material.",
+      },
+      ...sharedFaqs,
+    ],
+    sources: [
+      {
+        label: "Australian Government Department of Education: Early Years Learning Framework",
+        url: "https://www.education.gov.au/early-childhood/resources/early-years-learning-framework",
+      },
+      {
+        label: "Australian Government Department of Education: National Quality Framework",
+        url: "https://www.education.gov.au/early-childhood/about/quality-and-safety/national-quality-framework",
+      },
+    ],
+  },
+  "te-whariki-learning-outcomes-guide": {
+    slug: "te-whariki-learning-outcomes-guide",
+    title: "Te Whāriki Learning Outcomes: A Practical Guide",
+    description:
+      "Understand Te Whāriki strands, goals, learning outcomes, dispositions, working theories, and assessment-for-learning in everyday learning stories.",
+    kicker: "Educator guide · Aotearoa",
+    heading: "Link Te Whāriki learning outcomes to evidence, not labels.",
+    intro:
+      "The five strands organise broad areas of learning and development. Learning outcomes sit within those strands and encompass knowledge, skills, attitudes, and dispositions that develop over time.",
+    reviewedAt: "2026-06-14",
+    sections: [
+      {
+        title: "Start with the moment",
+        body:
+          "Notice the child’s action, language, strategy, relationship, or working theory first. Curriculum language should clarify what mattered in the moment rather than replace the observation.",
+      },
+      {
+        title: "Name strand and outcome idea",
+        body:
+          "A natural link names the relevant strand, then explains the outcome idea and the evidence. For example, testing and adjusting an idea can connect with Mana aotūroa | Exploration and reasoning or problem solving.",
+      },
+      {
+        title: "Keep assessment formative",
+        body:
+          "Assessment becomes useful when it helps kaiako respond. Practical next steps can include revisiting an interest, changing resources, inviting whānau knowledge, or noticing how a working theory develops.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Are Exploration and Communication learning outcomes?",
+        answer:
+          "They are English names for Te Whāriki strands. Each strand contains broader learning outcomes that describe valued learning developing over time.",
+      },
+      {
+        question: "Where does Kōwhiti Whakapae fit?",
+        answer:
+          "Kōwhiti Whakapae supports planning, formative assessment, and teaching practice within Te Whāriki in social and emotional learning, oral language and literacy, and maths.",
+      },
+      ...sharedFaqs,
+    ],
+    sources: [
+      {
+        label: "Te Whāriki Online: Strands, goals and learning outcomes",
+        url: "https://tewhariki.tahurangi.education.govt.nz/te-whariki/our-curriculum/strands/5637145233.c",
+      },
+      {
+        label: "Te Whāriki Online: Kōwhiti Whakapae",
+        url: "https://tewhariki.tahurangi.education.govt.nz/k-whiti-whakapae-strengthening-progress-through-practice/5637184340.p",
+      },
+      {
+        label: "Education Review Office: Te Ara Poutama indicators of quality",
+        url: "https://www.ero.govt.nz/how-ero-reviews/early-childhood-services/akarangi-quality-evaluation/te-ara-poutama-indicators-of-quality-for-early-childhood-education-what-matters",
+      },
+    ],
+  },
+  "responsible-ai-ece-documentation": {
+    slug: "responsible-ai-ece-documentation",
+    title: "Responsible AI for ECE Documentation",
+    description:
+      "A practical guide to educator judgement, child privacy, evidence, transparency, and responsible AI use in early childhood learning stories.",
+    kicker: "Practice guide",
+    heading: "Use AI for the first draft, not the final judgement.",
+    intro:
+      "Responsible use starts with a clear boundary: educators observe, interpret, reflect, edit, and sign off. AI can help organise a draft, but it should not invent evidence, diagnose a child, or make professional decisions.",
+    reviewedAt: "2026-06-14",
+    sections: [
+      {
+        title: "Keep evidence visible",
+        body:
+          "A useful AI-assisted draft should make it easy to trace interpretation back to the educator’s notes and identify where context is missing.",
+      },
+      {
+        title: "Minimise child information",
+        body:
+          "Use only the details needed to draft the story. Avoid unnecessary identifying, health, family, or support information, and follow your service’s privacy policy.",
+      },
+      {
+        title: "Make educator review explicit",
+        body:
+          "Before sharing, check quotes, cultural references, curriculum links, assumptions, and whether the suggested response fits the child and local curriculum.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Should families know AI supported a draft?",
+        answer:
+          "Services should decide and document a transparent approach to AI use with educators and families, including what data is used and where professional responsibility remains.",
+      },
+      {
+        question: "Can AI assess a child’s development?",
+        answer:
+          "StoryLoop is not a diagnostic or developmental assessment system. It supports drafting from educator-provided evidence and requires professional review.",
+      },
+      ...sharedFaqs,
+    ],
+    sources: [
+      {
+        label: "Google Search Central: Helpful, people-first content",
+        url: "https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
+      },
+      {
+        label: "Storypark: Responsible AI and child data safeguards",
+        url: "https://blog.storypark.com/2025/02/how-storypark-ai-has-been-designed-to-help-educators-safeguard-childrens-data/",
+      },
     ],
   },
 };

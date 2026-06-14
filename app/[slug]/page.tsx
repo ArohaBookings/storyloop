@@ -59,12 +59,36 @@ export default async function SeoPage({ params }: PageProps) {
       },
     })),
   };
+  const articleJsonLd = page.reviewedAt
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: page.title,
+        description: page.description,
+        dateModified: page.reviewedAt,
+        author: { "@type": "Organization", name: "StoryLoop educator practice team" },
+        publisher: { "@type": "Organization", name: "StoryLoop", url: SITE_URL },
+        mainEntityOfPage: `${SITE_URL}/${page.slug}`,
+      }
+    : null;
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "StoryLoop", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: page.title, item: `${SITE_URL}/${page.slug}` },
+    ],
+  };
 
   return (
     <div className="min-h-screen bg-paper">
       <Navbar />
       <main className="pt-28">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+        {articleJsonLd && (
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
+        )}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
         <section className="pb-16 paper-texture">
           <div className="wide-shell">
             <p className="section-title mb-4">{page.kicker}</p>
@@ -72,6 +96,16 @@ export default async function SeoPage({ params }: PageProps) {
               {page.heading}
             </h1>
             <p className="mt-6 text-lg text-ink-600 max-w-3xl leading-relaxed">{page.intro}</p>
+            {page.reviewedAt && (
+              <p className="mt-4 text-xs font-semibold text-clay-700">
+                Reviewed {new Date(`${page.reviewedAt}T00:00:00`).toLocaleDateString("en-NZ", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}{" "}
+                · StoryLoop educator practice team
+              </p>
+            )}
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Link href="/signup" className="btn-primary justify-center">
                 Start free
@@ -95,6 +129,33 @@ export default async function SeoPage({ params }: PageProps) {
         </section>
 
         {page.slug === "pricing" && <Pricing />}
+
+        {page.sources?.length ? (
+          <section className="pb-16">
+            <div className="reading-shell">
+              <div className="rounded-3xl border border-clay-200 bg-white p-6">
+                <p className="section-title mb-3">Official references</p>
+                <p className="mb-4 text-sm text-ink-600">
+                  These sources inform this guide. StoryLoop is independent and does not claim endorsement.
+                </p>
+                <ul className="space-y-2 text-sm">
+                  {page.sources.map((source) => (
+                    <li key={source.url}>
+                      <a
+                        href={source.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900"
+                      >
+                        {source.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         <section className="py-16 bg-cream-50 border-y border-clay-100">
           <div className="reading-shell">

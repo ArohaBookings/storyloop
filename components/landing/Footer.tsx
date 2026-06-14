@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AnimatedLogo from "@/components/brand/AnimatedLogo";
 
 export default function Footer() {
   return (
@@ -8,7 +9,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="md:col-span-2 max-w-md">
             <div className="flex items-center gap-2.5 mb-3">
-              <img src="/logo.svg" alt="StoryLoop" className="w-9 h-9 brightness-150" />
+              <AnimatedLogo size={36} className="brightness-125" />
               <div>
                 <span className="font-display text-xl font-bold text-paper">StoryLoop</span>
                 <p className="text-[10px] text-cream-300 -mt-1 font-mono tracking-widest">BY ARIA CARE</p>
@@ -30,6 +31,7 @@ export default function Footer() {
               <li><a href="#features" className="hover:text-paper transition-colors">Features</a></li>
               <li><Link href="/pricing" className="hover:text-paper transition-colors">Pricing</Link></li>
               <li><Link href="/examples" className="hover:text-paper transition-colors">Examples</Link></li>
+              <li><Link href="/resources" className="hover:text-paper transition-colors">Educator resources</Link></li>
               <li><Link href="/te-whariki-learning-stories" className="hover:text-paper transition-colors">Te Whāriki</Link></li>
               <li><Link href="/eylf-learning-stories" className="hover:text-paper transition-colors">EYLF</Link></li>
               <li><a href="#live-demo" className="hover:text-paper transition-colors">Try free</a></li>
@@ -61,7 +63,7 @@ export default function Footer() {
           <div className="flex items-center gap-5 text-xs text-ink-400">
             <Link href="/privacy" className="hover:text-paper transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-paper transition-colors">Terms</Link>
-            <a href="mailto:hello@storyloop.space" className="hover:text-paper transition-colors">Contact</a>
+            <a href="mailto:ariacareapp@gmail.com" className="hover:text-paper transition-colors">Contact</a>
           </div>
         </div>
       </div>

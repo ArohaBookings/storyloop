@@ -9,6 +9,7 @@ import {
   normalizeTone,
   type StoryDepth,
   type StoryFrameworkId,
+  type PedagogyFocus,
   type StoryMetadata,
   type StoryPreferences,
   type StoryTone,
@@ -25,6 +26,11 @@ export interface StoryResult extends StoryMetadata {
   childAge: string;
   nextSteps: string[];
   assumptions: string[];
+  evidenceAnchors: string[];
+  educatorChecks: string[];
+  pedagogyLinks: string[];
+  familyQuestion: string;
+  followUpPrompt: string;
   wordCount: number;
 }
 
@@ -169,6 +175,13 @@ function normaliseStoryResult(result: Partial<StoryResult>): StoryResult {
     culturalConnections: localiseStringArray(toShortStringArray(result.culturalConnections, 4)),
     whanauConnection,
     assumptions: localiseStringArray(toShortStringArray(result.assumptions, 3)),
+    evidenceAnchors: localiseStringArray(toShortStringArray(result.evidenceAnchors, 4)),
+    educatorChecks: localiseStringArray(toShortStringArray(result.educatorChecks, 3)),
+    pedagogyLinks: localiseStringArray(toShortStringArray(result.pedagogyLinks, 3)),
+    familyQuestion:
+      typeof result.familyQuestion === "string" ? localiseSpelling(result.familyQuestion.trim()) : "",
+    followUpPrompt:
+      typeof result.followUpPrompt === "string" ? localiseSpelling(result.followUpPrompt.trim()) : "",
     childAge: typeof result.childAge === "string" && result.childAge.trim() ? result.childAge.trim() : "Not stated",
     nextSteps: localiseStringArray(toShortStringArray(result.nextSteps, 4)),
     wordCount:
@@ -188,6 +201,7 @@ export async function generateLearningStory(params: {
   includeTeReoLevel?: TeReoLevel;
   includeKowhitiWhakapae?: boolean;
   includeTapasa?: boolean;
+  pedagogyFocus?: PedagogyFocus;
   preferences?: StoryPreferences;
 }): Promise<StoryResult> {
   const observations = params.observations
@@ -203,6 +217,7 @@ export async function generateLearningStory(params: {
     includeTeReoLevel: normalizeTeReoLevel(params.includeTeReoLevel ?? params.preferences?.includeTeReoLevel),
     includeKowhitiWhakapae: params.includeKowhitiWhakapae ?? params.preferences?.includeKowhitiWhakapae,
     includeTapasa: params.includeTapasa ?? params.preferences?.includeTapasa,
+    pedagogyFocus: params.pedagogyFocus ?? params.preferences?.pedagogyFocus,
   });
 
   const userContent = buildUserMessage(

@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, CheckCircle, LifeBuoy, Sparkles, Clock, BookOpen, TrendingUp } from "lucide-react";
+import { AlertTriangle, ArrowRight, Brain, CheckCircle, LifeBuoy, Sparkles, Clock, BookOpen, TrendingUp } from "lucide-react";
 import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
 
@@ -149,6 +149,28 @@ export default async function DashboardPage({
       </div>
 
       {/* Recent stories */}
+      {(totalStories ?? 0) >= 2 && (
+        <div className="mb-8 rounded-3xl border border-sage-200 bg-gradient-to-br from-sage-50 via-white to-cream-50 p-6 shadow-soft">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-sage-700 text-paper">
+                <Brain className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="section-title mb-1">Your practice memory is forming</p>
+                <h2 className="font-display text-2xl font-bold text-ink-900">See learning across stories, not only one moment.</h2>
+                <p className="mt-1 text-sm text-ink-600">
+                  Learning Threads highlights recurring dispositions, curriculum patterns, and responses worth revisiting.
+                </p>
+              </div>
+            </div>
+            <Link href="/insights" className="btn-secondary flex-shrink-0">
+              View learning threads <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div className="card overflow-hidden">
         <div className="px-6 py-4 border-b border-clay-100 flex items-center justify-between">
           <h2 className="font-display font-bold text-ink-900">Recent stories</h2>

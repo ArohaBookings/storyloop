@@ -5,13 +5,13 @@ import { Check } from "lucide-react";
 
 const PLANS_AUD = [
   { name: "Free", price: 0, stories: "3 stories/month", cta: "Start free", features: ["3 stories per month", "EYLF or Te Whāriki alignment", "Copy into your workflow", "No credit card required"], priceId: null },
-  { name: "Educator", price: 19, stories: "Unlimited stories", cta: "Start 7-day trial", features: ["Unlimited learning stories", "Voice notes", "Tone and depth controls", "Editable story history", "Email support"], priceId: "educator", popular: true },
+  { name: "Educator", price: 19, stories: "Unlimited stories", cta: "Start 7-day trial", features: ["Unlimited learning stories", "Voice notes", "Draft integrity lens", "Learning threads", "Email support"], priceId: "educator", popular: true },
   { name: "Centre", price: 49, stories: "Unlimited stories for your rollout", cta: "Start 7-day trial", features: ["Everything in Educator", "Shared billing", "Priority support", "Team rollout planning", "Admin oversight"], priceId: "centre" },
 ];
 
 const PLANS_NZD = [
   { name: "Free", price: 0, stories: "3 stories/month", cta: "Start free", features: ["3 stories per month", "EYLF/Te Whāriki alignment", "Copy into your workflow", "No credit card required"], priceId: null },
-  { name: "Educator", price: 21, stories: "Unlimited stories", cta: "Start 7-day trial", features: ["Unlimited learning stories", "Voice notes", "Tone and depth controls", "Editable story history", "Email support"], priceId: "educator", popular: true },
+  { name: "Educator", price: 21, stories: "Unlimited stories", cta: "Start 7-day trial", features: ["Unlimited learning stories", "Voice notes", "Draft integrity lens", "Learning threads", "Email support"], priceId: "educator", popular: true },
   { name: "Centre", price: 55, stories: "Unlimited stories for your rollout", cta: "Start 7-day trial", features: ["Everything in Educator", "Shared billing", "Priority support", "Team rollout planning", "Admin oversight"], priceId: "centre" },
 ];
 

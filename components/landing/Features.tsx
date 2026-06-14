@@ -1,4 +1,4 @@
-import { Mic, FileText, Users, Clock, Shield, Heart, Sparkles, Download } from "lucide-react";
+import { Mic, FileText, Users, Clock, Shield, Heart, Sparkles, Download, Fingerprint, Brain } from "lucide-react";
 
 const FEATURES = [
   { icon: Mic, title: "Voice or text input", desc: "Record the real moment or type rough notes. If mic recording is unavailable, typing and audio upload still work." },
@@ -9,6 +9,8 @@ const FEATURES = [
   { icon: Clock, title: "Cuts down rewriting", desc: "Start from a usable first draft instead of a blank page at the end of the day." },
   { icon: Heart, title: "Sounds like an educator", desc: "More grounded, less robotic. The goal is a draft you can recognise and edit quickly." },
   { icon: Shield, title: "Privacy first", desc: "Your observations are never used to train AI models. Data is access-controlled and stored securely." },
+  { icon: Fingerprint, title: "Draft integrity lens", desc: "See the observation evidence, assumptions, educator checks, and family question behind each draft." },
+  { icon: Brain, title: "Learning threads", desc: "Notice recurring dispositions, curriculum patterns, and follow-up opportunities across saved stories." },
 ];
 
 export default function Features() {
@@ -24,7 +26,7 @@ export default function Features() {
           <p className="text-ink-600 text-lg">Meaningful, not lengthy. Relevant, not repetitive. Child-focused, not generic.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
           {FEATURES.map(f => {
             const Icon = f.icon;
             return (
