@@ -2,6 +2,7 @@ import {
   STORY_FRAMEWORKS,
   type StoryDepth,
   type StoryFrameworkId,
+  type PedagogyFocus,
   type StoryPreferences,
   type StoryTone,
 } from "@/lib/story-options";
@@ -17,6 +18,19 @@ const DEPTH_GUIDANCE: Record<StoryDepth, string> = {
   concise: "Keep the story concise: about 90-140 words plus short metadata fields.",
   balanced: "Keep the story balanced: about 140-220 words plus useful metadata fields.",
   detailed: "Add a little more educator interpretation and responding detail: about 220-320 words plus metadata fields.",
+};
+
+const PEDAGOGY_GUIDANCE: Record<PedagogyFocus, string> = {
+  balanced:
+    "Balance observation, interpretation, curriculum, child voice, and a practical response without forcing every lens.",
+  intentional_teaching:
+    "Make the educator's possible intentional response concrete, proportionate, and connected to what the child already showed.",
+  child_voice:
+    "Prioritise the child's words, gesture, choices, agency, and interpretation. Do not invent a quote.",
+  family_partnership:
+    "Identify a respectful question or connection that invites family knowledge without assuming home practice.",
+  working_theories:
+    "Notice the child's emerging idea about how something works and suggest a way to revisit or test that theory.",
 };
 
 export const LEARNING_STORY_PROMPT = `You are StoryLoop, a writing assistant for early childhood educators.
@@ -56,6 +70,11 @@ RETURN ONLY VALID JSON WITH THIS EXACT SHAPE:
   "culturalConnections": ["0-4 short items"],
   "whanauConnection": "one short sentence families could connect with",
   "assumptions": ["0-3 short assumptions or gaps"],
+  "evidenceAnchors": ["2-4 short exact or closely paraphrased observation details that support the interpretation"],
+  "educatorChecks": ["2-3 short questions the educator should confirm before sharing"],
+  "pedagogyLinks": ["1-3 plain-language links to a relevant principle, practice, or teaching response"],
+  "familyQuestion": "one optional open question that invites family knowledge without assumption",
+  "followUpPrompt": "one specific thing to notice next time so learning can be followed over time",
   "childAge": "extracted or inferred age range",
   "nextSteps": ["2-3 practical next steps"],
   "wordCount": 160
@@ -77,6 +96,7 @@ export function buildUserMessage(
   const config = STORY_FRAMEWORKS[framework];
   const depth = preferences.depthPreference ?? "balanced";
   const teReoLevel = preferences.includeTeReoLevel ?? "low";
+  const pedagogyFocus = preferences.pedagogyFocus ?? "balanced";
   const emphasis = preferences.emphasis?.length
     ? preferences.emphasis.join(", ")
     : "plain language, real educator voice, practical learning links";
@@ -113,6 +133,7 @@ CHILD NAME: ${childName ? childName : "Not provided. Use 'the child' when needed
 AGE GROUP: ${ageGroup ? ageGroup : "Not provided"}
 REQUESTED TONE: ${tone}
 REQUESTED DEPTH: ${depth}
+PEDAGOGY FOCUS: ${pedagogyFocus}
 FRAMEWORK: ${config.label} (${config.pickerLabel})
 
 FRAMEWORK GUIDANCE:
@@ -122,6 +143,7 @@ VOICE GUIDANCE:
 - ${config.voicePrompt}
 - ${TONE_GUIDANCE[tone]}
 - ${DEPTH_GUIDANCE[depth]}
+- ${PEDAGOGY_GUIDANCE[pedagogyFocus]}
 - Sound like a teacher or kaiako writing for colleagues and whanau, not for a sales page.
 - Keep the language simple enough that an ECE teacher would naturally use it.
 - Use local Australia/Aotearoa spelling such as colour, behaviour, centre, organise, and recognise.
@@ -141,6 +163,7 @@ PERSISTED STORY PREFERENCES:
 - Te reo Māori level: ${preferences.includeTeReoLevel ?? "low"}
 - Include Kōwhiti Whakapae: ${preferences.includeKowhitiWhakapae ? "yes" : "no"}
 - Include Tapasā: ${preferences.includeTapasa ? "yes" : "no"}
+- Pedagogy focus: ${pedagogyFocus}
 - Emphasis areas: ${emphasis}
 - Extra notes: ${preferences.notes ?? "None"}
 
@@ -152,10 +175,17 @@ FIELD GUIDANCE:
 - learningSummary: say what learning was visible in simple educator language.
 - childVoice: include an exact supplied phrase only if the educator gave quoted wording. If there is no direct quote, summarise plainly, for example "Cooper called it his stopper." If unsure, return an empty string.
 - learningDispositions: examples include curiosity, perseverance, inventiveness, problem solving, confidence, resilience, working theories, communication, collaboration, independence, leadership, empathy, safe risk-taking, creativity.
+- If the observation shows trying again, testing, adjusting, or returning to an idea after it does not work straight away, include perseverance or persistence when that is genuinely supported.
+- If the child repurposes an everyday object, creates an original tool, or finds an unexpected way to solve a practical problem, include inventiveness when that is genuinely supported.
 - socialEmotionalLinks: examples include self-regulation, turn-taking, empathy, belonging, communication, confidence with others.
 - culturalConnections: include only real or carefully neutral links such as te reo use, whānau connection, home language, community, identity, or Tapasā-informed responsiveness.
 - whanauConnection: one short sentence a family could recognise or build on at home.
 - assumptions: if detail is missing, name the gap gently rather than inventing it.
+- evidenceAnchors: use only details found in the educator's observation. Keep each anchor short enough to scan.
+- educatorChecks: ask the educator to confirm accuracy, local context, or interpretation. Never claim the AI has signed off the story.
+- pedagogyLinks: for EYLF, consider relevant V2.0 principles or practices such as partnerships, respect for diversity, Aboriginal and Torres Strait Islander perspectives, equity/inclusion, sustainability, critical reflection, collaborative leadership, play-based learning, intentionality, responsiveness, or continuity when evidence supports it. For Te Whāriki, consider empowerment, holistic development, family and community, relationships, local curriculum, responsive and reciprocal practice, working theories, or assessment-for-learning. Do not paste a framework checklist.
+- familyQuestion: ask one open, family-friendly question only when it could deepen understanding. Do not ask families to validate a developmental judgement.
+- followUpPrompt: identify one observable action, strategy, relationship, phrase, or working theory to notice next time.
 - nextSteps: practical teaching moves, not big theory.
 
 Write the JSON now.`;

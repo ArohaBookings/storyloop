@@ -2,6 +2,12 @@ export type StoryTone = "natural" | "warm" | "professional" | "simple";
 export type StoryDepth = "concise" | "balanced" | "detailed";
 export type TeReoLevel = "low" | "medium" | "high";
 export type StoryFrameworkId = "AU" | "NZ";
+export type PedagogyFocus =
+  | "balanced"
+  | "intentional_teaching"
+  | "child_voice"
+  | "family_partnership"
+  | "working_theories";
 
 export type StoryPreferences = {
   defaultFramework?: StoryFrameworkId;
@@ -10,6 +16,7 @@ export type StoryPreferences = {
   includeTeReoLevel?: TeReoLevel;
   includeKowhitiWhakapae?: boolean;
   includeTapasa?: boolean;
+  pedagogyFocus?: PedagogyFocus;
   languageStyle?: "plain_ece";
   emphasis?: string[];
   notes?: string;
@@ -25,6 +32,13 @@ export type StoryMetadata = {
   culturalConnections?: string[];
   whanauConnection?: string;
   assumptions?: string[];
+  evidenceAnchors?: string[];
+  educatorChecks?: string[];
+  pedagogyLinks?: string[];
+  familyQuestion?: string;
+  followUpPrompt?: string;
+  educatorReflection?: string;
+  followUpStatus?: "open" | "revisited";
   storySettings?: {
     framework?: StoryFrameworkId;
     tone?: StoryTone;
@@ -32,6 +46,7 @@ export type StoryMetadata = {
     includeTeReoLevel?: TeReoLevel;
     includeKowhitiWhakapae?: boolean;
     includeTapasa?: boolean;
+    pedagogyFocus?: PedagogyFocus;
   };
 };
 
@@ -133,6 +148,18 @@ export function normalizeFramework(value?: string | null): StoryFrameworkId {
   return value === "NZ" ? "NZ" : "AU";
 }
 
+export function normalizePedagogyFocus(value?: string | null): PedagogyFocus {
+  if (
+    value === "intentional_teaching" ||
+    value === "child_voice" ||
+    value === "family_partnership" ||
+    value === "working_theories"
+  ) {
+    return value;
+  }
+  return "balanced";
+}
+
 function sanitizeBoolean(value: unknown): boolean | undefined {
   if (typeof value === "boolean") return value;
   if (value === "true") return true;
@@ -146,6 +173,7 @@ export function sanitizeStoryPreferences(value: unknown): StoryPreferences {
   const rawPreferredTone = cleanString(source.preferredTone);
   const rawDepthPreference = cleanString(source.depthPreference);
   const rawTeReoLevel = cleanString(source.includeTeReoLevel);
+  const rawPedagogyFocus = cleanString(source.pedagogyFocus);
   const notes = cleanString(source.notes);
 
   return {
@@ -155,6 +183,7 @@ export function sanitizeStoryPreferences(value: unknown): StoryPreferences {
     includeTeReoLevel: rawTeReoLevel ? normalizeTeReoLevel(rawTeReoLevel) : undefined,
     includeKowhitiWhakapae: sanitizeBoolean(source.includeKowhitiWhakapae),
     includeTapasa: sanitizeBoolean(source.includeTapasa),
+    pedagogyFocus: normalizePedagogyFocus(rawPedagogyFocus),
     languageStyle: "plain_ece",
     emphasis: sanitiseStringArray(source.emphasis),
     notes: notes || undefined,
@@ -174,6 +203,7 @@ export function mergeStoryPreferences(
         includeTeReoLevel: current.includeTeReoLevel ?? merged.includeTeReoLevel,
         includeKowhitiWhakapae: current.includeKowhitiWhakapae ?? merged.includeKowhitiWhakapae,
         includeTapasa: current.includeTapasa ?? merged.includeTapasa,
+        pedagogyFocus: current.pedagogyFocus ?? merged.pedagogyFocus,
         languageStyle: current.languageStyle ?? merged.languageStyle ?? "plain_ece",
         emphasis: dedupeStrings([...(merged.emphasis ?? []), ...(current.emphasis ?? [])]),
         notes: current.notes ?? merged.notes,
@@ -186,6 +216,7 @@ export function mergeStoryPreferences(
       includeTeReoLevel: "low",
       includeKowhitiWhakapae: false,
       includeTapasa: false,
+      pedagogyFocus: "balanced",
     }
   );
 }

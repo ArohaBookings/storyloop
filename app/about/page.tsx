@@ -1,11 +1,19 @@
+import type { Metadata } from "next";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import Link from "next/link";
 import { ArrowRight, Heart, Code2, Users } from "lucide-react";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "About StoryLoop",
   description: "The story behind StoryLoop, Aria Care, and Aroha AI: practical tools built to reduce documentation load while keeping professional judgement central.",
+  alternates: { canonical: "/about" },
+  openGraph: {
+    title: "About StoryLoop",
+    description: "The story behind StoryLoop, Aria Care, and Aroha AI: practical tools built to reduce documentation load while keeping professional judgement central.",
+    url: "https://storyloop.space/about",
+    type: "article",
+  },
 };
 
 export default function AboutPage() {

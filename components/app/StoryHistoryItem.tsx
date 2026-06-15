@@ -3,14 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, Copy, Download, Loader2, Pencil, RefreshCw, Save, X } from "lucide-react";
+import { ArrowRight, Check, Copy, Download, Loader2, Pencil, RefreshCw, Save, X } from "lucide-react";
+import StoryIntelligence from "@/components/app/StoryIntelligence";
 import {
   normalizeDepth,
   normalizeFramework,
+  normalizePedagogyFocus,
   normalizeTeReoLevel,
   normalizeTone,
   type StoryDepth,
   type StoryFrameworkId,
+  type PedagogyFocus,
   type StoryTone,
   type TeReoLevel,
 } from "@/lib/story-options";
@@ -65,6 +68,7 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [upgradeRequired, setUpgradeRequired] = useState(false);
+  const [billingRequired, setBillingRequired] = useState(false);
   const [currentOutcomes, setCurrentOutcomes] = useState<string[]>(story.outcomes ?? []);
   const [currentNextSteps, setCurrentNextSteps] = useState<string[]>(story.next_steps ?? []);
   const [currentMetadata, setCurrentMetadata] = useState<Record<string, unknown>>(initialMetadata);
@@ -85,6 +89,16 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
   const [regenerateTapasa, setRegenerateTapasa] = useState(
     typeof initialSettings.includeTapasa === "boolean" ? initialSettings.includeTapasa : false
   );
+  const [regeneratePedagogyFocus, setRegeneratePedagogyFocus] = useState<PedagogyFocus>(
+    normalizePedagogyFocus(initialSettings.pedagogyFocus as string | undefined)
+  );
+  const [educatorReflection, setEducatorReflection] = useState(
+    typeof initialMetadata.educatorReflection === "string" ? initialMetadata.educatorReflection : ""
+  );
+  const [followUpStatus, setFollowUpStatus] = useState<"open" | "revisited">(
+    initialMetadata.followUpStatus === "revisited" ? "revisited" : "open"
+  );
+  const [savingReflection, setSavingReflection] = useState(false);
 
   const metadata = currentMetadata;
   const learningSummary = typeof metadata.learningSummary === "string" ? metadata.learningSummary : "";
@@ -95,6 +109,11 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
   const culturalConnections = asStringArray(metadata.culturalConnections);
   const assumptions = asStringArray(metadata.assumptions);
   const whanauConnection = typeof metadata.whanauConnection === "string" ? metadata.whanauConnection : "";
+  const evidenceAnchors = asStringArray(metadata.evidenceAnchors);
+  const educatorChecks = asStringArray(metadata.educatorChecks);
+  const pedagogyLinks = asStringArray(metadata.pedagogyLinks);
+  const familyQuestion = typeof metadata.familyQuestion === "string" ? metadata.familyQuestion : "";
+  const followUpPrompt = typeof metadata.followUpPrompt === "string" ? metadata.followUpPrompt : "";
   const wasEdited = Boolean(currentUpdatedAt && currentUpdatedAt !== story.created_at);
 
   const startEdit = () => {
@@ -122,6 +141,7 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
     setError("");
     setMessage("");
     setUpgradeRequired(false);
+    setBillingRequired(false);
 
     try {
       const response = await fetch(`/api/stories/${encodeURIComponent(story.id)}`, {
@@ -166,12 +186,14 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
           includeTeReoLevel: regenerateTeReo,
           includeKowhitiWhakapae: regenerateKowhiti,
           includeTapasa: regenerateTapasa,
+          pedagogyFocus: regeneratePedagogyFocus,
         }),
       });
       const data = await response.json();
 
       if (!response.ok) {
         setUpgradeRequired(Boolean(data.upgradeRequired));
+        setBillingRequired(Boolean(data.billingRequired));
         throw new Error(data.error ?? "Could not regenerate story.");
       }
 
@@ -191,6 +213,11 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
         culturalConnections: data.culturalConnections,
         whanauConnection: data.whanauConnection,
         assumptions: data.assumptions,
+        evidenceAnchors: data.evidenceAnchors,
+        educatorChecks: data.educatorChecks,
+        pedagogyLinks: data.pedagogyLinks,
+        familyQuestion: data.familyQuestion,
+        followUpPrompt: data.followUpPrompt,
         storySettings: {
           framework: regenerateFramework,
           tone: regenerateTone,
@@ -198,6 +225,7 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
           includeTeReoLevel: regenerateTeReo,
           includeKowhitiWhakapae: regenerateKowhiti,
           includeTapasa: regenerateTapasa,
+          pedagogyFocus: regeneratePedagogyFocus,
         },
       }));
       setMessage("Regenerated from the original observation.");
@@ -206,6 +234,33 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
       setError(regenerateError instanceof Error ? regenerateError.message : "Could not regenerate story.");
     } finally {
       setRegenerating(false);
+    }
+  };
+
+  const saveReflection = async () => {
+    setSavingReflection(true);
+    setError("");
+    setMessage("");
+    try {
+      const response = await fetch(`/api/stories/${encodeURIComponent(story.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ educatorReflection, followUpStatus }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Could not save reflection.");
+      setCurrentMetadata((previous) => ({
+        ...previous,
+        educatorReflection,
+        followUpStatus,
+      }));
+      setCurrentUpdatedAt(data.updatedAt ?? new Date().toISOString());
+      setMessage("Educator reflection saved.");
+      router.refresh();
+    } catch (reflectionError) {
+      setError(reflectionError instanceof Error ? reflectionError.message : "Could not save reflection.");
+    } finally {
+      setSavingReflection(false);
     }
   };
 
@@ -306,6 +361,16 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
                 Upgrade for unlimited stories
               </Link>
             )}
+            {billingRequired && (
+              <span className="mt-1 flex flex-wrap gap-2">
+                <Link href="/billing" className="underline">
+                  Fix payment
+                </Link>
+                <Link href="/support" className="underline">
+                  Contact support
+                </Link>
+              </span>
+            )}
           </div>
         )}
 
@@ -315,7 +380,7 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
               <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1">Regenerate from original observation</p>
               <p className="text-xs text-ink-600">Use this when the observation is good but you want a different tone, depth, or curriculum lens.</p>
             </div>
-            <div className="grid sm:grid-cols-4 gap-2">
+            <div className="grid sm:grid-cols-5 gap-2">
               <select value={regenerateTone} onChange={(event) => setRegenerateTone(normalizeTone(event.target.value))} className="input text-xs">
                 <option value="natural">Natural educator</option>
                 <option value="warm">Warm reflective</option>
@@ -335,6 +400,13 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
                 <option value="low">Low te reo</option>
                 <option value="medium">Medium te reo</option>
                 <option value="high">High te reo</option>
+              </select>
+              <select value={regeneratePedagogyFocus} onChange={(event) => setRegeneratePedagogyFocus(normalizePedagogyFocus(event.target.value))} className="input text-xs">
+                <option value="balanced">Balanced lens</option>
+                <option value="intentional_teaching">Intentional teaching</option>
+                <option value="child_voice">Child voice</option>
+                <option value="family_partnership">Family partnership</option>
+                <option value="working_theories">Working theories</option>
               </select>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -458,6 +530,55 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
             )}
           </div>
         )}
+
+        <StoryIntelligence
+          evidenceAnchors={evidenceAnchors}
+          educatorChecks={educatorChecks}
+          pedagogyLinks={pedagogyLinks}
+          familyQuestion={familyQuestion}
+          followUpPrompt={followUpPrompt}
+        />
+
+        <div className="mt-5 rounded-2xl border border-clay-200 bg-white p-4">
+          <div className="flex flex-col gap-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-clay-600">Educator reflection</p>
+              <p className="mt-1 text-xs text-ink-600">
+                Add what changed in your thinking, what local context matters, or what you want to revisit.
+              </p>
+            </div>
+            <textarea
+              value={educatorReflection}
+              onChange={(event) => setEducatorReflection(event.target.value)}
+              className="input min-h-[96px] resize-y text-sm"
+              placeholder="I noticed... I am wondering... Next time I will..."
+            />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <label className="inline-flex items-center gap-2 text-xs font-semibold text-ink-700">
+                <input
+                  type="checkbox"
+                  checked={followUpStatus === "revisited"}
+                  onChange={(event) => setFollowUpStatus(event.target.checked ? "revisited" : "open")}
+                  className="accent-clay-700"
+                />
+                We revisited this learning or response
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={saveReflection}
+                  disabled={savingReflection}
+                  className="btn-secondary px-4 py-2 text-xs disabled:opacity-50"
+                >
+                  {savingReflection ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                  Save reflection
+                </button>
+                <Link href={`/generate?from=${encodeURIComponent(story.id)}`} className="btn-primary px-4 py-2 text-xs">
+                  Continue this learning <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {story.observations && (
           <div className="mt-5 pt-5 border-t border-clay-100">

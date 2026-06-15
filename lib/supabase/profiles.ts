@@ -9,6 +9,8 @@ export type AppProfile = {
   plan: string | null;
   subscription_status: string | null;
   stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  current_period_end: string | null;
   stories_this_month: number | null;
   total_stories: number | null;
   is_active: boolean | null;
@@ -18,7 +20,7 @@ export type AppProfile = {
 };
 
 const PROFILE_SELECT =
-  "id, email, full_name, plan, subscription_status, stripe_customer_id, stories_this_month, total_stories, is_active, monthly_story_limit_override, applied_access_code, story_preferences";
+  "id, email, full_name, plan, subscription_status, stripe_customer_id, stripe_subscription_id, current_period_end, stories_this_month, total_stories, is_active, monthly_story_limit_override, applied_access_code, story_preferences";
 
 function deriveFullName(user: Pick<User, "email" | "user_metadata">) {
   const fullName = typeof user.user_metadata?.full_name === "string" ? user.user_metadata.full_name.trim() : "";
@@ -34,6 +36,8 @@ function normaliseProfileRecord(record: Record<string, unknown>): AppProfile {
     plan: typeof record.plan === "string" ? record.plan : "free",
     subscription_status: typeof record.subscription_status === "string" ? record.subscription_status : "free",
     stripe_customer_id: typeof record.stripe_customer_id === "string" ? record.stripe_customer_id : null,
+    stripe_subscription_id: typeof record.stripe_subscription_id === "string" ? record.stripe_subscription_id : null,
+    current_period_end: typeof record.current_period_end === "string" ? record.current_period_end : null,
     stories_this_month: typeof record.stories_this_month === "number" ? record.stories_this_month : 0,
     total_stories: typeof record.total_stories === "number" ? record.total_stories : 0,
     is_active: typeof record.is_active === "boolean" ? record.is_active : true,

@@ -1,13 +1,17 @@
 "use client";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Sparkles, Loader2, Copy, Check, Mic, Square, RefreshCw, AlertCircle, X, ArrowRight, Pencil, Save, Download } from "lucide-react";
+import ObservationCoach from "@/components/app/ObservationCoach";
+import StoryIntelligence from "@/components/app/StoryIntelligence";
 import {
   normalizeDepth,
   normalizeFramework,
+  normalizePedagogyFocus,
   normalizeTeReoLevel,
   normalizeTone,
+  type PedagogyFocus,
   type StoryDepth,
   type StoryFrameworkId,
   type StoryTone,
@@ -24,6 +28,7 @@ const UPGRADE_PROMPT_STORAGE_KEY = `storyloop-upgrade-prompt-${new Date().getFul
 
 export default function GeneratePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [observations, setObservations] = useState("");
   const [childName, setChildName] = useState("");
   const [ageGroup, setAgeGroup] = useState("");
@@ -33,6 +38,7 @@ export default function GeneratePage() {
   const [includeTeReoLevel, setIncludeTeReoLevel] = useState<TeReoLevel>("low");
   const [includeKowhitiWhakapae, setIncludeKowhitiWhakapae] = useState(false);
   const [includeTapasa, setIncludeTapasa] = useState(false);
+  const [pedagogyFocus, setPedagogyFocus] = useState<PedagogyFocus>("balanced");
   const [savingPreferences, setSavingPreferences] = useState(false);
   const [preferencesMessage, setPreferencesMessage] = useState("");
   const [story, setStory] = useState("");
@@ -51,11 +57,18 @@ export default function GeneratePage() {
   const [culturalConnections, setCulturalConnections] = useState<string[]>([]);
   const [assumptions, setAssumptions] = useState<string[]>([]);
   const [whanauConnection, setWhanauConnection] = useState("");
+  const [evidenceAnchors, setEvidenceAnchors] = useState<string[]>([]);
+  const [educatorChecks, setEducatorChecks] = useState<string[]>([]);
+  const [pedagogyLinks, setPedagogyLinks] = useState<string[]>([]);
+  const [familyQuestion, setFamilyQuestion] = useState("");
+  const [followUpPrompt, setFollowUpPrompt] = useState("");
+  const [sourceStoryId, setSourceStoryId] = useState("");
   const [remaining, setRemaining] = useState<string | number>("");
   const [loading, setLoading] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
   const [error, setError] = useState("");
   const [upgradeRequired, setUpgradeRequired] = useState(false);
+  const [billingRequired, setBillingRequired] = useState(false);
   const [copied, setCopied] = useState(false);
   const [recording, setRecording] = useState(false);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
@@ -104,9 +117,55 @@ export default function GeneratePage() {
         if (typeof preferences?.includeTapasa === "boolean") {
           setIncludeTapasa(preferences.includeTapasa);
         }
+        if (preferences?.pedagogyFocus) {
+          setPedagogyFocus(normalizePedagogyFocus(preferences.pedagogyFocus));
+        }
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    const fromStory = searchParams.get("from");
+    if (!fromStory || fromStory === sourceStoryId) return;
+
+    void fetch(`/api/stories/${encodeURIComponent(fromStory)}`)
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "Could not load the earlier story.");
+        return data.story;
+      })
+      .then((source) => {
+        const metadata =
+          source?.metadata && typeof source.metadata === "object"
+            ? (source.metadata as Record<string, unknown>)
+            : {};
+        const prompt =
+          typeof metadata.followUpPrompt === "string" && metadata.followUpPrompt.trim()
+            ? metadata.followUpPrompt.trim()
+            : "What happened when this learning was revisited?";
+        const nextSteps = Array.isArray(source?.next_steps)
+          ? source.next_steps.filter((item: unknown): item is string => typeof item === "string").slice(0, 2)
+          : [];
+
+        setChildName(source?.child_name ?? "");
+        setAgeGroup(source?.age_group ?? "");
+        setObservations(
+          [
+            `Follow-up to the earlier story for ${source?.child_name || "this child"}.`,
+            `Notice next: ${prompt}`,
+            nextSteps.length ? `Earlier response ideas: ${nextSteps.join(" / ")}` : "",
+            "",
+            "What happened this time:",
+          ]
+            .filter(Boolean)
+            .join("\n")
+        );
+        setSourceStoryId(fromStory);
+      })
+      .catch((followUpError) => {
+        setError(followUpError instanceof Error ? followUpError.message : "Could not load the earlier story.");
+      });
+  }, [searchParams, sourceStoryId]);
 
   useEffect(() => {
     return () => {
@@ -131,6 +190,11 @@ export default function GeneratePage() {
     setCulturalConnections([]);
     setAssumptions([]);
     setWhanauConnection("");
+    setEvidenceAnchors([]);
+    setEducatorChecks([]);
+    setPedagogyLinks([]);
+    setFamilyQuestion("");
+    setFollowUpPrompt("");
   };
 
   const handleGenerate = async () => {
@@ -143,6 +207,7 @@ export default function GeneratePage() {
     setError("");
     resetOutput();
     setUpgradeRequired(false);
+    setBillingRequired(false);
     setShowLimitModal(false);
     setShowUpgradePrompt(false);
 
@@ -160,11 +225,15 @@ export default function GeneratePage() {
           includeTeReoLevel,
           includeKowhitiWhakapae,
           includeTapasa,
+          pedagogyFocus,
         }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error ?? "Failed");
+        if (data.billingRequired) {
+          setBillingRequired(true);
+        }
         if (data.upgradeRequired) {
           setUpgradeRequired(true);
           setShowLimitModal(true);
@@ -185,7 +254,19 @@ export default function GeneratePage() {
       setCulturalConnections(data.culturalConnections ?? []);
       setAssumptions(data.assumptions ?? []);
       setWhanauConnection(data.whanauConnection ?? "");
+      setEvidenceAnchors(data.evidenceAnchors ?? []);
+      setEducatorChecks(data.educatorChecks ?? []);
+      setPedagogyLinks(data.pedagogyLinks ?? []);
+      setFamilyQuestion(data.familyQuestion ?? "");
+      setFollowUpPrompt(data.followUpPrompt ?? "");
       setRemaining(data.remaining);
+      if (sourceStoryId) {
+        void fetch(`/api/stories/${encodeURIComponent(sourceStoryId)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ followUpStatus: "revisited" }),
+        });
+      }
       router.refresh();
       const shouldShowUpgradePrompt =
         data.plan === "free" &&
@@ -226,6 +307,7 @@ export default function GeneratePage() {
           includeTeReoLevel,
           includeKowhitiWhakapae,
           includeTapasa,
+          pedagogyFocus,
         }),
       });
       const data = await response.json();
@@ -370,6 +452,7 @@ export default function GeneratePage() {
     try {
       setTranscribing(true);
       setError("");
+      setBillingRequired(false);
 
       const formData = new FormData();
       formData.append("file", file);
@@ -382,6 +465,9 @@ export default function GeneratePage() {
       const data = await response.json();
 
       if (!response.ok) {
+        if (data.billingRequired) {
+          setBillingRequired(true);
+        }
         throw new Error(data.error ?? "Voice transcription failed.");
       }
 
@@ -532,6 +618,7 @@ export default function GeneratePage() {
                 Voice recording is not available in this browser session. You can still type bullet points or upload an audio file from Voice Memos/Recorder.
               </p>
             )}
+            <ObservationCoach observation={observations} />
           </div>
 
           <div className="card p-6 space-y-4">
@@ -612,6 +699,23 @@ export default function GeneratePage() {
                   </button>
                 ))}
               </div>
+            </div>
+            <div>
+              <label className="label">Pedagogy focus</label>
+              <select
+                value={pedagogyFocus}
+                onChange={(event) => setPedagogyFocus(normalizePedagogyFocus(event.target.value))}
+                className="input"
+              >
+                <option value="balanced">Balanced story</option>
+                <option value="intentional_teaching">Intentional teaching response</option>
+                <option value="child_voice">Child voice and agency</option>
+                <option value="family_partnership">Family partnership</option>
+                <option value="working_theories">Working theories and inquiry</option>
+              </select>
+              <p className="mt-1 text-[11px] text-ink-500">
+                Shapes the reflection lens without forcing unsupported curriculum claims.
+              </p>
             </div>
             <div>
               <label className="label">Te reo Māori</label>
@@ -718,6 +822,16 @@ export default function GeneratePage() {
                     Upgrade now →
                   </Link>
                 )}
+                {billingRequired && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <Link href="/billing" className="font-bold underline">
+                      Fix payment →
+                    </Link>
+                    <Link href="/support" className="font-bold underline">
+                      Contact support →
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -786,6 +900,14 @@ export default function GeneratePage() {
                   {storySaveMessage}
                 </p>
               )}
+
+              <StoryIntelligence
+                evidenceAnchors={evidenceAnchors}
+                educatorChecks={educatorChecks}
+                pedagogyLinks={pedagogyLinks}
+                familyQuestion={familyQuestion}
+                followUpPrompt={followUpPrompt}
+              />
 
               {(learningSummary ||
                 outcomes.length > 0 ||

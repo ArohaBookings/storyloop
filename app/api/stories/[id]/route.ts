@@ -5,6 +5,36 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
+export async function GET(_request: NextRequest, context: RouteContext) {
+  try {
+    const { id } = await context.params;
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Sign in to view stories" }, { status: 401 });
+    }
+
+    const { data, error } = await supabase
+      .from("stories")
+      .select("id, child_name, age_group, observations, story_text, next_steps, metadata, created_at")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .single();
+
+    if (error || !data) {
+      return NextResponse.json({ error: "Story not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ story: data });
+  } catch (error) {
+    console.error("Story fetch error:", error);
+    return NextResponse.json({ error: "Could not load story" }, { status: 500 });
+  }
+}
+
 function isMissingUpdatedAtColumn(error: unknown) {
   return Boolean(
     error &&
@@ -20,12 +50,18 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const { id } = await context.params;
     const body = await request.json();
     const story = typeof body.story === "string" ? body.story.trim() : "";
+    const educatorReflection =
+      typeof body.educatorReflection === "string" ? body.educatorReflection.trim().slice(0, 2000) : undefined;
+    const followUpStatus =
+      body.followUpStatus === "revisited" || body.followUpStatus === "open"
+        ? body.followUpStatus
+        : undefined;
 
     if (!id) {
       return NextResponse.json({ error: "Story ID is required" }, { status: 400 });
     }
 
-    if (story.length < 20) {
+    if (story && story.length < 20) {
       return NextResponse.json({ error: "Story must be at least 20 characters" }, { status: 400 });
     }
 
@@ -54,11 +90,18 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         ? (existingStory.metadata as Record<string, unknown>)
         : {};
     const updatedAt = new Date().toISOString();
+    const nextStoryText = story || undefined;
     const updatePayload = {
-      story_text: story,
-      word_count: story.split(/\s+/).filter(Boolean).length,
+      ...(nextStoryText
+        ? {
+            story_text: nextStoryText,
+            word_count: nextStoryText.split(/\s+/).filter(Boolean).length,
+          }
+        : {}),
       metadata: {
         ...existingMetadata,
+        ...(educatorReflection !== undefined ? { educatorReflection } : {}),
+        ...(followUpStatus ? { followUpStatus } : {}),
         editedAt: updatedAt,
       },
       updated_at: updatedAt,
@@ -89,7 +132,14 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "Story not found or not editable" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, storyId: data.id, story: data.story_text, updatedAt: data.updated_at });
+    return NextResponse.json({
+      success: true,
+      storyId: data.id,
+      story: data.story_text,
+      updatedAt: data.updated_at,
+      educatorReflection,
+      followUpStatus,
+    });
   } catch (error) {
     console.error("Story update error:", error);
     return NextResponse.json({ error: "Could not save story edits" }, { status: 500 });

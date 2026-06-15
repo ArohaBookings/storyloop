@@ -14,7 +14,7 @@ create table if not exists public.profiles (
   email text,
   full_name text,
   plan text default 'free',  -- free | educator | centre
-  subscription_status text default 'free',  -- free | trialing | active | past_due | cancelled | admin_override
+  subscription_status text default 'free',  -- free | trialing | active | past_due | payment_required | cancelled | admin_override
   stripe_customer_id text unique,
   stripe_subscription_id text,
   trial_ends_at timestamptz,
@@ -83,6 +83,62 @@ create table if not exists private.access_codes (
 );
 
 grant all on table private.access_codes to postgres, service_role;
+
+create table if not exists private.stripe_webhook_events (
+  event_id text primary key,
+  type text not null,
+  status text not null default 'processing',
+  processed_at timestamptz default now(),
+  error text
+);
+
+revoke all on table private.stripe_webhook_events from public, anon, authenticated;
+grant all on table private.stripe_webhook_events to postgres, service_role;
+
+create or replace function public.begin_stripe_webhook_event(p_event_id text, p_type text)
+returns text as $$
+declare
+  existing_status text;
+begin
+  insert into private.stripe_webhook_events (event_id, type, status, processed_at)
+  values (p_event_id, p_type, 'processing', now());
+  return 'process';
+exception
+  when unique_violation then
+    select status into existing_status
+    from private.stripe_webhook_events
+    where event_id = p_event_id;
+
+    if existing_status = 'failed' then
+      update private.stripe_webhook_events
+      set status = 'processing',
+          processed_at = now(),
+          error = null
+      where event_id = p_event_id;
+      return 'process';
+    end if;
+
+    return 'duplicate';
+end;
+$$ language plpgsql security definer
+set search_path = public, private;
+
+create or replace function public.finish_stripe_webhook_event(p_event_id text, p_status text, p_error text default null)
+returns void as $$
+begin
+  update private.stripe_webhook_events
+  set status = p_status,
+      processed_at = now(),
+      error = p_error
+  where event_id = p_event_id;
+end;
+$$ language plpgsql security definer
+set search_path = public, private;
+
+revoke all on function public.begin_stripe_webhook_event(text, text) from public, anon, authenticated;
+grant execute on function public.begin_stripe_webhook_event(text, text) to postgres, service_role;
+revoke all on function public.finish_stripe_webhook_event(text, text, text) from public, anon, authenticated;
+grant execute on function public.finish_stripe_webhook_event(text, text, text) to postgres, service_role;
 
 -- Admin audit log
 create table if not exists public.admin_audit_log (

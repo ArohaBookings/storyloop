@@ -1,8 +1,19 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 
-export const metadata = { title: "Privacy Policy" };
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "StoryLoop privacy policy for early childhood educators using learning story drafts across Australia and New Zealand.",
+  alternates: { canonical: "/privacy" },
+  openGraph: {
+    title: "StoryLoop Privacy Policy",
+    description: "How StoryLoop handles account, subscription, observation, and generated learning story data.",
+    url: "https://storyloop.space/privacy",
+    type: "article",
+  },
+};
 
 export default function PrivacyPage() {
   const sections = [

@@ -4,6 +4,189 @@ import { createAdminSupabase } from "@/lib/supabase/admin";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-06-20" });
 
+function stripeDate(value: number | null | undefined) {
+  return typeof value === "number" ? new Date(value * 1000).toISOString() : null;
+}
+
+function normalizeStripeStatus(status: string | null | undefined) {
+  if (status === "unpaid" || status === "incomplete" || status === "incomplete_expired" || status === "paused") {
+    return "payment_required";
+  }
+  return status ?? "payment_required";
+}
+
+function isDuplicateError(error: { code?: string; message?: string } | null) {
+  return error?.code === "23505" || Boolean(error?.message?.toLowerCase().includes("duplicate"));
+}
+
+function isMissingIdempotencyTable(error: { message?: string } | null) {
+  return Boolean(error?.message?.includes("stripe_webhook_events") && error.message.includes("does not exist"));
+}
+
+async function beginWebhookEvent(admin: ReturnType<typeof createAdminSupabase>, event: Stripe.Event) {
+  const { data, error } = await admin.rpc("begin_stripe_webhook_event", {
+    p_event_id: event.id,
+    p_type: event.type,
+  });
+
+  if (!error) return data === "process";
+
+  if (isMissingIdempotencyTable(error)) {
+    console.warn("stripe_webhook_events table or RPC missing; processing without idempotency.");
+    return true;
+  }
+
+  if (isDuplicateError(error)) return false;
+  throw error;
+}
+
+async function finishWebhookEvent(
+  admin: ReturnType<typeof createAdminSupabase>,
+  eventId: string,
+  status: "processed" | "failed",
+  errorMessage?: string
+) {
+  const { error } = await admin.rpc("finish_stripe_webhook_event", {
+    p_event_id: eventId,
+    p_status: status,
+    p_error: errorMessage?.slice(0, 500) ?? null,
+  });
+  if (error && !isMissingIdempotencyTable(error)) throw error;
+}
+
+async function updateProfileForSubscription(
+  admin: ReturnType<typeof createAdminSupabase>,
+  subscription: Stripe.Subscription,
+  fallback?: { userId?: string | null; plan?: string | null; customerId?: string | null }
+) {
+  const userId = subscription.metadata?.user_id ?? fallback?.userId ?? null;
+  const customerId =
+    typeof subscription.customer === "string"
+      ? subscription.customer
+      : subscription.customer?.id ?? fallback?.customerId ?? null;
+  const plan = subscription.metadata?.plan ?? fallback?.plan ?? "educator";
+  const status = normalizeStripeStatus(subscription.status);
+
+  const update = {
+    plan,
+    subscription_status: status,
+    stripe_customer_id: customerId,
+    stripe_subscription_id: subscription.id,
+    trial_ends_at: stripeDate(subscription.trial_end),
+    current_period_end: stripeDate(subscription.current_period_end),
+  };
+
+  if (userId) {
+    await admin.from("profiles").update(update).eq("id", userId);
+    return;
+  }
+
+  if (customerId) {
+    await admin.from("profiles").update(update).eq("stripe_customer_id", customerId);
+  }
+}
+
+async function updateProfileByInvoiceCustomer(
+  admin: ReturnType<typeof createAdminSupabase>,
+  invoice: Stripe.Invoice,
+  update: Record<string, unknown>
+) {
+  const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+  if (!customerId) return;
+  await admin.from("profiles").update(update).eq("stripe_customer_id", customerId);
+}
+
+async function handleInvoicePaid(admin: ReturnType<typeof createAdminSupabase>, invoice: Stripe.Invoice) {
+  const subscriptionId = typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
+  if (subscriptionId) {
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    await updateProfileForSubscription(admin, subscription, {
+      customerId: typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id,
+    });
+    return;
+  }
+
+  await updateProfileByInvoiceCustomer(admin, invoice, { subscription_status: "active" });
+}
+
+async function handlePaymentFailed(admin: ReturnType<typeof createAdminSupabase>, invoice: Stripe.Invoice) {
+  const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+  if (!customerId) return;
+
+  const subscriptionId = typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
+  const nextAttemptAt = stripeDate(invoice.next_payment_attempt);
+  const subscription = subscriptionId ? await stripe.subscriptions.retrieve(subscriptionId) : null;
+  const status = nextAttemptAt ? "past_due" : "payment_required";
+
+  const update: Record<string, unknown> = {
+    subscription_status: status,
+    current_period_end: subscription ? stripeDate(subscription.current_period_end) : undefined,
+    stripe_subscription_id: subscription?.id,
+  };
+
+  await admin.from("profiles").update(update).eq("stripe_customer_id", customerId);
+}
+
+async function processStripeEvent(admin: ReturnType<typeof createAdminSupabase>, event: Stripe.Event) {
+  switch (event.type) {
+    case "checkout.session.completed": {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription?.id;
+      if (!subscriptionId) return;
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      await updateProfileForSubscription(admin, subscription, {
+        userId: session.metadata?.user_id,
+        plan: session.metadata?.plan,
+        customerId: typeof session.customer === "string" ? session.customer : session.customer?.id,
+      });
+      return;
+    }
+
+    case "customer.subscription.created":
+    case "customer.subscription.updated":
+    case "customer.subscription.resumed": {
+      const subscription = event.data.object as Stripe.Subscription;
+      await updateProfileForSubscription(admin, subscription);
+      return;
+    }
+
+    case "customer.subscription.paused": {
+      const subscription = event.data.object as Stripe.Subscription;
+      await updateProfileForSubscription(admin, { ...subscription, status: "paused" } as Stripe.Subscription);
+      return;
+    }
+
+    case "customer.subscription.deleted": {
+      const subscription = event.data.object as Stripe.Subscription;
+      const userId = subscription.metadata?.user_id;
+      const customerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id;
+      const update = {
+        plan: "free",
+        subscription_status: "cancelled",
+        stripe_subscription_id: null,
+        current_period_end: stripeDate(subscription.current_period_end),
+      };
+      if (userId) await admin.from("profiles").update(update).eq("id", userId);
+      else if (customerId) await admin.from("profiles").update(update).eq("stripe_customer_id", customerId);
+      return;
+    }
+
+    case "invoice.paid":
+    case "invoice.payment_succeeded": {
+      await handleInvoicePaid(admin, event.data.object as Stripe.Invoice);
+      return;
+    }
+
+    case "invoice.payment_failed": {
+      await handlePaymentFailed(admin, event.data.object as Stripe.Invoice);
+      return;
+    }
+
+    default:
+      return;
+  }
+}
+
 export async function POST(request: NextRequest) {
   const body = await request.text();
   const sig = request.headers.get("stripe-signature");
@@ -20,52 +203,18 @@ export async function POST(request: NextRequest) {
   const admin = createAdminSupabase();
 
   try {
-    switch (event.type) {
-      case "checkout.session.completed":
-      case "customer.subscription.created":
-      case "customer.subscription.updated": {
-        const obj = event.data.object as Stripe.Subscription | Stripe.Checkout.Session;
-        const userId = obj.metadata?.user_id;
-        const plan = obj.metadata?.plan ?? "educator";
-        if (!userId) break;
+    const shouldProcess = await beginWebhookEvent(admin, event);
+    if (!shouldProcess) return NextResponse.json({ received: true, duplicate: true });
 
-        const subId = "subscription" in obj ? (obj.subscription as string) : obj.id;
-        const sub = typeof subId === "string" ? await stripe.subscriptions.retrieve(subId) : null;
-        if (!sub) break;
-
-        await admin.from("profiles").update({
-          plan,
-          subscription_status: sub.status,
-          stripe_subscription_id: sub.id,
-          trial_ends_at: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
-          current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
-        }).eq("id", userId);
-        break;
-      }
-
-      case "customer.subscription.deleted": {
-        const sub = event.data.object as Stripe.Subscription;
-        const userId = sub.metadata?.user_id;
-        if (!userId) break;
-        await admin.from("profiles").update({
-          plan: "free",
-          subscription_status: "cancelled",
-          stripe_subscription_id: null,
-        }).eq("id", userId);
-        break;
-      }
-
-      case "invoice.payment_failed": {
-        const invoice = event.data.object as Stripe.Invoice;
-        const customerId = invoice.customer as string;
-        const { data: profile } = await admin.from("profiles").select("id").eq("stripe_customer_id", customerId).single();
-        if (profile) await admin.from("profiles").update({ subscription_status: "past_due" }).eq("id", profile.id);
-        break;
-      }
-    }
+    await processStripeEvent(admin, event);
+    await finishWebhookEvent(admin, event.id, "processed");
+    return NextResponse.json({ received: true });
   } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown webhook error";
     console.error("Webhook error:", err);
+    await finishWebhookEvent(admin, event.id, "failed", message).catch((finishError) => {
+      console.error("Could not mark webhook failed:", finishError);
+    });
+    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
   }
-
-  return NextResponse.json({ received: true });
 }

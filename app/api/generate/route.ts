@@ -3,10 +3,12 @@ import { createClient } from "@/lib/supabase/server";
 import { generateLearningStory } from "@/lib/ai/generate";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { getMonthlyStoryLimit, getRemainingStories } from "@/lib/story-limits";
+import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
 import {
   mergeStoryPreferences,
   normalizeDepth,
   normalizeFramework,
+  normalizePedagogyFocus,
   normalizeTeReoLevel,
   normalizeTone,
   sanitizeStoryPreferences,
@@ -46,6 +48,7 @@ export async function POST(request: NextRequest) {
       includeTeReoLevel,
       includeKowhitiWhakapae,
       includeTapasa,
+      pedagogyFocus,
       demo,
     } = body;
 
@@ -69,6 +72,7 @@ export async function POST(request: NextRequest) {
         includeTeReoLevel: normalizeTeReoLevel(typeof includeTeReoLevel === "string" ? includeTeReoLevel : undefined),
         includeKowhitiWhakapae: Boolean(includeKowhitiWhakapae),
         includeTapasa: Boolean(includeTapasa),
+        pedagogyFocus: normalizePedagogyFocus(typeof pedagogyFocus === "string" ? pedagogyFocus : undefined),
       });
       return NextResponse.json({
         storyTitle: result.storyTitle,
@@ -82,6 +86,11 @@ export async function POST(request: NextRequest) {
         culturalConnections: result.culturalConnections,
         whanauConnection: result.whanauConnection,
         assumptions: result.assumptions,
+        evidenceAnchors: result.evidenceAnchors,
+        educatorChecks: result.educatorChecks,
+        pedagogyLinks: result.pedagogyLinks,
+        familyQuestion: result.familyQuestion,
+        followUpPrompt: result.followUpPrompt,
         nextSteps: result.nextSteps,
       });
     }
@@ -94,6 +103,9 @@ export async function POST(request: NextRequest) {
     const profile = await getOrCreateProfile(user);
     if (profile.is_active === false) {
       return NextResponse.json({ error: "Your account has been disabled. Contact support." }, { status: 403 });
+    }
+    if (isBillingBlocked(profile)) {
+      return NextResponse.json(billingBlockPayload(profile), { status: 402 });
     }
 
     const plan = profile.plan ?? "free";
@@ -115,6 +127,9 @@ export async function POST(request: NextRequest) {
       typeof includeTapasa === "boolean"
         ? includeTapasa
         : preferences.includeTapasa ?? false;
+    const resolvedPedagogyFocus = normalizePedagogyFocus(
+      typeof pedagogyFocus === "string" ? pedagogyFocus : preferences.pedagogyFocus
+    );
     const requestPreferences = mergeStoryPreferences(preferences, {
       defaultFramework: framework,
       preferredTone: resolvedTone,
@@ -122,6 +137,7 @@ export async function POST(request: NextRequest) {
       includeTeReoLevel: resolvedTeReoLevel,
       includeKowhitiWhakapae: resolvedIncludeKowhiti,
       includeTapasa: resolvedIncludeTapasa,
+      pedagogyFocus: resolvedPedagogyFocus,
     });
     const limit = getMonthlyStoryLimit(profile);
 
@@ -146,6 +162,7 @@ export async function POST(request: NextRequest) {
       includeTeReoLevel: resolvedTeReoLevel,
       includeKowhitiWhakapae: resolvedIncludeKowhiti,
       includeTapasa: resolvedIncludeTapasa,
+      pedagogyFocus: resolvedPedagogyFocus,
       preferences: requestPreferences,
     });
 
@@ -171,6 +188,12 @@ export async function POST(request: NextRequest) {
         culturalConnections: result.culturalConnections,
         whanauConnection: result.whanauConnection,
         assumptions: result.assumptions,
+        evidenceAnchors: result.evidenceAnchors,
+        educatorChecks: result.educatorChecks,
+        pedagogyLinks: result.pedagogyLinks,
+        familyQuestion: result.familyQuestion,
+        followUpPrompt: result.followUpPrompt,
+        followUpStatus: "open",
         storySettings: {
           framework,
           tone: resolvedTone,
@@ -178,6 +201,7 @@ export async function POST(request: NextRequest) {
           includeTeReoLevel: resolvedTeReoLevel,
           includeKowhitiWhakapae: resolvedIncludeKowhiti,
           includeTapasa: resolvedIncludeTapasa,
+          pedagogyFocus: resolvedPedagogyFocus,
         },
       },
     }).select("id").single();
@@ -205,6 +229,11 @@ export async function POST(request: NextRequest) {
       culturalConnections: result.culturalConnections,
       whanauConnection: result.whanauConnection,
       assumptions: result.assumptions,
+      evidenceAnchors: result.evidenceAnchors,
+      educatorChecks: result.educatorChecks,
+      pedagogyLinks: result.pedagogyLinks,
+      familyQuestion: result.familyQuestion,
+      followUpPrompt: result.followUpPrompt,
       nextSteps: result.nextSteps,
       plan,
       storiesUsedThisMonth: used + 1,
