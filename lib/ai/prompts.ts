@@ -91,7 +91,8 @@ export function buildUserMessage(
   childName: string | undefined,
   tone: StoryTone,
   framework: StoryFrameworkId,
-  preferences: StoryPreferences
+  preferences: StoryPreferences,
+  childContext?: string
 ) {
   const config = STORY_FRAMEWORKS[framework];
   const depth = preferences.depthPreference ?? "balanced";
@@ -131,6 +132,15 @@ ${observations}
 
 CHILD NAME: ${childName ? childName : "Not provided. Use 'the child' when needed."}
 AGE GROUP: ${ageGroup ? ageGroup : "Not provided"}
+SAVED CONTINUITY CONTEXT:
+${childContext || "No saved child profile or earlier learning context was selected."}
+
+CONTEXT BOUNDARY:
+- Saved continuity context may inform respectful wording and possible connections.
+- It is not evidence from today's observation.
+- Never state a saved interest, aspiration, language, or earlier pattern as if it happened today.
+- If today's observation does not support a connection, leave it out.
+
 REQUESTED TONE: ${tone}
 REQUESTED DEPTH: ${depth}
 PEDAGOGY FOCUS: ${pedagogyFocus}

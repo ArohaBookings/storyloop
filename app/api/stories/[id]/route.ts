@@ -19,7 +19,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 
     const { data, error } = await supabase
       .from("stories")
-      .select("id, child_name, age_group, observations, story_text, next_steps, metadata, created_at")
+      .select("id, child_id, child_name, age_group, observations, story_text, next_steps, metadata, created_at")
       .eq("id", id)
       .eq("user_id", user.id)
       .single();
@@ -45,6 +45,35 @@ function isMissingUpdatedAtColumn(error: unknown) {
   );
 }
 
+const NEXT_STEP_STATUSES = new Set(["planned", "tried", "continue"]);
+
+function sanitiseNextStepProgress(value: unknown) {
+  if (!Array.isArray(value)) return undefined;
+
+  return value.slice(0, 8).flatMap((entry) => {
+    if (!entry || typeof entry !== "object") return [];
+    const item = entry as Record<string, unknown>;
+    const text = typeof item.text === "string" ? item.text.trim().slice(0, 500) : "";
+    const status = typeof item.status === "string" && NEXT_STEP_STATUSES.has(item.status)
+      ? item.status
+      : "planned";
+    const note = typeof item.note === "string" ? item.note.trim().slice(0, 500) : "";
+    return text ? [{ text, status, ...(note ? { note } : {}) }] : [];
+  });
+}
+
+function sanitiseReviewChecklist(value: unknown) {
+  if (!value || typeof value !== "object") return undefined;
+  const checklist = value as Record<string, unknown>;
+  return {
+    evidence: checklist.evidence === true,
+    childVoice: checklist.childVoice === true,
+    curriculum: checklist.curriculum === true,
+    culture: checklist.culture === true,
+    privacy: checklist.privacy === true,
+  };
+}
+
 export async function PATCH(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
@@ -56,6 +85,11 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       body.followUpStatus === "revisited" || body.followUpStatus === "open"
         ? body.followUpStatus
         : undefined;
+    const whanauVoice =
+      typeof body.whanauVoice === "string" ? body.whanauVoice.trim().slice(0, 2000) : undefined;
+    const nextStepProgress = sanitiseNextStepProgress(body.nextStepProgress);
+    const reviewChecklist = sanitiseReviewChecklist(body.reviewChecklist);
+    const markReviewed = body.markReviewed === true;
 
     if (!id) {
       return NextResponse.json({ error: "Story ID is required" }, { status: 400 });
@@ -90,6 +124,17 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         ? (existingStory.metadata as Record<string, unknown>)
         : {};
     const updatedAt = new Date().toISOString();
+    const reviewComplete = reviewChecklist
+      ? Object.values(reviewChecklist).every(Boolean)
+      : false;
+
+    if (markReviewed && !reviewComplete) {
+      return NextResponse.json(
+        { error: "Complete all educator review checks before marking this story reviewed." },
+        { status: 400 }
+      );
+    }
+
     const nextStoryText = story || undefined;
     const updatePayload = {
       ...(nextStoryText
@@ -102,6 +147,19 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         ...existingMetadata,
         ...(educatorReflection !== undefined ? { educatorReflection } : {}),
         ...(followUpStatus ? { followUpStatus } : {}),
+        ...(whanauVoice !== undefined
+          ? {
+              whanauVoice,
+              whanauCapturedAt: whanauVoice ? updatedAt : null,
+            }
+          : {}),
+        ...(nextStepProgress ? { nextStepProgress } : {}),
+        ...(reviewChecklist
+          ? {
+              reviewChecklist,
+              reviewedAt: markReviewed ? updatedAt : null,
+            }
+          : {}),
         editedAt: updatedAt,
       },
       updated_at: updatedAt,
@@ -116,7 +174,8 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       .single();
 
     if (isMissingUpdatedAtColumn(error)) {
-      const { updated_at: _updatedAt, ...fallbackPayload } = updatePayload;
+      const fallbackPayload: Record<string, unknown> = { ...updatePayload };
+      delete fallbackPayload.updated_at;
       const fallback = await supabase
         .from("stories")
         .update(fallbackPayload)
@@ -139,6 +198,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       updatedAt: data.updated_at,
       educatorReflection,
       followUpStatus,
+      whanauVoice,
+      nextStepProgress,
+      reviewChecklist,
+      reviewedAt: reviewChecklist && markReviewed ? updatedAt : undefined,
     });
   } catch (error) {
     console.error("Story update error:", error);

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { STORY_FRAMEWORKS, normalizeFramework } from "@/lib/story-options";
 import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
+import { consumeRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -40,6 +41,15 @@ export async function POST(request: NextRequest) {
     }
     if (isBillingBlocked(profile)) {
       return NextResponse.json(billingBlockPayload(profile), { status: 402 });
+    }
+    const allowed = await consumeRateLimit({
+      scope: "voice-transcription",
+      key: user.id,
+      limit: 30,
+      windowSeconds: 60 * 60,
+    });
+    if (!allowed) {
+      return NextResponse.json({ error: "Voice-note limit reached. Try again later." }, { status: 429 });
     }
 
     const formData = await request.formData();

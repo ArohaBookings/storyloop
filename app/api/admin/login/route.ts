@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { ADMIN_EMAIL, createAdminSessionToken, isAdminEmail } from "@/lib/admin-session";
+import { createAdminSessionToken, isAdminEmail } from "@/lib/admin-session";
 import { createAdminSupabase } from "@/lib/supabase/admin";
+import { consumeRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,28 +14,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing credentials" }, { status: 400 });
     }
 
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+      ?? request.headers.get("x-real-ip")
+      ?? "unknown";
+    const allowed = await consumeRateLimit({
+      scope: "admin-login",
+      key: `${ip}:${normalizedEmail.toLowerCase()}`,
+      limit: 8,
+      windowSeconds: 15 * 60,
+    });
+    if (!allowed) {
+      return NextResponse.json({ error: "Too many login attempts. Try again later." }, { status: 429 });
+    }
+
     if (!isAdminEmail(normalizedEmail)) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    // Check hash in env (preferred), fallback to plain text comparison if hash not set
     const hash = process.env.ADMIN_PASSWORD_HASH?.trim();
-    const plain = process.env.ADMIN_PASSWORD_PLAIN?.trim();
 
     let ok = false;
     if (hash) {
       ok = await bcrypt.compare(submittedPassword, hash);
-    }
-    if (!ok && plain) {
-      // First-boot: password matches plain, and we generate the hash for user to store
-      if (submittedPassword === plain) {
-        ok = true;
-        const newHash = await bcrypt.hash(plain, 10);
-        console.log("====== ADMIN SETUP ======");
-        console.log("Set this in your env vars: ADMIN_PASSWORD_HASH=" + newHash);
-        console.log("Then you can remove ADMIN_PASSWORD_PLAIN.");
-        console.log("=========================");
-      }
     }
     if (!ok) {
       const authClient = createSupabaseClient(

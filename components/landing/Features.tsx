@@ -1,4 +1,19 @@
-import { Mic, FileText, Users, Clock, Shield, Heart, Sparkles, Download, Fingerprint, Brain } from "lucide-react";
+import {
+  Brain,
+  CheckCircle2,
+  Clock,
+  Compass,
+  Download,
+  FileText,
+  Fingerprint,
+  Heart,
+  MessageCircleHeart,
+  Mic,
+  RefreshCw,
+  Shield,
+  Sparkles,
+  Users,
+} from "lucide-react";
 
 const FEATURES = [
   { icon: Mic, title: "Voice or text input", desc: "Record the real moment or type rough notes. If mic recording is unavailable, typing and audio upload still work." },
@@ -11,6 +26,11 @@ const FEATURES = [
   { icon: Shield, title: "Privacy first", desc: "Your observations are never used to train AI models. Data is access-controlled and stored securely." },
   { icon: Fingerprint, title: "Draft integrity lens", desc: "See the observation evidence, assumptions, educator checks, and family question behind each draft." },
   { icon: Brain, title: "Learning threads", desc: "Notice recurring dispositions, curriculum patterns, and follow-up opportunities across saved stories." },
+  { icon: Users, title: "Child continuity profiles", desc: "Save lightweight interests, languages, whānau aspirations, and educator context so future drafts connect learning over time." },
+  { icon: Compass, title: "Curriculum compass", desc: "See EYLF outcomes or Te Whāriki strands surfaced for each child without ranking, scoring, or turning children into data points." },
+  { icon: RefreshCw, title: "Next-step response loop", desc: "Track which response ideas were planned, tried, or worth continuing so documentation leads back into teaching." },
+  { icon: MessageCircleHeart, title: "Whānau voice bridge", desc: "Bring home knowledge, aspirations, language, and family responses back into the next learning story." },
+  { icon: CheckCircle2, title: "Human review gate", desc: "Before sharing, run an educator-led check for evidence, child voice, curriculum fit, cultural respect, and privacy." },
 ];
 
 export default function Features() {
@@ -26,7 +46,7 @@ export default function Features() {
           <p className="text-ink-600 text-lg">Meaningful, not lengthy. Relevant, not repetitive. Child-focused, not generic.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5">
           {FEATURES.map(f => {
             const Icon = f.icon;
             return (

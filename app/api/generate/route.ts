@@ -13,9 +13,7 @@ import {
   normalizeTone,
   sanitizeStoryPreferences,
 } from "@/lib/story-options";
-
-// In-memory rate limit for demo mode (per-IP)
-const demoRateLimit = new Map<string, { count: number; resetAt: number }>();
+import { consumeRateLimit } from "@/lib/rate-limit";
 
 function getClientIp(request: NextRequest): string {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
@@ -23,23 +21,12 @@ function getClientIp(request: NextRequest): string {
     ?? "unknown";
 }
 
-function checkDemoRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = demoRateLimit.get(ip);
-  if (!entry || entry.resetAt < now) {
-    demoRateLimit.set(ip, { count: 1, resetAt: now + 3600000 }); // 1 hour
-    return true;
-  }
-  if (entry.count >= 2) return false;
-  entry.count++;
-  return true;
-}
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const {
       observations,
+      childId,
       ageGroup,
       childName,
       tone,
@@ -49,6 +36,7 @@ export async function POST(request: NextRequest) {
       includeKowhitiWhakapae,
       includeTapasa,
       pedagogyFocus,
+      sourceStoryId,
       demo,
     } = body;
 
@@ -59,7 +47,13 @@ export async function POST(request: NextRequest) {
     // DEMO MODE — public, rate limited per IP
     if (demo) {
       const ip = getClientIp(request);
-      if (!checkDemoRateLimit(ip)) {
+      const allowed = await consumeRateLimit({
+        scope: "public-demo",
+        key: ip,
+        limit: 2,
+        windowSeconds: 60 * 60,
+      });
+      if (!allowed) {
         return NextResponse.json({ error: "Demo limit reached. Sign up to keep going — it's free." }, { status: 429 });
       }
       const result = await generateLearningStory({
@@ -152,10 +146,63 @@ export async function POST(request: NextRequest) {
       }, { status: 403 });
     }
 
+    const selectedChildId = typeof childId === "string" ? childId : "";
+    const { data: selectedChild } = selectedChildId
+      ? await supabase
+          .from("child_profiles")
+          .select("id, name, age_group, interests, developmental_focus, notes, whanau_aspirations, home_languages")
+          .eq("id", selectedChildId)
+          .eq("user_id", user.id)
+          .maybeSingle()
+      : { data: null };
+
+    if (selectedChildId && !selectedChild) {
+      return NextResponse.json({ error: "Selected child profile was not found" }, { status: 404 });
+    }
+
+    const { data: recentChildStories } = selectedChild
+      ? await supabase
+          .from("stories")
+          .select("metadata, outcomes, next_steps, created_at")
+          .eq("user_id", user.id)
+          .eq("child_id", selectedChild.id)
+          .order("created_at", { ascending: false })
+          .limit(3)
+      : { data: [] };
+
+    const recentLearning = (recentChildStories ?? [])
+      .map((story) => {
+        const metadata =
+          story.metadata && typeof story.metadata === "object"
+            ? (story.metadata as Record<string, unknown>)
+            : {};
+        const summary = typeof metadata.learningSummary === "string" ? metadata.learningSummary : "";
+        const reflection = typeof metadata.educatorReflection === "string" ? metadata.educatorReflection : "";
+        const whanauVoice = typeof metadata.whanauVoice === "string" ? metadata.whanauVoice : "";
+        return [summary, reflection, whanauVoice].filter(Boolean).join(" ");
+      })
+      .filter(Boolean)
+      .slice(0, 3);
+
+    const resolvedChildName = selectedChild?.name ?? childName;
+    const resolvedAgeGroup = selectedChild?.age_group ?? ageGroup;
+    const childContext = selectedChild
+      ? [
+          selectedChild.interests?.length ? `Current interests: ${selectedChild.interests.join(", ")}` : "",
+          selectedChild.developmental_focus ? `Educator learning focus: ${selectedChild.developmental_focus}` : "",
+          selectedChild.whanau_aspirations ? `Whānau aspirations: ${selectedChild.whanau_aspirations}` : "",
+          selectedChild.home_languages?.length ? `Home languages: ${selectedChild.home_languages.join(", ")}` : "",
+          selectedChild.notes ? `Educator context: ${selectedChild.notes}` : "",
+          recentLearning.length ? `Recent learning summaries: ${recentLearning.join(" | ")}` : "",
+        ]
+          .filter(Boolean)
+          .join("\n")
+      : "";
+
     const result = await generateLearningStory({
       observations,
-      ageGroup,
-      childName,
+      ageGroup: resolvedAgeGroup,
+      childName: resolvedChildName,
       tone: resolvedTone,
       depth: resolvedDepth,
       framework,
@@ -163,18 +210,20 @@ export async function POST(request: NextRequest) {
       includeKowhitiWhakapae: resolvedIncludeKowhiti,
       includeTapasa: resolvedIncludeTapasa,
       pedagogyFocus: resolvedPedagogyFocus,
+      childContext,
       preferences: requestPreferences,
     });
 
     // Save to history
     const { data: saved } = await supabase.from("stories").insert({
       user_id: user.id,
+      child_id: selectedChild?.id ?? null,
       observations: observations.slice(0, 2000),
       story_text: result.story,
       outcomes: result.outcomes,
       next_steps: result.nextSteps,
-      age_group: ageGroup ?? result.childAge,
-      child_name: childName,
+      age_group: resolvedAgeGroup ?? result.childAge,
+      child_name: resolvedChildName,
       tone: resolvedTone,
       location: framework,
       word_count: result.wordCount,
@@ -194,6 +243,9 @@ export async function POST(request: NextRequest) {
         familyQuestion: result.familyQuestion,
         followUpPrompt: result.followUpPrompt,
         followUpStatus: "open",
+        continuityContextUsed: Boolean(selectedChild),
+        sourceStoryId: typeof sourceStoryId === "string" ? sourceStoryId : undefined,
+        nextStepProgress: result.nextSteps.map((text) => ({ text, status: "planned" })),
         storySettings: {
           framework,
           tone: resolvedTone,

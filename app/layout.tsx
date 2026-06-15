@@ -41,18 +41,47 @@ export const metadata: Metadata = {
 
 const structuredData = {
   "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "StoryLoop",
-  "description": "Learning story drafting assistant for early childhood educators using Te Whāriki and EYLF-aligned curriculum links.",
-  "applicationCategory": "EducationalApplication",
-  "operatingSystem": "Web",
-  "url": "https://storyloop.space/",
-  "offers": [
-    { "@type": "Offer", "price": "0", "priceCurrency": "AUD", "name": "Free plan" },
-    { "@type": "Offer", "price": "19", "priceCurrency": "AUD", "name": "Educator plan" },
-    { "@type": "Offer", "price": "49", "priceCurrency": "AUD", "name": "Centre plan" },
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://storyloop.space/#organization",
+      "name": "StoryLoop by Aria Care",
+      "url": "https://storyloop.space/",
+      "email": "ariacareapp@gmail.com",
+      "logo": "https://storyloop.space/logo.svg",
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://storyloop.space/#website",
+      "name": "StoryLoop",
+      "url": "https://storyloop.space/",
+      "publisher": { "@id": "https://storyloop.space/#organization" },
+      "inLanguage": "en-AU",
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://storyloop.space/#software",
+      "name": "StoryLoop",
+      "description": "Learning story drafting assistant for early childhood educators using Te Whāriki and EYLF-aligned curriculum links, child continuity, whānau voice, and educator review.",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web",
+      "url": "https://storyloop.space/",
+      "publisher": { "@id": "https://storyloop.space/#organization" },
+      "featureList": [
+        "Voice notes to editable learning stories",
+        "EYLF and Te Whāriki curriculum links",
+        "Child learning continuity profiles",
+        "Curriculum compass for reflection",
+        "Whānau voice capture",
+        "Educator evidence and privacy review",
+      ],
+      "offers": [
+        { "@type": "Offer", "price": "0", "priceCurrency": "AUD", "name": "Free plan" },
+        { "@type": "Offer", "price": "19", "priceCurrency": "AUD", "name": "Educator plan" },
+        { "@type": "Offer", "price": "49", "priceCurrency": "AUD", "name": "Centre plan" },
+      ],
+    },
   ],
-  "publisher": { "@type": "Organization", "name": "Aria Care", "url": "https://ariacare.app" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

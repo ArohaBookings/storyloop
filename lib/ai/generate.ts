@@ -202,6 +202,7 @@ export async function generateLearningStory(params: {
   includeKowhitiWhakapae?: boolean;
   includeTapasa?: boolean;
   pedagogyFocus?: PedagogyFocus;
+  childContext?: string;
   preferences?: StoryPreferences;
 }): Promise<StoryResult> {
   const observations = params.observations
@@ -226,7 +227,8 @@ export async function generateLearningStory(params: {
     params.childName,
     tone,
     framework,
-    preferences
+    preferences,
+    params.childContext
   );
   const result = await callAI(LEARNING_STORY_PROMPT, userContent);
   return normaliseStoryResult(parseJSON<StoryResult>(result));

@@ -27,8 +27,9 @@ export default function Hero() {
         </h1>
 
         <p className="text-center text-base sm:text-lg md:text-xl text-ink-600 max-w-3xl mx-auto mb-10 leading-relaxed animate-fade-up-2">
-          Turn real observations into meaningful learning story drafts — with Te Whāriki or EYLF links, dispositions, next steps, and a natural educator tone.
-          StoryLoop supports the first draft while keeping educator reflection and judgement at the centre.
+          Turn real observations into meaningful learning story drafts with Te Whāriki or EYLF links, child continuity,
+          whānau voice, response tracking, and a natural educator tone. StoryLoop supports the first draft while keeping
+          educator reflection and judgement at the centre.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-14 animate-fade-up-3">
@@ -43,7 +44,7 @@ export default function Hero() {
 
         {/* Trust bar */}
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-ink-500 animate-fade-up-4">
-          {["Editable first drafts", "No credit card", "EYLF + Te Whāriki", "Works on phone"].map(item => (
+          {["Editable first drafts", "Child learning threads", "EYLF + Te Whāriki", "Whānau voice", "Works on phone"].map(item => (
             <span key={item} className="flex items-center gap-1.5">
               <Check className="w-4 h-4 text-sage-500" />
               {item}

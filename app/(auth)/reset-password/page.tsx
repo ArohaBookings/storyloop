@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Loader2, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -33,7 +33,7 @@ export default function ResetPasswordPage() {
       <div className="w-full max-w-md relative z-10">
         <div className="card p-8">
           <div className="flex items-center gap-2.5 mb-6">
-            <img src="/logo.svg" alt="StoryLoop" className="w-9 h-9" />
+            <Image src="/logo.svg" alt="StoryLoop" width={36} height={36} className="h-9 w-9" />
             <span className="font-display text-xl font-bold text-ink-900">StoryLoop</span>
           </div>
 

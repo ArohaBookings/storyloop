@@ -210,7 +210,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .eq("user_id", user.id);
 
     if (isMissingUpdatedAtColumn(updateError)) {
-      const { updated_at: _updatedAt, ...fallbackPayload } = updatePayload;
+      const fallbackPayload: Record<string, unknown> = { ...updatePayload };
+      delete fallbackPayload.updated_at;
       const fallback = await supabase
         .from("stories")
         .update(fallbackPayload)

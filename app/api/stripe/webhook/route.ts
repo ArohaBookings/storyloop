@@ -2,10 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-06-20" });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-05-27.dahlia" });
 
 function stripeDate(value: number | null | undefined) {
   return typeof value === "number" ? new Date(value * 1000).toISOString() : null;
+}
+
+function subscriptionPeriodEnd(subscription: Stripe.Subscription) {
+  const periodEnds = subscription.items.data.map((item) => item.current_period_end);
+  return periodEnds.length ? Math.max(...periodEnds) : subscription.cancel_at;
+}
+
+function invoiceSubscriptionId(invoice: Stripe.Invoice) {
+  const subscription = invoice.parent?.subscription_details?.subscription;
+  return typeof subscription === "string" ? subscription : subscription?.id;
 }
 
 function normalizeStripeStatus(status: string | null | undefined) {
@@ -73,7 +83,7 @@ async function updateProfileForSubscription(
     stripe_customer_id: customerId,
     stripe_subscription_id: subscription.id,
     trial_ends_at: stripeDate(subscription.trial_end),
-    current_period_end: stripeDate(subscription.current_period_end),
+    current_period_end: stripeDate(subscriptionPeriodEnd(subscription)),
   };
 
   if (userId) {
@@ -97,7 +107,7 @@ async function updateProfileByInvoiceCustomer(
 }
 
 async function handleInvoicePaid(admin: ReturnType<typeof createAdminSupabase>, invoice: Stripe.Invoice) {
-  const subscriptionId = typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
+  const subscriptionId = invoiceSubscriptionId(invoice);
   if (subscriptionId) {
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     await updateProfileForSubscription(admin, subscription, {
@@ -113,14 +123,14 @@ async function handlePaymentFailed(admin: ReturnType<typeof createAdminSupabase>
   const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
   if (!customerId) return;
 
-  const subscriptionId = typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
+  const subscriptionId = invoiceSubscriptionId(invoice);
   const nextAttemptAt = stripeDate(invoice.next_payment_attempt);
   const subscription = subscriptionId ? await stripe.subscriptions.retrieve(subscriptionId) : null;
   const status = nextAttemptAt ? "past_due" : "payment_required";
 
   const update: Record<string, unknown> = {
     subscription_status: status,
-    current_period_end: subscription ? stripeDate(subscription.current_period_end) : undefined,
+    current_period_end: subscription ? stripeDate(subscriptionPeriodEnd(subscription)) : undefined,
     stripe_subscription_id: subscription?.id,
   };
 
@@ -164,7 +174,7 @@ async function processStripeEvent(admin: ReturnType<typeof createAdminSupabase>,
         plan: "free",
         subscription_status: "cancelled",
         stripe_subscription_id: null,
-        current_period_end: stripeDate(subscription.current_period_end),
+        current_period_end: stripeDate(subscriptionPeriodEnd(subscription)),
       };
       if (userId) await admin.from("profiles").update(update).eq("id", userId);
       else if (customerId) await admin.from("profiles").update(update).eq("stripe_customer_id", customerId);

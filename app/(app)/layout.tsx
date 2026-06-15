@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import DashboardNav from "@/components/app/DashboardNav";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { isAdminEmail } from "@/lib/admin-session";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -30,8 +31,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex h-screen bg-paper overflow-hidden">
       <DashboardNav
-        userEmail={user.email ?? ""}
         userName={profile?.full_name ?? user.email ?? ""}
+        isAdminUser={isAdminEmail(user.email)}
         plan={profile?.plan ?? "free"}
         storiesUsed={profile?.stories_this_month ?? 0}
         monthlyStoryLimitOverride={profile?.monthly_story_limit_override ?? null}

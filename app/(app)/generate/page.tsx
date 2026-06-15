@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Sparkles, Loader2, Copy, Check, Mic, Square, RefreshCw, AlertCircle, X, ArrowRight, Pencil, Save, Download } from "lucide-react";
 import ObservationCoach from "@/components/app/ObservationCoach";
 import StoryIntelligence from "@/components/app/StoryIntelligence";
+import type { ChildProfile } from "@/lib/children";
 import {
   normalizeDepth,
   normalizeFramework,
@@ -30,6 +31,8 @@ export default function GeneratePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [observations, setObservations] = useState("");
+  const [children, setChildren] = useState<ChildProfile[]>([]);
+  const [selectedChildId, setSelectedChildId] = useState("");
   const [childName, setChildName] = useState("");
   const [ageGroup, setAgeGroup] = useState("");
   const [tone, setTone] = useState<StoryTone>("natural");
@@ -95,10 +98,12 @@ export default function GeneratePage() {
       setLiveRecordingSupported(canUseLiveRecording());
     }
 
-    void fetch("/api/me")
-      .then((response) => response.ok ? response.json() : null)
-      .then((data) => {
-        const preferences = data?.profile?.story_preferences;
+    void Promise.all([
+      fetch("/api/me").then((response) => response.ok ? response.json() : null),
+      fetch("/api/children").then((response) => response.ok ? response.json() : null),
+    ])
+      .then(([accountData, childData]) => {
+        const preferences = accountData?.profile?.story_preferences;
         if (preferences?.defaultFramework) {
           setLocation(normalizeFramework(preferences.defaultFramework));
         }
@@ -120,9 +125,18 @@ export default function GeneratePage() {
         if (preferences?.pedagogyFocus) {
           setPedagogyFocus(normalizePedagogyFocus(preferences.pedagogyFocus));
         }
+        const loadedChildren = Array.isArray(childData?.children) ? childData.children : [];
+        setChildren(loadedChildren);
+        const requestedChild = searchParams.get("child");
+        const selected = loadedChildren.find((child: ChildProfile) => child.id === requestedChild);
+        if (selected) {
+          setSelectedChildId(selected.id);
+          setChildName(selected.name);
+          setAgeGroup(selected.age_group ?? "");
+        }
       })
       .catch(() => {});
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     const fromStory = searchParams.get("from");
@@ -149,6 +163,7 @@ export default function GeneratePage() {
 
         setChildName(source?.child_name ?? "");
         setAgeGroup(source?.age_group ?? "");
+        setSelectedChildId(source?.child_id ?? "");
         setObservations(
           [
             `Follow-up to the earlier story for ${source?.child_name || "this child"}.`,
@@ -217,6 +232,7 @@ export default function GeneratePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           observations,
+          childId: selectedChildId || undefined,
           childName: childName || undefined,
           ageGroup: ageGroup || undefined,
           tone,
@@ -226,6 +242,7 @@ export default function GeneratePage() {
           includeKowhitiWhakapae,
           includeTapasa,
           pedagogyFocus,
+          sourceStoryId: sourceStoryId || undefined,
         }),
       });
       const data = await res.json();
@@ -623,10 +640,49 @@ export default function GeneratePage() {
 
           <div className="card p-6 space-y-4">
             <p className="section-title">Personalise (optional)</p>
+            <div>
+              <div className="flex items-center justify-between gap-3">
+                <label className="label">Learning profile</label>
+                <Link href="/children" className="text-[11px] font-bold text-clay-700 hover:text-clay-900">
+                  Manage profiles
+                </Link>
+              </div>
+              <select
+                value={selectedChildId}
+                onChange={(event) => {
+                  const childId = event.target.value;
+                  setSelectedChildId(childId);
+                  const selected = children.find((child) => child.id === childId);
+                  if (selected) {
+                    setChildName(selected.name);
+                    setAgeGroup(selected.age_group ?? "");
+                  }
+                }}
+                className="input"
+              >
+                <option value="">No saved profile</option>
+                {children.map((child) => (
+                  <option key={child.id} value={child.id}>
+                    {child.name}{child.age_group ? ` · ${child.age_group}` : ""}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-[11px] text-ink-500">
+                A saved profile carries interests and whānau aspirations into the drafting context without treating them as evidence from today.
+              </p>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="label">Child&apos;s name</label>
-                <input value={childName} onChange={(e) => setChildName(e.target.value)} className="input" placeholder="Ruby" />
+                <input
+                  value={childName}
+                  onChange={(event) => {
+                    setChildName(event.target.value);
+                    if (selectedChildId) setSelectedChildId("");
+                  }}
+                  className="input"
+                  placeholder="Ruby"
+                />
               </div>
               <div>
                 <label className="label">Age group</label>

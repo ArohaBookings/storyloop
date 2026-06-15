@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit --incremental false",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "verify": "npm run test && npm run typecheck && npm run lint && npm run build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
@@ -14,13 +17,14 @@
     "@supabase/supabase-js": "^2.45.0",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
+    "form-data": "^4.0.6",
     "jose": "^5.9.0",
     "lucide-react": "^0.436.0",
     "next": "15.5.18",
     "openai": "^4.56.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "stripe": "^16.9.0",
+    "stripe": "^22.2.1",
     "tailwind-merge": "^2.5.2"
   },
   "devDependencies": {
@@ -34,6 +38,7 @@
     "eslint-config-next": "^15.5.18",
     "postcss": "^8.4.45",
     "tailwindcss": "^3.4.10",
+    "tsx": "^4.22.4",
     "typescript": "^5"
   }
 }

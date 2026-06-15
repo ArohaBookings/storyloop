@@ -1,9 +1,11 @@
-import { Mic, Cpu, Download } from "lucide-react";
+import { CheckCircle2, Cpu, Download, Mic, RefreshCw } from "lucide-react";
 
 const STEPS = [
   { num: "01", icon: Mic, title: "Capture the moment", desc: "Voice record what happened after play, or type 3-5 quick bullets. No formal structure needed." },
   { num: "02", icon: Cpu, title: "StoryLoop shapes it", desc: "StoryLoop turns rough notes into a first draft with curriculum links, dispositions, and practical next steps." },
-  { num: "03", icon: Download, title: "Review, tweak, publish", desc: "Edit anything that needs your touch, then copy it into your usual documentation system." },
+  { num: "03", icon: CheckCircle2, title: "Review with a human checkpoint", desc: "Check evidence, curriculum fit, child voice, culture, and privacy before sharing." },
+  { num: "04", icon: RefreshCw, title: "Close the learning loop", desc: "Track which next steps were planned or tried, capture whānau voice, then continue from the earlier story." },
+  { num: "05", icon: Download, title: "Copy, export, or revisit", desc: "Move the edited story into your usual system, or keep building the child's learning thread in StoryLoop." },
 ];
 
 export default function HowItWorks() {
@@ -18,8 +20,8 @@ export default function HowItWorks() {
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-          <div className="hidden md:block absolute top-14 left-[16%] right-[16%] h-px bg-clay-200" />
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 relative">
+          <div className="hidden md:block absolute top-14 left-[10%] right-[10%] h-px bg-clay-200" />
 
           {STEPS.map(step => {
             const Icon = step.icon;

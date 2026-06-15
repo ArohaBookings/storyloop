@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Loader2, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -30,7 +31,7 @@ export default function ForgotPasswordPage() {
         </Link>
         <div className="card p-8">
           <div className="flex items-center gap-2.5 mb-6">
-            <img src="/logo.svg" alt="StoryLoop" className="w-9 h-9" />
+            <Image src="/logo.svg" alt="StoryLoop" width={36} height={36} className="h-9 w-9" />
             <div>
               <span className="font-display text-xl font-bold text-ink-900">StoryLoop</span>
               <p className="text-[9px] text-clay-600 -mt-1 font-mono tracking-widest">BY ARIA CARE</p>

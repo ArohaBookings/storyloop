@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowRight, BookOpen, Brain, CheckCircle2, Compass, RefreshCw, Sparkles, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { buildStoryInsights } from "@/lib/story-insights";
+import { buildCurriculumCompass } from "@/lib/curriculum-compass";
+import { normalizeFramework } from "@/lib/story-options";
 
 export const metadata = { title: "Learning threads" };
 
@@ -9,18 +12,39 @@ function percentage(value: number, total: number) {
   return total ? Math.round((value / total) * 100) : 0;
 }
 
-export default async function InsightsPage() {
+export default async function InsightsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ child?: string }>;
+}) {
+  const { child: requestedChildId } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const { data: stories } = await supabase
-    .from("stories")
-    .select("id, child_name, outcomes, next_steps, metadata, created_at")
-    .eq("user_id", user!.id)
-    .order("created_at", { ascending: false });
+  if (!user) redirect("/login");
 
-  const insights = buildStoryInsights(stories ?? []);
+  const [{ data: stories }, { data: childProfiles }] = await Promise.all([
+    supabase
+      .from("stories")
+      .select("id, child_id, child_name, outcomes, next_steps, metadata, location, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("child_profiles")
+      .select("id, name, age_group, interests, whanau_aspirations")
+      .eq("user_id", user.id)
+      .order("name"),
+  ]);
+
+  const selectedChild = (childProfiles ?? []).find((child) => child.id === requestedChildId);
+  const selectedStories = selectedChild
+    ? (stories ?? []).filter((story) => story.child_id === selectedChild.id)
+    : stories ?? [];
+  const insights = buildStoryInsights(selectedStories);
+  const framework = normalizeFramework(selectedStories[0]?.location);
+  const compass = buildCurriculumCompass(framework, selectedStories);
+  const maxCompass = Math.max(...compass.map((item) => item.count), 1);
   const maxDisposition = Math.max(...insights.dispositions.map((item) => item.count), 1);
   const maxCurriculum = Math.max(...insights.curriculum.map((item) => item.count), 1);
 
@@ -29,16 +53,47 @@ export default async function InsightsPage() {
       <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="section-title mb-2">Learning over time</p>
-          <h1 className="font-display text-3xl font-bold text-ink-900">Learning threads</h1>
+          <h1 className="font-display text-3xl font-bold text-ink-900">
+            {selectedChild ? `${selectedChild.name}'s learning thread` : "Learning threads"}
+          </h1>
           <p className="mt-1 max-w-2xl text-sm text-ink-600">
             See recurring dispositions, curriculum links, and follow-up opportunities across saved stories.
             These patterns support reflection; they are not developmental scores.
           </p>
         </div>
-        <Link href="/generate" className="btn-primary">
+        <Link
+          href={selectedChild ? `/generate?child=${encodeURIComponent(selectedChild.id)}` : "/generate"}
+          className="btn-primary"
+        >
           <Sparkles className="h-4 w-4" /> New observation
         </Link>
       </div>
+
+      {(childProfiles ?? []).length > 0 && (
+        <div className="mb-6 flex flex-wrap gap-2" aria-label="Filter learning threads by child profile">
+          <Link
+            href="/insights"
+            className={`rounded-full border px-3 py-2 text-xs font-semibold transition-colors ${
+              selectedChild ? "border-clay-200 bg-white text-ink-600" : "border-clay-700 bg-clay-700 text-white"
+            }`}
+          >
+            All children
+          </Link>
+          {(childProfiles ?? []).map((child) => (
+            <Link
+              key={child.id}
+              href={`/insights?child=${encodeURIComponent(child.id)}`}
+              className={`rounded-full border px-3 py-2 text-xs font-semibold transition-colors ${
+                selectedChild?.id === child.id
+                  ? "border-clay-700 bg-clay-700 text-white"
+                  : "border-clay-200 bg-white text-ink-600"
+              }`}
+            >
+              {child.name}
+            </Link>
+          ))}
+        </div>
+      )}
 
       {!insights.totalStories ? (
         <div className="card p-12 text-center">
@@ -47,7 +102,10 @@ export default async function InsightsPage() {
           <p className="mx-auto mt-2 max-w-md text-sm text-ink-500">
             StoryLoop will use your saved metadata to show learning threads without judging or ranking children.
           </p>
-          <Link href="/generate" className="btn-primary mt-5">
+          <Link
+            href={selectedChild ? `/generate?child=${encodeURIComponent(selectedChild.id)}` : "/generate"}
+            className="btn-primary mt-5"
+          >
             Write first story <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -129,6 +187,39 @@ export default async function InsightsPage() {
               </div>
             </section>
           </div>
+
+          <section className="mt-5 card p-5">
+            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="section-title mb-1">Curriculum compass</p>
+                <h2 className="font-display text-2xl font-bold text-ink-900">
+                  {framework === "NZ" ? "Te Whāriki strands over time" : "EYLF outcomes over time"}
+                </h2>
+                <p className="mt-1 max-w-2xl text-xs text-ink-500">
+                  A reflection map of what documentation has surfaced so far. Empty areas are invitations to notice,
+                  not deficits or compliance gaps.
+                </p>
+              </div>
+              <Compass className="h-5 w-5 text-clay-500" />
+            </div>
+            <div className="grid gap-3 md:grid-cols-5">
+              {compass.map((item) => (
+                <div key={item.id} className="rounded-2xl border border-clay-100 bg-cream-50 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold text-ink-800">{item.shortLabel}</span>
+                    <span className="font-mono text-[10px] text-clay-700">{item.count}</span>
+                  </div>
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-white">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-sage-500 to-clay-500"
+                      style={{ width: item.count ? `${Math.max((item.count / maxCompass) * 100, 12)}%` : "0%" }}
+                    />
+                  </div>
+                  <p className="mt-3 text-[10px] leading-relaxed text-ink-500">{item.label}</p>
+                </div>
+              ))}
+            </div>
+          </section>
 
           <section className="mt-5 card overflow-hidden">
             <div className="border-b border-clay-100 p-5">

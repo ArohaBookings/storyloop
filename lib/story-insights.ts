@@ -1,5 +1,6 @@
 type InsightStory = {
   id: string;
+  child_id?: string | null;
   child_name: string | null;
   outcomes: string[] | null;
   next_steps: string[] | null;

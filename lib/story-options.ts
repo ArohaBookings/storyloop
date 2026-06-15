@@ -39,6 +39,23 @@ export type StoryMetadata = {
   followUpPrompt?: string;
   educatorReflection?: string;
   followUpStatus?: "open" | "revisited";
+  whanauVoice?: string;
+  whanauCapturedAt?: string;
+  nextStepProgress?: Array<{
+    text: string;
+    status: "planned" | "tried" | "continue";
+    note?: string;
+  }>;
+  reviewChecklist?: {
+    evidence: boolean;
+    childVoice: boolean;
+    curriculum: boolean;
+    culture: boolean;
+    privacy: boolean;
+  };
+  reviewedAt?: string | null;
+  sourceStoryId?: string;
+  continuityContextUsed?: boolean;
   storySettings?: {
     framework?: StoryFrameworkId;
     tone?: StoryTone;

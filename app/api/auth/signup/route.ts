@@ -4,11 +4,25 @@ import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { incrementAccessCodeRedemption, resolveAccessCode } from "@/lib/access-codes";
 import { mergeStoryPreferences } from "@/lib/story-options";
+import { consumeRateLimit } from "@/lib/rate-limit";
 
 const ALLOWED_PLANS = new Set(["free", "educator", "centre"]);
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+      ?? request.headers.get("x-real-ip")
+      ?? "unknown";
+    const allowed = await consumeRateLimit({
+      scope: "signup",
+      key: ip,
+      limit: 8,
+      windowSeconds: 60 * 60,
+    });
+    if (!allowed) {
+      return NextResponse.json({ error: "Too many signup attempts. Try again later." }, { status: 429 });
+    }
+
     const body = await request.json();
     const name = typeof body.name === "string" ? body.name.trim() : "";
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";

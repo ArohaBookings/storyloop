@@ -1,9 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
+import { SEO_PAGE_SLUGS } from "@/lib/seo-pages";
 
 const PUBLIC_CANONICAL_PATHS = new Set([
   "/",
   "/about",
+  "/resources",
   "/privacy",
   "/terms",
   "/nz-learning-stories",
@@ -14,6 +16,7 @@ const PUBLIC_CANONICAL_PATHS = new Set([
   "/pricing",
   "/examples",
   "/faq",
+  ...SEO_PAGE_SLUGS.map((slug) => `/${slug}`),
 ]);
 
 const TRACKING_PARAMS = [

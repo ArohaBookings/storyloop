@@ -46,7 +46,7 @@ All paid plans start with a **7-day free trial**.
    - `SUPABASE_SERVICE_ROLE_KEY` (keep secret!)
 5. **Authentication → Providers**:
    - Enable Email (require confirmation: yes)
-   - Under **Auth Settings → URL Configuration**, set Site URL to your production URL (e.g. `https://storyloop.app`)
+   - Under **Auth Settings → URL Configuration**, set Site URL to `https://storyloop.space`
 
 ### Step 2 — OpenAI (required for AI)
 
@@ -69,7 +69,7 @@ All paid plans start with a **7-day free trial**.
 
 4. Copy each price ID (starts with `price_`) into env vars
 5. **Developers → Webhooks** → Add endpoint:
-   - URL: `https://storyloop.app/api/stripe/webhook` (or your Vercel URL)
+   - URL: `https://storyloop.space/api/stripe/webhook`
    - Events: `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`
    - Copy the signing secret → `STRIPE_WEBHOOK_SECRET`
 6. **Settings → Billing → Customer portal** → Activate
@@ -115,15 +115,10 @@ Update your Stripe webhook URL to match your Vercel URL after first deploy.
 
 ### Step 7 — Activate admin access
 
-1. Your first login with `ADMIN_PASSWORD_PLAIN=leobons4254` will generate a bcrypt hash
-2. Check your Vercel function logs for: `ADMIN_PASSWORD_HASH=$2a$10$...`
-3. Copy that hash into the `ADMIN_PASSWORD_HASH` env var
-4. **Remove `ADMIN_PASSWORD_PLAIN`** from env vars
-5. Redeploy
-
-Now your admin password is properly hashed and not stored in plain text anywhere.
-
-Visit: `https://storyloop.app/admin-login` to log in.
+1. Set `ADMIN_EMAIL` to the authorised administrator account.
+2. Generate a bcrypt hash locally and set it as `ADMIN_PASSWORD_HASH`.
+3. Set a random `ADMIN_JWT_SECRET` of at least 32 characters.
+4. Redeploy, then visit `https://storyloop.space/admin-login`.
 
 ---
 
@@ -210,4 +205,4 @@ SELECT public.reset_monthly_usage();
 
 Built with care, for the people who care for the next generation. 🌱
 
-— Leo Bons, Founder · leo@storyloop.app
+— Leo Bons, Founder · ariacareapp@gmail.com

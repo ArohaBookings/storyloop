@@ -2,13 +2,11 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, Mail, AlertTriangle, Brain } from "lucide-react";
+import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, Mail, AlertTriangle, Brain, Users } from "lucide-react";
 import AnimatedLogo from "@/components/brand/AnimatedLogo";
 import { createClient } from "@/lib/supabase/client";
 import { getMonthlyStoryLimit, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
-
-const ADMIN_EMAIL = "leoanthonybons@gmail.com";
 
 type NavItem = {
   href: string;
@@ -21,6 +19,7 @@ type NavItem = {
 const NAV: NavItem[] = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/generate", icon: Sparkles, label: "New story", highlight: true },
+  { href: "/children", icon: Users, label: "Child profiles" },
   { href: "/history", icon: History, label: "Story history" },
   { href: "/insights", icon: Brain, label: "Learning threads" },
   { href: "/billing", icon: CreditCard, label: "Billing" },
@@ -34,16 +33,16 @@ const PLAN_LABEL: Record<string, { label: string; colour: string }> = {
 };
 
 export default function DashboardNav({
-  userEmail,
   userName,
+  isAdminUser,
   plan,
   storiesUsed,
   monthlyStoryLimitOverride,
   appliedAccessCode,
   subscriptionStatus,
 }: {
-  userEmail: string;
   userName: string;
+  isAdminUser: boolean;
   plan: string;
   storiesUsed: number;
   monthlyStoryLimitOverride: number | null;
@@ -81,7 +80,6 @@ export default function DashboardNav({
       : `${storiesUsed} of ${limit} free stories used this month.`;
   const planInfo = PLAN_LABEL[plan] ?? PLAN_LABEL.free;
   const initials = userName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
-  const isAdminUser = userEmail.toLowerCase() === ADMIN_EMAIL;
   const navItems: NavItem[] = isAdminUser
     ? [...NAV, { href: "/api/admin/session", activePath: "/admin", icon: ShieldAlert, label: "Admin" }]
     : NAV;

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Copy, Download, Loader2, Pencil, RefreshCw, Save, X } from "lucide-react";
 import StoryIntelligence from "@/components/app/StoryIntelligence";
+import LearningLoopPanel from "@/components/app/LearningLoopPanel";
 import {
   normalizeDepth,
   normalizeFramework,
@@ -537,6 +538,13 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
           pedagogyLinks={pedagogyLinks}
           familyQuestion={familyQuestion}
           followUpPrompt={followUpPrompt}
+        />
+
+        <LearningLoopPanel
+          storyId={story.id}
+          childName={story.child_name}
+          nextSteps={currentNextSteps}
+          metadata={currentMetadata}
         />
 
         <div className="mt-5 rounded-2xl border border-clay-200 bg-white p-4">
