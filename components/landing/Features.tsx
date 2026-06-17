@@ -45,8 +45,8 @@ export default function Features() {
         <div className="text-center max-w-2xl mx-auto mb-16">
           <p className="section-title mb-3">Product pillars</p>
           <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-900 mb-4">
-            Educator-led, curriculum-aware,<br/>
-            <span className="italic text-clay-700">and easy to edit.</span>
+            <span className="block">Educator-led, curriculum-aware,</span>{" "}
+            <span className="block italic text-clay-700">and easy to edit.</span>
           </h2>
           <p className="text-ink-600 text-lg">Meaningful, not lengthy. Relevant, not repetitive. Child-focused, not generic.</p>
         </div>

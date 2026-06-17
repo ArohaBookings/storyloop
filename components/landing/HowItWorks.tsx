@@ -15,8 +15,8 @@ export default function HowItWorks() {
         <div className="text-center mb-16">
           <p className="section-title mb-3">How it works</p>
           <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-900">
-            From observation to editable draft<br/>
-            <span className="italic text-clay-700">without losing your voice.</span>
+            <span className="block">From observation to editable draft</span>{" "}
+            <span className="block italic text-clay-700">without losing your voice.</span>
           </h2>
         </div>
 
