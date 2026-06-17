@@ -9,6 +9,12 @@ import { mergeStoryPreferences, normalizeFramework, sanitizeStoryPreferences } f
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Sign in to use Backlog Rescue" }, { status: 401 });
+
     const body = await request.json();
     const observations = typeof body.observations === "string" ? body.observations.trim() : "";
     const framework = normalizeFramework(typeof body.framework === "string" ? body.framework : undefined);
@@ -19,12 +25,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Sign in to use Backlog Rescue" }, { status: 401 });
 
     const profile = await getOrCreateProfile(user);
     if (isBillingBlocked(profile)) {
