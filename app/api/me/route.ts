@@ -8,6 +8,7 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const profile = await getOrCreateProfile(user);
+    await supabase.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", user.id);
     return NextResponse.json({ profile });
   } catch (error) {
     console.error("Profile fetch error:", error);

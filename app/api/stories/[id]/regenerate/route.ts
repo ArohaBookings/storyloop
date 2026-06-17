@@ -177,6 +177,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
       evidenceAnchors: result.evidenceAnchors,
       educatorChecks: result.educatorChecks,
       pedagogyLinks: result.pedagogyLinks,
+      frameworkEvidence: result.frameworkEvidence,
+      storyQuality: result.storyQuality,
       familyQuestion: result.familyQuestion,
       followUpPrompt: result.followUpPrompt,
       followUpStatus: existingMetadata.followUpStatus ?? "open",
@@ -229,6 +231,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .update({
         stories_this_month: used + 1,
         total_stories: (profile.total_stories ?? 0) + 1,
+        last_story_at: updatedAt,
       })
       .eq("id", user.id);
 
@@ -249,6 +252,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
       evidenceAnchors: result.evidenceAnchors,
       educatorChecks: result.educatorChecks,
       pedagogyLinks: result.pedagogyLinks,
+      frameworkEvidence: result.frameworkEvidence,
+      storyQuality: result.storyQuality,
       familyQuestion: result.familyQuestion,
       followUpPrompt: result.followUpPrompt,
       nextSteps: result.nextSteps,

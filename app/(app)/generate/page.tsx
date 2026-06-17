@@ -2,7 +2,25 @@
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Sparkles, Loader2, Copy, Check, Mic, Square, RefreshCw, AlertCircle, X, ArrowRight, Pencil, Save, Download } from "lucide-react";
+import {
+  Sparkles,
+  Loader2,
+  Copy,
+  Check,
+  Mic,
+  Square,
+  RefreshCw,
+  AlertCircle,
+  X,
+  ArrowRight,
+  Pencil,
+  Save,
+  Download,
+  ClipboardList,
+  Wand2,
+  Users,
+  MessageCircleHeart,
+} from "lucide-react";
 import ObservationCoach from "@/components/app/ObservationCoach";
 import StoryIntelligence from "@/components/app/StoryIntelligence";
 import type { ChildProfile } from "@/lib/children";
@@ -25,12 +43,45 @@ const PLACEHOLDERS = [
   "• Outdoor play\n• Maya (4) & Sam (4) playing shopkeepers\n• Used pretend money, took turns as cashier\n• Strong language — 'that'll be five dollars please'",
 ];
 
+const SAMPLE_OBSERVATION =
+  "Today Lily spent time building a tower with wooden blocks. It fell twice, and she paused each time before trying again. She asked another child to hold the base steady, then smiled and said, \"It stayed!\" when the tower stood up.";
+
+type InputMethod = "typed" | "paste" | "voice" | "sample" | "backlog";
+
+type BacklogItem = {
+  id: string;
+  observation: string;
+  recommendation: "full_story" | "short_update" | "combine" | "skip";
+  priority: "high" | "medium" | "low";
+  reason: string;
+  suggestedTitle: string;
+  storySeed: string;
+  frameworkHint: string;
+};
+
+type BacklogResult = {
+  summary: string;
+  items: BacklogItem[];
+  nextBestAction: string;
+  upgradeNudge?: boolean;
+};
+
 const UPGRADE_PROMPT_STORAGE_KEY = `storyloop-upgrade-prompt-${new Date().getFullYear()}-${new Date().getMonth() + 1}`;
 
 export default function GeneratePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [observations, setObservations] = useState("");
+  const [inputMethod, setInputMethod] = useState<InputMethod>("typed");
+  const [showFirstStoryWizard, setShowFirstStoryWizard] = useState(false);
+  const [showCentreVoice, setShowCentreVoice] = useState(false);
+  const [centrePhilosophy, setCentrePhilosophy] = useState("");
+  const [likedPhrases, setLikedPhrases] = useState("");
+  const [avoidedPhrases, setAvoidedPhrases] = useState("");
+  const [mode, setMode] = useState<"story" | "backlog">("story");
+  const [backlogLoading, setBacklogLoading] = useState(false);
+  const [backlogResult, setBacklogResult] = useState<BacklogResult | null>(null);
+  const [showBacklogUpgradeNudge, setShowBacklogUpgradeNudge] = useState(false);
   const [children, setChildren] = useState<ChildProfile[]>([]);
   const [selectedChildId, setSelectedChildId] = useState("");
   const [childName, setChildName] = useState("");
@@ -63,6 +114,16 @@ export default function GeneratePage() {
   const [evidenceAnchors, setEvidenceAnchors] = useState<string[]>([]);
   const [educatorChecks, setEducatorChecks] = useState<string[]>([]);
   const [pedagogyLinks, setPedagogyLinks] = useState<string[]>([]);
+  const [frameworkEvidence, setFrameworkEvidence] = useState<string[]>([]);
+  const [storyQuality, setStoryQuality] = useState<{
+    score?: number;
+    passes?: boolean;
+    revisionCount?: number;
+    issues?: string[];
+    strengths?: string[];
+  } | null>(null);
+  const [parentFriendlyVersion, setParentFriendlyVersion] = useState("");
+  const [parentVersionLoading, setParentVersionLoading] = useState(false);
   const [familyQuestion, setFamilyQuestion] = useState("");
   const [followUpPrompt, setFollowUpPrompt] = useState("");
   const [sourceStoryId, setSourceStoryId] = useState("");
@@ -75,6 +136,7 @@ export default function GeneratePage() {
   const [copied, setCopied] = useState(false);
   const [recording, setRecording] = useState(false);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [upgradePromptKind, setUpgradePromptKind] = useState<"first_story" | "one_left">("one_left");
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [placeholder, setPlaceholder] = useState(PLACEHOLDERS[0]);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -124,6 +186,19 @@ export default function GeneratePage() {
         }
         if (preferences?.pedagogyFocus) {
           setPedagogyFocus(normalizePedagogyFocus(preferences.pedagogyFocus));
+        }
+        if (typeof preferences?.centrePhilosophy === "string") {
+          setCentrePhilosophy(preferences.centrePhilosophy);
+          setShowCentreVoice(Boolean(preferences.centrePhilosophy));
+        }
+        if (Array.isArray(preferences?.likedPhrases)) {
+          setLikedPhrases(preferences.likedPhrases.join(", "));
+        }
+        if (Array.isArray(preferences?.avoidedPhrases)) {
+          setAvoidedPhrases(preferences.avoidedPhrases.join(", "));
+        }
+        if ((accountData?.profile?.total_stories ?? 0) === 0 && typeof window !== "undefined") {
+          setShowFirstStoryWizard(window.sessionStorage.getItem("storyloop-first-story-wizard") !== "dismissed");
         }
         const loadedChildren = Array.isArray(childData?.children) ? childData.children : [];
         setChildren(loadedChildren);
@@ -208,6 +283,10 @@ export default function GeneratePage() {
     setEvidenceAnchors([]);
     setEducatorChecks([]);
     setPedagogyLinks([]);
+    setFrameworkEvidence([]);
+    setStoryQuality(null);
+    setParentFriendlyVersion("");
+    setParentVersionLoading(false);
     setFamilyQuestion("");
     setFollowUpPrompt("");
   };
@@ -243,6 +322,7 @@ export default function GeneratePage() {
           includeTapasa,
           pedagogyFocus,
           sourceStoryId: sourceStoryId || undefined,
+          inputMethod,
         }),
       });
       const data = await res.json();
@@ -274,6 +354,8 @@ export default function GeneratePage() {
       setEvidenceAnchors(data.evidenceAnchors ?? []);
       setEducatorChecks(data.educatorChecks ?? []);
       setPedagogyLinks(data.pedagogyLinks ?? []);
+      setFrameworkEvidence(data.frameworkEvidence ?? []);
+      setStoryQuality(data.storyQuality ?? null);
       setFamilyQuestion(data.familyQuestion ?? "");
       setFollowUpPrompt(data.followUpPrompt ?? "");
       setRemaining(data.remaining);
@@ -285,6 +367,13 @@ export default function GeneratePage() {
         });
       }
       router.refresh();
+      const showFirstStoryUpgradePrompt =
+        data.plan === "free" &&
+        data.monthlyStoryLimit === 3 &&
+        data.storiesUsedThisMonth === 1 &&
+        !data.appliedAccessCode &&
+        typeof window !== "undefined" &&
+        window.localStorage.getItem(UPGRADE_PROMPT_STORAGE_KEY) !== "dismissed";
       const shouldShowUpgradePrompt =
         data.plan === "free" &&
         data.monthlyStoryLimit === 3 &&
@@ -292,7 +381,8 @@ export default function GeneratePage() {
         !data.appliedAccessCode &&
         typeof window !== "undefined" &&
         window.localStorage.getItem(UPGRADE_PROMPT_STORAGE_KEY) !== "dismissed";
-      if (shouldShowUpgradePrompt) {
+      if (shouldShowUpgradePrompt || showFirstStoryUpgradePrompt) {
+        setUpgradePromptKind(shouldShowUpgradePrompt ? "one_left" : "first_story");
         setShowUpgradePrompt(true);
       }
     } catch {
@@ -325,6 +415,9 @@ export default function GeneratePage() {
           includeKowhitiWhakapae,
           includeTapasa,
           pedagogyFocus,
+          centrePhilosophy,
+          likedPhrases: parsePhraseList(likedPhrases),
+          avoidedPhrases: parsePhraseList(avoidedPhrases),
         }),
       });
       const data = await response.json();
@@ -416,6 +509,87 @@ export default function GeneratePage() {
     }
   };
 
+  const dismissFirstStoryWizard = () => {
+    setShowFirstStoryWizard(false);
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem("storyloop-first-story-wizard", "dismissed");
+    }
+  };
+
+  const useSampleObservation = () => {
+    setMode("story");
+    setObservations(SAMPLE_OBSERVATION);
+    setInputMethod("sample");
+    dismissFirstStoryWizard();
+  };
+
+  const parsePhraseList = (value: string) =>
+    value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .slice(0, 10);
+
+  const handleBacklogRescue = async () => {
+    if (observations.trim().length < 40) {
+      setError("Paste a few observations from the week so Backlog Rescue has enough to sort.");
+      return;
+    }
+
+    setBacklogLoading(true);
+    setError("");
+    setBacklogResult(null);
+    setShowBacklogUpgradeNudge(false);
+
+    try {
+      const response = await fetch("/api/backlog-rescue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ observations, framework: location }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Could not analyse backlog.");
+      setBacklogResult(data);
+      setShowBacklogUpgradeNudge(Boolean(data.upgradeNudge));
+      setInputMethod("backlog");
+    } catch (backlogError) {
+      setError(backlogError instanceof Error ? backlogError.message : "Could not analyse backlog.");
+    } finally {
+      setBacklogLoading(false);
+    }
+  };
+
+  const selectBacklogItem = (item: BacklogItem) => {
+    setMode("story");
+    setObservations(item.storySeed || item.observation);
+    setInputMethod("backlog");
+    setBacklogResult(null);
+    setShowBacklogUpgradeNudge(false);
+  };
+
+  const handleParentFriendlyVersion = async () => {
+    if (!storyId) {
+      setError("Save this signed-in story first, then create a parent-friendly version.");
+      return;
+    }
+
+    setParentVersionLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(`/api/stories/${encodeURIComponent(storyId)}/parent-version`, {
+        method: "POST",
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Could not create parent-friendly version.");
+      setParentFriendlyVersion(data.parentVersion ?? "");
+    } catch (parentError) {
+      setError(parentError instanceof Error ? parentError.message : "Could not create parent-friendly version.");
+    } finally {
+      setParentVersionLoading(false);
+    }
+  };
+
   const stopMediaStream = () => {
     mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
     mediaStreamRef.current = null;
@@ -490,6 +664,7 @@ export default function GeneratePage() {
 
       if (data.text) {
         setObservations((previous) => (previous ? `${previous.trim()}\n${data.text}` : data.text));
+        setInputMethod("voice");
       }
     } catch (voiceError) {
       setError(voiceError instanceof Error ? voiceError.message : "Voice transcription failed.");
@@ -575,6 +750,72 @@ export default function GeneratePage() {
         <p className="text-ink-600 text-sm">Add your observations below. We&apos;ll shape them into a clear, educator-ready story with practical curriculum links.</p>
       </div>
 
+      {showFirstStoryWizard && (
+        <div className="mb-6 rounded-3xl border border-clay-200 bg-gradient-to-br from-cream-100 via-white to-sage-50 p-5 shadow-soft">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-clay-700 text-paper">
+                <Wand2 className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="section-title mb-1">First story wizard</p>
+                <h2 className="font-display text-2xl font-bold text-ink-900">Create your first learning story in under 2 minutes.</h2>
+                <p className="mt-1 text-sm text-ink-600">
+                  Paste a real observation, type bullet points, record a voice note, or use the sample to see the output instantly.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button onClick={() => { setMode("story"); dismissFirstStoryWizard(); }} className="btn-secondary text-xs">
+                Paste observation
+              </button>
+              <button onClick={() => { setMode("story"); setInputMethod("typed"); dismissFirstStoryWizard(); }} className="btn-secondary text-xs">
+                Type bullet points
+              </button>
+              <button onClick={() => { setMode("story"); setInputMethod("voice"); dismissFirstStoryWizard(); }} className="btn-secondary text-xs">
+                Record voice note
+              </button>
+              <button onClick={useSampleObservation} className="btn-primary text-xs">
+                Use sample observation
+              </button>
+              <button onClick={dismissFirstStoryWizard} className="btn-ghost text-xs">
+                Hide
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="mb-5 grid gap-3 md:grid-cols-[1fr_auto] md:items-center">
+        <div className="inline-flex w-full rounded-2xl border border-clay-200 bg-white p-1 shadow-soft md:w-fit">
+          {([
+            ["story", "Single story", Sparkles],
+            ["backlog", "Backlog Rescue", ClipboardList],
+          ] as const).map(([option, label, Icon]) => (
+            <button
+              key={option}
+              onClick={() => {
+                setMode(option);
+                if (option === "backlog") {
+                  setShowBacklogUpgradeNudge(true);
+                }
+              }}
+              className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all md:flex-none ${
+                mode === option ? "bg-clay-700 text-paper shadow-warm" : "text-ink-600 hover:bg-cream-50"
+              }`}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {label}
+            </button>
+          ))}
+        </div>
+        {mode === "backlog" && (
+          <p className="text-xs text-ink-500">
+            Paste several rough observations. StoryLoop will sort full stories from quick updates first.
+          </p>
+        )}
+      </div>
+
       <div className="grid md:grid-cols-2 gap-5">
         <div className="space-y-4">
           <div className="card p-6">
@@ -618,7 +859,13 @@ export default function GeneratePage() {
             />
             <textarea
               value={observations}
-              onChange={(e) => setObservations(e.target.value)}
+              onChange={(e) => {
+                setObservations(e.target.value);
+                if (inputMethod !== "voice" && inputMethod !== "sample" && inputMethod !== "backlog") {
+                  setInputMethod("typed");
+                }
+              }}
+              onPaste={() => setInputMethod("paste")}
               rows={10}
               placeholder={placeholder}
               className="input font-mono text-sm leading-relaxed resize-none"
@@ -773,6 +1020,63 @@ export default function GeneratePage() {
                 Shapes the reflection lens without forcing unsupported curriculum claims.
               </p>
             </div>
+            <div className="rounded-2xl border border-clay-100 bg-cream-50 p-4">
+              <button
+                type="button"
+                onClick={() => setShowCentreVoice((value) => !value)}
+                className="flex w-full items-center justify-between gap-3 text-left"
+              >
+                <span>
+                  <span className="flex items-center gap-2 text-xs font-bold text-ink-900">
+                    <Users className="h-4 w-4 text-clay-700" /> Centre Voice / Philosophy Memory
+                  </span>
+                  <span className="mt-1 block text-[11px] leading-relaxed text-ink-500">
+                    Optional style memory for your centre or room. It shapes tone, not evidence.
+                  </span>
+                </span>
+                <span className="text-xs font-bold text-clay-700">{showCentreVoice ? "Hide" : "Set up"}</span>
+              </button>
+              {showCentreVoice && (
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <label className="label">Centre philosophy or room voice</label>
+                    <textarea
+                      value={centrePhilosophy}
+                      onChange={(event) => setCentrePhilosophy(event.target.value)}
+                      rows={4}
+                      className="input resize-none text-sm leading-relaxed"
+                      placeholder="Example: We value child agency, connection with whānau, outdoor inquiry, and calm practical language."
+                    />
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="label">Words or phrases you like</label>
+                      <input
+                        value={likedPhrases}
+                        onChange={(event) => setLikedPhrases(event.target.value)}
+                        className="input"
+                        placeholder="working theories, ako, confident learner"
+                      />
+                    </div>
+                    <div>
+                      <label className="label">Words or phrases to avoid</label>
+                      <input
+                        value={avoidedPhrases}
+                        onChange={(event) => setAvoidedPhrases(event.target.value)}
+                        className="input"
+                        placeholder="beautiful moment, demonstrated"
+                      />
+                    </div>
+                  </div>
+                  <div className="rounded-xl border border-clay-200 bg-white p-3 text-[11px] leading-relaxed text-ink-600">
+                    Centre plans make this shared across teams. Free and Educator accounts can still save a personal voice memory here.
+                    <Link href="/billing?offer=activation" className="ml-1 font-bold text-clay-700 hover:text-clay-900">
+                      See centre options
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
             <div>
               <label className="label">Te reo Māori</label>
               <div className="grid grid-cols-3 gap-2">
@@ -833,28 +1137,99 @@ export default function GeneratePage() {
             {preferencesMessage && <p className="text-xs text-clay-700">{preferencesMessage}</p>}
           </div>
 
-          <button onClick={handleGenerate} disabled={loading || transcribing || observations.length < 10} className="btn-primary w-full py-4 text-base">
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" /> Writing your story...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4" /> Generate story
-              </>
-            )}
-          </button>
+          {mode === "backlog" ? (
+            <button onClick={handleBacklogRescue} disabled={backlogLoading || loading || transcribing || observations.length < 40} className="btn-primary w-full py-4 text-base">
+              {backlogLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Sorting your backlog...
+                </>
+              ) : (
+                <>
+                  <ClipboardList className="w-4 h-4" /> Analyse backlog
+                </>
+              )}
+            </button>
+          ) : (
+            <button onClick={handleGenerate} disabled={loading || transcribing || observations.length < 10} className="btn-primary w-full py-4 text-base">
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Writing your story...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" /> Generate story
+                </>
+              )}
+            </button>
+          )}
+
+          {showBacklogUpgradeNudge && mode === "backlog" && (
+            <div className="rounded-2xl border border-clay-200 bg-white p-4 shadow-soft">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-clay-600">Centre-ready workflow</p>
+              <p className="mt-1 text-sm text-ink-700">
+                Backlog Rescue is built for educators catching up across a week. Centre plans make this easier to roll out across teams.
+              </p>
+              <Link href="/billing?offer=activation" className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-clay-700 hover:text-clay-900">
+                See upgrade options <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+          )}
+
+          {backlogResult && (
+            <div className="rounded-3xl border border-sage-200 bg-gradient-to-br from-sage-50 via-white to-cream-50 p-5 shadow-soft">
+              <div className="mb-4 flex items-start gap-3">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-sage-700 text-paper">
+                  <ClipboardList className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="section-title mb-1">Backlog Rescue plan</p>
+                  <h3 className="font-display text-xl font-bold text-ink-900">{backlogResult.summary || "Here is a practical order to tackle these notes."}</h3>
+                  {backlogResult.nextBestAction && <p className="mt-1 text-xs text-ink-600">{backlogResult.nextBestAction}</p>}
+                </div>
+              </div>
+              <div className="space-y-3">
+                {backlogResult.items.map((item) => (
+                  <div key={item.id} className="rounded-2xl border border-clay-100 bg-white p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <div className="mb-2 flex flex-wrap gap-1.5">
+                          <span className="rounded-full bg-clay-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-clay-700">
+                            {item.priority} priority
+                          </span>
+                          <span className="rounded-full bg-sage-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sage-700">
+                            {item.recommendation.replace("_", " ")}
+                          </span>
+                        </div>
+                        <p className="font-display text-base font-bold text-ink-900">{item.suggestedTitle || "Observation"}</p>
+                        <p className="mt-1 text-xs leading-relaxed text-ink-600">{item.reason}</p>
+                        {item.frameworkHint && <p className="mt-2 text-[11px] text-clay-700">{item.frameworkHint}</p>}
+                      </div>
+                      {item.recommendation !== "skip" && (
+                        <button onClick={() => selectBacklogItem(item)} className="btn-secondary flex-shrink-0 px-3 py-2 text-xs">
+                          Draft this one <ArrowRight className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {showUpgradePrompt && (
             <div className="rounded-2xl border border-clay-200 bg-cream-50 p-4 shadow-soft">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1">1 free story left this month</p>
-                  <p className="text-sm text-ink-700">
-                    Upgrade when you&apos;re ready to keep drafting without limits and keep your learning story backlog under control.
+                  <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1">
+                    {upgradePromptKind === "one_left" ? "1 free story left this month" : "First story created"}
                   </p>
-                  <Link href="/billing" className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-clay-700 hover:text-clay-900">
-                    Upgrade for unlimited stories <ArrowRight className="w-3 h-3" />
+                  <p className="text-sm text-ink-700">
+                    {upgradePromptKind === "one_left"
+                      ? "You can use your final free story or upgrade with the first-month activation offer when you are ready."
+                      : "Try one more real observation while the workflow is fresh. If it keeps saving time, the Educator plan removes the monthly story limit."}
+                  </p>
+                  <Link href="/billing?offer=activation" className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-clay-700 hover:text-clay-900">
+                    {upgradePromptKind === "one_left" ? "View activation offer" : "See plan options"} <ArrowRight className="w-3 h-3" />
                   </Link>
                 </div>
                 <button
@@ -911,6 +1286,10 @@ export default function GeneratePage() {
                 <button onClick={handleDownload} className="btn-ghost text-xs">
                   <Download className="w-3 h-3" /> Export
                 </button>
+                <button onClick={handleParentFriendlyVersion} disabled={parentVersionLoading || !storyId} className="btn-ghost text-xs disabled:opacity-50">
+                  {parentVersionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <MessageCircleHeart className="w-3 h-3" />}
+                  Family version
+                </button>
               </div>
             )}
           </div>
@@ -961,13 +1340,31 @@ export default function GeneratePage() {
                 evidenceAnchors={evidenceAnchors}
                 educatorChecks={educatorChecks}
                 pedagogyLinks={pedagogyLinks}
+                frameworkEvidence={frameworkEvidence}
+                storyQuality={storyQuality ?? undefined}
                 familyQuestion={familyQuestion}
                 followUpPrompt={followUpPrompt}
               />
 
+              {parentFriendlyVersion && (
+                <div className="mt-5 rounded-3xl border border-clay-200 bg-white p-5 shadow-soft">
+                  <p className="mb-2 flex items-center gap-2 text-xs font-bold text-ink-900">
+                    <MessageCircleHeart className="h-4 w-4 text-clay-700" /> Parent-friendly version
+                  </p>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink-700">{parentFriendlyVersion}</p>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(parentFriendlyVersion)}
+                    className="btn-secondary mt-4 px-3 py-2 text-xs"
+                  >
+                    <Copy className="h-3 w-3" /> Copy family version
+                  </button>
+                </div>
+              )}
+
               {(learningSummary ||
                 outcomes.length > 0 ||
                 curriculumLinks.length > 0 ||
+                frameworkEvidence.length > 0 ||
                 childVoice ||
                 learningDispositions.length > 0 ||
                 socialEmotionalLinks.length > 0 ||
@@ -1002,6 +1399,17 @@ export default function GeneratePage() {
                       <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Curriculum link</p>
                       <ul className="space-y-1 text-sm text-ink-700">
                         {curriculumLinks.map((item) => (
+                          <li key={item}>• {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {frameworkEvidence.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Why these links fit</p>
+                      <ul className="space-y-1 text-sm text-ink-700">
+                        {frameworkEvidence.map((item) => (
                           <li key={item}>• {item}</li>
                         ))}
                       </ul>
@@ -1122,7 +1530,7 @@ export default function GeneratePage() {
             </p>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <Link
-                href="/billing"
+                href="/billing?offer=activation"
                 onClick={() => setShowLimitModal(false)}
                 className="btn-primary justify-center py-3 text-sm"
               >

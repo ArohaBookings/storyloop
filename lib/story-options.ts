@@ -13,6 +13,10 @@ export type StoryPreferences = {
   defaultFramework?: StoryFrameworkId;
   preferredTone?: StoryTone;
   depthPreference?: StoryDepth;
+  preferredStoryLength?: StoryDepth;
+  centrePhilosophy?: string;
+  likedPhrases?: string[];
+  avoidedPhrases?: string[];
   includeTeReoLevel?: TeReoLevel;
   includeKowhitiWhakapae?: boolean;
   includeTapasa?: boolean;
@@ -35,6 +39,17 @@ export type StoryMetadata = {
   evidenceAnchors?: string[];
   educatorChecks?: string[];
   pedagogyLinks?: string[];
+  frameworkEvidence?: string[];
+  parentFriendlyVersion?: string;
+  storyQuality?: {
+    score?: number;
+    passes?: boolean;
+    revisionCount?: number;
+    checks?: Record<string, boolean>;
+    issues?: string[];
+    strengths?: string[];
+  };
+  inputMethod?: "typed" | "paste" | "voice" | "sample" | "backlog";
   familyQuestion?: string;
   followUpPrompt?: string;
   educatorReflection?: string;
@@ -189,14 +204,20 @@ export function sanitizeStoryPreferences(value: unknown): StoryPreferences {
   const rawDefaultFramework = cleanString(source.defaultFramework);
   const rawPreferredTone = cleanString(source.preferredTone);
   const rawDepthPreference = cleanString(source.depthPreference);
+  const rawPreferredStoryLength = cleanString(source.preferredStoryLength);
   const rawTeReoLevel = cleanString(source.includeTeReoLevel);
   const rawPedagogyFocus = cleanString(source.pedagogyFocus);
   const notes = cleanString(source.notes);
+  const centrePhilosophy = cleanString(source.centrePhilosophy).slice(0, 1200);
 
   return {
     defaultFramework: rawDefaultFramework ? normalizeFramework(rawDefaultFramework) : undefined,
     preferredTone: rawPreferredTone ? normalizeTone(rawPreferredTone) : undefined,
     depthPreference: rawDepthPreference ? normalizeDepth(rawDepthPreference) : undefined,
+    preferredStoryLength: rawPreferredStoryLength ? normalizeDepth(rawPreferredStoryLength) : undefined,
+    centrePhilosophy: centrePhilosophy || undefined,
+    likedPhrases: sanitiseStringArray(source.likedPhrases).slice(0, 10),
+    avoidedPhrases: sanitiseStringArray(source.avoidedPhrases).slice(0, 10),
     includeTeReoLevel: rawTeReoLevel ? normalizeTeReoLevel(rawTeReoLevel) : undefined,
     includeKowhitiWhakapae: sanitizeBoolean(source.includeKowhitiWhakapae),
     includeTapasa: sanitizeBoolean(source.includeTapasa),
@@ -217,6 +238,10 @@ export function mergeStoryPreferences(
         defaultFramework: current.defaultFramework ?? merged.defaultFramework,
         preferredTone: current.preferredTone ?? merged.preferredTone,
         depthPreference: current.depthPreference ?? merged.depthPreference,
+        preferredStoryLength: current.preferredStoryLength ?? merged.preferredStoryLength,
+        centrePhilosophy: current.centrePhilosophy ?? merged.centrePhilosophy,
+        likedPhrases: dedupeStrings([...(merged.likedPhrases ?? []), ...(current.likedPhrases ?? [])]).slice(0, 10),
+        avoidedPhrases: dedupeStrings([...(merged.avoidedPhrases ?? []), ...(current.avoidedPhrases ?? [])]).slice(0, 10),
         includeTeReoLevel: current.includeTeReoLevel ?? merged.includeTeReoLevel,
         includeKowhitiWhakapae: current.includeKowhitiWhakapae ?? merged.includeKowhitiWhakapae,
         includeTapasa: current.includeTapasa ?? merged.includeTapasa,
@@ -230,6 +255,9 @@ export function mergeStoryPreferences(
       languageStyle: "plain_ece",
       emphasis: [],
       depthPreference: "balanced",
+      preferredStoryLength: "balanced",
+      likedPhrases: [],
+      avoidedPhrases: [],
       includeTeReoLevel: "low",
       includeKowhitiWhakapae: false,
       includeTapasa: false,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getRuntimeSecret } from "@/lib/runtime-secrets";
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-05-27.dahlia" });
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
     const stripe = getStripe();
     const origin = request.nextUrl.origin;
 
-    const { plan, currency } = await request.json();
+    const { plan, currency, activationOffer } = await request.json();
     const selectedCurrency = normaliseCurrency(currency);
     const priceId = getPriceId(plan, selectedCurrency);
     if (!priceId) return NextResponse.json({ error: "Invalid plan or price not configured" }, { status: 400 });
@@ -48,6 +49,11 @@ export async function POST(request: NextRequest) {
       await supabase.from("profiles").update({ stripe_customer_id: customerId }).eq("id", user.id);
     }
 
+    const activationCoupon =
+      activationOffer === true && profile.plan === "free"
+        ? await getRuntimeSecret("STRIPE_FIRST_MONTH_COUPON_ID", "stripe_first_month_coupon_id")
+        : undefined;
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: "subscription",
@@ -56,12 +62,13 @@ export async function POST(request: NextRequest) {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/dashboard?upgraded=true`,
       cancel_url: `${origin}/billing`,
-      allow_promotion_codes: true,
+      allow_promotion_codes: !activationCoupon,
+      discounts: activationCoupon ? [{ coupon: activationCoupon }] : undefined,
       subscription_data: {
         trial_period_days: 7,
-        metadata: { user_id: user.id, plan, currency: selectedCurrency },
+        metadata: { user_id: user.id, plan, currency: selectedCurrency, activation_offer: activationCoupon ? "true" : "false" },
       },
-      metadata: { user_id: user.id, plan, currency: selectedCurrency },
+      metadata: { user_id: user.id, plan, currency: selectedCurrency, activation_offer: activationCoupon ? "true" : "false" },
     });
 
     return NextResponse.json({ url: session.url });

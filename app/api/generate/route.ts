@@ -14,11 +14,16 @@ import {
   sanitizeStoryPreferences,
 } from "@/lib/story-options";
 import { consumeRateLimit } from "@/lib/rate-limit";
+import { sendStoryMilestoneEmails } from "@/lib/email/automation";
 
 function getClientIp(request: NextRequest): string {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
     ?? request.headers.get("x-real-ip")
     ?? "unknown";
+}
+
+function normalizeInputMethod(value: unknown) {
+  return value === "paste" || value === "voice" || value === "sample" || value === "backlog" ? value : "typed";
 }
 
 export async function POST(request: NextRequest) {
@@ -37,6 +42,7 @@ export async function POST(request: NextRequest) {
       includeTapasa,
       pedagogyFocus,
       sourceStoryId,
+      inputMethod,
       demo,
     } = body;
 
@@ -83,6 +89,8 @@ export async function POST(request: NextRequest) {
         evidenceAnchors: result.evidenceAnchors,
         educatorChecks: result.educatorChecks,
         pedagogyLinks: result.pedagogyLinks,
+        frameworkEvidence: result.frameworkEvidence,
+        storyQuality: result.storyQuality,
         familyQuestion: result.familyQuestion,
         followUpPrompt: result.followUpPrompt,
         nextSteps: result.nextSteps,
@@ -124,6 +132,7 @@ export async function POST(request: NextRequest) {
     const resolvedPedagogyFocus = normalizePedagogyFocus(
       typeof pedagogyFocus === "string" ? pedagogyFocus : preferences.pedagogyFocus
     );
+    const resolvedInputMethod = normalizeInputMethod(inputMethod);
     const requestPreferences = mergeStoryPreferences(preferences, {
       defaultFramework: framework,
       preferredTone: resolvedTone,
@@ -240,8 +249,11 @@ export async function POST(request: NextRequest) {
         evidenceAnchors: result.evidenceAnchors,
         educatorChecks: result.educatorChecks,
         pedagogyLinks: result.pedagogyLinks,
+        frameworkEvidence: result.frameworkEvidence,
+        storyQuality: result.storyQuality,
         familyQuestion: result.familyQuestion,
         followUpPrompt: result.followUpPrompt,
+        inputMethod: resolvedInputMethod,
         followUpStatus: "open",
         continuityContextUsed: Boolean(selectedChild),
         sourceStoryId: typeof sourceStoryId === "string" ? sourceStoryId : undefined,
@@ -259,13 +271,29 @@ export async function POST(request: NextRequest) {
     }).select("id").single();
 
     // Increment usage
+    const now = new Date().toISOString();
+    const newStoriesThisMonth = used + 1;
+    const profileUpdate: Record<string, unknown> = {
+      stories_this_month: newStoriesThisMonth,
+      total_stories: (profile.total_stories ?? 0) + 1,
+      last_story_at: now,
+    };
+    if ((profile.total_stories ?? 0) === 0) {
+      profileUpdate.first_story_created_at = now;
+    }
+
     await supabase
       .from("profiles")
-      .update({
-        stories_this_month: used + 1,
-        total_stories: (profile.total_stories ?? 0) + 1,
-      })
+      .update(profileUpdate)
       .eq("id", user.id);
+
+    await sendStoryMilestoneEmails({
+      profile,
+      storyId: saved?.id,
+      storiesUsedThisMonth: newStoriesThisMonth,
+    }).catch((emailError) => {
+      console.error("Story milestone email error:", emailError);
+    });
 
     return NextResponse.json({
       success: true,
@@ -284,17 +312,19 @@ export async function POST(request: NextRequest) {
       evidenceAnchors: result.evidenceAnchors,
       educatorChecks: result.educatorChecks,
       pedagogyLinks: result.pedagogyLinks,
+      frameworkEvidence: result.frameworkEvidence,
+      storyQuality: result.storyQuality,
       familyQuestion: result.familyQuestion,
       followUpPrompt: result.followUpPrompt,
       nextSteps: result.nextSteps,
       plan,
-      storiesUsedThisMonth: used + 1,
+      storiesUsedThisMonth: newStoriesThisMonth,
       monthlyStoryLimit: limit,
       appliedAccessCode: profile.applied_access_code,
       remaining:
         limit === null
           ? "unlimited"
-          : getRemainingStories({ ...profile, stories_this_month: used + 1 }),
+          : getRemainingStories({ ...profile, stories_this_month: newStoriesThisMonth }),
     });
   } catch (error) {
     console.error("Generate error:", error);

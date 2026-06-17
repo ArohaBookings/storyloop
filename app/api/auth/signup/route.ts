@@ -5,6 +5,7 @@ import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { incrementAccessCodeRedemption, resolveAccessCode } from "@/lib/access-codes";
 import { mergeStoryPreferences } from "@/lib/story-options";
 import { consumeRateLimit } from "@/lib/rate-limit";
+import { sendLifecycleEmail } from "@/lib/email/send";
 
 const ALLOWED_PLANS = new Set(["free", "educator", "centre"]);
 
@@ -98,6 +99,18 @@ export async function POST(request: NextRequest) {
         },
         { status: 500 }
       );
+    }
+
+    if (createdUser.user) {
+      await sendLifecycleEmail({
+        type: "welcome",
+        userId: createdUser.user.id,
+        recipient: createdUser.user.email ?? email,
+        name,
+        metadata: { trigger: "signup" },
+      }).catch((emailError) => {
+        console.error("Welcome email error:", emailError);
+      });
     }
 
     return NextResponse.json({

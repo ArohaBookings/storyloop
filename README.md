@@ -28,6 +28,7 @@ All paid plans start with a **7-day free trial**.
 - **Tailwind CSS** + custom warm editorial theme (Fraunces + Manrope)
 - **Supabase** (auth, Postgres with RLS, hosted in Sydney)
 - **Stripe** (subscriptions + 7-day trials, AUD + NZD)
+- **Resend** (activation, retention, and upgrade lifecycle emails)
 - **OpenAI GPT-4o-mini** (primary — cheap + fast) or **Anthropic Claude** (fallback)
 - **Vercel** deploy target
 
@@ -73,8 +74,20 @@ All paid plans start with a **7-day free trial**.
    - Events: `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`
    - Copy the signing secret → `STRIPE_WEBHOOK_SECRET`
 6. **Settings → Billing → Customer portal** → Activate
+7. Optional activation offer:
+   - Create a once-off coupon for the first month
+   - Set its coupon ID as `STRIPE_FIRST_MONTH_COUPON_ID`
+   - Set a customer-facing label as `STRIPE_FIRST_MONTH_COUPON_LABEL`
 
-### Step 4 — Environment Variables
+### Step 4 — Resend email
+
+1. Verify the sending domain in Resend.
+2. Set `RESEND_API_KEY`.
+3. Set `EMAIL_FROM` to `StoryLoop by Aria Care <storyloop@ariacare.app>`.
+4. Set `EMAIL_REPLY_TO` to the founder/support inbox.
+5. Set `EMAIL_UNSUBSCRIBE_SECRET` to a random 32+ character secret.
+
+### Step 5 — Environment Variables
 
 Copy `.env.example` to `.env.local` and fill in every value:
 
@@ -88,7 +101,17 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 Paste it as `ADMIN_JWT_SECRET`.
 
-### Step 5 — Run locally
+Required production env vars now include:
+
+- `RESEND_API_KEY`
+- `EMAIL_FROM`
+- `EMAIL_REPLY_TO`
+- `EMAIL_UNSUBSCRIBE_SECRET`
+- `STRIPE_FIRST_MONTH_COUPON_ID` if activation offers should auto-apply
+- `STRIPE_FIRST_MONTH_COUPON_LABEL` for email/UI copy
+- `CRON_SECRET` for monthly reset and lifecycle email automation
+
+### Step 6 — Run locally
 
 ```bash
 npm install
@@ -96,7 +119,7 @@ npm run dev
 # → http://localhost:3000
 ```
 
-### Step 6 — Deploy to Vercel
+### Step 7 — Deploy to Vercel
 
 ```bash
 git init
@@ -113,7 +136,7 @@ Then at [vercel.com](https://vercel.com):
 
 Update your Stripe webhook URL to match your Vercel URL after first deploy.
 
-### Step 7 — Activate admin access
+### Step 8 — Activate admin access
 
 1. Set `ADMIN_EMAIL` to the authorised administrator account.
 2. Generate a bcrypt hash locally and set it as `ADMIN_PASSWORD_HASH`.
@@ -191,9 +214,14 @@ storyloop/
 
 ## 🛠 Maintenance
 
-**Monthly usage reset** — add this Vercel cron (in `vercel.json`):
+**Scheduled jobs** — add these Vercel crons (already in `vercel.json`):
 ```json
-{ "crons": [{ "path": "/api/cron/reset-usage", "schedule": "0 0 1 * *" }] }
+{
+  "crons": [
+    { "path": "/api/cron/reset-usage", "schedule": "0 0 1 * *" },
+    { "path": "/api/cron/email-automation", "schedule": "0 */6 * * *" }
+  ]
+}
 ```
 
 Or manually run this in Supabase SQL editor on the 1st of each month:

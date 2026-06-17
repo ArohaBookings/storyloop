@@ -131,6 +131,134 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       ...sharedFaqs,
     ],
   },
+  "story-quality-check": {
+    slug: "story-quality-check",
+    title: "Story Quality Check for Learning Stories",
+    description:
+      "StoryLoop reviews learning story drafts for educator tone, evidence, child voice, curriculum fit, next steps, and invented-detail risk before educators edit.",
+    kicker: "Educator review helper",
+    heading: "A story quality check before the draft reaches you.",
+    intro:
+      "StoryLoop is built to improve drafts before educators see them, then keep final judgement with the educator. The quality check looks for real evidence, natural educator voice, practical responses, and curriculum links that fit.",
+    sections: [
+      {
+        title: "Evidence stays first",
+        body:
+          "The review checks that learning claims connect back to the observation and that saved child context is not treated as evidence from today.",
+      },
+      {
+        title: "Less generic AI writing",
+        body:
+          "The draft improvement pass looks for wording that is too poetic, too generic, or too AI-sounding, then revises toward plain educator language.",
+      },
+      {
+        title: "Educator control remains",
+        body:
+          "The quality check is a helper, not compliance or sign-off. Educators still review the draft, add local knowledge, and decide what is accurate enough to share.",
+      },
+    ],
+    faqs: [
+      { question: "Is the quality check a compliance check?", answer: "No. StoryLoop calls it a story quality check because it supports educator review without replacing professional judgement." },
+      { question: "What does the quality check look for?", answer: "It checks educator tone, child voice, learning dispositions, framework fit, next steps, invented-detail risk, and whether the interpretation is connected to evidence." },
+      ...sharedFaqs,
+    ],
+  },
+  "backlog-rescue-learning-stories": {
+    slug: "backlog-rescue-learning-stories",
+    title: "Backlog Rescue for Learning Stories",
+    description:
+      "Paste multiple rough ECE observations and let StoryLoop help prioritise full learning stories, short updates, and documentation next steps.",
+    kicker: "Backlog Rescue",
+    heading: "Sort the week’s observations before writing every story.",
+    intro:
+      "Backlog Rescue helps educators paste multiple rough notes, then identify which moments deserve a full learning story and which can become short updates or be combined.",
+    sections: [
+      {
+        title: "Prioritise the strongest evidence",
+        body:
+          "StoryLoop looks for moments with clear learning, child agency, problem solving, communication, relationships, or repeated interest so educators can start with the highest-value stories.",
+      },
+      {
+        title: "Short update or full story",
+        body:
+          "Not every observation needs a full story. Backlog Rescue suggests a practical documentation level so educators can clear backlog without lowering quality.",
+      },
+      {
+        title: "Move from sorting to drafting",
+        body:
+          "Once a candidate is selected, the cleaned observation can move straight into the learning story generator with the educator still reviewing the final draft.",
+      },
+    ],
+    faqs: [
+      { question: "Does Backlog Rescue write all stories at once?", answer: "No. It sorts and prioritises first, then educators choose which observation to draft." },
+      { question: "Is it useful for centres?", answer: "Yes. It is especially useful when teams are catching up after a busy week and need a calm way to decide what to document first." },
+      ...sharedFaqs,
+    ],
+  },
+  "centre-voice-learning-stories": {
+    slug: "centre-voice-learning-stories",
+    title: "Centre Voice Memory for Learning Stories",
+    description:
+      "Save centre philosophy, preferred tone, story length, liked phrases, and avoided phrases so StoryLoop drafts closer to your service voice.",
+    kicker: "Centre voice",
+    heading: "Learning stories that can sound more like your centre.",
+    intro:
+      "Centre Voice Memory lets educators or centre teams save a philosophy, preferred wording, and phrases to avoid so future drafts match local practice more closely.",
+    sections: [
+      {
+        title: "Philosophy shapes tone, not evidence",
+        body:
+          "Saved philosophy can guide language and emphasis, but StoryLoop still keeps the story grounded in the observation supplied for that day.",
+      },
+      {
+        title: "Reduce repeated editing",
+        body:
+          "When a centre prefers practical language, certain cultural wording, or a shorter style, those preferences can become part of the drafting context.",
+      },
+      {
+        title: "Built for team rollout",
+        body:
+          "Centre plans make voice consistency more useful across educators while keeping each story editable and educator-led.",
+      },
+    ],
+    faqs: [
+      { question: "Can individual educators use centre voice memory?", answer: "Yes. Individual educators can save personal voice preferences, while centre plans are positioned for shared team rollout." },
+      { question: "Will StoryLoop force preferred phrases into every story?", answer: "No. Preferred phrases guide tone only when they fit naturally and are supported by the observation." },
+      ...sharedFaqs,
+    ],
+  },
+  "parent-friendly-learning-stories": {
+    slug: "parent-friendly-learning-stories",
+    title: "Parent-Friendly Learning Story Versions",
+    description:
+      "Create shorter, warmer parent-friendly versions of educator learning stories while keeping documentation-focused drafts intact.",
+    kicker: "Family communication",
+    heading: "Turn an educator draft into a family-friendly version.",
+    intro:
+      "StoryLoop can create a shorter parent-friendly version after the educator documentation draft, helping families understand the learning without losing the original professional story.",
+    sections: [
+      {
+        title: "Two versions, two jobs",
+        body:
+          "The educator version can hold curriculum and assessment detail, while the family version is warmer, shorter, and easier to read.",
+      },
+      {
+        title: "No new details added",
+        body:
+          "The parent-friendly version works from the saved story and does not invent extra actions, quotes, or family context.",
+      },
+      {
+        title: "Useful for whānau communication",
+        body:
+          "The family version can support a quick home connection while the educator still decides what is appropriate to share.",
+      },
+    ],
+    faqs: [
+      { question: "Does the parent-friendly version replace the learning story?", answer: "No. It is an additional version for family communication; the educator documentation draft remains available." },
+      { question: "Can I copy it separately?", answer: "Yes. StoryLoop provides a separate parent-friendly text block that can be copied." },
+      ...sharedFaqs,
+    ],
+  },
   "te-whariki-learning-stories": {
     slug: "te-whariki-learning-stories",
     title: "Te Whāriki Learning Stories",

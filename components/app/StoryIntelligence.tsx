@@ -1,9 +1,17 @@
-import { CheckCircle2, Compass, Fingerprint, MessageCircle, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Compass, Fingerprint, MessageCircle, ShieldCheck, Sparkles } from "lucide-react";
 
 type StoryIntelligenceProps = {
   evidenceAnchors?: string[];
   educatorChecks?: string[];
   pedagogyLinks?: string[];
+  frameworkEvidence?: string[];
+  storyQuality?: {
+    score?: number;
+    passes?: boolean;
+    revisionCount?: number;
+    issues?: string[];
+    strengths?: string[];
+  };
   familyQuestion?: string;
   followUpPrompt?: string;
 };
@@ -12,6 +20,8 @@ export default function StoryIntelligence({
   evidenceAnchors = [],
   educatorChecks = [],
   pedagogyLinks = [],
+  frameworkEvidence = [],
+  storyQuality,
   familyQuestion = "",
   followUpPrompt = "",
 }: StoryIntelligenceProps) {
@@ -19,6 +29,8 @@ export default function StoryIntelligence({
     evidenceAnchors.length === 0 &&
     educatorChecks.length === 0 &&
     pedagogyLinks.length === 0 &&
+    frameworkEvidence.length === 0 &&
+    !storyQuality &&
     !familyQuestion &&
     !followUpPrompt
   ) {
@@ -32,17 +44,35 @@ export default function StoryIntelligence({
           <ShieldCheck className="h-5 w-5" />
         </div>
         <div>
-          <p className="section-title mb-1">Draft integrity lens</p>
+          <p className="section-title mb-1">Story quality check</p>
           <h3 className="font-display text-xl font-bold text-ink-900">
             Evidence first, educator judgement last.
           </h3>
           <p className="mt-1 text-xs leading-relaxed text-ink-600">
-            Use these checks before copying or sharing. They are prompts, not automated sign-off.
+            StoryLoop runs a draft improvement pass, then leaves the final judgement with you.
           </p>
         </div>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
+        {storyQuality && (
+          <div className="rounded-2xl border border-sage-100 bg-white p-4">
+            <p className="flex items-center gap-2 text-xs font-bold text-ink-900">
+              <Sparkles className="h-4 w-4 text-sage-700" /> Quality pass
+            </p>
+            <p className="mt-2 text-xs leading-relaxed text-ink-600">
+              {typeof storyQuality.score === "number" ? `${storyQuality.score}/100 ` : ""}
+              {storyQuality.passes ? "Ready for educator review." : "Generated with review notes for you to check."}
+              {storyQuality.revisionCount ? ` Improved internally ${storyQuality.revisionCount} time${storyQuality.revisionCount === 1 ? "" : "s"}.` : ""}
+            </p>
+            {storyQuality.issues?.length ? (
+              <ul className="mt-2 space-y-1 text-xs leading-relaxed text-ink-600">
+                {storyQuality.issues.map((item) => <li key={item}>• {item}</li>)}
+              </ul>
+            ) : null}
+          </div>
+        )}
+
         {evidenceAnchors.length > 0 && (
           <div className="rounded-2xl border border-sage-100 bg-white p-4">
             <p className="flex items-center gap-2 text-xs font-bold text-ink-900">
@@ -76,6 +106,19 @@ export default function StoryIntelligence({
             </p>
             <ul className="mt-2 space-y-2 text-xs leading-relaxed text-ink-600">
               {pedagogyLinks.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {frameworkEvidence.length > 0 && (
+          <div className="rounded-2xl border border-clay-100 bg-white p-4">
+            <p className="flex items-center gap-2 text-xs font-bold text-ink-900">
+              <Compass className="h-4 w-4 text-clay-700" /> Why these links fit
+            </p>
+            <ul className="mt-2 space-y-2 text-xs leading-relaxed text-ink-600">
+              {frameworkEvidence.map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>

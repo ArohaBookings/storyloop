@@ -16,11 +16,16 @@ export type AppProfile = {
   is_active: boolean | null;
   monthly_story_limit_override: number | null;
   applied_access_code: string | null;
+  last_seen_at: string | null;
+  last_story_at: string | null;
+  first_story_created_at: string | null;
+  upgraded_at: string | null;
+  marketing_unsubscribed_at: string | null;
   story_preferences: StoryPreferences;
 };
 
 const PROFILE_SELECT =
-  "id, email, full_name, plan, subscription_status, stripe_customer_id, stripe_subscription_id, current_period_end, stories_this_month, total_stories, is_active, monthly_story_limit_override, applied_access_code, story_preferences";
+  "id, email, full_name, plan, subscription_status, stripe_customer_id, stripe_subscription_id, current_period_end, stories_this_month, total_stories, is_active, monthly_story_limit_override, applied_access_code, last_seen_at, last_story_at, first_story_created_at, upgraded_at, marketing_unsubscribed_at, story_preferences";
 
 function deriveFullName(user: Pick<User, "email" | "user_metadata">) {
   const fullName = typeof user.user_metadata?.full_name === "string" ? user.user_metadata.full_name.trim() : "";
@@ -44,6 +49,12 @@ function normaliseProfileRecord(record: Record<string, unknown>): AppProfile {
     monthly_story_limit_override:
       typeof record.monthly_story_limit_override === "number" ? record.monthly_story_limit_override : null,
     applied_access_code: typeof record.applied_access_code === "string" ? record.applied_access_code : null,
+    last_seen_at: typeof record.last_seen_at === "string" ? record.last_seen_at : null,
+    last_story_at: typeof record.last_story_at === "string" ? record.last_story_at : null,
+    first_story_created_at: typeof record.first_story_created_at === "string" ? record.first_story_created_at : null,
+    upgraded_at: typeof record.upgraded_at === "string" ? record.upgraded_at : null,
+    marketing_unsubscribed_at:
+      typeof record.marketing_unsubscribed_at === "string" ? record.marketing_unsubscribed_at : null,
     story_preferences: sanitizeStoryPreferences(record.story_preferences),
   };
 }

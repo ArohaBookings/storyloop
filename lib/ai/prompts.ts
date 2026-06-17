@@ -73,6 +73,7 @@ RETURN ONLY VALID JSON WITH THIS EXACT SHAPE:
   "evidenceAnchors": ["2-4 short exact or closely paraphrased observation details that support the interpretation"],
   "educatorChecks": ["2-3 short questions the educator should confirm before sharing"],
   "pedagogyLinks": ["1-3 plain-language links to a relevant principle, practice, or teaching response"],
+  "frameworkEvidence": ["1-3 short educator-friendly explanations of why the selected curriculum links fit"],
   "familyQuestion": "one optional open question that invites family knowledge without assumption",
   "followUpPrompt": "one specific thing to notice next time so learning can be followed over time",
   "childAge": "extracted or inferred age range",
@@ -96,6 +97,7 @@ export function buildUserMessage(
 ) {
   const config = STORY_FRAMEWORKS[framework];
   const depth = preferences.depthPreference ?? "balanced";
+  const preferredStoryLength = preferences.preferredStoryLength ?? depth;
   const teReoLevel = preferences.includeTeReoLevel ?? "low";
   const pedagogyFocus = preferences.pedagogyFocus ?? "balanced";
   const emphasis = preferences.emphasis?.length
@@ -170,12 +172,23 @@ PERSISTED STORY PREFERENCES:
 - Preferred default framework: ${preferences.defaultFramework ?? "Not set"}
 - Preferred tone: ${preferences.preferredTone ?? "Not set"}
 - Preferred depth: ${preferences.depthPreference ?? "Not set"}
+- Preferred story length: ${preferredStoryLength}
+- Centre philosophy or room voice: ${preferences.centrePhilosophy ?? "Not set"}
+- Words or phrases they like: ${preferences.likedPhrases?.length ? preferences.likedPhrases.join(", ") : "Not set"}
+- Words or phrases they avoid: ${preferences.avoidedPhrases?.length ? preferences.avoidedPhrases.join(", ") : "Not set"}
 - Te reo Māori level: ${preferences.includeTeReoLevel ?? "low"}
 - Include Kōwhiti Whakapae: ${preferences.includeKowhitiWhakapae ? "yes" : "no"}
 - Include Tapasā: ${preferences.includeTapasa ? "yes" : "no"}
 - Pedagogy focus: ${pedagogyFocus}
 - Emphasis areas: ${emphasis}
 - Extra notes: ${preferences.notes ?? "None"}
+
+CENTRE VOICE MEMORY:
+- If a centre philosophy or preferred phrase list is present, use it to shape tone, priorities, and wording.
+- Do not quote the philosophy as if it happened in today's observation.
+- Do not force liked phrases into the story if they sound unnatural.
+- Avoid the avoided phrases unless the educator's observation explicitly requires them.
+- Centre voice memory changes style and emphasis only. Evidence still comes from today's observation.
 
 FIELD GUIDANCE:
 - storyTitle: a short human title, not cute or poetic.
@@ -194,6 +207,7 @@ FIELD GUIDANCE:
 - evidenceAnchors: use only details found in the educator's observation. Keep each anchor short enough to scan.
 - educatorChecks: ask the educator to confirm accuracy, local context, or interpretation. Never claim the AI has signed off the story.
 - pedagogyLinks: for EYLF, consider relevant V2.0 principles or practices such as partnerships, respect for diversity, Aboriginal and Torres Strait Islander perspectives, equity/inclusion, sustainability, critical reflection, collaborative leadership, play-based learning, intentionality, responsiveness, or continuity when evidence supports it. For Te Whāriki, consider empowerment, holistic development, family and community, relationships, local curriculum, responsive and reciprocal practice, working theories, or assessment-for-learning. Do not paste a framework checklist.
+- frameworkEvidence: briefly explain why each selected EYLF outcome or Te Whāriki strand/outcome fits the observation. Keep it simple, for example: "This links with Exploration because the child was testing an idea, problem-solving, and changing the plan through play."
 - familyQuestion: ask one open, family-friendly question only when it could deepen understanding. Do not ask families to validate a developmental judgement.
 - followUpPrompt: identify one observable action, strategy, relationship, phrase, or working theory to notice next time.
 - nextSteps: practical teaching moves, not big theory.

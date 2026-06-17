@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/admin-auth";
 import { createAdminSupabase, logAdminAction } from "@/lib/supabase/admin";
+import { sendManualLifecycleEmail } from "@/lib/email/automation";
+import type { LifecycleEmailType } from "@/lib/email/templates";
+
+const MANUAL_EMAIL_TYPES = new Set<LifecycleEmailType>([
+  "welcome",
+  "no_first_story",
+  "first_story_created",
+  "two_free_stories_used",
+  "free_limit_reached",
+  "paid_no_usage_checkin",
+  "weekly_value",
+]);
 
 export async function GET(request: NextRequest) {
   const session = await verifyAdmin();
@@ -22,7 +34,7 @@ export async function POST(request: NextRequest) {
     const session = await verifyAdmin();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { action, userId, email, plan } = await request.json();
+    const { action, userId, email, plan, emailType } = await request.json();
     const sb = createAdminSupabase();
 
     switch (action) {
@@ -55,6 +67,14 @@ export async function POST(request: NextRequest) {
         await sb.from("profiles").update({ is_active: true }).eq("id", userId);
         await logAdminAction("enable_user", "user", userId, { email });
         return NextResponse.json({ message: `${email} enabled` });
+      }
+      case "send_lifecycle_email": {
+        if (typeof emailType !== "string" || !MANUAL_EMAIL_TYPES.has(emailType as LifecycleEmailType)) {
+          return NextResponse.json({ error: "Unknown email type" }, { status: 400 });
+        }
+        const result = await sendManualLifecycleEmail(userId, emailType as LifecycleEmailType);
+        await logAdminAction("send_lifecycle_email", "user", userId, { email, emailType, result });
+        return NextResponse.json({ message: `${emailType.replaceAll("_", " ")} email queued for ${email}`, result });
       }
       default:
         return NextResponse.json({ error: "Unknown action" }, { status: 400 });

@@ -7,6 +7,10 @@ import { getMonthlyStoryLimit, getStoryAllowanceLabel } from "@/lib/story-limits
 interface User {
   id: string; email: string; full_name: string; plan: string;
   subscription_status: string; stories_this_month: number; created_at: string;
+  total_stories: number | null;
+  last_seen_at: string | null;
+  last_story_at: string | null;
+  marketing_unsubscribed_at: string | null;
   is_active: boolean;
   monthly_story_limit_override: number | null;
   applied_access_code: string | null;
@@ -35,11 +39,11 @@ export default function AdminUsersPage() {
 
   useEffect(() => { const t = setTimeout(fetchUsers, 300); return () => clearTimeout(t); }, [fetchUsers]);
 
-  const doAction = async (action: string, userId: string, email: string, plan?: string) => {
+  const doAction = async (action: string, userId: string, email: string, plan?: string, emailType?: string) => {
     setActionLoading(action + userId);
     const res = await fetch("/api/admin/users", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, userId, email, plan }),
+      body: JSON.stringify({ action, userId, email, plan, emailType }),
     });
     const data = await res.json();
     setToast(res.ok ? (data.message ?? "Done") : ("Error: " + data.error));
@@ -74,7 +78,7 @@ export default function AdminUsersPage() {
             <table className="w-full min-w-[800px]">
               <thead>
                 <tr className="border-b border-ink-800 bg-ink-800/30">
-                  {["User", "Plan", "Status", "Usage", "Joined", "Actions"].map(h => (
+                  {["User", "Plan", "Status", "Usage", "Activity", "Actions"].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-ink-500 uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -105,8 +109,17 @@ export default function AdminUsersPage() {
                         })()}
                       </span>
                       <p className="text-[10px] text-ink-500 mt-0.5">{getStoryAllowanceLabel(u)}</p>
+                      <p className="text-[10px] text-ink-600 mt-0.5">{u.total_stories ?? 0} lifetime</p>
                     </td>
-                    <td className="px-4 py-3"><span className="text-xs text-ink-500">{new Date(u.created_at).toLocaleDateString("en-AU")}</span></td>
+                    <td className="px-4 py-3">
+                      <p className="text-xs text-ink-400">
+                        Last active: {u.last_seen_at ? new Date(u.last_seen_at).toLocaleDateString("en-AU") : "—"}
+                      </p>
+                      <p className="mt-0.5 text-[10px] text-ink-500">
+                        Last story: {u.last_story_at ? new Date(u.last_story_at).toLocaleDateString("en-AU") : "—"} · Joined {new Date(u.created_at).toLocaleDateString("en-AU")}
+                      </p>
+                      {u.marketing_unsubscribed_at && <p className="mt-0.5 text-[10px] text-amber-400">Unsubscribed from product tips</p>}
+                    </td>
                     <td className="px-4 py-3 relative">
                       <button onClick={() => setOpenActions(openActions === u.id ? null : u.id)}
                         className="flex items-center gap-1 text-xs border border-ink-700 hover:border-ink-600 px-2.5 py-1.5 rounded-lg">
@@ -126,6 +139,18 @@ export default function AdminUsersPage() {
                               {label}
                             </button>
                           ))}
+                          <button onClick={() => doAction("send_lifecycle_email", u.id, u.email, undefined, "welcome")}
+                            disabled={!!actionLoading}
+                            className="w-full flex items-center gap-2.5 px-4 py-2 text-xs hover:bg-ink-700 transition-colors">
+                            <Mail className="w-3.5 h-3.5 text-ink-400" />
+                            Send welcome email
+                          </button>
+                          <button onClick={() => doAction("send_lifecycle_email", u.id, u.email, undefined, "no_first_story")}
+                            disabled={!!actionLoading}
+                            className="w-full flex items-center gap-2.5 px-4 py-2 text-xs hover:bg-ink-700 transition-colors">
+                            <Mail className="w-3.5 h-3.5 text-ink-400" />
+                            Send first-story help
+                          </button>
                           <div className="border-t border-ink-700 my-1" />
                           <div className="px-3 py-1 text-[10px] font-bold text-ink-500 uppercase tracking-wider">Set plan</div>
                           {["free", "educator", "centre"].map(p => (

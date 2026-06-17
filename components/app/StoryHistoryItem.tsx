@@ -113,6 +113,17 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
   const evidenceAnchors = asStringArray(metadata.evidenceAnchors);
   const educatorChecks = asStringArray(metadata.educatorChecks);
   const pedagogyLinks = asStringArray(metadata.pedagogyLinks);
+  const frameworkEvidence = asStringArray(metadata.frameworkEvidence);
+  const storyQuality =
+    metadata.storyQuality && typeof metadata.storyQuality === "object"
+      ? (metadata.storyQuality as {
+          score?: number;
+          passes?: boolean;
+          revisionCount?: number;
+          issues?: string[];
+          strengths?: string[];
+        })
+      : undefined;
   const familyQuestion = typeof metadata.familyQuestion === "string" ? metadata.familyQuestion : "";
   const followUpPrompt = typeof metadata.followUpPrompt === "string" ? metadata.followUpPrompt : "";
   const wasEdited = Boolean(currentUpdatedAt && currentUpdatedAt !== story.created_at);
@@ -217,6 +228,8 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
         evidenceAnchors: data.evidenceAnchors,
         educatorChecks: data.educatorChecks,
         pedagogyLinks: data.pedagogyLinks,
+        frameworkEvidence: data.frameworkEvidence,
+        storyQuality: data.storyQuality,
         familyQuestion: data.familyQuestion,
         followUpPrompt: data.followUpPrompt,
         storySettings: {
@@ -536,6 +549,8 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
           evidenceAnchors={evidenceAnchors}
           educatorChecks={educatorChecks}
           pedagogyLinks={pedagogyLinks}
+          frameworkEvidence={frameworkEvidence}
+          storyQuality={storyQuality}
           familyQuestion={familyQuestion}
           followUpPrompt={followUpPrompt}
         />

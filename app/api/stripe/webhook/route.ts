@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-05-27.dahlia" });
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error("STRIPE_SECRET_KEY is not configured");
+  return new Stripe(key, { apiVersion: "2026-05-27.dahlia" });
+}
 
 function stripeDate(value: number | null | undefined) {
   return typeof value === "number" ? new Date(value * 1000).toISOString() : null;
@@ -84,6 +88,7 @@ async function updateProfileForSubscription(
     stripe_subscription_id: subscription.id,
     trial_ends_at: stripeDate(subscription.trial_end),
     current_period_end: stripeDate(subscriptionPeriodEnd(subscription)),
+    upgraded_at: status === "active" || status === "trialing" ? new Date().toISOString() : undefined,
   };
 
   if (userId) {
@@ -109,7 +114,7 @@ async function updateProfileByInvoiceCustomer(
 async function handleInvoicePaid(admin: ReturnType<typeof createAdminSupabase>, invoice: Stripe.Invoice) {
   const subscriptionId = invoiceSubscriptionId(invoice);
   if (subscriptionId) {
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
     await updateProfileForSubscription(admin, subscription, {
       customerId: typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id,
     });
@@ -125,7 +130,7 @@ async function handlePaymentFailed(admin: ReturnType<typeof createAdminSupabase>
 
   const subscriptionId = invoiceSubscriptionId(invoice);
   const nextAttemptAt = stripeDate(invoice.next_payment_attempt);
-  const subscription = subscriptionId ? await stripe.subscriptions.retrieve(subscriptionId) : null;
+  const subscription = subscriptionId ? await getStripe().subscriptions.retrieve(subscriptionId) : null;
   const status = nextAttemptAt ? "past_due" : "payment_required";
 
   const update: Record<string, unknown> = {
@@ -143,7 +148,7 @@ async function processStripeEvent(admin: ReturnType<typeof createAdminSupabase>,
       const session = event.data.object as Stripe.Checkout.Session;
       const subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription?.id;
       if (!subscriptionId) return;
-      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
       await updateProfileForSubscription(admin, subscription, {
         userId: session.metadata?.user_id,
         plan: session.metadata?.plan,
@@ -204,7 +209,7 @@ export async function POST(request: NextRequest) {
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
+    event = getStripe().webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
   } catch (err) {
     console.error("Webhook signature failed:", err);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });

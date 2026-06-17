@@ -7,8 +7,11 @@ import {
   BarChart3,
   BookOpen,
   DollarSign,
+  Eye,
   LogIn,
   LogOut,
+  Mail,
+  MousePointerClick,
   PieChart,
   ShieldAlert,
   Sparkles,
@@ -25,11 +28,27 @@ export const metadata = { title: "Admin · StoryLoop" };
 type ProfileMetric = {
   plan: string | null;
   subscription_status: string | null;
+  total_stories: number | null;
+  stories_this_month: number | null;
+  monthly_story_limit_override: number | null;
+  applied_access_code: string | null;
+  last_seen_at: string | null;
+  last_story_at: string | null;
   created_at: string | null;
 };
 
 type StoryMetric = {
   created_at: string;
+  location: string | null;
+  metadata: unknown;
+};
+
+type EmailMetric = {
+  email_type: string;
+  delivery_status: string | null;
+  sent_at: string | null;
+  opened_at: string | null;
+  clicked_at: string | null;
 };
 
 const PRICES: Record<string, number> = { educator: 19, centre: 49 };
@@ -70,6 +89,10 @@ function percent(value: number, total: number) {
   return Math.round((value / total) * 100);
 }
 
+function asRecord(value: unknown) {
+  return value && typeof value === "object" ? value as Record<string, unknown> : {};
+}
+
 function getPlanGradient(planCounts: Record<string, number>, total: number) {
   if (total === 0) return "#1a1817";
   const freeEnd = percent(planCounts.free, total) * 3.6;
@@ -92,21 +115,24 @@ export default async function AdminPage() {
     { data: audit },
     { data: profilesForCharts },
     { data: storiesForChart },
+    { data: emailEventsForChart },
   ] = await Promise.all([
     sb.from("profiles").select("*", { count: "exact", head: true }),
     sb.from("stories").select("*", { count: "exact", head: true }),
     sb.from("profiles")
-      .select("id, full_name, plan, stories_this_month, subscription_status, created_at, email, monthly_story_limit_override, applied_access_code")
+      .select("id, full_name, plan, stories_this_month, total_stories, subscription_status, created_at, email, monthly_story_limit_override, applied_access_code, last_seen_at, last_story_at, marketing_unsubscribed_at")
       .order("created_at", { ascending: false })
       .limit(12),
     sb.from("stories").select("id, child_name, age_group, created_at, profiles!inner(full_name, email)").order("created_at", { ascending: false }).limit(8),
     sb.from("admin_audit_log").select("action, target_type, target_id, created_at, details").order("created_at", { ascending: false }).limit(8),
-    sb.from("profiles").select("plan, subscription_status, created_at").limit(1000),
-    sb.from("stories").select("created_at").gte("created_at", since).limit(2000),
+    sb.from("profiles").select("plan, subscription_status, total_stories, stories_this_month, monthly_story_limit_override, applied_access_code, last_seen_at, last_story_at, created_at").limit(1000),
+    sb.from("stories").select("created_at, location, metadata").gte("created_at", since).limit(2000),
+    sb.from("email_events").select("email_type, delivery_status, sent_at, opened_at, clicked_at").gte("sent_at", since).limit(2000),
   ]);
 
   const profiles = (profilesForCharts ?? []) as ProfileMetric[];
   const storyRows = (storiesForChart ?? []) as StoryMetric[];
+  const emailRows = (emailEventsForChart ?? []) as EmailMetric[];
   const paidProfiles = profiles.filter((profile) => isPaidPlan(profile.plan));
   const activePaidProfiles = paidProfiles.filter((profile) => REVENUE_STATUSES.has(profile.subscription_status ?? ""));
   const billingRiskProfiles = paidProfiles.filter((profile) => isBillingBlocked(profile) || isBillingPastDue(profile));
@@ -117,6 +143,32 @@ export default async function AdminPage() {
     educator: profiles.filter((profile) => profile.plan === "educator").length,
     centre: profiles.filter((profile) => profile.plan === "centre").length,
   };
+  const zeroStoryUsers = profiles.filter((profile) => (profile.total_stories ?? 0) === 0);
+  const oneStoryUsers = profiles.filter((profile) => (profile.total_stories ?? 0) === 1);
+  const twoStoryUsers = profiles.filter((profile) => (profile.total_stories ?? 0) === 2);
+  const freeLimitUsers = profiles.filter((profile) => {
+    if ((profile.plan ?? "free") !== "free") return false;
+    const limit = getMonthlyStoryLimit(profile);
+    return limit !== null && (profile.stories_this_month ?? 0) >= limit;
+  });
+  const paidZeroStoryUsers = paidProfiles.filter((profile) => (profile.total_stories ?? 0) === 0);
+  const conversionBase = paidProfiles.length + freeLimitUsers.length;
+  const freeLimitToPaidConversion = percent(paidProfiles.length, conversionBase);
+  const frameworkCounts = storyRows.reduce<Record<string, number>>((counts, story) => {
+    const key = story.location === "NZ" ? "Te Whāriki" : "EYLF";
+    counts[key] = (counts[key] ?? 0) + 1;
+    return counts;
+  }, {});
+  const inputMethodCounts = storyRows.reduce<Record<string, number>>((counts, story) => {
+    const metadata = asRecord(story.metadata);
+    const method = typeof metadata.inputMethod === "string" ? metadata.inputMethod : "unknown";
+    counts[method] = (counts[method] ?? 0) + 1;
+    return counts;
+  }, {});
+  const emailSent = emailRows.filter((email) => email.delivery_status === "sent").length;
+  const emailOpened = emailRows.filter((email) => email.opened_at).length;
+  const emailClicked = emailRows.filter((email) => email.clicked_at).length;
+  const emailSkipped = emailRows.filter((email) => email.delivery_status?.startsWith("skipped")).length;
   const storyCounts = days.map((day) => storyRows.filter((story) => story.created_at?.startsWith(day.key)).length);
   const sparklinePoints = buildSparkline(storyCounts);
   const maxStatusCount = Math.max(activePaidProfiles.length, trialingProfiles.length, billingRiskProfiles.length, planCounts.free, 1);
@@ -200,6 +252,25 @@ export default async function AdminPage() {
               <p className={`font-display text-3xl font-bold ${color}`}>{value}</p>
               <p className="text-xs text-ink-400 mt-0.5">{label}</p>
               <p className="text-[10px] text-ink-500 mt-1 font-mono">{sub}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-3">
+          {[
+            { label: "Signups", value: profiles.length, sub: "tracked users" },
+            { label: "0 stories", value: zeroStoryUsers.length, sub: "activation gap" },
+            { label: "1 story", value: oneStoryUsers.length, sub: "needs second use" },
+            { label: "2 stories", value: twoStoryUsers.length, sub: "prime upgrade" },
+            { label: "Hit free limit", value: freeLimitUsers.length, sub: "ready to convert" },
+            { label: "Paid users", value: paidProfiles.length, sub: `${activePaidProfiles.length} active` },
+            { label: "Paid, 0 stories", value: paidZeroStoryUsers.length, sub: "needs help fast" },
+            { label: "Limit→paid", value: `${freeLimitToPaidConversion}%`, sub: "rough conversion" },
+          ].map((metric) => (
+            <div key={metric.label} className="rounded-2xl border border-ink-800 bg-ink-900 p-4">
+              <p className="font-display text-2xl font-bold text-paper">{metric.value}</p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-clay-400">{metric.label}</p>
+              <p className="mt-0.5 text-[10px] text-ink-500">{metric.sub}</p>
             </div>
           ))}
         </div>
@@ -292,6 +363,108 @@ export default async function AdminPage() {
           </div>
         </div>
 
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+          <div className="bg-ink-900 border border-ink-800 rounded-2xl p-5">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-clay-400">Activation funnel</p>
+                <h2 className="font-display text-2xl font-bold mt-1">Where users stall</h2>
+              </div>
+              <TrendingUp className="w-5 h-5 text-ink-500" />
+            </div>
+            <div className="space-y-3">
+              {[
+                { label: "No story yet", value: zeroStoryUsers.length, colour: "bg-red-400" },
+                { label: "Only one story", value: oneStoryUsers.length, colour: "bg-amber-400" },
+                { label: "Two stories used", value: twoStoryUsers.length, colour: "bg-clay-400" },
+                { label: "Free limit reached", value: freeLimitUsers.length, colour: "bg-sage-400" },
+              ].map((row) => (
+                <div key={row.label}>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-ink-300">{row.label}</span>
+                    <span className="font-bold text-paper">{row.value}</span>
+                  </div>
+                  <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-ink-800">
+                    <div className={`h-full rounded-full ${row.colour}`} style={{ width: `${Math.max(percent(row.value, Math.max(profiles.length, 1)), row.value ? 8 : 0)}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 text-xs leading-relaxed text-ink-500">
+              Conversion answer: users with 0 stories need wizard/sample help; users at 2-3 stories need a light value reminder and first-month offer, not a hard sell.
+            </p>
+          </div>
+
+          <div className="bg-ink-900 border border-ink-800 rounded-2xl p-5">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-clay-400">Framework and input</p>
+                <h2 className="font-display text-2xl font-bold mt-1">What users choose</h2>
+              </div>
+              <BarChart3 className="w-5 h-5 text-ink-500" />
+            </div>
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-1">
+              <div>
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-ink-500">Framework mix</p>
+                {Object.entries(frameworkCounts).map(([label, value]) => (
+                  <div key={label} className="mb-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-ink-300">{label}</span>
+                      <span className="text-ink-500">{value}</span>
+                    </div>
+                    <div className="mt-1 h-2 rounded-full bg-ink-800">
+                      <div className="h-2 rounded-full bg-clay-400" style={{ width: `${Math.max(percent(value, storyRows.length), value ? 8 : 0)}%` }} />
+                    </div>
+                  </div>
+                ))}
+                {Object.keys(frameworkCounts).length === 0 && <p className="text-xs text-ink-500">No framework data yet.</p>}
+              </div>
+              <div>
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-ink-500">Input method</p>
+                {Object.entries(inputMethodCounts).map(([label, value]) => (
+                  <div key={label} className="mb-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="capitalize text-ink-300">{label}</span>
+                      <span className="text-ink-500">{value}</span>
+                    </div>
+                    <div className="mt-1 h-2 rounded-full bg-ink-800">
+                      <div className="h-2 rounded-full bg-sage-400" style={{ width: `${Math.max(percent(value, storyRows.length), value ? 8 : 0)}%` }} />
+                    </div>
+                  </div>
+                ))}
+                {Object.keys(inputMethodCounts).length === 0 && <p className="text-xs text-ink-500">No input-method data yet.</p>}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-ink-900 border border-ink-800 rounded-2xl p-5">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-clay-400">Email engine</p>
+                <h2 className="font-display text-2xl font-bold mt-1">Lifecycle signals</h2>
+              </div>
+              <Mail className="w-5 h-5 text-ink-500" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: "Sent", value: emailSent, icon: Mail },
+                { label: "Opened", value: emailOpened, icon: Eye },
+                { label: "Clicked", value: emailClicked, icon: MousePointerClick },
+                { label: "Skipped", value: emailSkipped, icon: AlertTriangle },
+              ].map(({ label, value, icon: Icon }) => (
+                <div key={label} className="rounded-xl border border-ink-800 bg-ink-950 p-3">
+                  <Icon className="mb-2 h-4 w-4 text-clay-400" />
+                  <p className="font-display text-2xl font-bold text-paper">{value}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-ink-500">{label}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 text-xs leading-relaxed text-ink-500">
+              Opens/clicks fill when provider webhook support is connected. Sent/skipped already verifies automation health.
+            </p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <div className="bg-ink-900 border border-ink-800 rounded-2xl overflow-hidden lg:col-span-2">
             <div className="px-5 py-4 border-b border-ink-800 flex items-center justify-between">
@@ -311,6 +484,9 @@ export default async function AdminPage() {
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">{u.full_name ?? "—"}</p>
                         <p className="text-xs text-ink-500 truncate">{u.email}</p>
+                        <p className="text-[10px] text-ink-600 mt-0.5">
+                          Active {u.last_seen_at ? new Date(u.last_seen_at).toLocaleDateString("en-AU") : "—"} · Last story {u.last_story_at ? new Date(u.last_story_at).toLocaleDateString("en-AU") : "—"}
+                        </p>
                         {u.applied_access_code && <p className="text-[10px] text-clay-400 mt-0.5">{u.applied_access_code.toUpperCase()} access</p>}
                       </div>
                     </div>

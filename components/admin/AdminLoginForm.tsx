@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Loader2, ShieldAlert } from "lucide-react";
 
 export default function AdminLoginForm() {
@@ -83,6 +84,14 @@ export default function AdminLoginForm() {
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sign in"}
             </button>
           </form>
+          <div className="mt-6 flex flex-col gap-2 border-t border-ink-800 pt-4 sm:flex-row">
+            <Link href="/" className="flex-1 rounded-xl border border-ink-700 px-3 py-2 text-center text-xs font-semibold text-ink-300 hover:border-clay-500 hover:text-paper">
+              Back to normal site
+            </Link>
+            <Link href="/login" className="flex-1 rounded-xl border border-ink-700 px-3 py-2 text-center text-xs font-semibold text-ink-300 hover:border-clay-500 hover:text-paper">
+              User login
+            </Link>
+          </div>
         </div>
       </div>
     </div>

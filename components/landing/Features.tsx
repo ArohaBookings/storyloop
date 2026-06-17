@@ -1,6 +1,7 @@
 import {
   Brain,
   CheckCircle2,
+  ClipboardList,
   Clock,
   Compass,
   Download,
@@ -25,6 +26,10 @@ const FEATURES = [
   { icon: Heart, title: "Sounds like an educator", desc: "More grounded, less robotic. The goal is a draft you can recognise and edit quickly." },
   { icon: Shield, title: "Privacy first", desc: "Your observations are never used to train AI models. Data is access-controlled and stored securely." },
   { icon: Fingerprint, title: "Draft integrity lens", desc: "See the observation evidence, assumptions, educator checks, and family question behind each draft." },
+  { icon: Sparkles, title: "Story quality check", desc: "StoryLoop reviews tone, evidence, curriculum fit, invented-detail risk, and next steps before you edit." },
+  { icon: ClipboardList, title: "Backlog Rescue", desc: "Paste several rough observations and sort which deserve full stories, short updates, or a combined note." },
+  { icon: Users, title: "Centre Voice Memory", desc: "Save centre philosophy, liked phrases, and words to avoid so future drafts stay closer to your service voice." },
+  { icon: MessageCircleHeart, title: "Parent-friendly version", desc: "Create a shorter warmer version for families while keeping the educator documentation draft intact." },
   { icon: Brain, title: "Learning threads", desc: "Notice recurring dispositions, curriculum patterns, and follow-up opportunities across saved stories." },
   { icon: Users, title: "Child continuity profiles", desc: "Save lightweight interests, languages, whānau aspirations, and educator context so future drafts connect learning over time." },
   { icon: Compass, title: "Curriculum compass", desc: "See EYLF outcomes or Te Whāriki strands surfaced for each child without ranking, scoring, or turning children into data points." },

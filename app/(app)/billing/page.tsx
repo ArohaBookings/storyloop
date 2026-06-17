@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { AlertTriangle, Check, Loader2, CreditCard, ExternalLink, LifeBuoy } from "lucide-react";
 import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
@@ -25,6 +26,7 @@ function getNextPlan(plan: PlanKey): PlanKey | null {
 }
 
 export default function BillingPage() {
+  const searchParams = useSearchParams();
   const [currency, setCurrency] = useState<"AUD" | "NZD">("AUD");
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState<string>("");
@@ -39,7 +41,7 @@ export default function BillingPage() {
     setLoading(plan);
     const res = await fetch("/api/stripe/checkout", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan, currency }),
+      body: JSON.stringify({ plan, currency, activationOffer: searchParams.get("offer") === "activation" }),
     });
     const data = await res.json();
     if (data.url) window.location.href = data.url;
@@ -87,6 +89,16 @@ export default function BillingPage() {
         <h1 className="font-display text-3xl font-bold text-ink-900">Billing & plan</h1>
         <p className="text-ink-600 text-sm mt-1">Upgrade, downgrade, or cancel anytime.</p>
       </div>
+
+      {searchParams.get("offer") === "activation" && currentPlan === "free" && (
+        <div className="mb-8 rounded-3xl border border-clay-200 bg-gradient-to-br from-cream-100 via-white to-sage-50 p-5 shadow-warm">
+          <p className="section-title mb-2">Activation offer</p>
+          <h2 className="font-display text-2xl font-bold text-ink-900">A small first-month thank-you is ready at checkout.</h2>
+          <p className="mt-1 text-sm text-ink-600">
+            If StoryLoop is already helping, this link applies the current first-month activation discount automatically when it is configured in Stripe.
+          </p>
+        </div>
+      )}
 
       {(billingBlocked || billingPastDue) && (
         <div className={`mb-8 rounded-3xl border p-5 shadow-soft ${billingBlocked ? "border-red-100 bg-red-50" : "border-amber-100 bg-amber-50"}`}>
