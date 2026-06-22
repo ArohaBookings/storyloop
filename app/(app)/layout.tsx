@@ -29,7 +29,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex h-screen bg-paper overflow-hidden">
+    <div className="flex h-screen w-full max-w-full overflow-hidden bg-paper">
       <DashboardNav
         userName={profile?.full_name ?? user.email ?? ""}
         isAdminUser={isAdminEmail(user.email)}
@@ -39,7 +39,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         appliedAccessCode={profile?.applied_access_code ?? null}
         subscriptionStatus={profile?.subscription_status ?? null}
       />
-      <main className="flex-1 overflow-y-auto">{children}</main>
+      <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden">{children}</main>
     </div>
   );
 }
