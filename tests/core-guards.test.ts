@@ -11,6 +11,8 @@ import { buildExportPacks } from "../lib/export-packs";
 import { buildPlanningBoard } from "../lib/planning-board";
 import { hasFeatureAccess, normalizePlanKey } from "../lib/plans";
 import { runPrivacyGuardian } from "../lib/privacy-guardian";
+import { hasPhysicalSafetyIncident } from "../lib/safety-incident";
+import { buildPhysicalSafetyFallbackStory } from "../lib/ai/physical-safety-story";
 import { buildUserMessage } from "../lib/ai/prompts";
 import {
   enforceFrameworkForResult,
@@ -105,6 +107,18 @@ test("privacy guardian flags sensitive and unsupported wording", () => {
   assert.equal(result.status, "high");
   assert.equal(result.checks.noDiagnosisLanguage, false);
   assert.equal(result.checks.noUnsupportedClaims, false);
+});
+
+test("privacy guardian flags physical safety and conflict observations", () => {
+  const result = runPrivacyGuardian({
+    observation: "Jax pushed Ruby and Ruby punched Jax.",
+    story: "Ruby needed support with safe bodies and repair.",
+  });
+
+  assert.equal(hasPhysicalSafetyIncident("Jax pushed Ruby and Ruby punched Jax."), true);
+  assert.equal(result.status, "review");
+  assert.equal(result.checks.noPhysicalSafetyIncident, false);
+  assert.ok(result.issues.some((item) => item.id === "physical-safety-incident"));
 });
 
 test("planning board highlights open responses and documentation gaps", () => {
@@ -224,4 +238,52 @@ test("sparse notes reject invented quotes, materials, and peer details", () => {
   assert.ok(issues.some((issue) => issue.includes("cash register")));
   assert.ok(issues.some((issue) => issue.includes("Unsupported child quote")));
   assert.ok(issues.some((issue) => issue.includes("peer")));
+});
+
+test("physical conflict observations use incident-aware story path", () => {
+  const observations = [
+      "Jax and ruby played together and had fun",
+      "Jax pushed ruby and ruby didnt like it",
+      "ruby punched Jax which was unacceptable",
+    ].join("\n");
+  const result = buildPhysicalSafetyFallbackStory({}, {
+    observations,
+    childName: "Ruby",
+    ageGroup: "3-4 years",
+    framework: "NZ",
+    depth: "detailed",
+    tone: "warm",
+  }, [], 0);
+  const guardian = runPrivacyGuardian({ observation: observations, story: result.story });
+
+  assert.equal(result.storyTitle, "Supporting Ruby's Safe Play");
+  assert.ok(result.story.includes("social learning and safety moment"));
+  assert.ok(result.story.includes("physical response was not safe"));
+  assert.equal(/Playtime Adventure|cash register|toy food|follow the interest/i.test(result.story), false);
+  assert.ok(result.wordCount >= getMinimumStoryWords("detailed"));
+  assert.ok(result.outcomes.some((item) => item.includes("Mana atua | Wellbeing")));
+  assert.equal(result.outcomes.some((item) => /Mana aotūroa|Exploration/i.test(item)), false);
+  assert.equal(guardian.status, "review");
+  assert.equal(result.storyQuality?.revisionCount, 0);
+});
+
+test("EYLF physical conflict stories stay Australian and avoid Te Reo", () => {
+  const result = buildPhysicalSafetyFallbackStory({}, {
+    observations: "Jax pushed Ruby. Ruby hit Jax. The educator supported safe bodies.",
+    childName: "Ruby",
+    framework: "AU",
+    depth: "balanced",
+    tone: "professional",
+  });
+  const joined = [
+    result.story,
+    ...result.outcomes,
+    ...result.curriculumLinks,
+    result.whanauConnection,
+    result.familyQuestion,
+  ].join(" ");
+
+  assert.ok(result.outcomes.every((item) => item.includes("EYLF Outcome")));
+  assert.equal(/\b(Te Whāriki|Mana atua|Mana tangata|Mana reo|whānau|kaiako|tamariki|Aotearoa)\b/i.test(joined), false);
+  assert.ok(result.story.includes("social learning and safety moment"));
 });
