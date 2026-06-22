@@ -896,8 +896,8 @@ export default function GeneratePage() {
         )}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-5">
-        <div className="space-y-4">
+      <div className="grid min-w-0 gap-5 xl:grid-cols-2">
+        <div className="min-w-0 space-y-4">
           <div className="card p-6">
             <div className="flex items-center justify-between mb-2">
               <label className="label mb-0">Observations</label>
@@ -1363,11 +1363,11 @@ export default function GeneratePage() {
           )}
         </div>
 
-        <div className="card-warm p-6 min-h-[420px] md:min-h-[500px] flex flex-col md:sticky md:top-4">
-          <div className="flex items-center justify-between mb-4">
+        <div className="story-safe card-warm flex min-h-[420px] min-w-0 max-w-full flex-col overflow-hidden p-4 sm:p-6 md:min-h-[500px] xl:sticky xl:top-4">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="section-title">Your learning story</p>
             {story && (
-              <div className="flex items-center gap-2">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
                 <button onClick={handleGenerate} className="btn-ghost text-xs">
                   <RefreshCw className="w-3 h-3" /> Regenerate
                 </button>
@@ -1400,20 +1400,20 @@ export default function GeneratePage() {
               <p className="text-sm text-ink-500">Usually takes 5-10 seconds</p>
             </div>
           ) : story ? (
-            <div className="flex-1 flex flex-col">
+            <div className="story-safe flex min-w-0 max-w-full flex-1 flex-col">
               {editingStory ? (
                 <div className="flex-1 flex flex-col gap-3">
                   <textarea
                     value={storyDraft}
                     onChange={(event) => setStoryDraft(event.target.value)}
-                    className="input min-h-[320px] flex-1 resize-y leading-relaxed font-display text-base"
+                    className="input story-safe min-h-[320px] flex-1 resize-y leading-relaxed font-display text-base"
                     aria-label="Edit generated learning story"
                   />
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <p className="text-xs text-ink-500">
                       Adjust wording, add teacher voice, then save. Your history copy updates too.
                     </p>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <button onClick={cancelStoryEdit} disabled={savingStory} className="btn-secondary px-4 py-2 text-xs">
                         Cancel
                       </button>
@@ -1425,7 +1425,7 @@ export default function GeneratePage() {
                   </div>
                 </div>
               ) : (
-                <div className="flex-1 text-ink-800 whitespace-pre-wrap leading-relaxed font-display font-normal">
+                <div className="story-safe min-w-0 max-w-full flex-1 whitespace-pre-wrap break-words text-ink-800 leading-relaxed font-display font-normal">
                   {story}
                 </div>
               )}
@@ -1463,11 +1463,11 @@ export default function GeneratePage() {
               />
 
               {parentFriendlyVersion && (
-                <div className="mt-5 rounded-3xl border border-clay-200 bg-white p-5 shadow-soft">
+                <div className="story-safe mt-5 max-w-full overflow-hidden rounded-3xl border border-clay-200 bg-white p-5 shadow-soft">
                   <p className="mb-2 flex items-center gap-2 text-xs font-bold text-ink-900">
                     <MessageCircleHeart className="h-4 w-4 text-clay-700" /> Parent-friendly version
                   </p>
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink-700">{parentFriendlyVersion}</p>
+                  <p className="story-safe whitespace-pre-wrap text-sm leading-relaxed text-ink-700">{parentFriendlyVersion}</p>
                   <button
                     onClick={() => navigator.clipboard.writeText(parentFriendlyVersion)}
                     className="btn-secondary mt-4 px-3 py-2 text-xs"
@@ -1478,7 +1478,7 @@ export default function GeneratePage() {
               )}
 
               {familyPack && (
-                <div className="mt-5 rounded-3xl border border-sage-200 bg-gradient-to-br from-sage-50 via-white to-cream-50 p-5 shadow-soft">
+                <div className="story-safe mt-5 max-w-full overflow-hidden rounded-3xl border border-sage-200 bg-gradient-to-br from-sage-50 via-white to-cream-50 p-5 shadow-soft">
                   <p className="mb-2 flex items-center gap-2 text-xs font-bold text-ink-900">
                     <Sparkles className="h-4 w-4 text-clay-700" /> Family Connection Pack
                   </p>
@@ -1491,7 +1491,7 @@ export default function GeneratePage() {
                       ["Pickup handover", familyPack.handoverNote],
                       ["Teacher check", familyPack.teacherCheck],
                     ].filter(([, value]) => value).map(([label, value]) => (
-                      <div key={label} className="rounded-2xl border border-clay-100 bg-white p-3">
+                      <div key={label} className="min-w-0 rounded-2xl border border-clay-100 bg-white p-3">
                         <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-clay-600">{label}</p>
                         <p className="leading-relaxed">{value}</p>
                       </div>
@@ -1529,7 +1529,7 @@ export default function GeneratePage() {
                 nextSteps.length > 0 ||
                 whanauConnection ||
                 remaining !== "") && (
-                <div className="mt-5 pt-5 border-t border-clay-200 space-y-4">
+                <div className="story-safe mt-5 space-y-4 border-t border-clay-200 pt-5">
                   {learningSummary && (
                     <div>
                       <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">What this learning shows</p>
@@ -1542,7 +1542,7 @@ export default function GeneratePage() {
                       <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Linked outcomes</p>
                       <div className="flex gap-1.5 flex-wrap">
                         {outcomes.map((outcome) => (
-                          <span key={outcome} className="text-xs font-mono bg-white border border-clay-200 text-clay-700 px-2 py-1 rounded-md">
+                          <span key={outcome} className="max-w-full break-words rounded-md border border-clay-200 bg-white px-2 py-1 font-mono text-xs text-clay-700">
                             {outcome}
                           </span>
                         ))}
@@ -1584,7 +1584,7 @@ export default function GeneratePage() {
                       <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Learning dispositions</p>
                       <div className="flex gap-1.5 flex-wrap">
                         {learningDispositions.map((item) => (
-                          <span key={item} className="text-xs font-mono bg-cream-50 border border-clay-200 text-clay-700 px-2 py-1 rounded-md">
+                          <span key={item} className="max-w-full break-words rounded-md border border-clay-200 bg-cream-50 px-2 py-1 font-mono text-xs text-clay-700">
                             {item}
                           </span>
                         ))}
@@ -1597,7 +1597,7 @@ export default function GeneratePage() {
                       <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Social and emotional learning</p>
                       <div className="flex gap-1.5 flex-wrap">
                         {socialEmotionalLinks.map((item) => (
-                          <span key={item} className="text-xs font-mono bg-sage-50 border border-sage-100 text-sage-700 px-2 py-1 rounded-md">
+                          <span key={item} className="max-w-full break-words rounded-md border border-sage-100 bg-sage-50 px-2 py-1 font-mono text-xs text-sage-700">
                             {item}
                           </span>
                         ))}
