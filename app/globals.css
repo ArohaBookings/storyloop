@@ -72,6 +72,24 @@
     @apply text-xs font-bold text-clay-600 uppercase tracking-[0.2em];
   }
 
+  .story-safe {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+
+  .story-safe :where(p, li, span, div, pre, textarea, h1, h2, h3, h4) {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .story-safe pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
   .wide-shell {
     width: min(100%, 1600px);
     margin-inline: auto;
