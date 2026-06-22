@@ -45,13 +45,13 @@ export default function LiveDemo() {
           <p className="text-ink-600 max-w-xl mx-auto">Paste a real observation below and see how StoryLoop turns it into an editable first draft.</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-5">
+        <div className="grid min-w-0 gap-5 lg:grid-cols-2">
           {/* Input */}
-          <div className="card p-6">
+          <div className="card min-w-0 p-6">
             <label className="label">Quick observations</label>
             <textarea value={input} onChange={e => setInput(e.target.value)} rows={8} placeholder={PLACEHOLDER}
               className="input font-mono text-sm leading-relaxed resize-none" />
-            <div className="flex items-center justify-between mt-3">
+            <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs text-ink-500">{input.length}/500</p>
               <button onClick={handleGenerate} disabled={loading || !input.trim()} className="btn-primary text-sm">
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
@@ -62,8 +62,8 @@ export default function LiveDemo() {
           </div>
 
           {/* Output */}
-          <div className="card-warm p-6 relative min-h-[300px] flex flex-col">
-            <div className="flex items-center justify-between mb-3">
+          <div className="story-safe card-warm relative flex min-h-[300px] min-w-0 max-w-full flex-col overflow-hidden p-6">
+            <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <label className="section-title">Your learning story</label>
               {output && (
                 <button onClick={handleCopy} className="btn-ghost text-xs py-1 px-3">
@@ -79,8 +79,8 @@ export default function LiveDemo() {
                 <p className="text-xs text-ink-400 mt-1">Usually 5-10 seconds</p>
               </div>
             ) : output ? (
-              <div className="flex-1 flex flex-col">
-                <div className="flex-1 prose prose-sm text-ink-700 whitespace-pre-wrap leading-relaxed font-display font-normal italic">
+              <div className="story-safe flex min-w-0 flex-1 flex-col">
+                <div className="story-safe prose prose-sm min-w-0 max-w-full flex-1 whitespace-pre-wrap break-words text-ink-700 leading-relaxed font-display font-normal italic">
                   {output}
                 </div>
                 <div className="mt-4 pt-4 border-t border-clay-200 text-center">
