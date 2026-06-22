@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Copy, Download, Loader2, Pencil, RefreshCw, Save, X } from "lucide-react";
 import StoryIntelligence from "@/components/app/StoryIntelligence";
 import LearningLoopPanel from "@/components/app/LearningLoopPanel";
+import ExportPackPanel from "@/components/app/ExportPackPanel";
+import FamilyTranslationPanel from "@/components/app/FamilyTranslationPanel";
 import {
   normalizeDepth,
   normalizeFramework,
@@ -18,6 +20,7 @@ import {
   type StoryTone,
   type TeReoLevel,
 } from "@/lib/story-options";
+import type { PrivacyGuardianResult } from "@/lib/privacy-guardian";
 
 type StoryHistoryItemProps = {
   story: {
@@ -34,6 +37,7 @@ type StoryHistoryItemProps = {
     next_steps: string[] | null;
     metadata: unknown;
   };
+  plan?: string;
 };
 
 function asStringArray(value: unknown) {
@@ -55,7 +59,7 @@ function toDownloadName(childName?: string | null) {
   return (childName || "learning-story").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "learning-story";
 }
 
-export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
+export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryItemProps) {
   const router = useRouter();
   const initialMetadata = asRecord(story.metadata);
   const initialSettings = asRecord(initialMetadata.storySettings);
@@ -101,8 +105,24 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
   );
   const [savingReflection, setSavingReflection] = useState(false);
 
+  useEffect(() => {
+    if (regenerateFramework !== "NZ") {
+      setRegenerateTeReo("low");
+      setRegenerateKowhiti(false);
+    }
+  }, [regenerateFramework]);
+
+  const chooseRegenerateFramework = (framework: StoryFrameworkId) => {
+    setRegenerateFramework(framework);
+    if (framework !== "NZ") {
+      setRegenerateTeReo("low");
+      setRegenerateKowhiti(false);
+    }
+  };
+
   const metadata = currentMetadata;
   const learningSummary = typeof metadata.learningSummary === "string" ? metadata.learningSummary : "";
+  const storyTitle = typeof metadata.storyTitle === "string" ? metadata.storyTitle : "";
   const childVoice = typeof metadata.childVoice === "string" ? metadata.childVoice : "";
   const curriculumLinks = asStringArray(metadata.curriculumLinks);
   const learningDispositions = asStringArray(metadata.learningDispositions);
@@ -124,9 +144,25 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
           strengths?: string[];
         })
       : undefined;
+  const privacyGuardian =
+    metadata.privacyGuardian && typeof metadata.privacyGuardian === "object"
+      ? (metadata.privacyGuardian as PrivacyGuardianResult)
+      : undefined;
   const familyQuestion = typeof metadata.familyQuestion === "string" ? metadata.familyQuestion : "";
   const followUpPrompt = typeof metadata.followUpPrompt === "string" ? metadata.followUpPrompt : "";
+  const familyTranslationPack =
+    metadata.familyTranslationPack && typeof metadata.familyTranslationPack === "object"
+      ? metadata.familyTranslationPack as {
+          language: string;
+          translatedMessage: string;
+          plainEnglishVersion: string;
+          readingLevelNote: string;
+          teacherCheck: string;
+        }
+      : null;
   const wasEdited = Boolean(currentUpdatedAt && currentUpdatedAt !== story.created_at);
+  const currentFramework = normalizeFramework((asRecord(metadata.storySettings).framework as string | undefined) ?? story.location ?? undefined);
+  const familyLinkLabel = currentFramework === "NZ" ? "Family or whānau link" : "Family link";
 
   const startEdit = () => {
     setDraft(storyText);
@@ -195,8 +231,8 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
           tone: regenerateTone,
           depth: regenerateDepth,
           location: regenerateFramework,
-          includeTeReoLevel: regenerateTeReo,
-          includeKowhitiWhakapae: regenerateKowhiti,
+          includeTeReoLevel: regenerateFramework === "NZ" ? regenerateTeReo : "low",
+          includeKowhitiWhakapae: regenerateFramework === "NZ" ? regenerateKowhiti : false,
           includeTapasa: regenerateTapasa,
           pedagogyFocus: regeneratePedagogyFocus,
         }),
@@ -230,14 +266,15 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
         pedagogyLinks: data.pedagogyLinks,
         frameworkEvidence: data.frameworkEvidence,
         storyQuality: data.storyQuality,
+        privacyGuardian: data.privacyGuardian,
         familyQuestion: data.familyQuestion,
         followUpPrompt: data.followUpPrompt,
         storySettings: {
           framework: regenerateFramework,
           tone: regenerateTone,
           depth: regenerateDepth,
-          includeTeReoLevel: regenerateTeReo,
-          includeKowhitiWhakapae: regenerateKowhiti,
+          includeTeReoLevel: regenerateFramework === "NZ" ? regenerateTeReo : "low",
+          includeKowhitiWhakapae: regenerateFramework === "NZ" ? regenerateKowhiti : false,
           includeTapasa: regenerateTapasa,
           pedagogyFocus: regeneratePedagogyFocus,
         },
@@ -297,7 +334,7 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
   };
 
   return (
-    <details className="card p-6 group">
+    <details id={story.id} className="card p-6 group scroll-mt-6">
       <summary className="list-none flex items-start justify-between gap-4 cursor-pointer">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -394,7 +431,7 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
               <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1">Regenerate from original observation</p>
               <p className="text-xs text-ink-600">Use this when the observation is good but you want a different tone, depth, or curriculum lens.</p>
             </div>
-            <div className="grid sm:grid-cols-5 gap-2">
+            <div className={`grid gap-2 ${regenerateFramework === "NZ" ? "sm:grid-cols-5" : "sm:grid-cols-4"}`}>
               <select value={regenerateTone} onChange={(event) => setRegenerateTone(normalizeTone(event.target.value))} className="input text-xs">
                 <option value="natural">Natural educator</option>
                 <option value="warm">Warm reflective</option>
@@ -406,15 +443,17 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
                 <option value="balanced">Balanced</option>
                 <option value="detailed">Detailed</option>
               </select>
-              <select value={regenerateFramework} onChange={(event) => setRegenerateFramework(normalizeFramework(event.target.value))} className="input text-xs">
+              <select value={regenerateFramework} onChange={(event) => chooseRegenerateFramework(normalizeFramework(event.target.value))} className="input text-xs">
                 <option value="AU">EYLF</option>
                 <option value="NZ">Te Whāriki</option>
               </select>
-              <select value={regenerateTeReo} onChange={(event) => setRegenerateTeReo(normalizeTeReoLevel(event.target.value))} className="input text-xs">
-                <option value="low">Low te reo</option>
-                <option value="medium">Medium te reo</option>
-                <option value="high">High te reo</option>
-              </select>
+              {regenerateFramework === "NZ" && (
+                <select value={regenerateTeReo} onChange={(event) => setRegenerateTeReo(normalizeTeReoLevel(event.target.value))} className="input text-xs">
+                  <option value="low">Low te reo</option>
+                  <option value="medium">Medium te reo</option>
+                  <option value="high">High te reo</option>
+                </select>
+              )}
               <select value={regeneratePedagogyFocus} onChange={(event) => setRegeneratePedagogyFocus(normalizePedagogyFocus(event.target.value))} className="input text-xs">
                 <option value="balanced">Balanced lens</option>
                 <option value="intentional_teaching">Intentional teaching</option>
@@ -425,10 +464,12 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex flex-wrap gap-3 text-xs text-ink-600">
-                <label className="inline-flex items-center gap-1.5">
-                  <input type="checkbox" checked={regenerateKowhiti} onChange={(event) => setRegenerateKowhiti(event.target.checked)} className="accent-clay-700" />
-                  Kōwhiti Whakapae
-                </label>
+                {regenerateFramework === "NZ" && (
+                  <label className="inline-flex items-center gap-1.5">
+                    <input type="checkbox" checked={regenerateKowhiti} onChange={(event) => setRegenerateKowhiti(event.target.checked)} className="accent-clay-700" />
+                    Kōwhiti Whakapae
+                  </label>
+                )}
                 <label className="inline-flex items-center gap-1.5">
                   <input type="checkbox" checked={regenerateTapasa} onChange={(event) => setRegenerateTapasa(event.target.checked)} className="accent-clay-700" />
                   Tapasā
@@ -538,7 +579,7 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
 
             {whanauConnection && (
               <div>
-                <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Family or whānau link</p>
+                <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">{familyLinkLabel}</p>
                 <p className="text-sm text-ink-700">{whanauConnection}</p>
               </div>
             )}
@@ -551,8 +592,31 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
           pedagogyLinks={pedagogyLinks}
           frameworkEvidence={frameworkEvidence}
           storyQuality={storyQuality}
+          privacyGuardian={privacyGuardian}
+          plan={plan}
           familyQuestion={familyQuestion}
           followUpPrompt={followUpPrompt}
+        />
+
+        <ExportPackPanel
+          plan={plan}
+          childName={story.child_name}
+          ageGroup={story.age_group}
+          story={storyText}
+          storyTitle={storyTitle}
+          observations={story.observations}
+          learningSummary={learningSummary}
+          curriculumLinks={curriculumLinks}
+          outcomes={currentOutcomes}
+          nextSteps={currentNextSteps}
+          familyQuestion={familyQuestion}
+          framework={currentFramework}
+        />
+
+        <FamilyTranslationPanel
+          storyId={story.id}
+          plan={plan}
+          initialPack={familyTranslationPack}
         />
 
         <LearningLoopPanel
@@ -560,6 +624,8 @@ export default function StoryHistoryItem({ story }: StoryHistoryItemProps) {
           childName={story.child_name}
           nextSteps={currentNextSteps}
           metadata={currentMetadata}
+          framework={currentFramework}
+          plan={plan}
         />
 
         <div className="mt-5 rounded-2xl border border-clay-200 bg-white p-4">

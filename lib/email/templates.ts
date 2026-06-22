@@ -8,7 +8,10 @@ export type LifecycleEmailType =
   | "two_free_stories_used"
   | "free_limit_reached"
   | "paid_no_usage_checkin"
-  | "weekly_value";
+  | "weekly_value"
+  | "feedback_request"
+  | "family_pack_prompt"
+  | "centre_planning_prompt";
 
 type TemplateInput = {
   type: LifecycleEmailType;
@@ -171,7 +174,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
       const ctaUrl = url("/generate", "no_first_story");
       const subject = "Need help creating your first StoryLoop story?";
       const sample =
-        "Today Lily spent time building a tower with blocks. She kept trying after it fell. She asked another child to help and smiled when it stood up.";
+        "Lily built a tall block tower beside Amara. When it fell twice, she paused, moved the wider blocks to the bottom, and asked Amara to hold the base. When it stayed upright, Lily smiled and said, \"It stayed!\"";
       const lines = [
         "The easiest way to test StoryLoop is with one real observation.",
         `Try this style of input: "${sample}"`,
@@ -195,15 +198,14 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
     },
     first_story_created: () => {
       const ctaUrl = url("/generate", "first_story_created");
+      const feedbackUrl = url("/feedback?category=story_quality", "first_story_created");
       const subject = "How did your first StoryLoop story feel?";
-      const useful = `mailto:${EMAIL_REPLY_TO}?subject=StoryLoop%20feedback%20-%20Useful&body=Useful`;
-      const sortOf = `mailto:${EMAIL_REPLY_TO}?subject=StoryLoop%20feedback%20-%20Sort%20of&body=Sort%20of`;
-      const notUseful = `mailto:${EMAIL_REPLY_TO}?subject=StoryLoop%20feedback%20-%20Not%20useful&body=Not%20useful`;
-      const feedbackButtons = `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:18px;"><tr><td><a href="${useful}" style="display:inline-block;margin:0 8px 8px 0;padding:9px 12px;border:1px solid #d7c3b1;border-radius:999px;color:#7a4f34;text-decoration:none;font-size:13px;font-weight:700;">Useful</a></td><td><a href="${sortOf}" style="display:inline-block;margin:0 8px 8px 0;padding:9px 12px;border:1px solid #d7c3b1;border-radius:999px;color:#7a4f34;text-decoration:none;font-size:13px;font-weight:700;">Sort of</a></td><td><a href="${notUseful}" style="display:inline-block;margin:0 0 8px 0;padding:9px 12px;border:1px solid #d7c3b1;border-radius:999px;color:#7a4f34;text-decoration:none;font-size:13px;font-weight:700;">Not useful</a></td></tr></table>`;
+      const feedbackButtons = `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Was the draft useful, nearly there, or off? <a href="${feedbackUrl}" style="color:#7a4f34;font-weight:800;">Send one line of feedback</a>.</p>`;
       const lines = [
         "You created your first StoryLoop draft.",
         "Did it sound like something you would actually edit/use, or did anything feel off?",
-        "Reply with one line, or create another story while the workflow is fresh.",
+        `Send feedback: ${feedbackUrl}`,
+        "Or create another story while the workflow is fresh.",
       ];
       return {
         emailType: "first_story_created",
@@ -227,7 +229,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
       const subject = "You’ve got 1 free StoryLoop story left";
       const lines = [
         "You have 1 free StoryLoop story left this month.",
-        "If it is saving you time, upgrading keeps you turning observations into editable drafts without starting from a blank page.",
+        "If it is saving you time, upgrading keeps you turning observations into editable drafts and unlocks Family Connection Packs, Backlog Rescue, and learning threads.",
         `Your activation offer is ${ACTIVATION_OFFER_LABEL} when you upgrade through this link.`,
         `Create your final free story: ${finalStoryUrl}`,
       ];
@@ -243,7 +245,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
           ctaUrl,
           unsubscribe,
           secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Not ready yet? <a href="${finalStoryUrl}" style="color:#7a4f34;font-weight:800;">Create your final free story</a>.</p>`,
-          body: `<p>You have <strong>1 free StoryLoop story left</strong> this month.</p><p>If it is saving you time, upgrading keeps you turning observations into editable drafts without starting from a blank page.</p><p style="padding:12px 14px;border-radius:14px;background:#f2efe5;color:#51453d;"><strong>Activation offer:</strong> ${esc(ACTIVATION_OFFER_LABEL)}.</p>`,
+          body: `<p>You have <strong>1 free StoryLoop story left</strong> this month.</p><p>If it is saving you time, upgrading keeps you turning observations into editable drafts and unlocks <strong>Family Connection Packs, Backlog Rescue, and learning threads</strong>.</p><p style="padding:12px 14px;border-radius:14px;background:#f2efe5;color:#51453d;"><strong>Activation offer:</strong> ${esc(ACTIVATION_OFFER_LABEL)}.</p>`,
         }),
         text: plain({ title: subject, lines, cta: `Use ${ACTIVATION_OFFER_LABEL}`, ctaUrl, unsubscribe }),
       };
@@ -253,7 +255,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
       const subject = "Keep using StoryLoop for your learning stories";
       const lines = [
         "Your 3 free StoryLoop stories are used for this month.",
-        "Upgrade when you are ready for more stories each month, saved history, editable drafts, Te Whāriki/EYLF support, child voice, dispositions, and next steps.",
+        "Upgrade when you are ready for unlimited stories, Family Connection Packs, Backlog Rescue, learning threads, Te Whāriki/EYLF support, child voice, dispositions, and next steps.",
         `Your activation offer is ${ACTIVATION_OFFER_LABEL} for the first month.`,
       ];
       return {
@@ -267,7 +269,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
           cta: "Upgrade StoryLoop",
           ctaUrl,
           unsubscribe,
-          body: `<p>Your <strong>3 free StoryLoop stories</strong> are used for this month.</p><p>Upgrade when you are ready for more stories each month, saved history, editable drafts, Te Whāriki/EYLF support, child voice, dispositions, and next steps.</p><p style="padding:12px 14px;border-radius:14px;background:#f2efe5;color:#51453d;"><strong>Activation offer:</strong> ${esc(ACTIVATION_OFFER_LABEL)} for the first month.</p>`,
+          body: `<p>Your <strong>3 free StoryLoop stories</strong> are used for this month.</p><p>Upgrade when you are ready for unlimited stories, <strong>Family Connection Packs, Backlog Rescue, learning threads</strong>, Te Whāriki/EYLF support, child voice, dispositions, and next steps.</p><p style="padding:12px 14px;border-radius:14px;background:#f2efe5;color:#51453d;"><strong>Activation offer:</strong> ${esc(ACTIVATION_OFFER_LABEL)} for the first month.</p>`,
         }),
         text: plain({ title: subject, lines, cta: "Upgrade StoryLoop", ctaUrl, unsubscribe }),
       };
@@ -319,6 +321,78 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
           body: `<p>This week's quick StoryLoop prompt:</p><div style="margin:18px 0;padding:16px;border-left:4px solid #5c7e3d;background:#f2f6ec;border-radius:14px;color:#3a332f;">${esc(sample)}</div><p>Paste one moment like this, choose EYLF or Te Whāriki, and let StoryLoop give you a draft to edit.</p>`,
         }),
         text: plain({ title: subject, lines, cta: "Create a story", ctaUrl, unsubscribe }),
+      };
+    },
+    feedback_request: () => {
+      const ctaUrl = url("/feedback?category=feature_request", "feedback_request");
+      const subject = "What would make StoryLoop worth keeping?";
+      const lines = [
+        "You have used StoryLoop enough to know what helps and what still gets in the way.",
+        "Tell us the exact thing that would save you the most time: story quality, family communication, backlog, planning, mobile flow, billing, or something else.",
+        "Your words go straight into the StoryLoop admin dashboard.",
+      ];
+      return {
+        emailType: "feedback_request",
+        subject,
+        marketing: true,
+        ctaUrl,
+        html: layout({
+          title: "What should StoryLoop fix next?",
+          preview: "Your exact feedback goes into the admin dashboard.",
+          cta: "Send feedback",
+          ctaUrl,
+          unsubscribe,
+          body: `<p>You have used StoryLoop enough to know what helps and what still gets in the way.</p><p>Tell us the exact thing that would save you the most time: story quality, family communication, backlog, planning, mobile flow, billing, or something else.</p><p>Your words go straight into the StoryLoop admin dashboard.</p>`,
+        }),
+        text: plain({ title: subject, lines, cta: "Send feedback", ctaUrl, unsubscribe }),
+      };
+    },
+    family_pack_prompt: () => {
+      const ctaUrl = url("/generate", "family_pack_prompt");
+      const subject = "A faster way to turn a story into a family message";
+      const lines = [
+        "A common time sink is rewriting an educator story so families can quickly understand it.",
+        "StoryLoop now gives paid educators a Family Connection Pack: a shorter message, family question, home link, photo caption, and handover note from the saved story.",
+        "Create or open a story, then use Family Pack beside the draft.",
+      ];
+      return {
+        emailType: "family_pack_prompt",
+        subject,
+        marketing: true,
+        ctaUrl,
+        html: layout({
+          title: "Family messages without rewriting the whole story",
+          preview: "Use a saved story to create a family-ready pack.",
+          cta: "Create a story",
+          ctaUrl,
+          unsubscribe,
+          body: `<p>A common time sink is rewriting an educator story so families can quickly understand it.</p><p>StoryLoop now gives paid educators a <strong>Family Connection Pack</strong>: a shorter message, family question, home link, photo caption, and handover note from the saved story.</p><p>Create or open a story, then use Family Pack beside the draft.</p>`,
+        }),
+        text: plain({ title: subject, lines, cta: "Create a story", ctaUrl, unsubscribe }),
+      };
+    },
+    centre_planning_prompt: () => {
+      const ctaUrl = url("/planning", "centre_planning_prompt");
+      const subject = "Turn recent stories into a room planning brief";
+      const lines = [
+        "Centre plans now include Room Planning Briefs.",
+        "StoryLoop reviews recent story evidence and suggests emerging interests, environment ideas, intentional teaching moves, family partnership prompts, and team reflection questions.",
+        "It is built for weekly planning conversations, not extra paperwork.",
+      ];
+      return {
+        emailType: "centre_planning_prompt",
+        subject,
+        marketing: true,
+        ctaUrl,
+        html: layout({
+          title: "A planning brief from the stories already written",
+          preview: "Use recent learning stories to support the next team conversation.",
+          cta: "Open planning brief",
+          ctaUrl,
+          unsubscribe,
+          body: `<p>Centre plans now include <strong>Room Planning Briefs</strong>.</p><p>StoryLoop reviews recent story evidence and suggests emerging interests, environment ideas, intentional teaching moves, family partnership prompts, and team reflection questions.</p><p>It is built for weekly planning conversations, not extra paperwork.</p>`,
+        }),
+        text: plain({ title: subject, lines, cta: "Open planning brief", ctaUrl, unsubscribe }),
       };
     },
   };

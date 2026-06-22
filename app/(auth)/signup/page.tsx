@@ -3,33 +3,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { getPlanByKey, normalizePlanKey, type CurrencyCode, type PlanKey } from "@/lib/plans";
 
-type SignupPlan = "free" | "educator" | "centre";
-type BillingCurrency = "AUD" | "NZD";
-
-const PLAN_COPY: Record<SignupPlan, { label: string; price: Record<BillingCurrency, string>; description: string }> = {
-  free: {
-    label: "Free",
-    price: { AUD: "$0", NZD: "$0" },
-    description: "3 free stories each month. No card needed.",
-  },
-  educator: {
-    label: "Educator",
-    price: { AUD: "$19 AUD/month", NZD: "$21 NZD/month" },
-    description: "7-day trial, then unlimited stories for one educator.",
-  },
-  centre: {
-    label: "Centre",
-    price: { AUD: "$49 AUD/month", NZD: "$55 NZD/month" },
-    description: "7-day trial, then unlimited stories with centre rollout support.",
-  },
-};
-
-function normalisePlan(value: string | null): SignupPlan {
-  return value === "educator" || value === "centre" ? value : "free";
-}
-
-function normaliseCurrency(value: string | null): BillingCurrency {
+function normaliseCurrency(value: string | null): CurrencyCode {
   return value === "NZD" ? "NZD" : "AUD";
 }
 
@@ -40,12 +16,12 @@ export default function SignupPage() {
   const [accessCode, setAccessCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [plan, setPlan] = useState<SignupPlan>("free");
-  const [currency, setCurrency] = useState<BillingCurrency>("AUD");
+  const [plan, setPlan] = useState<PlanKey>("free");
+  const [currency, setCurrency] = useState<CurrencyCode>("AUD");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const selectedPlan = normalisePlan(params.get("plan"));
+    const selectedPlan = normalizePlanKey(params.get("plan"));
     const selectedCurrency = params.get("currency");
     const code = params.get("code");
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -96,8 +72,9 @@ export default function SignupPage() {
     }
   };
 
-  const selectedPlan = PLAN_COPY[plan];
+  const selectedPlan = getPlanByKey(plan);
   const isPaidPlan = plan !== "free";
+  const selectedPrice = `$${selectedPlan.price[currency]}${selectedPlan.price[currency] > 0 ? ` ${currency}/month` : ""}`;
 
   return (
     <div className="min-h-screen bg-paper flex items-center justify-center px-4 relative paper-texture">
@@ -116,7 +93,7 @@ export default function SignupPage() {
           </div>
 
           <h1 className="font-display text-2xl font-bold text-ink-900 mb-1">
-            {isPaidPlan ? `Start ${selectedPlan.label}` : "Start free"}
+            {isPaidPlan ? `Start ${selectedPlan.name}` : "Start free"}
           </h1>
           <p className="text-sm text-ink-500 mb-4">
             {isPaidPlan
@@ -128,11 +105,12 @@ export default function SignupPage() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider">Selected plan</p>
-                <p className="font-display text-xl font-bold text-ink-900">{selectedPlan.label}</p>
+                <p className="font-display text-xl font-bold text-ink-900">{selectedPlan.name}</p>
                 <p className="text-xs text-ink-600 mt-1">{selectedPlan.description}</p>
+                <p className="mt-2 text-[11px] text-clay-700">{selectedPlan.buyer}</p>
               </div>
               <div className="text-right">
-                <p className="font-bold text-ink-900">{selectedPlan.price[currency]}</p>
+                <p className="font-bold text-ink-900">{selectedPrice}</p>
                 {isPaidPlan && <p className="text-[10px] text-clay-600">after trial</p>}
               </div>
             </div>

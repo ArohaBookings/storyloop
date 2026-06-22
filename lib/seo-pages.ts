@@ -323,6 +323,114 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       ...sharedFaqs,
     ],
   },
+  "storypark-educa-export-packs": {
+    slug: "storypark-educa-export-packs",
+    title: "Learning Story Export Packs for Storypark, Educa, Kinderloop, and Brightwheel",
+    description:
+      "Turn one educator-reviewed learning story into copy-ready formats for Storypark, Educa, Kinderloop, and Brightwheel.",
+    kicker: "Export packs",
+    heading: "Keep your current documentation platform and improve the draft before you paste.",
+    intro:
+      "StoryLoop is designed to sit beside the systems educators already use. Export packs rearrange one story into platform-friendly sections without locking centres into a new publishing workflow.",
+    sections: [
+      {
+        title: "Built to reduce switching friction",
+        body:
+          "Educators can draft in StoryLoop, review the quality and privacy checks, then copy the structure that best fits Storypark, Educa, Kinderloop, or Brightwheel.",
+      },
+      {
+        title: "Different formats, same educator judgement",
+        body:
+          "The export pack changes section order and family wording. It does not auto-publish or bypass teacher review.",
+      },
+    ],
+    faqs: [
+      { question: "Does StoryLoop replace Storypark or Educa?", answer: "No. It can work as a drafting and quality layer before educators paste into their existing platform." },
+      { question: "Can I still edit before copying?", answer: "Yes. The story remains editable before it is copied or downloaded." },
+      ...sharedFaqs,
+    ],
+  },
+  "ece-documentation-radar": {
+    slug: "ece-documentation-radar",
+    title: "ECE Documentation Radar for Early Childhood Centres",
+    description:
+      "Supportive documentation visibility for centres: open next steps, children needing fresh observations, family reply gaps, and review queues.",
+    kicker: "Documentation Radar",
+    heading: "See where documentation needs support without turning educators into a leaderboard.",
+    intro:
+      "Documentation Radar helps directors and room leaders notice practical gaps across recent stories, while keeping the focus on support, planning, and educator wellbeing.",
+    sections: [
+      {
+        title: "Supportive signals, not surveillance",
+        body:
+          "The radar highlights children needing a fresh observation, open response ideas, unreviewed stories, and family questions waiting for replies.",
+      },
+      {
+        title: "Planning from actual stories",
+        body:
+          "Signals are built from stories educators already created, so weekly planning conversations can start from real evidence rather than another blank form.",
+      },
+    ],
+    faqs: [
+      { question: "Is this used to rank educators?", answer: "No. The feature is designed for workload support, review health, and planning visibility." },
+      { question: "Does it show personal family details?", answer: "It keeps the signal high-level and points educators back to the story for review." },
+      ...sharedFaqs,
+    ],
+  },
+  "ai-learning-story-privacy-guard": {
+    slug: "ai-learning-story-privacy-guard",
+    title: "AI Learning Story Privacy and Evidence Guard",
+    description:
+      "StoryLoop flags privacy risks, unsupported claims, diagnosis-style language, and extra identifiers before educators share learning stories.",
+    kicker: "Privacy guard",
+    heading: "AI drafting needs a visible privacy and evidence check.",
+    intro:
+      "StoryLoop keeps educator judgement central by showing evidence anchors, assumptions, privacy flags, and teacher review checks beside each draft.",
+    sections: [
+      {
+        title: "Flags risk before sharing",
+        body:
+          "The Privacy + Evidence Guardian looks for sensitive family detail, diagnosis-style wording, unsupported certainty, and identifiers that do not belong in a learning story.",
+      },
+      {
+        title: "Teacher review stays required",
+        body:
+          "StoryLoop does not sign off a story. It gives educators a clearer checklist so they can make the final professional decision.",
+      },
+    ],
+    faqs: [
+      { question: "Does this replace centre privacy policy?", answer: "No. It supports review, but centres should still follow their own policies and family consent settings." },
+      { question: "Does StoryLoop diagnose children?", answer: "No. It is not a diagnostic tool and flags diagnosis-style wording for review." },
+      ...sharedFaqs,
+    ],
+  },
+  "early-childhood-centre-roi-dashboard": {
+    slug: "early-childhood-centre-roi-dashboard",
+    title: "Early Childhood Centre Documentation ROI Dashboard",
+    description:
+      "Show stories created, estimated time saved, backlog cleared, family loops, review completion, and planning signals for centre rollout.",
+    kicker: "Centre ROI",
+    heading: "Prove documentation support is saving time and improving follow-through.",
+    intro:
+      "StoryLoop's Centre Growth dashboard helps directors justify the subscription with practical usage and workload signals, without ranking educators.",
+    sections: [
+      {
+        title: "Designed for directors and owners",
+        body:
+          "The dashboard estimates time saved, stories created, backlog cleared, review completion, and family reply activity.",
+      },
+      {
+        title: "Built around support",
+        body:
+          "Signals are framed as coaching and planning prompts, not performance surveillance.",
+      },
+    ],
+    faqs: [
+      { question: "What does the ROI dashboard measure?", answer: "It measures usage and workflow signals such as stories created, estimated time saved, backlog support, reviews, family loops, and planning gaps." },
+      { question: "Can it help justify a centre subscription?", answer: "Yes. It gives directors a simple way to explain why documentation support is saving staff time." },
+      ...sharedFaqs,
+    ],
+  },
   pricing: {
     slug: "pricing",
     title: "StoryLoop Pricing",
@@ -530,6 +638,86 @@ export const SEO_PAGES: Record<string, SeoPage> = {
         label: "Education Review Office: Te Ara Poutama indicators of quality",
         url: "https://www.ero.govt.nz/how-ero-reviews/early-childhood-services/akarangi-quality-evaluation/te-ara-poutama-indicators-of-quality-for-early-childhood-education-what-matters",
       },
+    ],
+  },
+  "family-connection-pack-learning-stories": {
+    slug: "family-connection-pack-learning-stories",
+    title: "Family Connection Packs for Learning Stories",
+    description:
+      "Turn educator learning stories into family-ready messages, open questions, home links, photo captions, and pickup handover notes.",
+    kicker: "Family communication",
+    heading: "A family message from the story you already wrote.",
+    intro:
+      "StoryLoop's Family Connection Pack helps educators turn a saved learning story into clear family communication without rewriting the whole draft from scratch.",
+    sections: [
+      {
+        title: "More than a shorter version",
+        body:
+          "The pack can include a family-ready message, an open question, a simple home connection, a photo caption, a pickup handover note, and a teacher check before sharing.",
+      },
+      {
+        title: "Grounded in the saved story",
+        body:
+          "StoryLoop works from the educator-approved story and metadata, so it should not invent home routines, family background, culture, diagnosis, or extra child quotes.",
+      },
+      {
+        title: "Built for busy pickup and app updates",
+        body:
+          "Educators can use the pack when they need a quick, respectful way to help families understand the learning behind a moment.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Does the Family Connection Pack replace educator judgement?",
+        answer:
+          "No. It gives educators copy-ready options to review, edit, and decide whether to share with families.",
+      },
+      {
+        question: "Which plan includes Family Connection Packs?",
+        answer:
+          "Family Connection Packs are included on Educator and Centre plans.",
+      },
+      ...sharedFaqs,
+    ],
+  },
+  "room-planning-brief-early-childhood": {
+    slug: "room-planning-brief-early-childhood",
+    title: "Room Planning Briefs from Early Childhood Learning Stories",
+    description:
+      "Use recent learning stories to create emerging-interest summaries, environment ideas, intentional teaching moves, and team reflection prompts.",
+    kicker: "Centre planning",
+    heading: "Turn learning stories into a weekly room planning conversation.",
+    intro:
+      "Room Planning Briefs help centre teams look across recent story evidence and decide what to notice, set up, ask families, and discuss next.",
+    sections: [
+      {
+        title: "Planning from evidence already captured",
+        body:
+          "Instead of asking educators to complete another planning form, StoryLoop uses recent story summaries, next steps, outcomes, and educator observations as the starting point.",
+      },
+      {
+        title: "Practical team prompts",
+        body:
+          "The brief can suggest emerging interests, environment setups, intentional teaching moves, family partnership prompts, and reflection questions for the next team conversation.",
+      },
+      {
+        title: "A support tool, not a full assessment",
+        body:
+          "The brief should be reviewed and adapted by educators. It does not rank children, diagnose, or replace local curriculum judgement.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Who is the Room Planning Brief for?",
+        answer:
+          "It is designed for centre teams, room leaders, and educational leaders who want recent documentation to feed practical planning.",
+      },
+      {
+        question: "Which plan includes Room Planning Briefs?",
+        answer:
+          "Room Planning Briefs are included on the Centre plan.",
+      },
+      ...sharedFaqs,
     ],
   },
   "responsible-ai-ece-documentation": {

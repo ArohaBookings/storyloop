@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, CircleDot, Loader2, MessageCircleHeart, Save } from "lucide-react";
+import { CheckCircle2, CircleDot, Copy, Loader2, LockKeyhole, MessageCircleHeart, Save } from "lucide-react";
+import Link from "next/link";
+import { hasFeatureAccess } from "@/lib/plans";
 
 type NextStepStatus = "planned" | "tried" | "continue";
 
@@ -63,13 +65,21 @@ export default function LearningLoopPanel({
   childName,
   nextSteps,
   metadata: rawMetadata,
+  framework = "AU",
+  plan = "free",
 }: {
   storyId: string;
   childName: string | null;
   nextSteps: string[];
   metadata: unknown;
+  framework?: string | null;
+  plan?: string;
 }) {
   const metadata = useMemo(() => record(rawMetadata), [rawMetadata]);
+  const isNzFramework = framework === "NZ";
+  const familyTerm = isNzFramework ? "whānau" : "family";
+  const canUseFamilyReplyLoop = hasFeatureAccess(plan, "familyReplyLoop");
+  const familyQuestion = typeof metadata.familyQuestion === "string" ? metadata.familyQuestion : "";
   const [progress, setProgress] = useState(() => initialProgress(nextSteps, metadata));
   const [whanauVoice, setWhanauVoice] = useState(
     typeof metadata.whanauVoice === "string" ? metadata.whanauVoice : ""
@@ -106,10 +116,10 @@ export default function LearningLoopPanel({
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          whanauVoice,
           nextStepProgress: progress,
           reviewChecklist: checklist,
           markReviewed,
+          ...(canUseFamilyReplyLoop ? { whanauVoice } : {}),
         }),
       });
       const data = await response.json();
@@ -171,19 +181,48 @@ export default function LearningLoopPanel({
         <div className="mb-4 flex items-start gap-3">
           <MessageCircleHeart className="mt-0.5 h-5 w-5 text-clay-700" />
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-clay-700">Whānau voice bridge</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-clay-700">
+              {isNzFramework ? "Whānau voice bridge" : "Family voice bridge"}
+            </p>
             <h3 className="font-display text-lg font-bold text-ink-900">Bring home knowledge back into planning</h3>
             <p className="mt-1 text-xs text-ink-600">
-              Capture a response, connection, home-language phrase, or aspiration shared by family or whānau.
+              Capture a response, connection, home-language phrase, or aspiration shared by {familyTerm}.
             </p>
           </div>
         </div>
-        <textarea
-          value={whanauVoice}
-          onChange={(event) => setWhanauVoice(event.target.value)}
-          className="input min-h-28 resize-y text-sm"
-          placeholder={`${childName || "The family"} shared... At home they have noticed...`}
-        />
+        {familyQuestion && (
+          <div className="mb-3 rounded-xl border border-clay-100 bg-white p-3 text-xs leading-relaxed text-ink-700">
+            <p className="mb-1 font-bold text-ink-900">Question to ask {familyTerm}</p>
+            <p>{familyQuestion}</p>
+            <button
+              type="button"
+              onClick={() => navigator.clipboard.writeText(familyQuestion)}
+              className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-clay-700 hover:text-clay-900"
+            >
+              <Copy className="h-3 w-3" /> Copy question
+            </button>
+          </div>
+        )}
+        {canUseFamilyReplyLoop ? (
+          <textarea
+            value={whanauVoice}
+            onChange={(event) => setWhanauVoice(event.target.value)}
+            className="input min-h-28 resize-y text-sm"
+            placeholder={`${childName || "The family"} shared... At home they have noticed...`}
+          />
+        ) : (
+          <div className="rounded-xl border border-clay-200 bg-white p-4 text-xs leading-relaxed text-ink-600">
+            <p className="mb-1 flex items-center gap-1.5 font-bold text-clay-700">
+              <LockKeyhole className="h-3.5 w-3.5" /> Family Reply Loop is on Educator Pro
+            </p>
+            <p>
+              Pro carries family replies, home-language notes, and aspirations into future stories as context without treating them as today&apos;s evidence.
+            </p>
+            <Link href="/billing?feature=family-reply-loop" className="mt-2 inline-block font-bold text-clay-700 hover:text-clay-900">
+              Compare Pro features
+            </Link>
+          </div>
+        )}
       </section>
 
       <section className="rounded-2xl border border-clay-200 bg-white p-4 xl:col-span-2">
@@ -202,7 +241,9 @@ export default function LearningLoopPanel({
                     }
                     className="mt-0.5 accent-clay-700"
                   />
-                  {item.label}
+                  {item.key === "culture"
+                    ? `Identity, language, culture, and ${familyTerm} context are represented respectfully`
+                    : item.label}
                 </label>
               ))}
             </div>

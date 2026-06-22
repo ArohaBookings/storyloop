@@ -1,18 +1,63 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, Check } from "lucide-react";
+import { Loader2, Check, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [hasRecoverySession, setHasRecoverySession] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const checkSession = async () => {
+      const tokenHash = new URLSearchParams(window.location.search).get("token_hash");
+      if (tokenHash) {
+        const { error: verifyError } = await supabase.auth.verifyOtp({
+          type: "recovery",
+          token_hash: tokenHash,
+        });
+        if (!mounted) return;
+        if (verifyError) {
+          setError(verifyError.message);
+          setHasRecoverySession(false);
+        } else {
+          setHasRecoverySession(true);
+        }
+        setCheckingSession(false);
+        return;
+      }
+
+      const { data } = await supabase.auth.getSession();
+      if (!mounted) return;
+      setHasRecoverySession(Boolean(data.session));
+      setCheckingSession(false);
+    };
+
+    void checkSession();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || session) {
+        setHasRecoverySession(Boolean(session));
+        setCheckingSession(false);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      listener.subscription.unsubscribe();
+    };
+  }, [supabase.auth]);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +89,25 @@ export default function ResetPasswordPage() {
               </div>
               <h3 className="font-display text-xl font-bold text-ink-900 mb-2">Password updated</h3>
               <p className="text-sm text-ink-600">Redirecting you to the dashboard...</p>
+            </div>
+          ) : checkingSession ? (
+            <div className="text-center py-8">
+              <Loader2 className="w-8 h-8 animate-spin text-clay-500 mx-auto mb-4" />
+              <h1 className="font-display text-xl font-bold text-ink-900">Checking reset link</h1>
+              <p className="text-sm text-ink-500 mt-2">This should only take a moment.</p>
+            </div>
+          ) : !hasRecoverySession ? (
+            <div className="text-center py-6">
+              <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-7 h-7 text-amber-700" />
+              </div>
+              <h1 className="font-display text-xl font-bold text-ink-900 mb-2">Reset link expired or already used</h1>
+              <p className="text-sm text-ink-600">
+                {error || "Please request a fresh password reset email. For security, reset links only work once."}
+              </p>
+              <Link href="/forgot-password" className="btn-primary mt-5 w-full justify-center">
+                Send a new reset link
+              </Link>
             </div>
           ) : (
             <>

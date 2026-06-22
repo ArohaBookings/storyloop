@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/admin", "/dashboard", "/generate", "/history", "/billing", "/support", "/api"],
+      disallow: ["/admin", "/dashboard", "/generate", "/history", "/billing", "/support", "/feedback", "/planning", "/api"],
     },
     sitemap: "https://storyloop.space/sitemap.xml",
   };

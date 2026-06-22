@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/admin-auth";
 import { createAdminSupabase, logAdminAction } from "@/lib/supabase/admin";
 import { sendManualLifecycleEmail } from "@/lib/email/automation";
+import { sendPasswordResetEmail } from "@/lib/email/password-reset";
 import type { LifecycleEmailType } from "@/lib/email/templates";
+import { PLAN_ORDER, normalizePlanKey } from "@/lib/plans";
 
 const MANUAL_EMAIL_TYPES = new Set<LifecycleEmailType>([
   "welcome",
@@ -12,6 +14,9 @@ const MANUAL_EMAIL_TYPES = new Set<LifecycleEmailType>([
   "free_limit_reached",
   "paid_no_usage_checkin",
   "weekly_value",
+  "feedback_request",
+  "family_pack_prompt",
+  "centre_planning_prompt",
 ]);
 
 export async function GET(request: NextRequest) {
@@ -39,10 +44,8 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case "reset_password": {
-        const { error } = await sb.auth.admin.generateLink({ type: "recovery", email });
-        if (error) throw error;
-        // Supabase also sends email automatically with generateLink of type recovery
-        await logAdminAction("reset_password", "user", userId, { email });
+        const result = await sendPasswordResetEmail(email);
+        await logAdminAction("reset_password", "user", userId, { email, status: result.status });
         return NextResponse.json({ message: `Password reset sent to ${email}` });
       }
       case "magic_link": {
@@ -52,9 +55,16 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ message: "Magic link generated", link: data.properties?.action_link });
       }
       case "set_plan": {
-        await sb.from("profiles").update({ plan, subscription_status: plan === "free" ? "cancelled" : "admin_override" }).eq("id", userId);
-        await logAdminAction("set_plan", "user", userId, { email, plan });
-        return NextResponse.json({ message: `Plan set to ${plan}` });
+        if (typeof plan !== "string" || (!PLAN_ORDER.includes(plan as (typeof PLAN_ORDER)[number]) && plan !== "centre")) {
+          return NextResponse.json({ error: "Unknown plan" }, { status: 400 });
+        }
+        const normalizedPlan = normalizePlanKey(plan);
+        await sb.from("profiles").update({
+          plan: normalizedPlan,
+          subscription_status: normalizedPlan === "free" ? "cancelled" : "admin_override",
+        }).eq("id", userId);
+        await logAdminAction("set_plan", "user", userId, { email, plan: normalizedPlan });
+        return NextResponse.json({ message: `Plan set to ${normalizedPlan}` });
       }
       case "disable": {
         await sb.auth.admin.updateUserById(userId, { ban_duration: "876600h" });

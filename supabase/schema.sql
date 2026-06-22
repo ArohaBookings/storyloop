@@ -204,6 +204,20 @@ create table if not exists public.admin_audit_log (
   created_at timestamptz default now()
 );
 
+create table if not exists public.feedback_submissions (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references public.profiles(id) on delete set null,
+  email text,
+  category text not null default 'general',
+  page text,
+  message text not null,
+  metadata jsonb not null default '{}'::jsonb,
+  status text not null default 'new',
+  admin_notes text,
+  created_at timestamptz not null default now(),
+  reviewed_at timestamptz
+);
+
 create table if not exists public.email_events (
   id uuid default gen_random_uuid() primary key,
   email_type text not null,
@@ -240,6 +254,7 @@ alter table public.stories enable row level security;
 alter table public.admin_audit_log enable row level security;
 alter table public.email_events enable row level security;
 alter table public.email_unsubscribes enable row level security;
+alter table public.feedback_submissions enable row level security;
 
 -- Users can only see/edit their own data
 drop policy if exists "own_profile" on public.profiles;
@@ -268,6 +283,16 @@ create policy "own_email_events" on public.email_events
 
 drop policy if exists "own_email_unsubscribes" on public.email_unsubscribes;
 create policy "own_email_unsubscribes" on public.email_unsubscribes
+  for select
+  using ((select auth.uid()) = user_id);
+
+drop policy if exists "own_feedback_insert" on public.feedback_submissions;
+create policy "own_feedback_insert" on public.feedback_submissions
+  for insert
+  with check ((select auth.uid()) = user_id);
+
+drop policy if exists "own_feedback_select" on public.feedback_submissions;
+create policy "own_feedback_select" on public.feedback_submissions
   for select
   using ((select auth.uid()) = user_id);
 
@@ -469,6 +494,13 @@ create index if not exists idx_email_events_story on public.email_events(related
 create index if not exists idx_email_unsubscribes_user on public.email_unsubscribes(user_id);
 create unique index if not exists idx_email_unsubscribes_email_unique
   on public.email_unsubscribes(email);
+create index if not exists idx_feedback_submissions_user_created
+  on public.feedback_submissions(user_id, created_at desc);
+create index if not exists idx_feedback_submissions_status_created
+  on public.feedback_submissions(status, created_at desc);
+create index if not exists idx_feedback_submissions_category_created
+  on public.feedback_submissions(category, created_at desc);
 
 grant select on table public.email_events to authenticated;
 grant select on table public.email_unsubscribes to authenticated;
+grant insert, select on table public.feedback_submissions to authenticated;

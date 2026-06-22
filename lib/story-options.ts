@@ -1,3 +1,5 @@
+import type { PrivacyGuardianResult } from "@/lib/privacy-guardian";
+
 export type StoryTone = "natural" | "warm" | "professional" | "simple";
 export type StoryDepth = "concise" | "balanced" | "detailed";
 export type TeReoLevel = "low" | "medium" | "high";
@@ -24,6 +26,10 @@ export type StoryPreferences = {
   languageStyle?: "plain_ece";
   emphasis?: string[];
   notes?: string;
+  approvedStoryExample?: string;
+  privacyRules?: string[];
+  qualityNotes?: string;
+  exportStyle?: "storypark" | "educa" | "kinderloop" | "brightwheel" | "balanced";
 };
 
 export type StoryMetadata = {
@@ -49,6 +55,7 @@ export type StoryMetadata = {
     issues?: string[];
     strengths?: string[];
   };
+  privacyGuardian?: PrivacyGuardianResult;
   inputMethod?: "typed" | "paste" | "voice" | "sample" | "backlog";
   familyQuestion?: string;
   followUpPrompt?: string;
@@ -209,6 +216,17 @@ export function sanitizeStoryPreferences(value: unknown): StoryPreferences {
   const rawPedagogyFocus = cleanString(source.pedagogyFocus);
   const notes = cleanString(source.notes);
   const centrePhilosophy = cleanString(source.centrePhilosophy).slice(0, 1200);
+  const approvedStoryExample = cleanString(source.approvedStoryExample).slice(0, 2000);
+  const qualityNotes = cleanString(source.qualityNotes).slice(0, 1000);
+  const rawExportStyle = cleanString(source.exportStyle);
+  const exportStyle =
+    rawExportStyle === "storypark" ||
+    rawExportStyle === "educa" ||
+    rawExportStyle === "kinderloop" ||
+    rawExportStyle === "brightwheel" ||
+    rawExportStyle === "balanced"
+      ? rawExportStyle
+      : undefined;
 
   return {
     defaultFramework: rawDefaultFramework ? normalizeFramework(rawDefaultFramework) : undefined,
@@ -225,6 +243,10 @@ export function sanitizeStoryPreferences(value: unknown): StoryPreferences {
     languageStyle: "plain_ece",
     emphasis: sanitiseStringArray(source.emphasis),
     notes: notes || undefined,
+    approvedStoryExample: approvedStoryExample || undefined,
+    privacyRules: sanitiseStringArray(source.privacyRules).slice(0, 8),
+    qualityNotes: qualityNotes || undefined,
+    exportStyle,
   };
 }
 
@@ -249,6 +271,10 @@ export function mergeStoryPreferences(
         languageStyle: current.languageStyle ?? merged.languageStyle ?? "plain_ece",
         emphasis: dedupeStrings([...(merged.emphasis ?? []), ...(current.emphasis ?? [])]),
         notes: current.notes ?? merged.notes,
+        approvedStoryExample: current.approvedStoryExample ?? merged.approvedStoryExample,
+        privacyRules: dedupeStrings([...(merged.privacyRules ?? []), ...(current.privacyRules ?? [])]).slice(0, 8),
+        qualityNotes: current.qualityNotes ?? merged.qualityNotes,
+        exportStyle: current.exportStyle ?? merged.exportStyle,
       };
     },
     {
@@ -258,6 +284,7 @@ export function mergeStoryPreferences(
       preferredStoryLength: "balanced",
       likedPhrases: [],
       avoidedPhrases: [],
+      privacyRules: [],
       includeTeReoLevel: "low",
       includeKowhitiWhakapae: false,
       includeTapasa: false,

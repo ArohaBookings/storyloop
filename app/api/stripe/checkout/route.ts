@@ -2,25 +2,50 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getPlanByKey, normalizePlanKey, type CurrencyCode, type PlanKey } from "@/lib/plans";
 import { getRuntimeSecret } from "@/lib/runtime-secrets";
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-05-27.dahlia" });
 }
 
-function normaliseCurrency(value: unknown) {
+function normaliseCurrency(value: unknown): CurrencyCode {
   return value === "NZD" ? "NZD" : "AUD";
 }
 
-function getPriceId(plan: string, currency: string) {
+function getPriceId(plan: PlanKey, currency: CurrencyCode) {
   if (currency === "NZD") {
     if (plan === "educator") return process.env.STRIPE_PRICE_EDUCATOR_NZD;
-    if (plan === "centre") return process.env.STRIPE_PRICE_CENTRE_NZD;
+    if (plan === "educator_pro") return process.env.STRIPE_PRICE_EDUCATOR_PRO_NZD;
+    if (plan === "centre_starter") return process.env.STRIPE_PRICE_CENTRE_STARTER_NZD ?? process.env.STRIPE_PRICE_CENTRE_NZD;
+    if (plan === "centre_growth") return process.env.STRIPE_PRICE_CENTRE_GROWTH_NZD;
   } else {
     if (plan === "educator") return process.env.STRIPE_PRICE_EDUCATOR_AUD;
-    if (plan === "centre") return process.env.STRIPE_PRICE_CENTRE_AUD;
+    if (plan === "educator_pro") return process.env.STRIPE_PRICE_EDUCATOR_PRO_AUD;
+    if (plan === "centre_starter") return process.env.STRIPE_PRICE_CENTRE_STARTER_AUD ?? process.env.STRIPE_PRICE_CENTRE_AUD;
+    if (plan === "centre_growth") return process.env.STRIPE_PRICE_CENTRE_GROWTH_AUD;
   }
   return null;
+}
+
+function buildLineItem(plan: PlanKey, currency: CurrencyCode): Stripe.Checkout.SessionCreateParams.LineItem {
+  const planDetails = getPlanByKey(plan);
+  const priceId = getPriceId(plan, currency);
+  if (priceId) return { price: priceId, quantity: 1 };
+
+  return {
+    quantity: 1,
+    price_data: {
+      currency: currency.toLowerCase(),
+      unit_amount: planDetails.price[currency] * 100,
+      recurring: { interval: "month" },
+      product_data: {
+        name: `StoryLoop ${planDetails.name}`,
+        description: planDetails.description,
+        metadata: { plan },
+      },
+    },
+  };
 }
 
 export async function POST(request: NextRequest) {
@@ -33,8 +58,10 @@ export async function POST(request: NextRequest) {
 
     const { plan, currency, activationOffer } = await request.json();
     const selectedCurrency = normaliseCurrency(currency);
-    const priceId = getPriceId(plan, selectedCurrency);
-    if (!priceId) return NextResponse.json({ error: "Invalid plan or price not configured" }, { status: 400 });
+    const selectedPlan = normalizePlanKey(plan);
+    if (selectedPlan === "free") {
+      return NextResponse.json({ error: "Choose a paid plan before starting checkout" }, { status: 400 });
+    }
 
     const profile = await getOrCreateProfile(user);
 
@@ -59,16 +86,16 @@ export async function POST(request: NextRequest) {
       mode: "subscription",
       client_reference_id: user.id,
       payment_method_types: ["card"],
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: [buildLineItem(selectedPlan, selectedCurrency)],
       success_url: `${origin}/dashboard?upgraded=true`,
       cancel_url: `${origin}/billing`,
       allow_promotion_codes: !activationCoupon,
       discounts: activationCoupon ? [{ coupon: activationCoupon }] : undefined,
       subscription_data: {
         trial_period_days: 7,
-        metadata: { user_id: user.id, plan, currency: selectedCurrency, activation_offer: activationCoupon ? "true" : "false" },
+        metadata: { user_id: user.id, plan: selectedPlan, currency: selectedCurrency, activation_offer: activationCoupon ? "true" : "false" },
       },
-      metadata: { user_id: user.id, plan, currency: selectedCurrency, activation_offer: activationCoupon ? "true" : "false" },
+      metadata: { user_id: user.id, plan: selectedPlan, currency: selectedCurrency, activation_offer: activationCoupon ? "true" : "false" },
     });
 
     return NextResponse.json({ url: session.url });

@@ -2,32 +2,14 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { AlertTriangle, Check, Loader2, CreditCard, ExternalLink, LifeBuoy } from "lucide-react";
+import { AlertTriangle, Check, Loader2, CreditCard, ExternalLink, LifeBuoy, ShieldCheck } from "lucide-react";
 import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
-
-type PlanKey = "free" | "educator" | "centre";
-
-const PLANS_AUD = [
-  { name: "Free", price: 0, key: "free" as const, stories: "3 stories per month", features: ["3 stories/month", "EYLF or Te Whāriki alignment", "Story history"] },
-  { name: "Educator", price: 19, key: "educator" as const, stories: "Unlimited stories", features: ["Unlimited stories", "Voice notes", "All tone styles", "Editable story history", "Email support"], popular: true },
-  { name: "Centre", price: 49, key: "centre" as const, stories: "Unlimited stories for your rollout", features: ["Everything in Educator", "Shared billing", "Priority support", "Team rollout planning", "Admin oversight"] },
-];
-const PLANS_NZD = PLANS_AUD.map(p => ({ ...p, price: p.price === 0 ? 0 : p.price === 19 ? 21 : 55 }));
-
-function normalizePlan(plan: unknown): PlanKey {
-  return plan === "educator" || plan === "centre" ? plan : "free";
-}
-
-function getNextPlan(plan: PlanKey): PlanKey | null {
-  if (plan === "free") return "educator";
-  if (plan === "educator") return "centre";
-  return null;
-}
+import { getNextPlan, getPlanDefinitions, normalizePlanKey, type CurrencyCode, type PlanKey } from "@/lib/plans";
 
 export default function BillingPage() {
   const searchParams = useSearchParams();
-  const [currency, setCurrency] = useState<"AUD" | "NZD">("AUD");
+  const [currency, setCurrency] = useState<CurrencyCode>("AUD");
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState<string>("");
 
@@ -64,8 +46,8 @@ export default function BillingPage() {
     await handleCheckout(plan);
   };
 
-  const plans = currency === "AUD" ? PLANS_AUD : PLANS_NZD;
-  const currentPlan = normalizePlan(profile?.plan);
+  const plans = getPlanDefinitions(currency);
+  const currentPlan = normalizePlanKey(profile?.plan);
   const nextPlan = getNextPlan(currentPlan);
   const nextPlanDetails = nextPlan ? plans.find(plan => plan.key === nextPlan) : null;
   const limit = getMonthlyStoryLimit(profile ?? {});
@@ -177,12 +159,20 @@ export default function BillingPage() {
               <h2 className="font-display text-2xl font-bold text-ink-900">
                 {currentPlan === "free"
                   ? "Unlock unlimited stories before the monthly limit slows you down."
-                  : "Move centre-wide when more educators need the same workflow."}
+                  : currentPlan === "educator"
+                    ? "Add family reply loops, translation, and deeper quality review."
+                    : currentPlan === "educator_pro"
+                      ? "Move centre-wide when more educators need the same workflow."
+                      : "Add director-level ROI and rollout visibility."}
               </h2>
               <p className="text-sm text-ink-600 mt-2 max-w-2xl">
                 {currentPlan === "free"
-                  ? "Educator gives you unlimited learning stories, voice notes, editable history, and support through secure Stripe checkout."
-                  : "Centre keeps billing, rollout support, and admin oversight in one Stripe-managed subscription."}
+                  ? "Educator unlocks unlimited stories, Observation Coach prompts, export packs, Family Connection Packs, Backlog Rescue, and learning threads."
+                  : currentPlan === "educator"
+                    ? "Educator Pro adds family replies, translation/readability help, advanced quality details, and stronger continuity across stories."
+                    : currentPlan === "educator_pro"
+                      ? "Centre Starter adds Planning Board, Documentation Radar, centre calibration, rollout support, and admin oversight."
+                      : "Centre Growth adds ROI reporting, multi-room analytics, rollout health, and advanced export settings."}
               </p>
             </div>
             <button onClick={() => handlePlanUpgrade(nextPlanDetails.key)} disabled={upgradeLoading} className="btn-primary flex-shrink-0">
@@ -206,7 +196,7 @@ export default function BillingPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
         {plans.map(plan => {
           const isCurrent = plan.key === currentPlan;
           const isNext = plan.key === nextPlan;
@@ -218,10 +208,12 @@ export default function BillingPage() {
               {!plan.popular && isNext && <div className="inline-flex items-center bg-clay-100 text-clay-700 text-[10px] font-bold px-2 py-1 rounded-full w-fit mb-2">BEST NEXT STEP</div>}
               <p className={`font-semibold text-sm ${plan.popular ? "text-cream-300" : "text-clay-700"}`}>{plan.name}</p>
               <div className="flex items-end gap-1 mt-1 mb-2">
-                <span className="font-display text-4xl font-bold">${plan.price}</span>
-                {plan.price > 0 && <span className={`mb-1 text-xs ${plan.popular ? "text-ink-400" : "text-ink-500"}`}>{currency}/mo</span>}
+                <span className="font-display text-4xl font-bold">${plan.displayPrice}</span>
+                {plan.displayPrice > 0 && <span className={`mb-1 text-xs ${plan.popular ? "text-ink-400" : "text-ink-500"}`}>{currency}/mo</span>}
               </div>
+              {plan.priceNote && <p className={`-mt-1 mb-2 text-[11px] ${plan.popular ? "text-ink-400" : "text-ink-500"}`}>{plan.priceNote}</p>}
               <p className={`text-xs mb-4 ${plan.popular ? "text-cream-300" : "text-ink-500"}`}>{plan.stories}</p>
+              <p className={`mb-4 text-xs leading-relaxed ${plan.popular ? "text-ink-300" : "text-ink-600"}`}>{plan.description}</p>
               <ul className="space-y-2 flex-1 mb-5">
                 {plan.features.map(f => (
                   <li key={f} className="flex items-start gap-2 text-xs">
@@ -230,6 +222,17 @@ export default function BillingPage() {
                   </li>
                 ))}
               </ul>
+              <div className={`mb-5 rounded-2xl border p-3 ${plan.popular ? "border-ink-700 bg-ink-800/60" : "border-clay-100 bg-cream-50"}`}>
+                <p className={`mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${plan.popular ? "text-cream-300" : "text-clay-700"}`}>
+                  <ShieldCheck className="h-3.5 w-3.5" /> Solves
+                </p>
+                <p className={`mb-2 text-[11px] leading-relaxed ${plan.popular ? "text-ink-300" : "text-ink-600"}`}>{plan.buyer}</p>
+                <ul className="space-y-1.5">
+                  {plan.painSolved.slice(0, 1).map((pain) => (
+                    <li key={pain} className={`text-[11px] leading-relaxed ${plan.popular ? "text-ink-300" : "text-ink-600"}`}>{pain}</li>
+                  ))}
+                </ul>
+              </div>
               <button onClick={() => !isCurrent && isPaidChoice && handlePlanUpgrade(plan.key)} disabled={isCurrent || planLoading || plan.key === "free"}
                 className={`py-2.5 rounded-xl font-semibold text-xs transition-all ${
                   isCurrent ? "bg-cream-100 text-clay-700 cursor-default" :

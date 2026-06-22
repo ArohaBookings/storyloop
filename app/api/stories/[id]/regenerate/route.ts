@@ -112,19 +112,23 @@ export async function POST(request: NextRequest, context: RouteContext) {
           ? existingSettings.depth
           : profilePreferences.depthPreference
     );
-    const includeTeReoLevel = normalizeTeReoLevel(
-      typeof body.includeTeReoLevel === "string"
-        ? body.includeTeReoLevel
-        : typeof existingSettings.includeTeReoLevel === "string"
-          ? existingSettings.includeTeReoLevel
-          : profilePreferences.includeTeReoLevel
-    );
+    const includeTeReoLevel = framework === "NZ"
+      ? normalizeTeReoLevel(
+          typeof body.includeTeReoLevel === "string"
+            ? body.includeTeReoLevel
+            : typeof existingSettings.includeTeReoLevel === "string"
+              ? existingSettings.includeTeReoLevel
+              : profilePreferences.includeTeReoLevel
+        )
+      : "low";
     const includeKowhitiWhakapae =
-      typeof body.includeKowhitiWhakapae === "boolean"
-        ? body.includeKowhitiWhakapae
-        : typeof existingSettings.includeKowhitiWhakapae === "boolean"
-          ? existingSettings.includeKowhitiWhakapae
-          : profilePreferences.includeKowhitiWhakapae ?? false;
+      framework === "NZ"
+        ? typeof body.includeKowhitiWhakapae === "boolean"
+          ? body.includeKowhitiWhakapae
+          : typeof existingSettings.includeKowhitiWhakapae === "boolean"
+            ? existingSettings.includeKowhitiWhakapae
+            : profilePreferences.includeKowhitiWhakapae ?? false
+        : false;
     const includeTapasa =
       typeof body.includeTapasa === "boolean"
         ? body.includeTapasa
@@ -179,6 +183,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       pedagogyLinks: result.pedagogyLinks,
       frameworkEvidence: result.frameworkEvidence,
       storyQuality: result.storyQuality,
+      privacyGuardian: result.privacyGuardian,
       familyQuestion: result.familyQuestion,
       followUpPrompt: result.followUpPrompt,
       followUpStatus: existingMetadata.followUpStatus ?? "open",
@@ -252,9 +257,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
       evidenceAnchors: result.evidenceAnchors,
       educatorChecks: result.educatorChecks,
       pedagogyLinks: result.pedagogyLinks,
-      frameworkEvidence: result.frameworkEvidence,
-      storyQuality: result.storyQuality,
-      familyQuestion: result.familyQuestion,
+        frameworkEvidence: result.frameworkEvidence,
+        storyQuality: result.storyQuality,
+        privacyGuardian: result.privacyGuardian,
+        familyQuestion: result.familyQuestion,
       followUpPrompt: result.followUpPrompt,
       nextSteps: result.nextSteps,
       updatedAt,

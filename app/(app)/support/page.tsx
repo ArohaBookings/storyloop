@@ -34,10 +34,7 @@ const SUPPORT_OPTIONS = [
     title: "Feature request",
     description: "Tell us what would make StoryLoop more useful for your service or teaching team.",
     icon: Lightbulb,
-    href: mailto(
-      "StoryLoop feature request",
-      "Hi StoryLoop support,\n\nThe feature I would like is:\n\nWhy it would help educators:\n\nHow often I would use it:\n"
-    ),
+    href: "/feedback?category=feature_request",
     cta: "Suggest a feature",
   },
   {
@@ -120,6 +117,9 @@ export default function SupportPage() {
             </Link>
             <Link href="/billing" className="btn-secondary justify-between">
               Billing and plan <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link href="/feedback" className="btn-secondary justify-between">
+              Send feedback <ArrowRight className="h-4 w-4" />
             </Link>
             <Link href="/dashboard" className="btn-secondary justify-between">
               Dashboard <ArrowRight className="h-4 w-4" />

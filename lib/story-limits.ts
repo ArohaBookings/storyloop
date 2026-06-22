@@ -1,3 +1,5 @@
+import { normalizePlanKey } from "@/lib/plans";
+
 const DEFAULT_FREE_LIMIT = 3;
 
 type StoryLimitProfile = {
@@ -16,7 +18,7 @@ export function getMonthlyStoryLimit(profile: StoryLimitProfile) {
     return profile.monthly_story_limit_override;
   }
 
-  if ((profile.plan ?? "free") === "free") {
+  if (normalizePlanKey(profile.plan) === "free") {
     return DEFAULT_FREE_LIMIT;
   }
 
@@ -39,4 +41,3 @@ export function getStoryAllowanceLabel(profile: StoryLimitProfile) {
 
   return `${limit} stories/month`;
 }
-

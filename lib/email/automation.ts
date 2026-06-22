@@ -159,6 +159,47 @@ export async function runLifecycleAutomation() {
     sent.push(await sendIfNeeded(row, "weekly_value", daysAgo(7)));
   }
 
+  const { data: feedbackUsers, error: feedbackError } = await sb
+    .from("profiles")
+    .select(baseSelect)
+    .gt("total_stories", 0)
+    .lte("last_story_at", hoursAgo(12))
+    .is("marketing_unsubscribed_at", null)
+    .limit(75);
+
+  if (feedbackError) errors.push(feedbackError.message);
+  for (const row of (feedbackUsers ?? []) as ProfileEmailRow[]) {
+    sent.push(await sendIfNeeded(row, "feedback_request"));
+  }
+
+  const { data: familyPackUsers, error: familyPackError } = await sb
+    .from("profiles")
+    .select(baseSelect)
+    .in("plan", ["educator", "centre"])
+    .in("subscription_status", Array.from(ACTIVE_PAID_STATUSES))
+    .gte("total_stories", 2)
+    .is("marketing_unsubscribed_at", null)
+    .limit(75);
+
+  if (familyPackError) errors.push(familyPackError.message);
+  for (const row of (familyPackUsers ?? []) as ProfileEmailRow[]) {
+    sent.push(await sendIfNeeded(row, "family_pack_prompt"));
+  }
+
+  const { data: centrePlanningUsers, error: centrePlanningError } = await sb
+    .from("profiles")
+    .select(baseSelect)
+    .eq("plan", "centre")
+    .in("subscription_status", Array.from(ACTIVE_PAID_STATUSES))
+    .gte("total_stories", 3)
+    .is("marketing_unsubscribed_at", null)
+    .limit(75);
+
+  if (centrePlanningError) errors.push(centrePlanningError.message);
+  for (const row of (centrePlanningUsers ?? []) as ProfileEmailRow[]) {
+    sent.push(await sendIfNeeded(row, "centre_planning_prompt"));
+  }
+
   return { success: errors.length === 0, sent, errors };
 }
 

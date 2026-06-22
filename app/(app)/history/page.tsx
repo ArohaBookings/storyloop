@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { BookOpen, Sparkles } from "lucide-react";
 import StoryHistoryItem from "@/components/app/StoryHistoryItem";
+import { getOrCreateProfile } from "@/lib/supabase/profiles";
 
 export const metadata = { title: "Story history" };
 
@@ -10,6 +11,7 @@ export default async function HistoryPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const profile = await getOrCreateProfile(user!);
   const { data: stories } = await supabase
     .from("stories")
     .select("*")
@@ -40,7 +42,7 @@ export default async function HistoryPage() {
       ) : (
         <div className="space-y-4">
           {stories.map((story) => (
-            <StoryHistoryItem key={story.id} story={story} />
+            <StoryHistoryItem key={story.id} story={story} plan={profile.plan ?? "free"} />
           ))}
         </div>
       )}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createAdminSupabase } from "@/lib/supabase/admin";
+import { normalizePlanKey } from "@/lib/plans";
 
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -78,7 +79,7 @@ async function updateProfileForSubscription(
     typeof subscription.customer === "string"
       ? subscription.customer
       : subscription.customer?.id ?? fallback?.customerId ?? null;
-  const plan = subscription.metadata?.plan ?? fallback?.plan ?? "educator";
+  const plan = normalizePlanKey(subscription.metadata?.plan ?? fallback?.plan ?? "educator");
   const status = normalizeStripeStatus(subscription.status);
 
   const update = {

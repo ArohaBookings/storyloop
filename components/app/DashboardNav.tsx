@@ -2,11 +2,12 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, Mail, AlertTriangle, Brain, Users } from "lucide-react";
+import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, Mail, AlertTriangle, Brain, Users, ClipboardList, MessageSquareText, BarChart3, SlidersHorizontal } from "lucide-react";
 import AnimatedLogo from "@/components/brand/AnimatedLogo";
 import { createClient } from "@/lib/supabase/client";
 import { getMonthlyStoryLimit, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
+import { normalizePlanKey } from "@/lib/plans";
 
 type NavItem = {
   href: string;
@@ -22,6 +23,10 @@ const NAV: NavItem[] = [
   { href: "/children", icon: Users, label: "Child profiles" },
   { href: "/history", icon: History, label: "Story history" },
   { href: "/insights", icon: Brain, label: "Learning threads" },
+  { href: "/planning", icon: ClipboardList, label: "Planning brief" },
+  { href: "/centre-tools", icon: SlidersHorizontal, label: "Centre tools" },
+  { href: "/roi", icon: BarChart3, label: "ROI dashboard" },
+  { href: "/feedback", icon: MessageSquareText, label: "Feedback" },
   { href: "/billing", icon: CreditCard, label: "Billing" },
   { href: "/support", icon: LifeBuoy, label: "Support" },
 ];
@@ -29,7 +34,9 @@ const NAV: NavItem[] = [
 const PLAN_LABEL: Record<string, { label: string; colour: string }> = {
   free: { label: "Free", colour: "bg-ink-100 text-ink-600" },
   educator: { label: "Educator", colour: "bg-clay-100 text-clay-700" },
-  centre: { label: "Centre", colour: "bg-sage-100 text-sage-700" },
+  educator_pro: { label: "Educator Pro", colour: "bg-clay-100 text-clay-700" },
+  centre_starter: { label: "Centre Starter", colour: "bg-sage-100 text-sage-700" },
+  centre_growth: { label: "Centre Growth", colour: "bg-sage-100 text-sage-700" },
 };
 
 export default function DashboardNav({
@@ -78,7 +85,8 @@ export default function DashboardNav({
     : appliedAccessCode
       ? `${storiesUsed} of ${limit} complimentary stories used this month.`
       : `${storiesUsed} of ${limit} free stories used this month.`;
-  const planInfo = PLAN_LABEL[plan] ?? PLAN_LABEL.free;
+  const planKey = normalizePlanKey(plan);
+  const planInfo = PLAN_LABEL[planKey] ?? PLAN_LABEL.free;
   const initials = userName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
   const navItems: NavItem[] = isAdminUser
     ? [...NAV, { href: "/api/admin/session", activePath: "/admin", icon: ShieldAlert, label: "Admin" }]

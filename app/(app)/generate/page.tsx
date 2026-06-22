@@ -20,10 +20,14 @@ import {
   Wand2,
   Users,
   MessageCircleHeart,
+  LockKeyhole,
 } from "lucide-react";
 import ObservationCoach from "@/components/app/ObservationCoach";
 import StoryIntelligence from "@/components/app/StoryIntelligence";
+import ExportPackPanel from "@/components/app/ExportPackPanel";
+import FamilyTranslationPanel from "@/components/app/FamilyTranslationPanel";
 import type { ChildProfile } from "@/lib/children";
+import { hasFeatureAccess, normalizePlanKey, type PlanKey } from "@/lib/plans";
 import {
   normalizeDepth,
   normalizeFramework,
@@ -36,6 +40,7 @@ import {
   type StoryTone,
   type TeReoLevel,
 } from "@/lib/story-options";
+import type { PrivacyGuardianResult } from "@/lib/privacy-guardian";
 
 const PLACEHOLDERS = [
   "• Ruby (2yo) built a block tower\n• Got frustrated when it fell\n• Tried 4 more times, each bigger\n• Clapped when it stayed up",
@@ -66,6 +71,15 @@ type BacklogResult = {
   upgradeNudge?: boolean;
 };
 
+type FamilyPack = {
+  familyMessage: string;
+  familyQuestion: string;
+  homeConnection: string;
+  photoCaption: string;
+  handoverNote: string;
+  teacherCheck: string;
+};
+
 const UPGRADE_PROMPT_STORAGE_KEY = `storyloop-upgrade-prompt-${new Date().getFullYear()}-${new Date().getMonth() + 1}`;
 
 export default function GeneratePage() {
@@ -75,6 +89,7 @@ export default function GeneratePage() {
   const [inputMethod, setInputMethod] = useState<InputMethod>("typed");
   const [showFirstStoryWizard, setShowFirstStoryWizard] = useState(false);
   const [showCentreVoice, setShowCentreVoice] = useState(false);
+  const [accountPlan, setAccountPlan] = useState<PlanKey>("free");
   const [centrePhilosophy, setCentrePhilosophy] = useState("");
   const [likedPhrases, setLikedPhrases] = useState("");
   const [avoidedPhrases, setAvoidedPhrases] = useState("");
@@ -96,6 +111,7 @@ export default function GeneratePage() {
   const [savingPreferences, setSavingPreferences] = useState(false);
   const [preferencesMessage, setPreferencesMessage] = useState("");
   const [story, setStory] = useState("");
+  const [storyTitle, setStoryTitle] = useState("");
   const [storyId, setStoryId] = useState("");
   const [storyDraft, setStoryDraft] = useState("");
   const [editingStory, setEditingStory] = useState(false);
@@ -122,8 +138,11 @@ export default function GeneratePage() {
     issues?: string[];
     strengths?: string[];
   } | null>(null);
+  const [privacyGuardian, setPrivacyGuardian] = useState<PrivacyGuardianResult | null>(null);
   const [parentFriendlyVersion, setParentFriendlyVersion] = useState("");
   const [parentVersionLoading, setParentVersionLoading] = useState(false);
+  const [familyPack, setFamilyPack] = useState<FamilyPack | null>(null);
+  const [familyPackLoading, setFamilyPackLoading] = useState(false);
   const [familyQuestion, setFamilyQuestion] = useState("");
   const [followUpPrompt, setFollowUpPrompt] = useState("");
   const [sourceStoryId, setSourceStoryId] = useState("");
@@ -166,6 +185,7 @@ export default function GeneratePage() {
     ])
       .then(([accountData, childData]) => {
         const preferences = accountData?.profile?.story_preferences;
+        setAccountPlan(normalizePlanKey(accountData?.profile?.plan));
         if (preferences?.defaultFramework) {
           setLocation(normalizeFramework(preferences.defaultFramework));
         }
@@ -263,8 +283,24 @@ export default function GeneratePage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (location !== "NZ") {
+      setIncludeTeReoLevel("low");
+      setIncludeKowhitiWhakapae(false);
+    }
+  }, [location]);
+
+  const chooseFramework = (framework: StoryFrameworkId) => {
+    setLocation(framework);
+    if (framework !== "NZ") {
+      setIncludeTeReoLevel("low");
+      setIncludeKowhitiWhakapae(false);
+    }
+  };
+
   const resetOutput = () => {
     setStory("");
+    setStoryTitle("");
     setStoryId("");
     setStoryDraft("");
     setEditingStory(false);
@@ -285,8 +321,11 @@ export default function GeneratePage() {
     setPedagogyLinks([]);
     setFrameworkEvidence([]);
     setStoryQuality(null);
+    setPrivacyGuardian(null);
     setParentFriendlyVersion("");
     setParentVersionLoading(false);
+    setFamilyPack(null);
+    setFamilyPackLoading(false);
     setFamilyQuestion("");
     setFollowUpPrompt("");
   };
@@ -317,8 +356,8 @@ export default function GeneratePage() {
           tone,
           depth,
           location,
-          includeTeReoLevel,
-          includeKowhitiWhakapae,
+          includeTeReoLevel: location === "NZ" ? includeTeReoLevel : "low",
+          includeKowhitiWhakapae: location === "NZ" ? includeKowhitiWhakapae : false,
           includeTapasa,
           pedagogyFocus,
           sourceStoryId: sourceStoryId || undefined,
@@ -339,6 +378,7 @@ export default function GeneratePage() {
       }
 
       setStory(data.story);
+      setStoryTitle(data.storyTitle ?? "");
       setStoryDraft(data.story);
       setStoryId(typeof data.storyId === "string" ? data.storyId : "");
       setOutcomes(data.outcomes ?? []);
@@ -356,8 +396,10 @@ export default function GeneratePage() {
       setPedagogyLinks(data.pedagogyLinks ?? []);
       setFrameworkEvidence(data.frameworkEvidence ?? []);
       setStoryQuality(data.storyQuality ?? null);
+      setPrivacyGuardian(data.privacyGuardian ?? null);
       setFamilyQuestion(data.familyQuestion ?? "");
       setFollowUpPrompt(data.followUpPrompt ?? "");
+      setAccountPlan(normalizePlanKey(data.plan));
       setRemaining(data.remaining);
       if (sourceStoryId) {
         void fetch(`/api/stories/${encodeURIComponent(sourceStoryId)}`, {
@@ -411,8 +453,8 @@ export default function GeneratePage() {
           defaultFramework: location,
           preferredTone: tone,
           depthPreference: depth,
-          includeTeReoLevel,
-          includeKowhitiWhakapae,
+          includeTeReoLevel: location === "NZ" ? includeTeReoLevel : "low",
+          includeKowhitiWhakapae: location === "NZ" ? includeKowhitiWhakapae : false,
           includeTapasa,
           pedagogyFocus,
           centrePhilosophy,
@@ -548,7 +590,13 @@ export default function GeneratePage() {
         body: JSON.stringify({ observations, framework: location }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? "Could not analyse backlog.");
+      if (!response.ok) {
+        if (data.upgradeRequired) {
+          setUpgradeRequired(true);
+          setShowBacklogUpgradeNudge(true);
+        }
+        throw new Error(data.error ?? "Could not analyse backlog.");
+      }
       setBacklogResult(data);
       setShowBacklogUpgradeNudge(Boolean(data.upgradeNudge));
       setInputMethod("backlog");
@@ -587,6 +635,38 @@ export default function GeneratePage() {
       setError(parentError instanceof Error ? parentError.message : "Could not create parent-friendly version.");
     } finally {
       setParentVersionLoading(false);
+    }
+  };
+
+  const handleFamilyConnectionPack = async () => {
+    if (!storyId) {
+      setError("Save this signed-in story first, then create a family connection pack.");
+      return;
+    }
+
+    if (!hasFeatureAccess(accountPlan, "familyConnectionPack")) {
+      setError("Family Connection Pack is available on Educator and Centre plans.");
+      setUpgradeRequired(true);
+      return;
+    }
+
+    setFamilyPackLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(`/api/stories/${encodeURIComponent(storyId)}/family-pack`, {
+        method: "POST",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        if (data.upgradeRequired) setUpgradeRequired(true);
+        throw new Error(data.error ?? "Could not create family connection pack.");
+      }
+      setFamilyPack(data.familyPack ?? null);
+    } catch (familyError) {
+      setError(familyError instanceof Error ? familyError.message : "Could not create family connection pack.");
+    } finally {
+      setFamilyPackLoading(false);
     }
   };
 
@@ -882,7 +962,7 @@ export default function GeneratePage() {
                 Voice recording is not available in this browser session. You can still type bullet points or upload an audio file from Voice Memos/Recorder.
               </p>
             )}
-            <ObservationCoach observation={observations} />
+            <ObservationCoach observation={observations} plan={accountPlan} framework={location} />
           </div>
 
           <div className="card p-6 space-y-4">
@@ -915,8 +995,14 @@ export default function GeneratePage() {
                 ))}
               </select>
               <p className="mt-1 text-[11px] text-ink-500">
-                A saved profile carries interests and whānau aspirations into the drafting context without treating them as evidence from today.
+                A saved profile carries interests and {location === "NZ" ? "whānau" : "family"} aspirations into the drafting context without treating them as evidence from today.
               </p>
+              {selectedChildId && !hasFeatureAccess(accountPlan, "childContinuityProfiles") && (
+                <p className="mt-2 rounded-xl border border-clay-100 bg-cream-50 px-3 py-2 text-[11px] leading-relaxed text-ink-600">
+                  This draft will still use the child&apos;s name and age. Educator Pro carries interests, family context, home languages, and recent learning into future drafts.
+                  <Link href="/billing?feature=child-continuity" className="ml-1 font-bold text-clay-700 hover:text-clay-900">Compare Pro</Link>
+                </p>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -991,7 +1077,7 @@ export default function GeneratePage() {
                 {(["AU", "NZ"] as const).map((framework) => (
                   <button
                     key={framework}
-                    onClick={() => setLocation(framework)}
+                    onClick={() => chooseFramework(framework)}
                     className={`text-xs font-semibold py-2 rounded-lg border transition-all ${
                       location === framework
                         ? "bg-clay-700 text-paper border-clay-700"
@@ -1045,7 +1131,10 @@ export default function GeneratePage() {
                       onChange={(event) => setCentrePhilosophy(event.target.value)}
                       rows={4}
                       className="input resize-none text-sm leading-relaxed"
-                      placeholder="Example: We value child agency, connection with whānau, outdoor inquiry, and calm practical language."
+                      placeholder={location === "NZ"
+                        ? "Example: We value child agency, connection with whānau, outdoor inquiry, and calm practical language."
+                        : "Example: We value child agency, family partnership, outdoor inquiry, and calm practical language."
+                      }
                     />
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
@@ -1077,38 +1166,44 @@ export default function GeneratePage() {
                 </div>
               )}
             </div>
-            <div>
-              <label className="label">Te reo Māori</label>
-              <div className="grid grid-cols-3 gap-2">
-                {(["low", "medium", "high"] as const).map((option) => (
-                  <button
-                    key={option}
-                    onClick={() => setIncludeTeReoLevel(option)}
-                    className={`text-xs font-semibold py-2 rounded-lg border capitalize transition-all ${
-                      includeTeReoLevel === option
-                        ? "bg-clay-700 text-paper border-clay-700"
-                        : "bg-white text-ink-600 border-clay-200 hover:border-clay-400"
-                    }`}
-                  >
-                    {option}
-                  </button>
-                ))}
+            {location === "NZ" && (
+              <div>
+                <label className="label">Te reo Māori</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["low", "medium", "high"] as const).map((option) => (
+                    <button
+                      key={option}
+                      onClick={() => setIncludeTeReoLevel(option)}
+                      className={`text-xs font-semibold py-2 rounded-lg border capitalize transition-all ${
+                        includeTeReoLevel === option
+                          ? "bg-clay-700 text-paper border-clay-700"
+                          : "bg-white text-ink-600 border-clay-200 hover:border-clay-400"
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[11px] text-ink-500 mt-1">
+                  NZ-only wording for Te Whāriki stories. EYLF stories stay in Australian educator language.
+                </p>
               </div>
-              <p className="text-[11px] text-ink-500 mt-1">Applies mainly to NZ stories. StoryLoop keeps it natural, not random.</p>
-            </div>
+            )}
             <div className="grid sm:grid-cols-2 gap-2">
-              <label className="flex items-start gap-2 rounded-xl border border-clay-200 bg-white p-3 text-xs text-ink-700">
-                <input
-                  type="checkbox"
-                  checked={includeKowhitiWhakapae}
-                  onChange={(event) => setIncludeKowhitiWhakapae(event.target.checked)}
-                  className="mt-0.5 accent-clay-700"
-                />
-                <span>
-                  <span className="font-bold block text-ink-900">Kōwhiti Whakapae links</span>
-                  Add only when social/emotional, language, or maths noticing is relevant.
-                </span>
-              </label>
+              {location === "NZ" && (
+                <label className="flex items-start gap-2 rounded-xl border border-clay-200 bg-white p-3 text-xs text-ink-700">
+                  <input
+                    type="checkbox"
+                    checked={includeKowhitiWhakapae}
+                    onChange={(event) => setIncludeKowhitiWhakapae(event.target.checked)}
+                    className="mt-0.5 accent-clay-700"
+                  />
+                  <span>
+                    <span className="font-bold block text-ink-900">Kōwhiti Whakapae links</span>
+                    Add only when social/emotional, language, or maths noticing is relevant.
+                  </span>
+                </label>
+              )}
               <label className="flex items-start gap-2 rounded-xl border border-clay-200 bg-white p-3 text-xs text-ink-700">
                 <input
                   type="checkbox"
@@ -1116,9 +1211,9 @@ export default function GeneratePage() {
                   onChange={(event) => setIncludeTapasa(event.target.checked)}
                   className="mt-0.5 accent-clay-700"
                 />
-                <span>
-                  <span className="font-bold block text-ink-900">Tapasā lens</span>
-                  Use only when Pacific identity, whānau, language, or culture is actually present.
+                  <span>
+                    <span className="font-bold block text-ink-900">Tapasā lens</span>
+                  Use only when Pacific identity, {location === "NZ" ? "whānau" : "family"}, language, or culture is actually present.
                 </span>
               </label>
             </div>
@@ -1290,6 +1385,10 @@ export default function GeneratePage() {
                   {parentVersionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <MessageCircleHeart className="w-3 h-3" />}
                   Family version
                 </button>
+                <button onClick={handleFamilyConnectionPack} disabled={familyPackLoading || !storyId} className="btn-ghost text-xs disabled:opacity-50">
+                  {familyPackLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : hasFeatureAccess(accountPlan, "familyConnectionPack") ? <Sparkles className="w-3 h-3" /> : <LockKeyhole className="w-3 h-3" />}
+                  Family pack
+                </button>
               </div>
             )}
           </div>
@@ -1342,8 +1441,25 @@ export default function GeneratePage() {
                 pedagogyLinks={pedagogyLinks}
                 frameworkEvidence={frameworkEvidence}
                 storyQuality={storyQuality ?? undefined}
+                privacyGuardian={privacyGuardian ?? undefined}
+                plan={accountPlan}
                 familyQuestion={familyQuestion}
                 followUpPrompt={followUpPrompt}
+              />
+
+              <ExportPackPanel
+                plan={accountPlan}
+                childName={childName}
+                ageGroup={ageGroup}
+                story={story}
+                storyTitle={storyTitle}
+                observations={observations}
+                learningSummary={learningSummary}
+                curriculumLinks={curriculumLinks}
+                outcomes={outcomes}
+                nextSteps={nextSteps}
+                familyQuestion={familyQuestion}
+                framework={location}
               />
 
               {parentFriendlyVersion && (
@@ -1360,6 +1476,46 @@ export default function GeneratePage() {
                   </button>
                 </div>
               )}
+
+              {familyPack && (
+                <div className="mt-5 rounded-3xl border border-sage-200 bg-gradient-to-br from-sage-50 via-white to-cream-50 p-5 shadow-soft">
+                  <p className="mb-2 flex items-center gap-2 text-xs font-bold text-ink-900">
+                    <Sparkles className="h-4 w-4 text-clay-700" /> Family Connection Pack
+                  </p>
+                  <div className="grid gap-3 text-sm text-ink-700">
+                    {[
+                      ["Family message", familyPack.familyMessage],
+                      ["Question to ask", familyPack.familyQuestion],
+                      ["Home connection", familyPack.homeConnection],
+                      ["Photo caption", familyPack.photoCaption],
+                      ["Pickup handover", familyPack.handoverNote],
+                      ["Teacher check", familyPack.teacherCheck],
+                    ].filter(([, value]) => value).map(([label, value]) => (
+                      <div key={label} className="rounded-2xl border border-clay-100 bg-white p-3">
+                        <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-clay-600">{label}</p>
+                        <p className="leading-relaxed">{value}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(
+                      [
+                        `Family message:\n${familyPack.familyMessage}`,
+                        `Question to ask:\n${familyPack.familyQuestion}`,
+                        `Home connection:\n${familyPack.homeConnection}`,
+                        `Photo caption:\n${familyPack.photoCaption}`,
+                        `Pickup handover:\n${familyPack.handoverNote}`,
+                        `Teacher check:\n${familyPack.teacherCheck}`,
+                      ].filter(Boolean).join("\n\n")
+                    )}
+                    className="btn-secondary mt-4 px-3 py-2 text-xs"
+                  >
+                    <Copy className="h-3 w-3" /> Copy family pack
+                  </button>
+                </div>
+              )}
+
+              <FamilyTranslationPanel storyId={storyId} plan={accountPlan} />
 
               {(learningSummary ||
                 outcomes.length > 0 ||
@@ -1484,7 +1640,9 @@ export default function GeneratePage() {
 
                   {whanauConnection && (
                     <div>
-                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Family or whanau link</p>
+                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">
+                        {location === "NZ" ? "Family or whānau link" : "Family link"}
+                      </p>
                       <p className="text-sm text-ink-700">{whanauConnection}</p>
                     </div>
                   )}

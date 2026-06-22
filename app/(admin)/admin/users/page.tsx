@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { ArrowLeft, Search, Loader2, Mail, Key, Ban, CheckCircle, ChevronDown, RefreshCw } from "lucide-react";
 import { getMonthlyStoryLimit, getStoryAllowanceLabel } from "@/lib/story-limits";
+import { normalizePlanKey, type PlanKey } from "@/lib/plans";
 
 interface User {
   id: string; email: string; full_name: string; plan: string;
@@ -19,8 +20,18 @@ interface User {
 const PLAN_BADGE: Record<string, string> = {
   free: "bg-ink-800 text-ink-300",
   educator: "bg-clay-500/20 text-clay-400 border border-clay-500/30",
-  centre: "bg-sage-500/20 text-sage-400 border border-sage-500/30",
+  educator_pro: "bg-amber-500/20 text-amber-300 border border-amber-500/30",
+  centre_starter: "bg-sage-500/20 text-sage-400 border border-sage-500/30",
+  centre_growth: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
 };
+
+const PLAN_OPTIONS: Array<{ key: PlanKey; label: string }> = [
+  { key: "free", label: "Free" },
+  { key: "educator", label: "Educator" },
+  { key: "educator_pro", label: "Educator Pro" },
+  { key: "centre_starter", label: "Centre Starter" },
+  { key: "centre_growth", label: "Centre Growth" },
+];
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -98,7 +109,11 @@ export default function AdminUsersPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3"><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${PLAN_BADGE[u.plan] ?? PLAN_BADGE.free}`}>{u.plan}</span></td>
+                    <td className="px-4 py-3">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${PLAN_BADGE[normalizePlanKey(u.plan)] ?? PLAN_BADGE.free}`}>
+                        {normalizePlanKey(u.plan)}
+                      </span>
+                    </td>
                     <td className="px-4 py-3"><span className="text-xs text-ink-400">{u.subscription_status ?? "—"}</span></td>
                     <td className="px-4 py-3">
                       <span className="text-sm">
@@ -153,12 +168,12 @@ export default function AdminUsersPage() {
                           </button>
                           <div className="border-t border-ink-700 my-1" />
                           <div className="px-3 py-1 text-[10px] font-bold text-ink-500 uppercase tracking-wider">Set plan</div>
-                          {["free", "educator", "centre"].map(p => (
-                            <button key={p} onClick={() => doAction("set_plan", u.id, u.email, p)}
-                              disabled={u.plan === p || !!actionLoading}
-                              className={`w-full flex items-center justify-between px-4 py-2 text-xs transition-colors ${u.plan === p ? "text-ink-500" : "hover:bg-ink-700"}`}>
-                              <span className="capitalize">{p}</span>
-                              {u.plan === p && <span className="text-clay-400">current</span>}
+                          {PLAN_OPTIONS.map((p) => (
+                            <button key={p.key} onClick={() => doAction("set_plan", u.id, u.email, p.key)}
+                              disabled={normalizePlanKey(u.plan) === p.key || !!actionLoading}
+                              className={`w-full flex items-center justify-between px-4 py-2 text-xs transition-colors ${normalizePlanKey(u.plan) === p.key ? "text-ink-500" : "hover:bg-ink-700"}`}>
+                              <span>{p.label}</span>
+                              {normalizePlanKey(u.plan) === p.key && <span className="text-clay-400">current</span>}
                             </button>
                           ))}
                           <div className="border-t border-ink-700 my-1" />

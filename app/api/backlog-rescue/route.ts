@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { analyzeBacklogRescue } from "@/lib/ai/generate";
 import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
+import { hasFeatureAccess, requiredPlanForFeature } from "@/lib/plans";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
@@ -29,6 +30,14 @@ export async function POST(request: NextRequest) {
     const profile = await getOrCreateProfile(user);
     if (isBillingBlocked(profile)) {
       return NextResponse.json(billingBlockPayload(profile), { status: 402 });
+    }
+
+    if (!hasFeatureAccess(profile.plan, "backlogRescue")) {
+      return NextResponse.json({
+        error: "Backlog Rescue is available on Educator and Centre plans.",
+        upgradeRequired: true,
+        requiredPlan: requiredPlanForFeature("backlogRescue"),
+      }, { status: 403 });
     }
 
     const allowed = await consumeRateLimit({

@@ -1,10 +1,11 @@
+import { normalizePlanKey } from "@/lib/plans";
+
 type BillingProfile = {
   plan?: string | null;
   subscription_status?: string | null;
   stripe_customer_id?: string | null;
 };
 
-const PAID_PLANS = new Set(["educator", "centre"]);
 const HEALTHY_PAID_STATUSES = new Set(["active", "trialing", "admin_override"]);
 const GRACE_STATUSES = new Set(["past_due"]);
 const BLOCKED_STATUSES = new Set([
@@ -18,7 +19,7 @@ const BLOCKED_STATUSES = new Set([
 ]);
 
 export function isPaidPlan(plan?: string | null) {
-  return PAID_PLANS.has(plan ?? "free");
+  return normalizePlanKey(plan) !== "free";
 }
 
 export function isHealthyPaidStatus(status?: string | null) {

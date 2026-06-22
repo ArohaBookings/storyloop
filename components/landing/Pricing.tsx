@@ -1,22 +1,11 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Check } from "lucide-react";
-
-const PLANS_AUD = [
-  { name: "Free", price: 0, stories: "3 stories/month", cta: "Start free", features: ["3 stories per month", "EYLF or Te Whāriki alignment", "Copy into your workflow", "No credit card required"], priceId: null },
-  { name: "Educator", price: 19, stories: "Unlimited stories", cta: "Start 7-day trial", features: ["Unlimited learning stories", "Voice notes", "Draft integrity lens", "Learning threads", "Tone and depth controls", "Email support"], priceId: "educator", popular: true },
-  { name: "Centre", price: 49, stories: "Unlimited stories for your rollout", cta: "Start 7-day trial", features: ["Everything in Educator", "Shared billing", "Priority support", "Team rollout planning", "Admin oversight"], priceId: "centre" },
-];
-
-const PLANS_NZD = [
-  { name: "Free", price: 0, stories: "3 stories/month", cta: "Start free", features: ["3 stories per month", "EYLF/Te Whāriki alignment", "Copy into your workflow", "No credit card required"], priceId: null },
-  { name: "Educator", price: 21, stories: "Unlimited stories", cta: "Start 7-day trial", features: ["Unlimited learning stories", "Voice notes", "Draft integrity lens", "Learning threads", "Tone and depth controls", "Email support"], priceId: "educator", popular: true },
-  { name: "Centre", price: 55, stories: "Unlimited stories for your rollout", cta: "Start 7-day trial", features: ["Everything in Educator", "Shared billing", "Priority support", "Team rollout planning", "Admin oversight"], priceId: "centre" },
-];
+import { Check, ShieldCheck } from "lucide-react";
+import { getPlanDefinitions, type CurrencyCode } from "@/lib/plans";
 
 export default function Pricing() {
-  const [currency, setCurrency] = useState<"AUD" | "NZD">("AUD");
+  const [currency, setCurrency] = useState<CurrencyCode>("AUD");
 
   useEffect(() => {
     // Auto-detect by timezone
@@ -24,7 +13,7 @@ export default function Pricing() {
     if (tz?.includes("Auckland") || tz?.includes("Pacific/Auckland")) setCurrency("NZD");
   }, []);
 
-  const plans = currency === "AUD" ? PLANS_AUD : PLANS_NZD;
+  const plans = getPlanDefinitions(currency);
 
   return (
     <section id="pricing" className="py-24 bg-cream-50 border-y border-clay-100">
@@ -47,7 +36,7 @@ export default function Pricing() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5">
           {plans.map(plan => (
             <div key={plan.name} className={`rounded-2xl p-7 flex flex-col ${plan.popular ? "bg-ink-900 text-paper border-2 border-clay-600 shadow-clay" : "bg-white border border-clay-100 shadow-soft"}`}>
               {plan.popular && (
@@ -56,10 +45,12 @@ export default function Pricing() {
               <div className="mb-5">
                 <p className={`font-semibold ${plan.popular ? "text-cream-300" : "text-clay-700"}`}>{plan.name}</p>
                 <div className="flex items-end gap-1 mt-1 mb-2">
-                  <span className="font-display text-5xl font-bold">${plan.price}</span>
-                  {plan.price > 0 && <span className={`mb-2 text-sm ${plan.popular ? "text-ink-400" : "text-ink-500"}`}>{currency}/month</span>}
+                  <span className="font-display text-5xl font-bold">${plan.displayPrice}</span>
+                  {plan.displayPrice > 0 && <span className={`mb-2 text-sm ${plan.popular ? "text-ink-400" : "text-ink-500"}`}>{currency}/month</span>}
                 </div>
+                {plan.priceNote && <p className={`-mt-1 mb-2 text-[11px] ${plan.popular ? "text-ink-400" : "text-ink-500"}`}>{plan.priceNote}</p>}
                 <p className={`text-sm ${plan.popular ? "text-cream-300" : "text-clay-700"}`}>{plan.stories}</p>
+                <p className={`mt-2 text-xs leading-relaxed ${plan.popular ? "text-ink-300" : "text-ink-500"}`}>{plan.description}</p>
               </div>
               <ul className="space-y-2.5 flex-1 mb-6">
                 {plan.features.map(f => (
@@ -69,7 +60,18 @@ export default function Pricing() {
                   </li>
                 ))}
               </ul>
-              <Link href={plan.priceId ? `/signup?plan=${plan.priceId}&currency=${currency}` : "/signup"}
+              <div className={`mb-5 rounded-2xl border p-3 ${plan.popular ? "border-ink-700 bg-ink-800/60" : "border-clay-100 bg-cream-50"}`}>
+                <p className={`mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${plan.popular ? "text-cream-300" : "text-clay-700"}`}>
+                  <ShieldCheck className="h-3.5 w-3.5" /> Built for
+                </p>
+                <p className={`mb-2 text-xs leading-relaxed ${plan.popular ? "text-ink-300" : "text-ink-600"}`}>{plan.buyer}</p>
+                <ul className="space-y-1.5">
+                  {plan.painSolved.slice(0, 1).map((pain) => (
+                    <li key={pain} className={`text-xs leading-relaxed ${plan.popular ? "text-ink-300" : "text-ink-600"}`}>{pain}</li>
+                  ))}
+                </ul>
+              </div>
+              <Link href={plan.key !== "free" ? `/signup?plan=${plan.key}&currency=${currency}` : "/signup"}
                 className={`block text-center py-3 rounded-xl font-semibold text-sm transition-all ${plan.popular ? "bg-cream-300 hover:bg-cream-200 text-ink-900" : "btn-secondary"}`}>
                 {plan.cta}
               </Link>

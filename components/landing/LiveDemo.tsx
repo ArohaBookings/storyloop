@@ -3,10 +3,11 @@ import { useState } from "react";
 import { Sparkles, Loader2, Copy, Check } from "lucide-react";
 import Link from "next/link";
 
-const PLACEHOLDER = `• Noah (3yo) played in the sandpit
-• Built a tower with Amelia, took turns
+const PLACEHOLDER = `• Noah (3yo) filled a bucket with damp sand
+• Turned it over carefully and tapped the sides
+• Built a tower beside Amelia, then swapped the spade when she asked
 • Said "I'm making a castle for the dragon"
-• Knocked it down, laughed, started again`;
+• When one side collapsed, he packed more sand around the base and tried again`;
 
 export default function LiveDemo() {
   const [input, setInput] = useState("");

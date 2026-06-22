@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, Brain, CheckCircle, LifeBuoy, Sparkles, Clock, BookOpen, TrendingUp } from "lucide-react";
+import { AlertTriangle, ArrowRight, Brain, CheckCircle, LifeBuoy, Sparkles, Clock, BookOpen, TrendingUp, MessageCircleHeart, ClipboardList } from "lucide-react";
 import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
 
@@ -147,6 +147,25 @@ export default async function DashboardPage({
           </div>
         ))}
       </div>
+
+      {plan === "free" && (
+        <div className="mb-8 rounded-3xl border border-clay-200 bg-gradient-to-br from-cream-100 via-white to-sage-50 p-5 shadow-soft">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="section-title mb-2">Upgrade only when it helps</p>
+              <h2 className="font-display text-2xl font-bold text-ink-900">Paid plans unlock the work after the story.</h2>
+              <div className="mt-3 grid gap-2 text-sm text-ink-600 sm:grid-cols-3">
+                <p className="rounded-2xl bg-white/70 p-3"><MessageCircleHeart className="mb-2 h-4 w-4 text-clay-700" />Family messages, captions, and home questions.</p>
+                <p className="rounded-2xl bg-white/70 p-3"><ClipboardList className="mb-2 h-4 w-4 text-clay-700" />Backlog Rescue for a week of messy notes.</p>
+                <p className="rounded-2xl bg-white/70 p-3"><Brain className="mb-2 h-4 w-4 text-clay-700" />Learning threads and planning signals.</p>
+              </div>
+            </div>
+            <Link href="/billing?offer=activation" className="btn-primary flex-shrink-0">
+              See plan features <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Recent stories */}
       {(totalStories ?? 0) >= 2 && (

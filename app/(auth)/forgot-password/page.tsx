@@ -3,22 +3,23 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Loader2, Check } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
-  const supabase = createClient();
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true); setError("");
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+    const response = await fetch("/api/auth/password-reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
     });
-    if (error) { setError(error.message); setLoading(false); }
+    const data = await response.json();
+    if (!response.ok) { setError(data.error ?? "Could not send reset email."); setLoading(false); }
     else { setDone(true); setLoading(false); }
   };
 

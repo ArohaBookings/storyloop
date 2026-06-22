@@ -18,6 +18,9 @@ export const metadata: Metadata = {
     "educator documentation tool",
     "voice note to learning story",
     "early childhood teacher documentation",
+    "ECE family communication",
+    "early childhood planning brief",
+    "learning story quality check",
   ],
   authors: [{ name: "StoryLoop by Aria Care" }],
   openGraph: {
@@ -74,6 +77,10 @@ const structuredData = {
         "Curriculum compass for reflection",
         "Whānau voice capture",
         "Educator evidence and privacy review",
+        "Family Connection Pack for parent communication",
+        "Backlog Rescue for rough observations",
+        "Room Planning Briefs for centre teams",
+        "Feedback inbox and admin insight dashboard",
       ],
       "offers": [
         { "@type": "Offer", "price": "0", "priceCurrency": "AUD", "name": "Free plan" },

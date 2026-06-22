@@ -11,8 +11,10 @@ import {
   LogIn,
   LogOut,
   Mail,
+  MessageSquareText,
   MousePointerClick,
   PieChart,
+  Reply,
   ShieldAlert,
   Sparkles,
   TrendingUp,
@@ -22,6 +24,8 @@ import { verifyAdmin } from "@/lib/admin-auth";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getMonthlyStoryLimit } from "@/lib/story-limits";
 import { isBillingBlocked, isBillingPastDue, isPaidPlan } from "@/lib/billing-access";
+import { OUTREACH_REPLY_TEMPLATES } from "@/lib/email/outreach";
+import { normalizePlanKey, type PlanKey } from "@/lib/plans";
 
 export const metadata = { title: "Admin · StoryLoop" };
 
@@ -51,7 +55,23 @@ type EmailMetric = {
   clicked_at: string | null;
 };
 
-const PRICES: Record<string, number> = { educator: 19, centre: 49 };
+type FeedbackMetric = {
+  id: string;
+  email: string | null;
+  category: string | null;
+  message: string;
+  status: string | null;
+  created_at: string;
+  metadata: unknown;
+};
+
+const PRICES: Record<PlanKey, number> = {
+  free: 0,
+  educator: 19,
+  educator_pro: 29,
+  centre_starter: 99,
+  centre_growth: 199,
+};
 const REVENUE_STATUSES = new Set(["active", "trialing", "admin_override"]);
 
 function toDateKey(date: Date) {
@@ -97,7 +117,9 @@ function getPlanGradient(planCounts: Record<string, number>, total: number) {
   if (total === 0) return "#1a1817";
   const freeEnd = percent(planCounts.free, total) * 3.6;
   const educatorEnd = freeEnd + percent(planCounts.educator, total) * 3.6;
-  return `conic-gradient(#7a706b 0deg ${freeEnd}deg, #a87851 ${freeEnd}deg ${educatorEnd}deg, #5c7e3d ${educatorEnd}deg 360deg)`;
+  const proEnd = educatorEnd + percent(planCounts.educator_pro, total) * 3.6;
+  const starterEnd = proEnd + percent(planCounts.centre_starter, total) * 3.6;
+  return `conic-gradient(#7a706b 0deg ${freeEnd}deg, #a87851 ${freeEnd}deg ${educatorEnd}deg, #c58a47 ${educatorEnd}deg ${proEnd}deg, #5c7e3d ${proEnd}deg ${starterEnd}deg, #315c2b ${starterEnd}deg 360deg)`;
 }
 
 export default async function AdminPage() {
@@ -116,6 +138,7 @@ export default async function AdminPage() {
     { data: profilesForCharts },
     { data: storiesForChart },
     { data: emailEventsForChart },
+    { data: feedbackRowsForDashboard },
   ] = await Promise.all([
     sb.from("profiles").select("*", { count: "exact", head: true }),
     sb.from("stories").select("*", { count: "exact", head: true }),
@@ -128,20 +151,24 @@ export default async function AdminPage() {
     sb.from("profiles").select("plan, subscription_status, total_stories, stories_this_month, monthly_story_limit_override, applied_access_code, last_seen_at, last_story_at, created_at").limit(1000),
     sb.from("stories").select("created_at, location, metadata").gte("created_at", since).limit(2000),
     sb.from("email_events").select("email_type, delivery_status, sent_at, opened_at, clicked_at").gte("sent_at", since).limit(2000),
+    sb.from("feedback_submissions").select("id, email, category, message, status, created_at, metadata").order("created_at", { ascending: false }).limit(12),
   ]);
 
   const profiles = (profilesForCharts ?? []) as ProfileMetric[];
   const storyRows = (storiesForChart ?? []) as StoryMetric[];
   const emailRows = (emailEventsForChart ?? []) as EmailMetric[];
+  const feedbackRows = (feedbackRowsForDashboard ?? []) as FeedbackMetric[];
   const paidProfiles = profiles.filter((profile) => isPaidPlan(profile.plan));
   const activePaidProfiles = paidProfiles.filter((profile) => REVENUE_STATUSES.has(profile.subscription_status ?? ""));
   const billingRiskProfiles = paidProfiles.filter((profile) => isBillingBlocked(profile) || isBillingPastDue(profile));
   const trialingProfiles = paidProfiles.filter((profile) => profile.subscription_status === "trialing");
-  const mrr = activePaidProfiles.reduce((sum, user) => sum + (PRICES[user.plan ?? ""] ?? 0), 0);
+  const mrr = activePaidProfiles.reduce((sum, user) => sum + PRICES[normalizePlanKey(user.plan)], 0);
   const planCounts = {
-    free: profiles.filter((profile) => (profile.plan ?? "free") === "free").length,
-    educator: profiles.filter((profile) => profile.plan === "educator").length,
-    centre: profiles.filter((profile) => profile.plan === "centre").length,
+    free: profiles.filter((profile) => normalizePlanKey(profile.plan) === "free").length,
+    educator: profiles.filter((profile) => normalizePlanKey(profile.plan) === "educator").length,
+    educator_pro: profiles.filter((profile) => normalizePlanKey(profile.plan) === "educator_pro").length,
+    centre_starter: profiles.filter((profile) => normalizePlanKey(profile.plan) === "centre_starter").length,
+    centre_growth: profiles.filter((profile) => normalizePlanKey(profile.plan) === "centre_growth").length,
   };
   const zeroStoryUsers = profiles.filter((profile) => (profile.total_stories ?? 0) === 0);
   const oneStoryUsers = profiles.filter((profile) => (profile.total_stories ?? 0) === 1);
@@ -169,6 +196,7 @@ export default async function AdminPage() {
   const emailOpened = emailRows.filter((email) => email.opened_at).length;
   const emailClicked = emailRows.filter((email) => email.clicked_at).length;
   const emailSkipped = emailRows.filter((email) => email.delivery_status?.startsWith("skipped")).length;
+  const newFeedback = feedbackRows.filter((feedback) => (feedback.status ?? "new") === "new").length;
   const storyCounts = days.map((day) => storyRows.filter((story) => story.created_at?.startsWith(day.key)).length);
   const sparklinePoints = buildSparkline(storyCounts);
   const maxStatusCount = Math.max(activePaidProfiles.length, trialingProfiles.length, billingRiskProfiles.length, planCounts.free, 1);
@@ -176,6 +204,9 @@ export default async function AdminPage() {
   const PLAN_BADGE: Record<string, string> = {
     free: "bg-ink-800 text-ink-300",
     educator: "bg-clay-500/20 text-clay-400 border border-clay-500/30",
+    educator_pro: "bg-amber-500/20 text-amber-300 border border-amber-500/30",
+    centre_starter: "bg-sage-500/20 text-sage-400 border border-sage-500/30",
+    centre_growth: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
     centre: "bg-sage-500/20 text-sage-400 border border-sage-500/30",
   };
 
@@ -256,7 +287,7 @@ export default async function AdminPage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-9 gap-3">
           {[
             { label: "Signups", value: profiles.length, sub: "tracked users" },
             { label: "0 stories", value: zeroStoryUsers.length, sub: "activation gap" },
@@ -266,6 +297,7 @@ export default async function AdminPage() {
             { label: "Paid users", value: paidProfiles.length, sub: `${activePaidProfiles.length} active` },
             { label: "Paid, 0 stories", value: paidZeroStoryUsers.length, sub: "needs help fast" },
             { label: "Limit→paid", value: `${freeLimitToPaidConversion}%`, sub: "rough conversion" },
+            { label: "New feedback", value: newFeedback, sub: `${feedbackRows.length} latest loaded` },
           ].map((metric) => (
             <div key={metric.label} className="rounded-2xl border border-ink-800 bg-ink-900 p-4">
               <p className="font-display text-2xl font-bold text-paper">{metric.value}</p>
@@ -297,7 +329,9 @@ export default async function AdminPage() {
                 {[
                   { label: "Free", value: planCounts.free, dot: "bg-ink-500" },
                   { label: "Educator", value: planCounts.educator, dot: "bg-clay-500" },
-                  { label: "Centre", value: planCounts.centre, dot: "bg-sage-500" },
+                  { label: "Educator Pro", value: planCounts.educator_pro, dot: "bg-amber-500" },
+                  { label: "Centre Starter", value: planCounts.centre_starter, dot: "bg-sage-500" },
+                  { label: "Centre Growth", value: planCounts.centre_growth, dot: "bg-emerald-500" },
                 ].map((row) => (
                   <div key={row.label}>
                     <div className="flex items-center justify-between text-xs">
@@ -465,6 +499,62 @@ export default async function AdminPage() {
           </div>
         </div>
 
+        <div className="grid grid-cols-1 xl:grid-cols-[1.3fr_0.7fr] gap-5">
+          <div className="bg-ink-900 border border-ink-800 rounded-2xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-ink-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MessageSquareText className="h-4 w-4 text-clay-400" />
+                <h3 className="font-semibold">Latest feedback</h3>
+              </div>
+              <Link href="/feedback" className="text-xs text-clay-400 hover:text-clay-300">Customer form {"->"}</Link>
+            </div>
+            {!feedbackRows.length ? (
+              <p className="p-8 text-center text-sm text-ink-500">No feedback yet</p>
+            ) : (
+              <div className="divide-y divide-ink-800/50">
+                {feedbackRows.slice(0, 6).map((feedback) => {
+                  const metadata = asRecord(feedback.metadata);
+                  const plan = typeof metadata.plan === "string" ? metadata.plan : "free";
+                  return (
+                    <div key={feedback.id} className="px-5 py-4">
+                      <div className="mb-2 flex flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-clay-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-clay-300">
+                          {feedback.category?.replaceAll("_", " ") ?? "feedback"}
+                        </span>
+                        <span className="rounded-full bg-ink-800 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-400">
+                          {plan}
+                        </span>
+                        <span className="text-[10px] text-ink-600">
+                          {new Date(feedback.created_at).toLocaleString("en-AU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      </div>
+                      <p className="text-sm leading-relaxed text-ink-200">{feedback.message}</p>
+                      {feedback.email && <p className="mt-2 text-[10px] text-ink-500">{feedback.email}</p>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="bg-ink-900 border border-ink-800 rounded-2xl p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <Reply className="h-4 w-4 text-clay-400" />
+              <h3 className="font-semibold text-sm">Outreach reply bank</h3>
+            </div>
+            <div className="space-y-3">
+              {OUTREACH_REPLY_TEMPLATES.map((template) => (
+                <details key={template.id} className="rounded-xl border border-ink-800 bg-ink-950 p-3">
+                  <summary className="cursor-pointer text-xs font-bold text-paper">{template.title}</summary>
+                  <p className="mt-2 text-[10px] leading-relaxed text-clay-400">{template.useWhen}</p>
+                  <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-ink-500">{template.subject}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-ink-300">{template.body}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <div className="bg-ink-900 border border-ink-800 rounded-2xl overflow-hidden lg:col-span-2">
             <div className="px-5 py-4 border-b border-ink-800 flex items-center justify-between">
@@ -498,7 +588,7 @@ export default async function AdminPage() {
                           return limit === null ? "" : `/${limit}`;
                         })()} stories
                       </span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${PLAN_BADGE[u.plan] ?? PLAN_BADGE.free}`}>{u.plan}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${PLAN_BADGE[normalizePlanKey(u.plan)] ?? PLAN_BADGE.free}`}>{normalizePlanKey(u.plan)}</span>
                     </div>
                   </div>
                 ))}

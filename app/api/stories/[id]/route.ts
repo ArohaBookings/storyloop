@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { hasFeatureAccess, requiredPlanForFeature } from "@/lib/plans";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -110,6 +112,15 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     if (!user) {
       return NextResponse.json({ error: "Sign in to edit stories" }, { status: 401 });
+    }
+    const profile = await getOrCreateProfile(user);
+
+    if (whanauVoice !== undefined && !hasFeatureAccess(profile.plan, "familyReplyLoop")) {
+      return NextResponse.json({
+        error: "Family Reply Loop is available on Educator Pro and Centre plans.",
+        upgradeRequired: true,
+        requiredPlan: requiredPlanForFeature("familyReplyLoop"),
+      }, { status: 403 });
     }
 
     const { data: existingStory } = await supabase

@@ -4,6 +4,7 @@ import { generateLearningStory } from "@/lib/ai/generate";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { getMonthlyStoryLimit, getRemainingStories } from "@/lib/story-limits";
 import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
+import { hasFeatureAccess } from "@/lib/plans";
 import {
   mergeStoryPreferences,
   normalizeDepth,
@@ -62,15 +63,20 @@ export async function POST(request: NextRequest) {
       if (!allowed) {
         return NextResponse.json({ error: "Demo limit reached. Sign up to keep going — it's free." }, { status: 429 });
       }
+      const demoFramework = normalizeFramework(typeof location === "string" ? location : undefined);
+      const demoTeReoLevel = demoFramework === "NZ"
+        ? normalizeTeReoLevel(typeof includeTeReoLevel === "string" ? includeTeReoLevel : undefined)
+        : "low";
+      const demoIncludeKowhiti = demoFramework === "NZ" ? Boolean(includeKowhitiWhakapae) : false;
       const result = await generateLearningStory({
         observations,
         ageGroup,
         childName,
-        framework: normalizeFramework(typeof location === "string" ? location : undefined),
+        framework: demoFramework,
         tone: normalizeTone(typeof tone === "string" ? tone : undefined),
         depth: normalizeDepth(typeof depth === "string" ? depth : undefined),
-        includeTeReoLevel: normalizeTeReoLevel(typeof includeTeReoLevel === "string" ? includeTeReoLevel : undefined),
-        includeKowhitiWhakapae: Boolean(includeKowhitiWhakapae),
+        includeTeReoLevel: demoTeReoLevel,
+        includeKowhitiWhakapae: demoIncludeKowhiti,
         includeTapasa: Boolean(includeTapasa),
         pedagogyFocus: normalizePedagogyFocus(typeof pedagogyFocus === "string" ? pedagogyFocus : undefined),
       });
@@ -91,6 +97,7 @@ export async function POST(request: NextRequest) {
         pedagogyLinks: result.pedagogyLinks,
         frameworkEvidence: result.frameworkEvidence,
         storyQuality: result.storyQuality,
+        privacyGuardian: result.privacyGuardian,
         familyQuestion: result.familyQuestion,
         followUpPrompt: result.followUpPrompt,
         nextSteps: result.nextSteps,
@@ -118,13 +125,15 @@ export async function POST(request: NextRequest) {
     );
     const resolvedTone = normalizeTone(typeof tone === "string" ? tone : preferences.preferredTone);
     const resolvedDepth = normalizeDepth(typeof depth === "string" ? depth : preferences.depthPreference);
-    const resolvedTeReoLevel = normalizeTeReoLevel(
-      typeof includeTeReoLevel === "string" ? includeTeReoLevel : preferences.includeTeReoLevel
-    );
+    const resolvedTeReoLevel = framework === "NZ"
+      ? normalizeTeReoLevel(typeof includeTeReoLevel === "string" ? includeTeReoLevel : preferences.includeTeReoLevel)
+      : "low";
     const resolvedIncludeKowhiti =
-      typeof includeKowhitiWhakapae === "boolean"
-        ? includeKowhitiWhakapae
-        : preferences.includeKowhitiWhakapae ?? false;
+      framework === "NZ"
+        ? typeof includeKowhitiWhakapae === "boolean"
+          ? includeKowhitiWhakapae
+          : preferences.includeKowhitiWhakapae ?? false
+        : false;
     const resolvedIncludeTapasa =
       typeof includeTapasa === "boolean"
         ? includeTapasa
@@ -195,11 +204,14 @@ export async function POST(request: NextRequest) {
 
     const resolvedChildName = selectedChild?.name ?? childName;
     const resolvedAgeGroup = selectedChild?.age_group ?? ageGroup;
-    const childContext = selectedChild
+    const canUseChildContinuity = hasFeatureAccess(plan, "childContinuityProfiles");
+    const childContext = selectedChild && canUseChildContinuity
       ? [
           selectedChild.interests?.length ? `Current interests: ${selectedChild.interests.join(", ")}` : "",
           selectedChild.developmental_focus ? `Educator learning focus: ${selectedChild.developmental_focus}` : "",
-          selectedChild.whanau_aspirations ? `Whānau aspirations: ${selectedChild.whanau_aspirations}` : "",
+          selectedChild.whanau_aspirations
+            ? `${framework === "NZ" ? "Whānau" : "Family"} aspirations: ${selectedChild.whanau_aspirations}`
+            : "",
           selectedChild.home_languages?.length ? `Home languages: ${selectedChild.home_languages.join(", ")}` : "",
           selectedChild.notes ? `Educator context: ${selectedChild.notes}` : "",
           recentLearning.length ? `Recent learning summaries: ${recentLearning.join(" | ")}` : "",
@@ -251,11 +263,12 @@ export async function POST(request: NextRequest) {
         pedagogyLinks: result.pedagogyLinks,
         frameworkEvidence: result.frameworkEvidence,
         storyQuality: result.storyQuality,
+        privacyGuardian: result.privacyGuardian,
         familyQuestion: result.familyQuestion,
         followUpPrompt: result.followUpPrompt,
         inputMethod: resolvedInputMethod,
         followUpStatus: "open",
-        continuityContextUsed: Boolean(selectedChild),
+        continuityContextUsed: Boolean(selectedChild && canUseChildContinuity),
         sourceStoryId: typeof sourceStoryId === "string" ? sourceStoryId : undefined,
         nextStepProgress: result.nextSteps.map((text) => ({ text, status: "planned" })),
         storySettings: {
@@ -314,6 +327,7 @@ export async function POST(request: NextRequest) {
       pedagogyLinks: result.pedagogyLinks,
       frameworkEvidence: result.frameworkEvidence,
       storyQuality: result.storyQuality,
+      privacyGuardian: result.privacyGuardian,
       familyQuestion: result.familyQuestion,
       followUpPrompt: result.followUpPrompt,
       nextSteps: result.nextSteps,
