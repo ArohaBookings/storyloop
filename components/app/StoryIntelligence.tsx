@@ -47,7 +47,7 @@ export default function StoryIntelligence({
   }
 
   return (
-    <section className="mt-5 rounded-3xl border border-sage-200 bg-gradient-to-br from-sage-50 via-white to-cream-50 p-5">
+    <section className="story-safe mt-5 max-w-full overflow-hidden rounded-3xl border border-sage-200 bg-gradient-to-br from-sage-50 via-white to-cream-50 p-5">
       <div className="mb-4 flex items-start gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sage-700 text-paper">
           <ShieldCheck className="h-5 w-5" />
@@ -63,9 +63,9 @@ export default function StoryIntelligence({
         </div>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid min-w-0 gap-3 md:grid-cols-2">
         {storyQuality && (
-          <div className="rounded-2xl border border-sage-100 bg-white p-4">
+          <div className="min-w-0 rounded-2xl border border-sage-100 bg-white p-4">
             <p className="flex items-center gap-2 text-xs font-bold text-ink-900">
               <Sparkles className="h-4 w-4 text-sage-700" /> Quality pass
             </p>
@@ -96,7 +96,7 @@ export default function StoryIntelligence({
         )}
 
         {privacyGuardian && (
-          <div className={`rounded-2xl border bg-white p-4 ${
+          <div className={`min-w-0 rounded-2xl border bg-white p-4 ${
             privacyGuardian.status === "high"
               ? "border-red-100"
               : privacyGuardian.status === "review"
@@ -130,7 +130,7 @@ export default function StoryIntelligence({
         )}
 
         {evidenceAnchors.length > 0 && (
-          <div className="rounded-2xl border border-sage-100 bg-white p-4">
+          <div className="min-w-0 rounded-2xl border border-sage-100 bg-white p-4">
             <p className="flex items-center gap-2 text-xs font-bold text-ink-900">
               <Fingerprint className="h-4 w-4 text-sage-700" /> Evidence anchors
             </p>
@@ -143,7 +143,7 @@ export default function StoryIntelligence({
         )}
 
         {educatorChecks.length > 0 && (
-          <div className="rounded-2xl border border-clay-100 bg-white p-4">
+          <div className="min-w-0 rounded-2xl border border-clay-100 bg-white p-4">
             <p className="flex items-center gap-2 text-xs font-bold text-ink-900">
               <CheckCircle2 className="h-4 w-4 text-clay-700" /> Before you share
             </p>
@@ -156,7 +156,7 @@ export default function StoryIntelligence({
         )}
 
         {pedagogyLinks.length > 0 && (
-          <div className="rounded-2xl border border-clay-100 bg-white p-4">
+          <div className="min-w-0 rounded-2xl border border-clay-100 bg-white p-4">
             <p className="flex items-center gap-2 text-xs font-bold text-ink-900">
               <Compass className="h-4 w-4 text-clay-700" /> Pedagogy in practice
             </p>
@@ -169,7 +169,7 @@ export default function StoryIntelligence({
         )}
 
         {frameworkEvidence.length > 0 && (
-          <div className="rounded-2xl border border-clay-100 bg-white p-4">
+          <div className="min-w-0 rounded-2xl border border-clay-100 bg-white p-4">
             <p className="flex items-center gap-2 text-xs font-bold text-ink-900">
               <Compass className="h-4 w-4 text-clay-700" /> Why these links fit
             </p>
@@ -182,7 +182,7 @@ export default function StoryIntelligence({
         )}
 
         {(familyQuestion || followUpPrompt) && (
-          <div className="rounded-2xl border border-clay-100 bg-white p-4">
+          <div className="min-w-0 rounded-2xl border border-clay-100 bg-white p-4">
             <p className="flex items-center gap-2 text-xs font-bold text-ink-900">
               <MessageCircle className="h-4 w-4 text-clay-700" /> Keep the loop moving
             </p>
