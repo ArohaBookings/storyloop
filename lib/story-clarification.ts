@@ -71,16 +71,13 @@ export function getStoryClarification(input: ClarificationInput): StoryClarifica
   const vague = VAGUE_PLAY.test(observations) && readiness.found <= 2;
 
   if ((words < 18 && readiness.found <= 2) || vague) {
-    const missingPrompts = readiness.signals
-      .filter((signal) => !signal.found)
-      .map((signal) => signal.prompt.replace(/^If relevant, /, ""));
     return {
       needsClarification: true,
       kind: "thin_observation",
       reason: "The note has a starting point, but it needs one or two real details before StoryLoop can write a useful educator-ready story.",
       questions: uniqueQuestions([
         `What exactly did ${child} do, say, choose, test, or change?`,
-        missingPrompts[0] || "What materials, setting, or people were part of the moment?",
+        "Where did this happen, and what materials or people were involved?",
         "What learning or response do you want the story to focus on?",
       ]),
     };
