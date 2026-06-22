@@ -31,6 +31,10 @@ export interface StoryResult extends StoryMetadata {
   curriculumLinks: string[];
   learningSummary: string;
   childVoice: string;
+  learningDispositions: string[];
+  socialEmotionalLinks: string[];
+  culturalConnections: string[];
+  whanauConnection: string;
   childAge: string;
   nextSteps: string[];
   assumptions: string[];
