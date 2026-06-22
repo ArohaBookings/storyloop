@@ -60,12 +60,7 @@ function buildGenerationObservations(observations: string, clarificationAnswers:
   const cleanObservations = observations.trim();
   if (clarificationAnswers.length === 0) return cleanObservations;
 
-  return [
-    cleanObservations,
-    "",
-    "Educator clarification answers:",
-    ...clarificationAnswers.map((answer, index) => `${index + 1}. ${answer}`),
-  ].join("\n");
+  return [cleanObservations, ...clarificationAnswers].join("\n");
 }
 
 export async function POST(request: NextRequest) {
