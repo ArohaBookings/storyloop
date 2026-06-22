@@ -41,9 +41,9 @@ export function getStoryClarification(input: ClarificationInput): StoryClarifica
       kind: "thin_observation",
       reason: "The observation is too short to create a useful learning story.",
       questions: uniqueQuestions([
-        `What exactly did ${child} do, say, choose, or change?`,
-        "Where did it happen, and what materials or people were involved?",
-        "What did you or another educator do to support the moment?",
+        `What exactly did ${child} do, make, say, choose, or change?`,
+        `Where was ${child}, and what materials or people were part of the moment?`,
+        "How did you or another educator respond, support, or extend the learning?",
       ]),
     };
   }
@@ -59,9 +59,9 @@ export function getStoryClarification(input: ClarificationInput): StoryClarifica
       kind: "safety_review",
       reason: "This may be pretend play, social conflict, behaviour documentation, or an incident depending on what actually happened.",
       questions: uniqueQuestions([
-        "Was this pretend play or a real incident/conflict?",
-        "Was anyone hurt or upset, and what did the educator do immediately?",
-        "What exact words or actions were observed before and after the unsafe behaviour?",
+        "Was this pretend play or a real conflict/incident?",
+        "Was anyone hurt or upset, and what did you or another educator do immediately?",
+        "What words, gestures, or actions happened before and after the unsafe behaviour?",
       ]),
     };
   }
@@ -76,9 +76,9 @@ export function getStoryClarification(input: ClarificationInput): StoryClarifica
       kind: "thin_observation",
       reason: "The note has a starting point, but it needs one or two real details before StoryLoop can write a useful educator-ready story.",
       questions: uniqueQuestions([
-        `What exactly did ${child} do, say, choose, test, or change?`,
-        "Where did this happen, and what materials or people were involved?",
-        "What learning or response do you want the story to focus on?",
+        `What exactly did ${child} do, make, say, choose, test, or change?`,
+        `Where was ${child}, and what materials or people were part of the moment?`,
+        "How did you or another educator respond, support, or extend the learning?",
       ]),
     };
   }

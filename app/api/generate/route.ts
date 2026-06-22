@@ -47,6 +47,27 @@ function normalizeEducatorNames(value: unknown) {
   return [];
 }
 
+function normalizeClarificationAnswers(value: unknown) {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((entry) => (typeof entry === "string" ? entry.trim().replace(/\s+/g, " ") : ""))
+    .filter((entry) => entry.length > 0)
+    .slice(0, 3);
+}
+
+function buildGenerationObservations(observations: string, clarificationAnswers: string[]) {
+  const cleanObservations = observations.trim();
+  if (clarificationAnswers.length === 0) return cleanObservations;
+
+  return [
+    cleanObservations,
+    "",
+    "Educator clarification answers:",
+    ...clarificationAnswers.map((answer, index) => `${index + 1}. ${answer}`),
+  ].join("\n");
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -65,6 +86,7 @@ export async function POST(request: NextRequest) {
       sourceStoryId,
       inputMethod,
       educatorNames,
+      clarificationAnswers,
       demo,
     } = body;
 
@@ -75,7 +97,10 @@ export async function POST(request: NextRequest) {
     // DEMO MODE — public, rate limited per IP
     if (demo) {
       const demoFramework = normalizeFramework(typeof location === "string" ? location : undefined);
-      const demoClarification = getStoryClarification({ observations, childName });
+      const demoClarificationAnswers = normalizeClarificationAnswers(clarificationAnswers);
+      const demoClarification = demoClarificationAnswers.length === 0
+        ? getStoryClarification({ observations, childName })
+        : { needsClarification: false, kind: "ready" as const, reason: "", questions: [] };
       if (demoClarification.needsClarification) {
         return NextResponse.json({
           needsClarification: true,
@@ -100,8 +125,9 @@ export async function POST(request: NextRequest) {
         ? normalizeTeReoLevel(typeof includeTeReoLevel === "string" ? includeTeReoLevel : undefined)
         : "low";
       const demoIncludeKowhiti = demoFramework === "NZ" ? Boolean(includeKowhitiWhakapae) : false;
+      const demoGenerationObservations = buildGenerationObservations(observations, demoClarificationAnswers);
       const result = await generateLearningStory({
-        observations,
+        observations: demoGenerationObservations,
         ageGroup,
         childName,
         framework: demoFramework,
@@ -238,7 +264,10 @@ export async function POST(request: NextRequest) {
     const resolvedChildName = selectedChild?.name ?? childName;
     const resolvedAgeGroup = selectedChild?.age_group ?? ageGroup;
     const resolvedEducatorNames = normalizeEducatorNames(educatorNames);
-    const clarification = getStoryClarification({ observations, childName: resolvedChildName });
+    const resolvedClarificationAnswers = normalizeClarificationAnswers(clarificationAnswers);
+    const clarification = resolvedClarificationAnswers.length === 0
+      ? getStoryClarification({ observations, childName: resolvedChildName })
+      : { needsClarification: false, kind: "ready" as const, reason: "", questions: [] };
     if (clarification.needsClarification) {
       return NextResponse.json({
         success: false,
@@ -256,6 +285,7 @@ export async function POST(request: NextRequest) {
             : getRemainingStories(profile),
       });
     }
+    const generationObservations = buildGenerationObservations(observations, resolvedClarificationAnswers);
     const canUseChildContinuity = hasFeatureAccess(plan, "childContinuityProfiles");
     const childContext = selectedChild && canUseChildContinuity
       ? [
@@ -273,7 +303,7 @@ export async function POST(request: NextRequest) {
       : "";
 
     const result = await generateLearningStory({
-      observations,
+      observations: generationObservations,
       ageGroup: resolvedAgeGroup,
       childName: resolvedChildName,
       tone: resolvedTone,
@@ -321,6 +351,7 @@ export async function POST(request: NextRequest) {
         followUpPrompt: result.followUpPrompt,
         inputMethod: resolvedInputMethod,
         educatorNames: resolvedEducatorNames,
+        clarificationAnswers: resolvedClarificationAnswers,
         followUpStatus: "open",
         continuityContextUsed: Boolean(selectedChild && canUseChildContinuity),
         sourceStoryId: typeof sourceStoryId === "string" ? sourceStoryId : undefined,
@@ -334,6 +365,7 @@ export async function POST(request: NextRequest) {
           includeTapasa: resolvedIncludeTapasa,
           pedagogyFocus: resolvedPedagogyFocus,
           educatorNames: resolvedEducatorNames,
+          clarificationAnswers: resolvedClarificationAnswers,
         },
       },
     }).select("id").single();

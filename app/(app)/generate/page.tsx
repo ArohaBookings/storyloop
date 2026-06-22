@@ -156,6 +156,8 @@ export default function GeneratePage() {
     reason: string;
     questions: string[];
   } | null>(null);
+  const [clarificationAnswers, setClarificationAnswers] = useState<string[]>([]);
+  const [clarificationStep, setClarificationStep] = useState(0);
   const [transcriptionMessage, setTranscriptionMessage] = useState("");
   const [upgradeRequired, setUpgradeRequired] = useState(false);
   const [billingRequired, setBillingRequired] = useState(false);
@@ -168,6 +170,7 @@ export default function GeneratePage() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
+  const storyPanelRef = useRef<HTMLDivElement | null>(null);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [liveRecordingSupported, setLiveRecordingSupported] = useState(false);
   const [suggestUploadFallback, setSuggestUploadFallback] = useState(false);
@@ -337,6 +340,26 @@ export default function GeneratePage() {
     setFollowUpPrompt("");
   };
 
+  const resetClarification = () => {
+    setClarification(null);
+    setClarificationAnswers([]);
+    setClarificationStep(0);
+  };
+
+  const updateClarificationAnswer = (index: number, value: string) => {
+    setClarificationAnswers((previous) => {
+      const next = [...previous];
+      next[index] = value;
+      return next;
+    });
+  };
+
+  const normalizeClarificationAnswers = (answers: string[]) =>
+    answers
+      .map((answer) => answer.trim())
+      .filter(Boolean)
+      .slice(0, 3);
+
   const parseEducatorNames = (value: string) =>
     Array.from(
       new Set(
@@ -348,15 +371,17 @@ export default function GeneratePage() {
       )
     );
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (clarificationAnswersOverride: string[] = []) => {
     if (observations.trim().length < 10) {
       setError("Please add more detail (at least 10 characters)");
       return;
     }
 
+    const submittedClarificationAnswers = normalizeClarificationAnswers(clarificationAnswersOverride);
+
     setLoading(true);
     setError("");
-    setClarification(null);
+    resetClarification();
     resetOutput();
     setUpgradeRequired(false);
     setBillingRequired(false);
@@ -382,17 +407,25 @@ export default function GeneratePage() {
           sourceStoryId: sourceStoryId || undefined,
           inputMethod,
           educatorNames: parseEducatorNames(educatorNames),
+          clarificationAnswers: submittedClarificationAnswers,
         }),
       });
       const data = await res.json();
       if (data.needsClarification) {
+        const questions = Array.isArray(data.clarificationQuestions)
+          ? data.clarificationQuestions.filter((question: unknown): question is string => typeof question === "string" && question.trim().length > 0).slice(0, 3)
+          : [];
+
         setClarification({
           kind: data.clarificationKind,
           reason: data.clarificationReason ?? "A little more context is needed before this becomes a learning story.",
-          questions: Array.isArray(data.clarificationQuestions) ? data.clarificationQuestions.slice(0, 3) : [],
+          questions,
         });
+        setClarificationAnswers(questions.map(() => ""));
+        setClarificationStep(0);
         setRemaining(data.remaining ?? "");
         setAccountPlan(normalizePlanKey(data.plan));
+        setTimeout(() => storyPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
         return;
       }
       if (!res.ok) {
@@ -462,6 +495,34 @@ export default function GeneratePage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleClarificationContinue = async () => {
+    if (!clarification) return;
+
+    const answers = clarification.questions.map((_, index) => (clarificationAnswers[index] ?? "").trim());
+    const currentAnswer = answers[clarificationStep] ?? "";
+
+    if (!currentAnswer) {
+      setError("Answer this question before continuing.");
+      return;
+    }
+
+    setError("");
+
+    if (clarificationStep < clarification.questions.length - 1) {
+      setClarificationStep((step) => step + 1);
+      return;
+    }
+
+    if (answers.some((answer) => !answer)) {
+      const firstMissingIndex = answers.findIndex((answer) => !answer);
+      setClarificationStep(Math.max(firstMissingIndex, 0));
+      setError("Answer each clarification question before generating.");
+      return;
+    }
+
+    await handleGenerate(answers);
   };
 
   const dismissUpgradePrompt = () => {
@@ -590,6 +651,7 @@ export default function GeneratePage() {
 
   const useSampleObservation = () => {
     setMode("story");
+    resetClarification();
     setObservations(SAMPLE_OBSERVATION);
     setInputMethod("sample");
     dismissFirstStoryWizard();
@@ -639,6 +701,7 @@ export default function GeneratePage() {
 
   const selectBacklogItem = (item: BacklogItem) => {
     setMode("story");
+    resetClarification();
     setObservations(item.storySeed || item.observation);
     setInputMethod("backlog");
     setBacklogResult(null);
@@ -774,6 +837,7 @@ export default function GeneratePage() {
       }
 
       if (data.text) {
+        resetClarification();
         setObservations((previous) => (previous ? `${previous.trim()}\n${data.text}` : data.text));
         setInputMethod("voice");
         setTranscriptionMessage("Voice note added to observations. Review the text, then generate the story.");
@@ -855,6 +919,11 @@ export default function GeneratePage() {
 
   const recordButtonLabel = isTouchDevice ? "Record" : "Record voice note";
   const showRecordButton = !recording && liveRecordingSupported;
+  const clarificationQuestionCount = clarification?.questions.length ?? 0;
+  const boundedClarificationStep = Math.min(clarificationStep, Math.max(clarificationQuestionCount - 1, 0));
+  const currentClarificationQuestion = clarification?.questions[boundedClarificationStep] ?? "";
+  const currentClarificationAnswer = clarificationAnswers[boundedClarificationStep] ?? "";
+  const isFinalClarificationQuestion = boundedClarificationStep >= clarificationQuestionCount - 1;
 
   return (
     <div className="w-full max-w-none p-4 sm:p-6 md:p-8">
@@ -974,6 +1043,7 @@ export default function GeneratePage() {
               value={observations}
               onChange={(e) => {
                 setObservations(e.target.value);
+                if (clarification) resetClarification();
                 if (inputMethod !== "voice" && inputMethod !== "sample" && inputMethod !== "backlog") {
                   setInputMethod("typed");
                 }
@@ -1007,39 +1077,6 @@ export default function GeneratePage() {
             )}
             <ObservationCoach observation={observations} plan={accountPlan} framework={location} />
           </div>
-
-          {clarification && (
-            <div className="rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-cream-50 p-5 shadow-soft">
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-amber-600 text-white">
-                  <AlertCircle className="h-5 w-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="section-title mb-1">Needs educator context first</p>
-                  <h3 className="font-display text-xl font-bold text-ink-900">Answer these before StoryLoop writes the story.</h3>
-                  <p className="mt-1 text-sm leading-relaxed text-ink-600">{clarification.reason}</p>
-                </div>
-              </div>
-              <div className="mt-4 grid gap-2">
-                {clarification.questions.map((question, index) => (
-                  <button
-                    key={question}
-                    type="button"
-                    onClick={() => {
-                      setObservations((previous) => `${previous.trim()}\n${index + 1}. ${question} `);
-                      setInputMethod("typed");
-                    }}
-                    className="rounded-2xl border border-amber-100 bg-white px-4 py-3 text-left text-sm font-semibold leading-relaxed text-ink-800 hover:border-amber-300 hover:bg-amber-50"
-                  >
-                    {index + 1}. {question}
-                  </button>
-                ))}
-              </div>
-              <p className="mt-3 text-xs text-ink-500">
-                Tap a question to add it to the observation box, type the answer after it, then generate again. This keeps unsafe or unclear notes from becoming the wrong kind of story.
-              </p>
-            </div>
-          )}
 
           <div className="card p-6 space-y-4">
             <p className="section-title">Personalise (optional)</p>
@@ -1333,7 +1370,7 @@ export default function GeneratePage() {
               )}
             </button>
           ) : (
-            <button onClick={handleGenerate} disabled={loading || transcribing || observations.length < 10} className="btn-primary w-full py-4 text-base">
+            <button onClick={() => handleGenerate()} disabled={loading || transcribing || observations.length < 10} className="btn-primary w-full py-4 text-base">
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" /> Writing your story...
@@ -1451,12 +1488,12 @@ export default function GeneratePage() {
           )}
         </div>
 
-        <div className="story-safe card-warm flex min-h-[420px] min-w-0 max-w-full flex-col overflow-hidden p-4 sm:p-6 md:min-h-[500px] xl:sticky xl:top-4">
+        <div ref={storyPanelRef} className="story-safe card-warm flex min-h-[420px] min-w-0 max-w-full flex-col overflow-hidden p-4 sm:p-6 md:min-h-[500px] xl:sticky xl:top-4">
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="section-title">Your learning story</p>
             {story && (
               <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <button onClick={handleGenerate} className="btn-ghost text-xs">
+                <button onClick={() => handleGenerate()} className="btn-ghost text-xs">
                   <RefreshCw className="w-3 h-3" /> Regenerate
                 </button>
                 <button onClick={startStoryEdit} disabled={editingStory || savingStory} className="btn-ghost text-xs disabled:opacity-50">
@@ -1486,6 +1523,88 @@ export default function GeneratePage() {
               <Loader2 className="w-10 h-10 animate-spin text-clay-500 mb-4" />
               <p className="font-display text-lg font-bold text-ink-900 mb-1">Crafting your story...</p>
               <p className="text-sm text-ink-500">Usually takes 5-10 seconds</p>
+            </div>
+          ) : clarification ? (
+            <div className="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-cream-50 p-5 shadow-soft">
+              <div className="mb-4 flex items-start gap-3">
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-amber-600 text-white">
+                  <AlertCircle className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="section-title mb-1">Context needed before writing</p>
+                  <h2 className="font-display text-2xl font-bold text-ink-900">Please answer these questions first.</h2>
+                  <p className="mt-1 text-sm leading-relaxed text-ink-600">
+                    {clarification.reason} This has not used a story credit, and your original observation is unchanged.
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-amber-100 bg-white p-4 shadow-soft">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-800">
+                    Question {boundedClarificationStep + 1}/{clarificationQuestionCount}
+                  </span>
+                  <span className="text-[11px] font-semibold text-ink-500">Answer only what you observed.</span>
+                </div>
+                <label className="block text-sm font-bold leading-relaxed text-ink-900" htmlFor="clarification-answer">
+                  {currentClarificationQuestion}
+                </label>
+                <textarea
+                  id="clarification-answer"
+                  value={currentClarificationAnswer}
+                  onChange={(event) => updateClarificationAnswer(boundedClarificationStep, event.target.value)}
+                  rows={5}
+                  autoFocus
+                  className="input mt-3 resize-none text-sm leading-relaxed"
+                  placeholder="Type the answer here. Keep it factual and brief."
+                />
+              </div>
+
+              {clarificationQuestionCount > 1 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {clarification.questions.map((question, index) => {
+                    const answered = Boolean((clarificationAnswers[index] ?? "").trim());
+                    const questionButtonClass = [
+                      "rounded-full border px-3 py-1.5 text-[11px] font-bold transition-all",
+                      boundedClarificationStep === index
+                        ? "border-amber-600 bg-amber-600 text-white"
+                        : answered
+                          ? "border-sage-200 bg-sage-50 text-sage-700"
+                          : "border-clay-200 bg-white text-ink-500",
+                    ].join(" ");
+                    return (
+                      <button
+                        key={question}
+                        type="button"
+                        onClick={() => setClarificationStep(index)}
+                        className={questionButtonClass}
+                      >
+                        {index + 1}/{clarificationQuestionCount}{answered ? " done" : ""}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <button
+                  type="button"
+                  onClick={() => setClarificationStep((step) => Math.max(0, step - 1))}
+                  disabled={boundedClarificationStep === 0}
+                  className="btn-secondary justify-center px-4 py-2 text-xs disabled:opacity-40"
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClarificationContinue}
+                  disabled={!currentClarificationAnswer.trim()}
+                  className="btn-primary justify-center px-5 py-2.5 text-sm disabled:opacity-50"
+                >
+                  {isFinalClarificationQuestion ? "Generate story with answers" : "Next question"}
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
           ) : story ? (
             <div className="story-safe flex min-w-0 max-w-full flex-1 flex-col">

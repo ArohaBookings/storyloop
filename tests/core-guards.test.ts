@@ -199,7 +199,8 @@ test("clarification asks valid questions before unsafe or vague notes become sto
   assert.equal(vague.kind, "thin_observation");
   assert.ok(vague.questions.length > 0 && vague.questions.length <= 3);
   assert.ok(vague.questions.join(" ").includes("Ruby"));
-  assert.ok(/did|where|materials|learning|focus|support/i.test(vague.questions.join(" ")));
+  assert.ok(/did|where|materials|respond|support|extend/i.test(vague.questions.join(" ")));
+  assert.equal(/learning or response do you want/i.test(vague.questions.join(" ")), false);
 
   const ready = getStoryClarification({
     observations: "Maya lay on the mat and watched the scarf move above her. She smiled when I paused, then kicked her legs until I moved it again.",

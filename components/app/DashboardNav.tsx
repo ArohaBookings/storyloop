@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, Mail, AlertTriangle, Brain, Users, ClipboardList, MessageSquareText, BarChart3, SlidersHorizontal } from "lucide-react";
 import AnimatedLogo from "@/components/brand/AnimatedLogo";
 import { createClient } from "@/lib/supabase/client";
@@ -61,6 +61,17 @@ export default function DashboardNav({
   const [mobileOpen, setMobileOpen] = useState(false);
   const supabase = createClient();
 
+  useEffect(() => {
+    if (!mobileOpen || typeof document === "undefined") return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileOpen]);
+
   const handleLogout = async () => { await supabase.auth.signOut(); router.push("/"); router.refresh(); };
   const goToBilling = () => {
     setMobileOpen(false);
@@ -92,17 +103,29 @@ export default function DashboardNav({
     ? [...NAV, { href: "/api/admin/session", activePath: "/admin", icon: ShieldAlert, label: "Admin" }]
     : NAV;
 
-  const Content = () => (
-    <div className="flex h-full min-h-0 flex-col overflow-y-auto overscroll-contain">
-      <div className="h-16 flex items-center gap-2.5 px-5 border-b border-clay-100 flex-shrink-0">
-        <AnimatedLogo size={32} />
-        <div>
-          <span className="font-display text-lg font-bold text-ink-900">StoryLoop</span>
-          <p className="text-[9px] text-clay-600 -mt-1 font-mono tracking-widest">BY ARIA CARE</p>
+  const Content = ({ mobile = false }: { mobile?: boolean }) => (
+    <div className="flex h-full min-h-0 flex-col overflow-y-auto overscroll-contain pb-6 md:pb-0">
+      <div className="h-16 flex items-center justify-between gap-3 px-5 border-b border-clay-100 flex-shrink-0">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <AnimatedLogo size={32} />
+          <div className="min-w-0">
+            <span className="font-display text-lg font-bold text-ink-900">StoryLoop</span>
+            <p className="text-[9px] text-clay-600 -mt-1 font-mono tracking-widest">BY ARIA CARE</p>
+          </div>
         </div>
+        {mobile && (
+          <button
+            type="button"
+            onClick={() => setMobileOpen(false)}
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-clay-200 bg-white/80 text-ink-600 shadow-soft"
+            aria-label="Close dashboard navigation"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
-      <nav className="min-h-0 flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-shrink-0 px-3 py-4 space-y-1">
         {navItems.map(({ href, icon: Icon, label, highlight, activePath }) => {
           const resolvedActivePath = activePath ?? href;
           const active = resolvedActivePath === "/dashboard"
@@ -213,16 +236,30 @@ export default function DashboardNav({
       <div className="hidden md:flex w-60 bg-white border-r border-clay-100 flex-col h-full flex-shrink-0">
         <Content />
       </div>
-      <button className="md:hidden fixed bottom-4 left-4 z-50 w-11 h-11 bg-white/75 border border-clay-200/80 rounded-full flex items-center justify-center shadow-soft backdrop-blur-md text-ink-700"
-        onClick={() => setMobileOpen(!mobileOpen)}
-        aria-label={mobileOpen ? "Close dashboard navigation" : "Open dashboard navigation"}
-        aria-expanded={mobileOpen}>
-        {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-      </button>
+      {!mobileOpen && (
+        <button
+          className="md:hidden fixed bottom-4 left-4 z-50 w-11 h-11 bg-white/75 border border-clay-200/80 rounded-full flex items-center justify-center shadow-soft backdrop-blur-md text-ink-700"
+          onClick={() => setMobileOpen(true)}
+          aria-label="Open dashboard navigation"
+          aria-expanded={false}
+        >
+          <Menu className="w-4 h-4" />
+        </button>
+      )}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-40 flex">
-          <div className="h-full w-[min(20rem,88vw)] overflow-hidden bg-white/95 border-r border-clay-100 shadow-xl backdrop-blur"><Content /></div>
-          <div className="flex-1 bg-black/30" onClick={() => setMobileOpen(false)} />
+        <div className="md:hidden fixed inset-0 z-40 flex overflow-hidden bg-black/30">
+          <div
+            className="h-dvh max-h-dvh w-[min(18.5rem,86vw)] overflow-y-auto overscroll-contain bg-white/95 border-r border-clay-100 shadow-xl backdrop-blur"
+            onWheel={(event) => event.stopPropagation()}
+          >
+            <Content mobile />
+          </div>
+          <button
+            type="button"
+            className="min-w-0 flex-1 cursor-default"
+            onClick={() => setMobileOpen(false)}
+            aria-label="Close dashboard navigation"
+          />
         </div>
       )}
     </>
