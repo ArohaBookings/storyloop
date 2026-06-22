@@ -12,6 +12,7 @@ import { buildPlanningBoard } from "../lib/planning-board";
 import { hasFeatureAccess, normalizePlanKey } from "../lib/plans";
 import { runPrivacyGuardian } from "../lib/privacy-guardian";
 import { hasPhysicalSafetyIncident } from "../lib/safety-incident";
+import { buildEvidenceLedStory, shouldUseEvidenceLedStory } from "../lib/ai/evidence-story";
 import { buildPhysicalSafetyFallbackStory } from "../lib/ai/physical-safety-story";
 import { buildUserMessage } from "../lib/ai/prompts";
 import {
@@ -265,6 +266,58 @@ test("physical conflict observations use incident-aware story path", () => {
   assert.equal(result.outcomes.some((item) => /Mana aotūroa|Exploration/i.test(item)), false);
   assert.equal(guardian.status, "review");
   assert.equal(result.storyQuality?.revisionCount, 0);
+});
+
+test("evidence-led stories turn thin block notes into child-centred educator documentation", () => {
+  const observations = "Lily built a tower with wooden blocks. It fell over twice. Lily looked at it, tried again, then asked Mia to help hold the side. Lily smiled and said it is standing.";
+  const result = buildEvidenceLedStory({}, {
+    observations,
+    childName: "Lily",
+    ageGroup: "3-4 years",
+    framework: "NZ",
+    depth: "detailed",
+    tone: "warm",
+    pedagogyFocus: "balanced",
+  });
+
+  assert.equal(shouldUseEvidenceLedStory(observations), true);
+  assert.equal(result.storyTitle, "Lily's Tower That Stood");
+  assert.ok(result.story.includes("Lily met a real problem"));
+  assert.ok(result.story.includes("asked Mia to help hold the side"));
+  assert.equal(result.story.includes("meaningful in the moment"), false);
+  assert.equal(result.story.includes("Learning Through Play"), false);
+  assert.equal(result.childVoice, 'Lily said, "it is standing".');
+  assert.ok(result.wordCount >= getMinimumStoryWords("detailed"));
+  assert.ok(result.outcomes.some((item) => item.includes("Mana tangata | Contribution")));
+  assert.ok(result.outcomes.some((item) => item.includes("Mana reo | Communication")));
+});
+
+test("evidence-led EYLF pretend play stays Australian and does not become a generic tower story", () => {
+  const observations = "Ruby pretended to go shopping. She put cups and blocks into a basket, walked to the table, made beeping sounds, and gave the basket to Amir.";
+  const result = buildEvidenceLedStory({}, {
+    observations,
+    childName: "Ruby",
+    ageGroup: "3-4 years",
+    framework: "AU",
+    depth: "balanced",
+    tone: "warm",
+    pedagogyFocus: "child_voice",
+  });
+  const joined = [
+    result.story,
+    ...result.outcomes,
+    ...result.curriculumLinks,
+    result.whanauConnection,
+    result.familyQuestion,
+  ].join(" ");
+
+  assert.equal(result.storyTitle, "Ruby's Pretend Play Story");
+  assert.ok(result.story.includes("pretend story"));
+  assert.ok(result.story.includes("objects as symbols"));
+  assert.equal(/Tower That Stood|meaningful in the moment|cashier/i.test(joined), false);
+  assert.ok(result.outcomes.every((item) => item.includes("EYLF Outcome")));
+  assert.equal(/\b(Te Whāriki|Mana atua|Mana tangata|Mana reo|whānau|kaiako|tamariki|Aotearoa)\b/i.test(joined), false);
+  assert.ok(result.wordCount >= getMinimumStoryWords("balanced"));
 });
 
 test("EYLF physical conflict stories stay Australian and avoid Te Reo", () => {
