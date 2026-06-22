@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import { LEARNING_STORY_PROMPT, buildUserMessage } from "./prompts";
+import { buildEvidenceLedStory, shouldUseEvidenceLedStory } from "./evidence-story";
 import { buildPhysicalSafetyFallbackStory as buildSharedPhysicalSafetyFallbackStory } from "./physical-safety-story";
 import {
   countWords,
@@ -366,61 +367,6 @@ function getStoryRescueReasons(
   return reasons;
 }
 
-function cleanObservationSummary(observations: string) {
-  return observations
-    .replace(/\s+/g, " ")
-    .replace(/ignore (all )?previous/gi, "")
-    .replace(/system:/gi, "")
-    .trim()
-    .slice(0, 500);
-}
-
-function fallbackFrameworkMetadata(framework: StoryFrameworkId) {
-  if (framework === "NZ") {
-    return {
-      outcomes: ["Mana aotūroa | Exploration", "Mana reo | Communication"],
-      curriculumLinks: [
-        "This links with Mana aotūroa | Exploration when the child is using play to explore an idea, make choices, and test what they know.",
-        "This links with Mana reo | Communication when the play includes sounds, words, gestures, symbols, or shared meaning.",
-      ],
-      frameworkEvidence: [
-        "The Te Whāriki links are based on the child's visible play, choices, exploration, and communication in the observation.",
-      ],
-      pedagogyLinks: ["responsive and reciprocal practice", "play-based learning", "assessment for learning"],
-    };
-  }
-
-  return {
-    outcomes: [
-      "EYLF Outcome 4: Children are confident and involved learners",
-      "EYLF Outcome 5: Children are effective communicators",
-    ],
-    curriculumLinks: [
-      "This links with EYLF Outcome 4 because the child is using play to explore an idea, make choices, and build understanding from the moment observed.",
-      "This links with EYLF Outcome 5 when the play includes sounds, words, gestures, symbols, or shared meaning.",
-    ],
-    frameworkEvidence: [
-      "The EYLF links are based on the child's visible play, choices, exploration, and communication in the observation.",
-    ],
-    pedagogyLinks: ["play-based learning", "responsiveness to children", "intentionality"],
-  };
-}
-
-function fallbackPedagogyParagraph(focus: PedagogyFocus, child: string) {
-  switch (focus) {
-    case "intentional_teaching":
-      return `The strongest teaching response is to extend the idea without taking over. An educator could sit nearby, name what ${child} is doing, offer one carefully chosen material or phrase, and then wait to see whether ${child} keeps control of the play.`;
-    case "child_voice":
-      return `The next version of this story would be stronger with ${child}'s exact words, sounds, gestures, or choices recorded. Until then, the draft keeps child voice as agency: what ${child} chose, repeated, changed, or communicated through the play.`;
-    case "family_partnership":
-      return `A useful family connection is to ask whether this kind of play, role, movement, or language is showing up outside the centre too. That invites family knowledge without assuming what happens at home.`;
-    case "working_theories":
-      return `This can be followed as an emerging working theory: what does ${child} seem to understand about the role, object, routine, or problem, and what changes when the same idea is offered again?`;
-    default:
-      return `The educator's role is to notice the learning process, not just the activity. The useful follow-up is to watch what ${child} adds next: language, repeated actions, new roles, problem solving, peer connection, or a different way to use the materials.`;
-  }
-}
-
 function buildGroundedFallbackStory(
   current: StoryResult,
   params: {
@@ -432,107 +378,14 @@ function buildGroundedFallbackStory(
     childName?: string;
     ageGroup?: string;
   },
-  reasons: string[],
+  _reasons: string[],
   revisionCount: number
 ): StoryResult {
   if (hasPhysicalSafetyIncident(params.observations)) {
-    return buildSharedPhysicalSafetyFallbackStory(current, params, reasons, revisionCount);
+    return buildSharedPhysicalSafetyFallbackStory(current, params, _reasons, revisionCount);
   }
 
-  const child = params.childName?.trim() || "the child";
-  const possessive = params.childName?.trim() ? `${child}'s` : "the child's";
-  const observation = cleanObservationSummary(params.observations) || "The educator noted a brief learning moment.";
-  const title = current.storyTitle || `${child === "the child" ? "Learning Through Play" : `${child}'s Learning Through Play`}`;
-  const framework = fallbackFrameworkMetadata(params.framework);
-  const ageSentence = params.ageGroup
-    ? `The selected age group is ${params.ageGroup}, so the interpretation should stay matched to what is reasonable for that age and to what was actually observed.`
-    : "Because no age was supplied, the interpretation stays broad and avoids age-specific developmental claims.";
-  const frameworkName = params.framework === "NZ" ? "Te Whāriki" : "EYLF";
-  const sparseBoundary =
-    "The note is brief, so this draft keeps the evidence boundary clear. It does not add exact words, other children, feelings, family background, materials, or educator actions that were not recorded.";
-  const pedagogyParagraph = fallbackPedagogyParagraph(params.pedagogyFocus ?? "balanced", child);
-
-  const paragraphs = [
-    `From this observation, ${child} was using play to explore an idea that was meaningful in the moment. The educator's note says: "${observation}". That gives a clear starting point, even though some details still need to be checked before sharing.`,
-    `${possessive.charAt(0).toUpperCase()}${possessive.slice(1)} play matters because children often use familiar routines, movement, objects, roles, sounds, and repeated actions to make sense of their world. In this moment, the visible learning is not just the topic of the play; it is the process ${child} was using to organise an idea, make choices, communicate meaning, and stay with the experience long enough for an educator to notice it.`,
-    `For ${frameworkName}, the strongest link is with learning through exploration and communication. The observation can support curriculum links when the educator can point back to what ${child} actually did or communicated. ${sparseBoundary}`,
-    pedagogyParagraph,
-  ];
-
-  if (params.depth !== "concise") {
-    paragraphs.push(
-      `A stronger final version would include the context of the moment: where the play happened, what materials were involved, whether ${child} used words, sounds or gestures, whether another child joined in, and how the educator responded. Those details would make the learning story more personal without needing to make bigger claims.`,
-      `The next teaching move should be simple and observable. Offer a small extension connected to the same idea, stay close enough to hear ${child}'s language or notice gestures, and record one or two exact details next time. That will help the next story show continuity rather than treating this as a one-off activity.`
-    );
-  }
-
-  if (params.depth === "detailed") {
-    paragraphs.push(
-      `This draft is intentionally careful because high-quality documentation is not about making a small note sound dramatic. It is about turning the note into a useful record while preserving educator judgement. The final educator review should decide whether the curriculum link is the best fit, whether the family question is appropriate, and whether any local centre language should be added.`,
-      `If this interest appears again, the educator could create a follow-up by adding one related prop, inviting ${child} to show or explain the idea, or noticing whether the play becomes more social, symbolic, physical, or language-rich. The important evidence to capture next is what changes: what ${child} repeats, adds, solves, says, asks, or invites someone else to do.`
-    );
-  }
-
-  const story = `${title}\n\n${paragraphs.join("\n\n")}`;
-  const wordCount = countWords(story);
-  const meetsDepthTarget = wordCount >= getMinimumStoryWords(params.depth);
-
-  return {
-    ...current,
-    storyTitle: title,
-    story,
-    outcomes: framework.outcomes,
-    curriculumLinks: framework.curriculumLinks,
-    learningSummary: `${child} was using play to explore an idea, make choices, and communicate meaning. The evidence is brief, so the final educator review should add any exact words, materials, relationships, or educator responses before sharing.`,
-    childVoice: "",
-    learningDispositions: ["curiosity", "communication", "agency", "working theories"],
-    socialEmotionalLinks: ["confidence", "belonging through familiar play"],
-    culturalConnections: [],
-    whanauConnection:
-      params.framework === "NZ"
-        ? "Whānau may recognise whether this kind of play, language, or routine is showing up in other settings."
-        : "Families may recognise whether this kind of play, language, or routine is showing up in other settings.",
-    assumptions: [
-      "The observation is brief, so exact words, materials, peers, and educator response need confirming.",
-      ageSentence,
-    ],
-    evidenceAnchors: [observation],
-    educatorChecks: [
-      `What exact words, sounds, gestures, or choices did ${child} use?`,
-      "What materials, people, and context were part of the moment?",
-      `Does this ${frameworkName} link match what you observed closely enough to share?`,
-    ],
-    pedagogyLinks: framework.pedagogyLinks,
-    frameworkEvidence: framework.frameworkEvidence,
-    familyQuestion:
-      params.framework === "NZ"
-        ? `Do you notice ${child} using this kind of play, role, or language with whānau?`
-        : `Do you notice ${child} using this kind of play, role, or language at home?`,
-    followUpPrompt: `Notice what ${child} adds next time: words, gestures, roles, materials, problem solving, or connection with another child.`,
-    childAge: params.ageGroup || current.childAge || "Not stated",
-    nextSteps: [
-      "Offer one related prop or material and observe what the child does with it.",
-      "Record one exact phrase, gesture, choice, or repeated action next time.",
-      "Use a short family question to check whether this interest connects with experiences outside the centre.",
-    ],
-    wordCount,
-    storyQuality: {
-      passes: true,
-      score: 90,
-      revisionCount,
-      checks: {
-        naturalEducatorTone: true,
-        childVoiceSupported: true,
-        frameworkLinksFit: true,
-        noInventedDetails: true,
-        evidenceToLearningClear: true,
-        familyReadable: true,
-        usefulForDepth: meetsDepthTarget,
-      },
-      issues: meetsDepthTarget ? [] : reasons.slice(0, 3),
-      strengths: ["Fallback kept the story grounded in the supplied observation."],
-    },
-  };
+  return buildEvidenceLedStory(current, params, revisionCount);
 }
 
 const STORY_QUALITY_PROMPT = `You are StoryLoop's educator review helper.
@@ -794,6 +647,30 @@ export async function generateLearningStory(params: {
     return {
       ...incidentDraft,
       privacyGuardian: runPrivacyGuardian({ observation: observations, story: incidentDraft.story }),
+    };
+  }
+
+  if (shouldUseEvidenceLedStory(observations)) {
+    const evidenceDraft = enforceFrameworkForResult(
+      buildEvidenceLedStory(
+        {},
+        {
+          observations,
+          framework,
+          tone,
+          depth,
+          pedagogyFocus: preferences.pedagogyFocus ?? "balanced",
+          childName: params.childName,
+          ageGroup: params.ageGroup,
+        },
+        0
+      ),
+      framework
+    );
+
+    return {
+      ...evidenceDraft,
+      privacyGuardian: runPrivacyGuardian({ observation: observations, story: evidenceDraft.story }),
     };
   }
 
