@@ -145,9 +145,9 @@ export default function DashboardNav({
         })}
       </nav>
 
-      {/* Usage indicator */}
-      {limit !== null && (
-        <div className="px-3 pb-3">
+      <div className="mt-auto space-y-3 px-3 pb-3">
+        {/* Usage indicator */}
+        {limit !== null && (
           <div className="bg-cream-50 border border-clay-200 rounded-xl p-3">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[10px] font-bold text-clay-700 uppercase tracking-wider">Monthly allowance</span>
@@ -166,11 +166,9 @@ export default function DashboardNav({
               Upgrade for unlimited stories →
             </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {(billingBlocked || billingPastDue) && (
-        <div className="px-3 pb-3">
+        {(billingBlocked || billingPastDue) && (
           <div className={`rounded-xl border p-3 ${billingBlocked ? "bg-red-50 border-red-100" : "bg-amber-50 border-amber-100"}`}>
             <div className="flex items-start gap-2">
               <AlertTriangle className={`w-4 h-4 mt-0.5 ${billingBlocked ? "text-red-600" : "text-amber-600"}`} />
@@ -193,10 +191,8 @@ export default function DashboardNav({
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="px-3 pb-3">
         <Link
           href="/support"
           onClick={() => setMobileOpen(false)}
@@ -213,19 +209,19 @@ export default function DashboardNav({
             </div>
           </div>
         </Link>
-      </div>
 
-      <div className="border-t border-clay-100 p-3">
-        <div className="flex items-center gap-2 px-1.5">
-          <div className="w-8 h-8 rounded-full bg-clay-700 text-paper flex items-center justify-center text-xs font-bold flex-shrink-0">{initials}</div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-ink-800 truncate">{userName}</p>
-            <span className={`inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full ${planInfo.colour} mt-0.5`}>{planInfo.label}</span>
-            {appliedAccessCode && <p className="text-[10px] text-clay-700 mt-1">{appliedAccessCode.toUpperCase()} access</p>}
+        <div className="border-t border-clay-100 pt-3">
+          <div className="flex items-center gap-2 px-1.5">
+            <div className="w-8 h-8 rounded-full bg-clay-700 text-paper flex items-center justify-center text-xs font-bold flex-shrink-0">{initials}</div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-ink-800 truncate">{userName}</p>
+              <span className={`inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full ${planInfo.colour} mt-0.5`}>{planInfo.label}</span>
+              {appliedAccessCode && <p className="text-[10px] text-clay-700 mt-1">{appliedAccessCode.toUpperCase()} access</p>}
+            </div>
+            <button onClick={handleLogout} title="Sign out" className="text-ink-400 hover:text-ink-700 transition-colors p-1">
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
           </div>
-          <button onClick={handleLogout} title="Sign out" className="text-ink-400 hover:text-ink-700 transition-colors p-1">
-            <LogOut className="w-3.5 h-3.5" />
-          </button>
         </div>
       </div>
     </div>

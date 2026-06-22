@@ -43,9 +43,9 @@ import {
 import type { PrivacyGuardianResult } from "@/lib/privacy-guardian";
 
 const PLACEHOLDERS = [
-  "• Ruby (2yo) built a block tower\n• Got frustrated when it fell\n• Tried 4 more times, each bigger\n• Clapped when it stayed up",
-  "• Group story time\n• Jax (3) pointed at the pictures\n• Asked 'what's that' 6 times\n• Starting to predict what comes next",
-  "• Outdoor play\n• Maya (4) & Sam (4) playing shopkeepers\n• Used pretend money, took turns as cashier\n• Strong language — 'that'll be five dollars please'",
+  "Example only - replace this with your real notes:\nRuby (2yo) built a block tower. It fell twice, then she tried again with a wider base and clapped when it stayed up.",
+  "Example only - replace this with your real notes:\nDuring group story time, Jax pointed to the pictures, asked \"what's that?\" several times, and began predicting what might happen next.",
+  "Example only - replace this with your real notes:\nMaya and Sam played shopkeepers outside. Maya used pretend money, took turns as cashier, and said, \"That will be five dollars please.\"",
 ];
 
 const SAMPLE_OBSERVATION =
@@ -1488,7 +1488,7 @@ export default function GeneratePage() {
           )}
         </div>
 
-        <div ref={storyPanelRef} className="story-safe card-warm flex min-h-[420px] min-w-0 max-w-full flex-col overflow-hidden p-4 sm:p-6 md:min-h-[500px] xl:sticky xl:top-4">
+        <div ref={storyPanelRef} className="story-safe card-warm flex min-h-[220px] min-w-0 max-w-full flex-col overflow-hidden p-4 sm:min-h-[280px] sm:p-6 md:min-h-[420px] xl:sticky xl:top-4 xl:min-h-[500px]">
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="section-title">Your learning story</p>
             {story && (
@@ -1863,11 +1863,19 @@ export default function GeneratePage() {
               )}
             </div>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-center px-4">
-              <div>
-                <Sparkles className="w-10 h-10 text-clay-300 mx-auto mb-3" />
-                <p className="font-display text-lg font-bold text-ink-900">Ready when you are</p>
-                <p className="text-sm text-ink-500 mt-1">Add observations and hit generate.</p>
+            <div className="flex-1 px-0 py-1 sm:p-2">
+              <div className="w-full rounded-2xl border border-clay-100 bg-white/75 p-4 text-left shadow-soft sm:ml-auto sm:max-w-sm">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-cream-100 text-clay-700">
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-display text-base font-bold text-ink-900">Ready when you are</p>
+                    <p className="mt-1 text-sm leading-relaxed text-ink-500">
+                      Add real observation notes, then generate. If more context is genuinely needed, questions will appear here without changing your notes.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           )}
