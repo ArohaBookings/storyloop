@@ -64,6 +64,36 @@ function countWords(text: string) {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
+function cleanEducatorNames(names?: string[]) {
+  return Array.from(
+    new Set(
+      (names ?? [])
+        .map((name) => name.trim().replace(/\s+/g, " "))
+        .filter((name) => name.length > 1)
+        .slice(0, 4)
+    )
+  );
+}
+
+function joinNames(names: string[]) {
+  if (names.length <= 1) return names[0] ?? "";
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
+}
+
+function educatorVoice(names?: string[]) {
+  const clean = cleanEducatorNames(names);
+  const joined = joinNames(clean);
+  return {
+    observer: joined || "we",
+    noticed: joined ? `${joined} noticed` : "We noticed",
+    supported: joined ? `${joined} can support` : "We can support",
+    continue: joined ? `${joined} can continue to` : "We can continue to",
+    offer: joined ? `${joined} might offer` : "We might offer",
+    wouldLove: joined ? `${joined} would love to hear` : "We would love to hear",
+  };
+}
+
 function getMinimumStoryWords(depth: StoryDepth) {
   if (depth === "detailed") return 430;
   if (depth === "concise") return 160;
@@ -322,59 +352,62 @@ function learningLens(domain: StoryDomain) {
   }
 }
 
-function pedagogyParagraph(focus: PedagogyFocus, child: string, domain: StoryDomain) {
+function pedagogyParagraph(focus: PedagogyFocus, child: string, domain: StoryDomain, names?: string[]) {
+  const voice = educatorVoice(names);
   if (focus === "intentional_teaching") {
-    return `A strong intentional teaching response would be small and well timed: name what ${child} is trying, offer one useful word, question, material, or strategy, and then wait to see how ${child} uses it. The adult role is to extend the thinking without taking the learning away from ${child}.`;
+    return `${voice.supported} this learning with a small, well-timed response: naming what ${child} is trying, offering one useful word, question, material, or strategy, and then waiting to see how ${child} uses it.`;
   }
   if (focus === "child_voice") {
-    return `The child's voice is already visible through action. A final shared version would be even stronger if it includes one exact word, sound, gesture, sign, facial expression, or choice from ${child}. If those details were not recorded, the story should keep the voice as agency rather than inventing a quote.`;
+    return `${child}'s voice is visible through action. If an exact word, sound, gesture, sign, facial expression, or choice was also recorded, ${voice.observer} can add it before sharing.`;
   }
   if (focus === "family_partnership") {
-    return `A useful family connection is to ask whether this interest, strategy, word, or routine is appearing outside the centre. That keeps the question warm and specific while leaving space for family knowledge.`;
+    return `${voice.wouldLove} whether this interest, strategy, word, or routine is also appearing outside the centre, so family knowledge can sit beside what was noticed here.`;
   }
   if (focus === "working_theories" || domain === "working_theory") {
-    return `This can be followed as a working theory. The useful question is what ${child} seems to be testing: how something moves, changes, balances, sounds, connects, or affects another person. The next observation should look for what ${child} repeats, changes, predicts, or explains.`;
+    return `${voice.continue} follow this as a working theory by noticing what ${child} repeats, changes, predicts, explains, or tests next time.`;
   }
-  return `The educator's role is to notice the learning inside the ordinary moment. The follow-up should stay close to the evidence: offer one related opportunity, listen for ${child}'s language or watch for a repeated strategy, and record what changes next time.`;
+  return `${voice.continue} stay close to this learning by offering one related opportunity, listening for ${child}'s language, watching for repeated strategies, and recording what changes next time.`;
 }
 
-function firstParagraph(child: string, fragments: string[], quote: string, domain: StoryDomain) {
-  const first = fragments[0] ? sentenceCase(fragments[0]) : `${child} was noticed in a brief learning moment.`;
+function firstParagraph(child: string, fragments: string[], quote: string, domain: StoryDomain, names?: string[]) {
+  const voice = educatorVoice(names);
+  const first = fragments[0] ? sentenceCase(fragments[0]) : `${voice.noticed} ${child} in a brief learning moment.`;
   const rest = fragments.slice(1, 4).map(sentenceCase).join(" ");
   const quoteSentence = quote ? ` The recorded words were "${quote}".` : "";
 
   if (domain === "sensory") {
-    return `${first} ${rest} This was not just a sensory activity; it was a back-and-forth conversation through movement, attention, and response.${quoteSentence}`.replace(/\s+/g, " ").trim();
+    return `${voice.noticed} ${child} communicating through movement, attention, and response. ${first} ${rest}${quoteSentence}`.replace(/\s+/g, " ").trim();
   }
   if (domain === "pretend") {
-    return `${first} ${rest} ${child} was turning real-world routines into pretend play, using objects, sound, sequence, and another person to carry the idea forward.${quoteSentence}`.replace(/\s+/g, " ").trim();
+    return `${voice.noticed} ${child} turning real-world routines into pretend play. ${first} ${rest}${quoteSentence}`.replace(/\s+/g, " ").trim();
   }
   if (domain === "construction") {
-    return `${first} ${rest} The important learning was not only the finished tower; it was how ${child} stayed with the problem, adjusted the plan, and used help or feedback to keep going.${quoteSentence}`.replace(/\s+/g, " ").trim();
+    return `${voice.noticed} ${child} staying with a real problem. ${first} ${rest}${quoteSentence}`.replace(/\s+/g, " ").trim();
   }
   if (domain === "working_theory") {
-    return `${first} ${rest} ${child} was building a theory through real materials: noticing what changed, trying an action, and using the result to decide what to do next.${quoteSentence}`.replace(/\s+/g, " ").trim();
+    return `${voice.noticed} ${child} building a theory through real materials and actions. ${first} ${rest}${quoteSentence}`.replace(/\s+/g, " ").trim();
   }
   if (domain === "self_regulation") {
-    return `${first} ${rest} This was a wellbeing and communication moment because ${child} noticed what felt difficult, used a strategy, and showed readiness in a way others could understand.${quoteSentence}`.replace(/\s+/g, " ").trim();
+    return `${voice.noticed} ${child} communicating a wellbeing need through action. ${first} ${rest}${quoteSentence}`.replace(/\s+/g, " ").trim();
   }
-  return `${first} ${rest} This moment shows ${child} making choices, communicating meaning, and giving the educator something specific to build on next.${quoteSentence}`.replace(/\s+/g, " ").trim();
+  return `${voice.noticed} ${child} making choices and communicating meaning. ${first} ${rest}${quoteSentence}`.replace(/\s+/g, " ").trim();
 }
 
-function extensionParagraph(domain: StoryDomain, child: string) {
+function extensionParagraph(domain: StoryDomain, child: string, names?: string[]) {
+  const voice = educatorVoice(names);
   switch (domain) {
     case "construction":
-      return `A strong next observation would watch what ${child} does when the structure becomes difficult again. Does ${child} change the base, ask for help sooner, explain the plan, celebrate the process, or offer the same support to another child? Those details would show continuity in persistence and collaboration.`;
+      return `${voice.continue} watch what ${child} does when the structure becomes difficult again: whether ${child} changes the base, asks for help sooner, explains the plan, celebrates the process, or offers the same support to another child.`;
     case "pretend":
-      return `A strong next observation would follow the story line of the play. Does ${child} add new roles, use more specific language, invite another child into the sequence, or connect the pretend routine with real experiences from home or the community?`;
+      return `${voice.continue} follow the story line of the play by noticing whether ${child} adds new roles, uses more specific language, invites another child into the sequence, or connects the pretend routine with real experiences.`;
     case "sensory":
-      return `A strong next observation would follow the pattern of response. Does ${child} repeat the movement, pause for the adult to copy, use a sound or gesture to continue, or show preference for a particular pace, colour, texture, or rhythm?`;
+      return `${voice.continue} follow the pattern of response by noticing whether ${child} repeats the movement, pauses for an adult to copy, uses a sound or gesture to continue, or shows a preference for pace, colour, texture, or rhythm.`;
     case "working_theory":
-      return `A strong next observation would follow the theory. Does ${child} predict what will happen, change the channel, use new tools, explain the idea to another child, or compare what happens when the material changes?`;
+      return `${voice.continue} follow the theory by noticing whether ${child} predicts what will happen, changes the plan, uses new tools, explains the idea, or compares what happens when the material changes.`;
     case "self_regulation":
-      return `A strong next observation would look for the replacement strategy. Does ${child} move away earlier, use a word or gesture, accept support, return when ready, or show another child what helps?`;
+      return `${voice.continue} look for the replacement strategy: whether ${child} moves away earlier, uses a word or gesture, accepts support, returns when ready, or shows another child what helps.`;
     default:
-      return `A strong next observation would look for what changes. Does ${child} repeat the action, add language, invite someone else, solve a problem, or show the idea in a new context?`;
+      return `${voice.continue} notice what changes next: whether ${child} repeats the action, adds language, invites someone else, solves a problem, or shows the idea in a new context.`;
   }
 }
 
@@ -402,7 +435,7 @@ function padForDepth(story: string, depth: StoryDepth, child: string, domain: St
   if (countWords(story) >= minimum) return story;
 
   const additions = [
-    `This draft keeps the evidence line clear. It uses what was actually recorded about ${child}, then turns that evidence into a professional interpretation that an educator can review, personalise, and share when appropriate.`,
+    `We will keep the final version accurate by adding any exact words, materials, setting details, or educator responses that were part of the moment but not included in the brief note.`,
     extensionParagraph(domain, child),
   ];
 
@@ -430,6 +463,7 @@ export function buildEvidenceLedStory(
     pedagogyFocus?: PedagogyFocus;
     childName?: string;
     ageGroup?: string;
+    educatorNames?: string[];
   },
   revisionCount = 0
 ): EvidenceStoryResult {
@@ -447,29 +481,41 @@ export function buildEvidenceLedStory(
   const childVoice = quote ? `${child} said, "${quote}".` : "";
   const peerPhrase = otherChildren.length > 0 ? ` The note also names ${otherChildren.join(" and ")}, so the educator can decide whether that name should remain in the final family-facing version.` : "";
   const evidenceLine = fragments.slice(0, 3).map((item) => item.replace(/[.!?]*$/, "")).join("; ");
+  const voice = educatorVoice(params.educatorNames);
+  const curriculumHeading = params.framework === "NZ" ? "Te Whāriki links" : "EYLF links";
+  const familyHeading = params.framework === "NZ" ? "Family/whānau link" : "Family link";
 
   const paragraphs = [
-    firstParagraph(child, fragments, quote, domain),
+    "Learning Story",
+    firstParagraph(child, fragments, quote, domain, params.educatorNames),
+    "",
+    "What learning we noticed",
     reflectionParagraph(domain, child, evidenceLine || observation),
-    `For ${frameworkName}, the curriculum link should follow the learning that is actually visible. ${framework.frameworkEvidence[0]} The curriculum wording supports the educator's judgement without replacing it.`,
-    pedagogyParagraph(params.pedagogyFocus ?? "balanced", child, domain),
+    `${child} was showing ${lens.summary}. We can see this through the recorded action rather than through a broad activity label.`,
+    "",
+    curriculumHeading,
+    ...framework.curriculumLinks.slice(0, params.depth === "concise" ? 2 : 3),
+    "",
+    "Where to next / Responding",
+    pedagogyParagraph(params.pedagogyFocus ?? "balanced", child, domain, params.educatorNames),
   ];
 
   if (params.depth !== "concise") {
     paragraphs.push(
-      `Before sharing, the educator should add any missing details that would make the story more personal: where it happened, what materials were used, exact words or gestures, how long ${child} stayed with the moment, and how the adult responded. Those details matter because they keep the story specific without inventing anything.${peerPhrase}`,
-      `The next step should be close to the learning already visible. ${extensionParagraph(domain, child)}`
+      extensionParagraph(domain, child, params.educatorNames),
+      `Before sharing, ${voice.observer} can add any missing details that would make the story more personal: where it happened, what materials were used, exact words or gestures, how long ${child} stayed with the moment, and how an adult responded.${peerPhrase}`
     );
   }
 
   if (params.depth === "detailed") {
     paragraphs.push(
-      `A family or ${familyWord} question can deepen this story without making assumptions. Instead of asking a broad question, ask about the exact strategy or interest seen here: whether ${child} is building, pretending, testing, communicating, calming, or repeating this kind of idea in another setting.`,
-      `This makes the documentation useful beyond today. The story gives the educator a clear record of what ${child} did, what learning it may show, what still needs checking, and what to notice next.`
+      "",
+      familyHeading,
+      `${voice.wouldLove} if this interest, strategy, word, or routine is also showing up outside the centre. That helps us connect the story with what ${familyWord} know about ${child}.`
     );
   }
 
-  const story = padForDepth(`${title}\n\n${paragraphs.join("\n\n")}`, params.depth, child, domain);
+  const story = padForDepth(`${title}\n\n${paragraphs.filter((part) => part !== undefined).join("\n\n")}`, params.depth, child, domain);
   const wordCount = countWords(story);
 
   return {
@@ -478,7 +524,7 @@ export function buildEvidenceLedStory(
     story,
     outcomes: framework.outcomes,
     curriculumLinks: framework.curriculumLinks,
-    learningSummary: `${child} was showing ${lens.summary}. The interpretation is grounded in the recorded observation and should be reviewed against the educator's full context.`,
+    learningSummary: `${child} was showing ${lens.summary}. The story stays close to the recorded actions and can be strengthened with any exact words, setting details, or educator responses.`,
     childVoice,
     learningDispositions: lens.dispositions,
     socialEmotionalLinks: lens.social,
@@ -488,7 +534,7 @@ export function buildEvidenceLedStory(
         ? `Whānau may recognise whether this learning, interest, strategy, or language is also appearing outside the centre.`
         : `Families may recognise whether this learning, interest, strategy, or language is also appearing outside the service.`,
     assumptions: [
-      "This draft uses only the supplied observation and avoids adding unrecorded educator actions, emotions, or family context.",
+      "This story uses only the supplied observation and avoids adding unrecorded educator actions, emotions, or family context.",
       params.ageGroup
         ? `The selected age group is ${params.ageGroup}, so the final review should check that the wording fits this child's stage and context.`
         : "No age was supplied, so the interpretation stays broad.",
@@ -509,7 +555,7 @@ export function buildEvidenceLedStory(
     followUpPrompt: extensionParagraph(domain, child),
     childAge: params.ageGroup || current.childAge || "Not stated",
     nextSteps: [
-      extensionParagraph(domain, child),
+      extensionParagraph(domain, child, params.educatorNames),
       `Record one exact word, gesture, choice, or repeated action from ${child} next time.`,
       "Add the educator response before sharing if it is important to the learning.",
     ],

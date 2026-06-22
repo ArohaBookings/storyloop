@@ -12,6 +12,7 @@ import { buildPlanningBoard } from "../lib/planning-board";
 import { hasFeatureAccess, normalizePlanKey } from "../lib/plans";
 import { runPrivacyGuardian } from "../lib/privacy-guardian";
 import { hasPhysicalSafetyIncident } from "../lib/safety-incident";
+import { getStoryClarification } from "../lib/story-clarification";
 import { buildEvidenceLedStory, shouldUseEvidenceLedStory } from "../lib/ai/evidence-story";
 import { buildPhysicalSafetyFallbackStory } from "../lib/ai/physical-safety-story";
 import { buildUserMessage } from "../lib/ai/prompts";
@@ -177,6 +178,34 @@ test("story quality helpers enforce paid-grade depth and readable notes", () => 
     "Child voice is only used when the observation supports it."
   );
   assert.equal(humaniseQualityNote("notAISounding"), "The draft does not read like generic AI copy.");
+  assert.equal(humaniseQualityNote("noMetaCommentary"), "The story avoids draft-review commentary.");
+});
+
+test("clarification asks valid questions before unsafe or vague notes become stories", () => {
+  const unsafe = getStoryClarification({
+    observations: "Jax pushed Ruby and Ruby hit Jax which was unacceptable.",
+    childName: "Ruby",
+  });
+  assert.equal(unsafe.needsClarification, true);
+  assert.equal(unsafe.kind, "safety_review");
+  assert.ok(unsafe.questions.length > 0 && unsafe.questions.length <= 3);
+  assert.ok(unsafe.questions.some((question) => /pretend play|real incident/i.test(question)));
+
+  const vague = getStoryClarification({
+    observations: "Ruby played and had fun.",
+    childName: "Ruby",
+  });
+  assert.equal(vague.needsClarification, true);
+  assert.equal(vague.kind, "thin_observation");
+  assert.ok(vague.questions.length > 0 && vague.questions.length <= 3);
+  assert.ok(vague.questions.join(" ").includes("Ruby"));
+  assert.ok(/did|where|materials|learning|focus|support/i.test(vague.questions.join(" ")));
+
+  const ready = getStoryClarification({
+    observations: "Maya lay on the mat and watched the scarf move above her. She smiled when I paused, then kicked her legs until I moved it again.",
+    childName: "Maya",
+  });
+  assert.equal(ready.needsClarification, false);
 });
 
 test("EYLF result guard removes Aotearoa-only framework leakage", () => {
@@ -267,8 +296,11 @@ test("physical conflict observations use incident-aware story path", () => {
 
   assert.equal(result.storyTitle, "Supporting Ruby's Safe Play");
   assert.ok(result.story.includes("social learning and safety moment"));
-  assert.ok(result.story.includes("physical response was not safe"));
+  assert.ok(result.story.includes("The physical response was not safe"));
+  assert.ok(result.story.includes("Learning Story"));
+  assert.ok(result.story.includes("Where to next / Responding"));
   assert.equal(/Playtime Adventure|cash register|toy food|follow the interest/i.test(result.story), false);
+  assert.equal(/the educator should|the educator's role|this draft|the interpretation is grounded/i.test(result.story), false);
   assert.ok(result.wordCount >= getMinimumStoryWords("detailed"));
   assert.ok(result.outcomes.some((item) => item.includes("Mana atua | Wellbeing")));
   assert.equal(result.outcomes.some((item) => /Mana aotūroa|Exploration/i.test(item)), false);
@@ -290,10 +322,13 @@ test("evidence-led stories turn thin block notes into child-centred educator doc
 
   assert.equal(shouldUseEvidenceLedStory(observations), true);
   assert.equal(result.storyTitle, "Lily's Tower That Stood");
-  assert.ok(result.story.includes("Lily met a real problem"));
+  assert.ok(result.story.includes("Learning Story"));
+  assert.ok(result.story.includes("What learning we noticed"));
+  assert.ok(result.story.includes("We noticed Lily staying with a real problem"));
   assert.ok(result.story.includes("asked Mia to help hold the side"));
   assert.equal(result.story.includes("meaningful in the moment"), false);
   assert.equal(result.story.includes("Learning Through Play"), false);
+  assert.equal(/the educator should|the educator's role|this draft|the interpretation is grounded|curriculum wording supports/i.test(result.story), false);
   assert.equal(result.childVoice, 'Lily said, "it is standing".');
   assert.ok(result.wordCount >= getMinimumStoryWords("detailed"));
   assert.ok(result.outcomes.some((item) => item.includes("Mana tangata | Contribution")));
@@ -320,7 +355,9 @@ test("evidence-led EYLF pretend play stays Australian and does not become a gene
   ].join(" ");
 
   assert.equal(result.storyTitle, "Ruby's Pretend Play Story");
-  assert.ok(result.story.includes("pretend story"));
+  assert.ok(result.story.includes("Learning Story"));
+  assert.ok(result.story.includes("What learning we noticed"));
+  assert.ok(result.story.includes("pretend play"));
   assert.ok(result.story.includes("objects as symbols"));
   assert.equal(/Tower That Stood|meaningful in the moment|cashier/i.test(joined), false);
   assert.ok(result.outcomes.every((item) => item.includes("EYLF Outcome")));
@@ -347,4 +384,19 @@ test("EYLF physical conflict stories stay Australian and avoid Te Reo", () => {
   assert.ok(result.outcomes.every((item) => item.includes("EYLF Outcome")));
   assert.equal(/\b(Te Whāriki|Mana atua|Mana tangata|Mana reo|whānau|kaiako|tamariki|Aotearoa)\b/i.test(joined), false);
   assert.ok(result.story.includes("social learning and safety moment"));
+});
+
+test("educator names shape story voice without replacing evidence", () => {
+  const result = buildEvidenceLedStory({}, {
+    observations: "Ari poured water between two cups. He slowed down when it spilled and said more water gone.",
+    childName: "Ari",
+    framework: "AU",
+    depth: "balanced",
+    tone: "natural",
+    educatorNames: ["Sarah", "Moana"],
+  });
+
+  assert.ok(result.story.includes("Sarah and Moana noticed Ari"));
+  assert.ok(result.story.includes("Sarah and Moana can continue"));
+  assert.equal(/this draft|the educator should|the educator's role/i.test(result.story), false);
 });

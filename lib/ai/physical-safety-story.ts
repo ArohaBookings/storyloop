@@ -44,6 +44,35 @@ function countWords(text: string) {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
+function cleanEducatorNames(names?: string[]) {
+  return Array.from(
+    new Set(
+      (names ?? [])
+        .map((name) => name.trim().replace(/\s+/g, " "))
+        .filter((name) => name.length > 1)
+        .slice(0, 4)
+    )
+  );
+}
+
+function joinNames(names: string[]) {
+  if (names.length <= 1) return names[0] ?? "";
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
+}
+
+function educatorVoice(names?: string[]) {
+  const clean = cleanEducatorNames(names);
+  const joined = joinNames(clean);
+  return {
+    observer: joined || "we",
+    noticed: joined ? `${joined} noticed` : "We noticed",
+    support: joined ? `${joined} can support` : "We can support",
+    continue: joined ? `${joined} can continue to` : "We can continue to",
+    check: joined ? `${joined} will check` : "We will check",
+  };
+}
+
 function getMinimumStoryWords(depth: StoryDepth) {
   if (depth === "detailed") return 430;
   if (depth === "concise") return 160;
@@ -136,18 +165,19 @@ function buildIncidentSequence(observations: string, childName?: string) {
   return `${child} was involved in shared play followed by physical conflict that needs calm adult support.`;
 }
 
-function incidentPedagogyParagraph(focus: PedagogyFocus, child: string) {
+function incidentPedagogyParagraph(focus: PedagogyFocus, child: string, names?: string[]) {
+  const voice = educatorVoice(names);
   switch (focus) {
     case "intentional_teaching":
-      return `The intentional teaching move is to slow the moment down and teach the replacement skill. The educator can model short language such as "Stop", "I need space", or "Please help", while also showing what safe hands and safe bodies look like in this play context.`;
+      return `${voice.support} the next moment by slowing the play down and teaching one replacement skill, such as "Stop", "I need space", or "Please help", while also showing what safe hands and safe bodies look like in this play context.`;
     case "child_voice":
-      return `Child voice is important here, but it should not be invented. A stronger final story would include what ${child} said, signed, gestured, or showed with their body when the play became too rough, and what language the educator offered as a safer alternative.`;
+      return `${voice.check} the child voice before sharing: what ${child} said, signed, gestured, or showed with their body when the play became too rough, and what language was offered as a safer alternative.`;
     case "family_partnership":
-      return `A family partnership lens can help if the educator keeps the question practical and non-blaming. The useful question is not "does this happen at home", but "what words or strategies help ${child} when play feels too rough or unfair?"`;
+      return `${voice.support} family partnership by keeping the question practical and non-blaming: what words, cues, or calming strategies help ${child} when play feels too rough or unfair?`;
     case "working_theories":
-      return `This may also be followed as an emerging social working theory: what does ${child} understand about space, fairness, stopping, and repairing after something has gone wrong in play?`;
+      return `${voice.continue} notice ${child}'s emerging social working theories about space, fairness, stopping, and repairing after something has gone wrong in play.`;
     default:
-      return `The educator's role is to protect safety first, then support learning. That means checking both children are okay, naming the unsafe action calmly, helping each child communicate, and returning to play only when the situation is settled.`;
+      return `${voice.support} learning by protecting safety first, checking everyone is okay, naming the unsafe action calmly, helping each child communicate, and returning to play only when the situation is settled.`;
   }
 }
 
@@ -161,6 +191,7 @@ export function buildPhysicalSafetyFallbackStory(
     pedagogyFocus?: PedagogyFocus;
     childName?: string;
     ageGroup?: string;
+    educatorNames?: string[];
   },
   reasons: string[],
   revisionCount: number
@@ -176,26 +207,39 @@ export function buildPhysicalSafetyFallbackStory(
   const ageSentence = params.ageGroup
     ? `The selected age group is ${params.ageGroup}, so the final wording should stay matched to what is reasonable for that age and your local behaviour guidance.`
     : "Because no age was supplied, the interpretation stays broad and avoids age-specific developmental claims.";
-  const pedagogyParagraph = incidentPedagogyParagraph(params.pedagogyFocus ?? "balanced", child);
+  const pedagogyParagraph = incidentPedagogyParagraph(params.pedagogyFocus ?? "balanced", child, params.educatorNames);
+  const voice = educatorVoice(params.educatorNames);
+  const curriculumHeading = params.framework === "NZ" ? "Te Whāriki links" : "EYLF links";
+  const familyHeading = params.framework === "NZ" ? "Family/whānau link" : "Family link";
 
   const paragraphs = [
-    `This observation records a social learning and safety moment, not a simple play interest. ${sequence} The important educator message is clear: the physical response was not safe, and the children need calm adult support rather than blame or shame.`,
-    `The learning focus is social and emotional. ${child} is still learning how to manage a hard moment in play, how to communicate when something feels wrong, and how to return to a safe relationship after conflict. A paid-grade learning story should name that honestly instead of turning the moment into a generic story about exploration.`,
-    `The evidence boundary matters. The note says: "${observation}". It does not tell us whether anyone was hurt, what happened immediately before the push, what words were used, how long the moment lasted, or how the educator responded. Those details should be checked before this is shared with ${familyWord} or saved as a final record.`,
+    "Learning Story",
+    `${voice.noticed} a social learning and safety moment, not a simple play interest. ${sequence} The physical response was not safe, and the children needed calm support rather than blame or shame.`,
+    "",
+    "What learning we noticed",
+    `${child} is still learning how to manage a hard moment in play, how to communicate when something feels wrong, and how to return to a safe relationship after conflict. We can name this honestly while keeping the wording respectful and proportionate.`,
+    `The note says: "${observation}". Before this is shared with ${familyWord} or saved as a final record, ${voice.observer} should confirm whether anyone was hurt, what happened immediately before the physical action, what words were used, how long the moment lasted, and what support was given.`,
+    "",
+    curriculumHeading,
+    ...framework.curriculumLinks,
+    "",
+    "Where to next / Responding",
     pedagogyParagraph,
   ];
 
   if (params.depth !== "concise") {
     paragraphs.push(
-      `For ${frameworkName}, the strongest curriculum link is wellbeing, relationships, contribution, and communication. This moment can show learning because children are supported to notice impact, use safer strategies, hear another person's boundary, and repair the connection with adult help. The curriculum claim should stay modest: the story is about support for safe social participation, not about a completed skill.`,
-      `A useful educator response would be immediate and practical. First, check safety and comfort. Then support each child separately if needed. Use simple language to name the boundary: "Pushing hurt Ruby" or "Punching is not safe." After that, help the child practise a safer option such as moving away, saying stop, asking for help, or using a calm body.`
+      `For ${frameworkName}, the strongest links are wellbeing, relationships, contribution, and communication. This moment can show learning when children are supported to notice impact, use safer strategies, hear another person's boundary, and repair the connection with adult help.`,
+      `${voice.support} this with immediate, practical steps: check safety and comfort, support each child separately if needed, use simple boundary language, and practise a safer option such as moving away, saying stop, asking for help, or using a calm body.`
     );
   }
 
   if (params.depth === "detailed") {
     paragraphs.push(
-      `This draft should also sit beside your service's behaviour, injury, or incident process if that applies. The learning story can record the teaching response, but it should not replace required incident documentation, family communication, or centre policy. If another child is named in the rough note, the educator may need to remove that name from the family-facing version.`,
-      `The next observation should look for repair and replacement skills, not just whether the behaviour happens again. Notice whether ${childLower} can use a word, gesture, pause, seek help, accept support, re-enter play safely, or show care after a hard moment. Those are the details that will make the next story specific, useful, and fair to everyone involved.`
+      "",
+      familyHeading,
+      `This may also need to sit beside the service's behaviour, injury, or incident process. The learning story can record the teaching response, but it should not replace required incident documentation, family communication, or centre policy. If another child is named in the rough note, ${voice.observer} may need to remove that name from the family-facing version.`,
+      `${voice.continue} look for repair and replacement skills next time: whether ${childLower} can use a word, gesture, pause, seek help, accept support, re-enter play safely, or show care after a hard moment.`
     );
   }
 

@@ -428,8 +428,8 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
         <div className="mt-5 rounded-2xl border border-clay-100 bg-cream-50 p-4">
           <div className="flex flex-col gap-3">
             <div>
-              <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1">Regenerate from original observation</p>
-              <p className="text-xs text-ink-600">Use this when the observation is good but you want a different tone, depth, or curriculum lens.</p>
+              <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1">Improve from original observation</p>
+              <p className="text-xs text-ink-600">Use the latest StoryLoop quality pass when the observation is good but the saved story needs a stronger tone, depth, or curriculum lens.</p>
             </div>
             <div className={`grid gap-2 ${regenerateFramework === "NZ" ? "sm:grid-cols-5" : "sm:grid-cols-4"}`}>
               <select value={regenerateTone} onChange={(event) => setRegenerateTone(normalizeTone(event.target.value))} className="input text-xs">
@@ -477,7 +477,7 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
               </div>
               <button onClick={regenerateStory} disabled={regenerating || !story.observations} className="btn-secondary px-4 py-2 text-xs disabled:opacity-50">
                 {regenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
-                Regenerate
+                Improve story
               </button>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import type { StoryDepth, StoryFrameworkId } from "@/lib/story-options";
+export { hasPhysicalSafetyIncident } from "@/lib/safety-incident";
 
 export type FrameworkGuardStoryResult = {
   storyTitle?: string;
@@ -122,6 +123,8 @@ const QUALITY_NOTE_LABELS: Record<string, string> = {
   notGeneric: "The wording is specific rather than generic.",
   notPoetic: "The tone avoids poetic or sentimental language.",
   notAISounding: "The draft does not read like generic AI copy.",
+  noMetaCommentary: "The story avoids draft-review commentary.",
+  educatorVoice: "The story uses educator or centre voice.",
   preciseObservedActions: "Observed actions are described precisely.",
   noInventedDetails: "The draft avoids invented details.",
   noUnsupportedSpecifics: "The draft avoids unsupported exact quotes or specific details.",

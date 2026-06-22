@@ -377,6 +377,7 @@ function buildGroundedFallbackStory(
     pedagogyFocus?: PedagogyFocus;
     childName?: string;
     ageGroup?: string;
+    educatorNames?: string[];
   },
   _reasons: string[],
   revisionCount: number
@@ -402,6 +403,8 @@ Check:
 - not too generic
 - not too poetic
 - not too AI-sounding
+- main story does not include meta commentary such as "this draft", "the interpretation is grounded", "the curriculum wording supports", "the educator's role is", or "the educator should"
+- main story uses educator/centre voice such as "we noticed", "we observed", "we supported", "we can", or supplied educator/staff names
 - avoids vague action language such as "spent time", "was engaged", or "kept trying" when stronger evidence is available
 - no invented details
 - no unsupported exact quotes, materials, peer interactions, emotions, or educator actions
@@ -425,6 +428,8 @@ Return only valid JSON:
     "notGeneric": true,
     "notPoetic": true,
     "notAISounding": true,
+    "noMetaCommentary": true,
+    "educatorVoice": true,
     "preciseObservedActions": true,
     "noInventedDetails": true,
     "noUnsupportedSpecifics": true,
@@ -599,6 +604,7 @@ export async function generateLearningStory(params: {
   pedagogyFocus?: PedagogyFocus;
   childContext?: string;
   preferences?: StoryPreferences;
+  educatorNames?: string[];
 }): Promise<StoryResult> {
   const observations = params.observations
     .slice(0, 3000)
@@ -637,6 +643,7 @@ export async function generateLearningStory(params: {
           pedagogyFocus: preferences.pedagogyFocus ?? "balanced",
           childName: params.childName,
           ageGroup: params.ageGroup,
+          educatorNames: params.educatorNames,
         },
         [],
         0
@@ -662,6 +669,7 @@ export async function generateLearningStory(params: {
           pedagogyFocus: preferences.pedagogyFocus ?? "balanced",
           childName: params.childName,
           ageGroup: params.ageGroup,
+          educatorNames: params.educatorNames,
         },
         0
       ),
@@ -681,7 +689,8 @@ export async function generateLearningStory(params: {
     tone,
     framework,
     preferences,
-    params.childContext
+    params.childContext,
+    params.educatorNames
   );
   let firstDraft: StoryResult;
   try {
@@ -707,6 +716,7 @@ export async function generateLearningStory(params: {
           pedagogyFocus: preferences.pedagogyFocus ?? "balanced",
           childName: params.childName,
           ageGroup: params.ageGroup,
+          educatorNames: params.educatorNames,
         },
         ["The AI draft service did not return a usable first draft."],
         0
@@ -748,6 +758,7 @@ export async function generateLearningStory(params: {
           pedagogyFocus: preferences.pedagogyFocus ?? "balanced",
           childName: params.childName,
           ageGroup: params.ageGroup,
+          educatorNames: params.educatorNames,
         },
         ["The story quality review helper could not complete."],
         1

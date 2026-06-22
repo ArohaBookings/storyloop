@@ -16,6 +16,7 @@ import {
 } from "@/lib/story-options";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { sendStoryMilestoneEmails } from "@/lib/email/automation";
+import { getStoryClarification } from "@/lib/story-clarification";
 
 function getClientIp(request: NextRequest): string {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
@@ -25,6 +26,25 @@ function getClientIp(request: NextRequest): string {
 
 function normalizeInputMethod(value: unknown) {
   return value === "paste" || value === "voice" || value === "sample" || value === "backlog" ? value : "typed";
+}
+
+function normalizeEducatorNames(value: unknown) {
+  if (Array.isArray(value)) {
+    return Array.from(
+      new Set(
+        value
+          .map((entry) => (typeof entry === "string" ? entry.trim().replace(/\s+/g, " ") : ""))
+          .filter((entry) => entry.length > 1)
+          .slice(0, 4)
+      )
+    );
+  }
+
+  if (typeof value === "string") {
+    return normalizeEducatorNames(value.split(","));
+  }
+
+  return [];
 }
 
 export async function POST(request: NextRequest) {
@@ -44,6 +64,7 @@ export async function POST(request: NextRequest) {
       pedagogyFocus,
       sourceStoryId,
       inputMethod,
+      educatorNames,
       demo,
     } = body;
 
@@ -53,6 +74,18 @@ export async function POST(request: NextRequest) {
 
     // DEMO MODE — public, rate limited per IP
     if (demo) {
+      const demoFramework = normalizeFramework(typeof location === "string" ? location : undefined);
+      const demoClarification = getStoryClarification({ observations, childName });
+      if (demoClarification.needsClarification) {
+        return NextResponse.json({
+          needsClarification: true,
+          clarificationKind: demoClarification.kind,
+          clarificationReason: demoClarification.reason,
+          clarificationQuestions: demoClarification.questions,
+          framework: demoFramework,
+        });
+      }
+
       const ip = getClientIp(request);
       const allowed = await consumeRateLimit({
         scope: "public-demo",
@@ -63,7 +96,6 @@ export async function POST(request: NextRequest) {
       if (!allowed) {
         return NextResponse.json({ error: "Demo limit reached. Sign up to keep going — it's free." }, { status: 429 });
       }
-      const demoFramework = normalizeFramework(typeof location === "string" ? location : undefined);
       const demoTeReoLevel = demoFramework === "NZ"
         ? normalizeTeReoLevel(typeof includeTeReoLevel === "string" ? includeTeReoLevel : undefined)
         : "low";
@@ -79,6 +111,7 @@ export async function POST(request: NextRequest) {
         includeKowhitiWhakapae: demoIncludeKowhiti,
         includeTapasa: Boolean(includeTapasa),
         pedagogyFocus: normalizePedagogyFocus(typeof pedagogyFocus === "string" ? pedagogyFocus : undefined),
+        educatorNames: normalizeEducatorNames(educatorNames),
       });
       return NextResponse.json({
         storyTitle: result.storyTitle,
@@ -204,6 +237,25 @@ export async function POST(request: NextRequest) {
 
     const resolvedChildName = selectedChild?.name ?? childName;
     const resolvedAgeGroup = selectedChild?.age_group ?? ageGroup;
+    const resolvedEducatorNames = normalizeEducatorNames(educatorNames);
+    const clarification = getStoryClarification({ observations, childName: resolvedChildName });
+    if (clarification.needsClarification) {
+      return NextResponse.json({
+        success: false,
+        needsClarification: true,
+        clarificationKind: clarification.kind,
+        clarificationReason: clarification.reason,
+        clarificationQuestions: clarification.questions,
+        plan,
+        storiesUsedThisMonth: used,
+        monthlyStoryLimit: limit,
+        appliedAccessCode: profile.applied_access_code,
+        remaining:
+          limit === null
+            ? "unlimited"
+            : getRemainingStories(profile),
+      });
+    }
     const canUseChildContinuity = hasFeatureAccess(plan, "childContinuityProfiles");
     const childContext = selectedChild && canUseChildContinuity
       ? [
@@ -233,6 +285,7 @@ export async function POST(request: NextRequest) {
       pedagogyFocus: resolvedPedagogyFocus,
       childContext,
       preferences: requestPreferences,
+      educatorNames: resolvedEducatorNames,
     });
 
     // Save to history
@@ -267,6 +320,7 @@ export async function POST(request: NextRequest) {
         familyQuestion: result.familyQuestion,
         followUpPrompt: result.followUpPrompt,
         inputMethod: resolvedInputMethod,
+        educatorNames: resolvedEducatorNames,
         followUpStatus: "open",
         continuityContextUsed: Boolean(selectedChild && canUseChildContinuity),
         sourceStoryId: typeof sourceStoryId === "string" ? sourceStoryId : undefined,
@@ -279,6 +333,7 @@ export async function POST(request: NextRequest) {
           includeKowhitiWhakapae: resolvedIncludeKowhiti,
           includeTapasa: resolvedIncludeTapasa,
           pedagogyFocus: resolvedPedagogyFocus,
+          educatorNames: resolvedEducatorNames,
         },
       },
     }).select("id").single();

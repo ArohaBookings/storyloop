@@ -45,7 +45,11 @@ NON-NEGOTIABLE RULES:
 - Keep every learning claim tied to evidence in the observation.
 - Avoid oversized words when simpler wording works.
 - Keep the story tight enough that an educator would actually use it.
+- Main story must sound like the educator or centre wrote it. Use "we noticed", "we observed", "we supported", "we can", and "we will continue" unless educator/staff names are supplied.
+- If educator/staff names are supplied, use them naturally in the main story, for example "Sarah noticed..." or "Sarah and Moana can continue...". Do not repeat names in every sentence.
+- Structure the story field with clear plain-text sections: Learning Story, What learning we noticed, Curriculum links, Where to next / Responding, and an optional Family/whānau link when useful.
 - Do not use markdown, emojis, policy-speak, or fake certainty inside the story text.
+- Do not write meta commentary such as "this draft", "the interpretation is grounded", "the curriculum wording supports", "the educator's role is", or "the educator should" in the story field.
 - A short title is required, but the main story should still read naturally.
 - Never invent culture, diagnosis, family background, support needs, or developmental concerns.
 - Name curriculum links only when the observation supports them.
@@ -167,7 +171,8 @@ export function buildUserMessage(
   tone: StoryTone,
   framework: StoryFrameworkId,
   preferences: StoryPreferences,
-  childContext?: string
+  childContext?: string,
+  educatorNames?: string[]
 ) {
   const config = STORY_FRAMEWORKS[framework];
   const depth = preferences.depthPreference ?? "balanced";
@@ -211,12 +216,21 @@ export function buildUserMessage(
   const familyWord = framework === "NZ" ? "whānau" : "family";
   const observationDetailGuidance = getObservationDetailGuidance(observations);
   const ageGroupGuidance = getAgeGroupGuidance(ageGroup);
+  const cleanEducatorNames = Array.from(
+    new Set(
+      (educatorNames ?? [])
+        .map((name) => name.trim().replace(/\s+/g, " "))
+        .filter((name) => name.length > 1)
+        .slice(0, 4)
+    )
+  );
 
   return `EDUCATOR OBSERVATIONS:
 ${observations}
 
 CHILD NAME: ${childName ? childName : "Not provided. Use 'the child' when needed."}
 AGE GROUP: ${ageGroup ? ageGroup : "Not provided"}
+EDUCATOR/STAFF NAMES TO USE IN THE STORY: ${cleanEducatorNames.length ? cleanEducatorNames.join(", ") : "Not provided. Use we/us/our."}
 SAVED CONTINUITY CONTEXT:
 ${childContext || "No saved child profile or earlier learning context was selected."}
 
@@ -292,7 +306,7 @@ CENTRE VOICE MEMORY:
 
 FIELD GUIDANCE:
 - storyTitle: a short human title, not cute or poetic.
-- story: plain text only. Start from the clearest observable action, then explain what learning was noticed. Include the educator's likely response or a review-ready next response, and end with how the learning can be followed. Do not make it a rigid checklist unless the observation needs structure.
+- story: plain text only. Use clear plain-text sections: Learning Story; What learning we noticed; Curriculum links; Where to next / Responding; and a Family/${familyWord} link only when useful. Start from the clearest observable action, then explain what learning was noticed. Include the educator's likely response or a review-ready next response, and end with how the learning can be followed.
 - story: for sparse notes, write a worthwhile draft while making evidence limits clear. A good sparse-note story can say "From this brief note..." or "The observation gives a starting point..." but must not invent materials, dialogue, reactions, duration, other children, or educator actions.
 - story: if the note describes pushing, hitting, punching, biting, injury, unsafe bodies, or physical conflict, write a careful social learning/safety reflection. Do not use a cute title, do not call it an adventure, do not praise the conflict, and do not suggest following the interest with props. Focus on safe bodies, communication, emotional regulation, repair, educator support, and required review before sharing.
 - Never write "spent time building/playing/exploring" when the notes show a more precise action. Write what the child actually did, changed, said, asked, tried, or noticed.

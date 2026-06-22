@@ -28,6 +28,25 @@ function isMissingUpdatedAtColumn(error: unknown) {
   );
 }
 
+function normalizeEducatorNames(value: unknown) {
+  if (Array.isArray(value)) {
+    return Array.from(
+      new Set(
+        value
+          .map((entry) => (typeof entry === "string" ? entry.trim().replace(/\s+/g, " ") : ""))
+          .filter((entry) => entry.length > 1)
+          .slice(0, 4)
+      )
+    );
+  }
+
+  if (typeof value === "string") {
+    return normalizeEducatorNames(value.split(","));
+  }
+
+  return [];
+}
+
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
@@ -142,6 +161,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
           ? existingSettings.pedagogyFocus
           : profilePreferences.pedagogyFocus
     );
+    const educatorNames = normalizeEducatorNames(
+      typeof body.educatorNames !== "undefined" ? body.educatorNames : existingSettings.educatorNames
+    );
     const preferences = mergeStoryPreferences(profilePreferences, {
       defaultFramework: framework,
       preferredTone: tone,
@@ -164,6 +186,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       includeTapasa,
       pedagogyFocus,
       preferences,
+      educatorNames,
     });
 
     const updatedAt = new Date().toISOString();
@@ -196,6 +219,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         includeKowhitiWhakapae,
         includeTapasa,
         pedagogyFocus,
+        educatorNames,
       },
     };
 

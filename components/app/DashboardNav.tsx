@@ -93,7 +93,7 @@ export default function DashboardNav({
     : NAV;
 
   const Content = () => (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full min-h-0 flex-col overflow-y-auto overscroll-contain">
       <div className="h-16 flex items-center gap-2.5 px-5 border-b border-clay-100 flex-shrink-0">
         <AnimatedLogo size={32} />
         <div>
@@ -102,7 +102,7 @@ export default function DashboardNav({
         </div>
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="min-h-0 flex-1 px-3 py-4 space-y-1">
         {navItems.map(({ href, icon: Icon, label, highlight, activePath }) => {
           const resolvedActivePath = activePath ?? href;
           const active = resolvedActivePath === "/dashboard"
@@ -213,7 +213,7 @@ export default function DashboardNav({
       <div className="hidden md:flex w-60 bg-white border-r border-clay-100 flex-col h-full flex-shrink-0">
         <Content />
       </div>
-      <button className="md:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-white border border-clay-200 rounded-xl flex items-center justify-center shadow-soft"
+      <button className="md:hidden fixed bottom-4 left-4 z-50 w-11 h-11 bg-white/75 border border-clay-200/80 rounded-full flex items-center justify-center shadow-soft backdrop-blur-md text-ink-700"
         onClick={() => setMobileOpen(!mobileOpen)}
         aria-label={mobileOpen ? "Close dashboard navigation" : "Open dashboard navigation"}
         aria-expanded={mobileOpen}>
@@ -221,7 +221,7 @@ export default function DashboardNav({
       </button>
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-40 flex">
-          <div className="w-64 bg-white border-r border-clay-100 h-full shadow-xl"><Content /></div>
+          <div className="h-full w-[min(20rem,88vw)] overflow-hidden bg-white/95 border-r border-clay-100 shadow-xl backdrop-blur"><Content /></div>
           <div className="flex-1 bg-black/30" onClick={() => setMobileOpen(false)} />
         </div>
       )}

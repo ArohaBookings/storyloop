@@ -100,6 +100,7 @@ export default function GeneratePage() {
   const [children, setChildren] = useState<ChildProfile[]>([]);
   const [selectedChildId, setSelectedChildId] = useState("");
   const [childName, setChildName] = useState("");
+  const [educatorNames, setEducatorNames] = useState("");
   const [ageGroup, setAgeGroup] = useState("");
   const [tone, setTone] = useState<StoryTone>("natural");
   const [depth, setDepth] = useState<StoryDepth>("balanced");
@@ -150,6 +151,12 @@ export default function GeneratePage() {
   const [loading, setLoading] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
   const [error, setError] = useState("");
+  const [clarification, setClarification] = useState<{
+    kind?: string;
+    reason: string;
+    questions: string[];
+  } | null>(null);
+  const [transcriptionMessage, setTranscriptionMessage] = useState("");
   const [upgradeRequired, setUpgradeRequired] = useState(false);
   const [billingRequired, setBillingRequired] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -330,6 +337,17 @@ export default function GeneratePage() {
     setFollowUpPrompt("");
   };
 
+  const parseEducatorNames = (value: string) =>
+    Array.from(
+      new Set(
+        value
+          .split(",")
+          .map((item) => item.trim().replace(/\s+/g, " "))
+          .filter((item) => item.length > 1)
+          .slice(0, 4)
+      )
+    );
+
   const handleGenerate = async () => {
     if (observations.trim().length < 10) {
       setError("Please add more detail (at least 10 characters)");
@@ -338,6 +356,7 @@ export default function GeneratePage() {
 
     setLoading(true);
     setError("");
+    setClarification(null);
     resetOutput();
     setUpgradeRequired(false);
     setBillingRequired(false);
@@ -362,9 +381,20 @@ export default function GeneratePage() {
           pedagogyFocus,
           sourceStoryId: sourceStoryId || undefined,
           inputMethod,
+          educatorNames: parseEducatorNames(educatorNames),
         }),
       });
       const data = await res.json();
+      if (data.needsClarification) {
+        setClarification({
+          kind: data.clarificationKind,
+          reason: data.clarificationReason ?? "A little more context is needed before this becomes a learning story.",
+          questions: Array.isArray(data.clarificationQuestions) ? data.clarificationQuestions.slice(0, 3) : [],
+        });
+        setRemaining(data.remaining ?? "");
+        setAccountPlan(normalizePlanKey(data.plan));
+        return;
+      }
       if (!res.ok) {
         setError(data.error ?? "Failed");
         if (data.billingRequired) {
@@ -723,6 +753,7 @@ export default function GeneratePage() {
     try {
       setTranscribing(true);
       setError("");
+      setTranscriptionMessage("");
       setBillingRequired(false);
 
       const formData = new FormData();
@@ -745,6 +776,7 @@ export default function GeneratePage() {
       if (data.text) {
         setObservations((previous) => (previous ? `${previous.trim()}\n${data.text}` : data.text));
         setInputMethod("voice");
+        setTranscriptionMessage("Voice note added to observations. Review the text, then generate the story.");
       }
     } catch (voiceError) {
       setError(voiceError instanceof Error ? voiceError.message : "Voice transcription failed.");
@@ -768,6 +800,7 @@ export default function GeneratePage() {
 
     try {
       setError("");
+      setTranscriptionMessage("");
       setSuggestUploadFallback(false);
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true },
@@ -820,7 +853,7 @@ export default function GeneratePage() {
     }
   };
 
-  const recordButtonLabel = isTouchDevice ? "Record" : "Live mic";
+  const recordButtonLabel = isTouchDevice ? "Record" : "Record voice note";
   const showRecordButton = !recording && liveRecordingSupported;
 
   return (
@@ -899,9 +932,9 @@ export default function GeneratePage() {
       <div className="grid min-w-0 gap-5 xl:grid-cols-2">
         <div className="min-w-0 space-y-4">
           <div className="card p-6">
-            <div className="flex items-center justify-between mb-2">
-              <label className="label mb-0">Observations</label>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-2">
+                <label className="label mb-0">Observations</label>
+              <div className="flex flex-wrap items-center gap-2">
                 {recording && (
                   <button
                     onClick={toggleRecording}
@@ -926,7 +959,7 @@ export default function GeneratePage() {
                     loading || transcribing ? "bg-cream-50 text-ink-400 pointer-events-none" : "bg-cream-100 text-clay-700 hover:bg-cream-200"
                   }`}
                 >
-                  <Mic className="w-3 h-3" /> Upload audio
+                  <Mic className="w-3 h-3" /> Upload audio file
                 </label>
               </div>
             </div>
@@ -953,10 +986,20 @@ export default function GeneratePage() {
             <p className="text-xs text-ink-500 mt-2">
               {observations.length} characters · Aim for at least 3-4 quick points
               {recording ? " · Recording now..." : ""}
-              {transcribing ? " · Turning your voice note into text..." : ""}
+              {transcribing ? " · Turning your voice note into text and adding it here..." : ""}
               {!recording && !transcribing && isTouchDevice && liveRecordingSupported ? " · On phone, Record will ask for microphone access." : ""}
               {!recording && !transcribing && suggestUploadFallback ? " · Upload audio is the fallback if mic access is blocked." : ""}
             </p>
+            {liveRecordingSupported && (
+              <p className="mt-2 text-xs text-ink-500 bg-cream-50 border border-clay-100 rounded-lg px-3 py-2">
+                Press Record, talk through the observation, then press Stop. StoryLoop will add the transcript into this box automatically.
+              </p>
+            )}
+            {transcriptionMessage && (
+              <p className="mt-2 text-xs font-semibold text-sage-700 bg-sage-50 border border-sage-100 rounded-lg px-3 py-2">
+                {transcriptionMessage}
+              </p>
+            )}
             {!liveRecordingSupported && (
               <p className="mt-2 text-xs text-ink-500 bg-cream-50 border border-clay-100 rounded-lg px-3 py-2">
                 Voice recording is not available in this browser session. You can still type bullet points or upload an audio file from Voice Memos/Recorder.
@@ -964,6 +1007,39 @@ export default function GeneratePage() {
             )}
             <ObservationCoach observation={observations} plan={accountPlan} framework={location} />
           </div>
+
+          {clarification && (
+            <div className="rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-cream-50 p-5 shadow-soft">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-amber-600 text-white">
+                  <AlertCircle className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="section-title mb-1">Needs educator context first</p>
+                  <h3 className="font-display text-xl font-bold text-ink-900">Answer these before StoryLoop writes the story.</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-ink-600">{clarification.reason}</p>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-2">
+                {clarification.questions.map((question, index) => (
+                  <button
+                    key={question}
+                    type="button"
+                    onClick={() => {
+                      setObservations((previous) => `${previous.trim()}\n${index + 1}. ${question} `);
+                      setInputMethod("typed");
+                    }}
+                    className="rounded-2xl border border-amber-100 bg-white px-4 py-3 text-left text-sm font-semibold leading-relaxed text-ink-800 hover:border-amber-300 hover:bg-amber-50"
+                  >
+                    {index + 1}. {question}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-3 text-xs text-ink-500">
+                Tap a question to add it to the observation box, type the answer after it, then generate again. This keeps unsafe or unclear notes from becoming the wrong kind of story.
+              </p>
+            </div>
+          )}
 
           <div className="card p-6 space-y-4">
             <p className="section-title">Personalise (optional)</p>
@@ -999,7 +1075,7 @@ export default function GeneratePage() {
               </p>
               {selectedChildId && !hasFeatureAccess(accountPlan, "childContinuityProfiles") && (
                 <p className="mt-2 rounded-xl border border-clay-100 bg-cream-50 px-3 py-2 text-[11px] leading-relaxed text-ink-600">
-                  This draft will still use the child&apos;s name and age. Educator Pro carries interests, family context, home languages, and recent learning into future drafts.
+                  This story will still use the child&apos;s name and age. Educator Pro carries interests, family context, home languages, and recent learning into future stories.
                   <Link href="/billing?feature=child-continuity" className="ml-1 font-bold text-clay-700 hover:text-clay-900">Compare Pro</Link>
                 </p>
               )}
@@ -1029,6 +1105,18 @@ export default function GeneratePage() {
                   <option>Mixed group</option>
                 </select>
               </div>
+            </div>
+            <div>
+              <label className="label">Educator or staff names (optional)</label>
+              <input
+                value={educatorNames}
+                onChange={(event) => setEducatorNames(event.target.value)}
+                className="input"
+                placeholder="Sarah, Moana"
+              />
+              <p className="mt-1 text-[11px] text-ink-500">
+                Add one or more names if you want the story to say “Sarah noticed...” instead of only “we noticed...”.
+              </p>
             </div>
             <div>
               <label className="label">Tone</label>
