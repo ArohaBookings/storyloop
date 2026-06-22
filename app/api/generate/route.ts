@@ -17,6 +17,7 @@ import {
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { sendStoryMilestoneEmails } from "@/lib/email/automation";
 import { getStoryClarification } from "@/lib/story-clarification";
+import { inferPrimaryChildName } from "@/lib/story-context";
 
 function getClientIp(request: NextRequest): string {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
@@ -92,9 +93,12 @@ export async function POST(request: NextRequest) {
     // DEMO MODE — public, rate limited per IP
     if (demo) {
       const demoFramework = normalizeFramework(typeof location === "string" ? location : undefined);
+      const demoChildName = typeof childName === "string" && childName.trim()
+        ? childName.trim()
+        : inferPrimaryChildName(observations);
       const demoClarificationAnswers = normalizeClarificationAnswers(clarificationAnswers);
       const demoClarification = demoClarificationAnswers.length === 0
-        ? getStoryClarification({ observations, childName })
+        ? getStoryClarification({ observations, childName: demoChildName })
         : { needsClarification: false, kind: "ready" as const, reason: "", questions: [] };
       if (demoClarification.needsClarification) {
         return NextResponse.json({
@@ -124,7 +128,7 @@ export async function POST(request: NextRequest) {
       const result = await generateLearningStory({
         observations: demoGenerationObservations,
         ageGroup,
-        childName,
+        childName: demoChildName,
         framework: demoFramework,
         tone: normalizeTone(typeof tone === "string" ? tone : undefined),
         depth: normalizeDepth(typeof depth === "string" ? depth : undefined),
@@ -256,7 +260,8 @@ export async function POST(request: NextRequest) {
       .filter(Boolean)
       .slice(0, 3);
 
-    const resolvedChildName = selectedChild?.name ?? childName;
+    const submittedChildName = typeof childName === "string" && childName.trim() ? childName.trim() : "";
+    const resolvedChildName = selectedChild?.name?.trim() || submittedChildName || inferPrimaryChildName(observations);
     const resolvedAgeGroup = selectedChild?.age_group ?? ageGroup;
     const resolvedEducatorNames = normalizeEducatorNames(educatorNames);
     const resolvedClarificationAnswers = normalizeClarificationAnswers(clarificationAnswers);

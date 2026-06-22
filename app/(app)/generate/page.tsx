@@ -1127,7 +1127,7 @@ export default function GeneratePage() {
                     if (selectedChildId) setSelectedChildId("");
                   }}
                   className="input"
-                  placeholder="Ruby"
+                  placeholder="Optional - e.g. Ruby"
                 />
               </div>
               <div>
@@ -1149,7 +1149,7 @@ export default function GeneratePage() {
                 value={educatorNames}
                 onChange={(event) => setEducatorNames(event.target.value)}
                 className="input"
-                placeholder="Sarah, Moana"
+                placeholder="Optional - e.g. Sarah, Moana"
               />
               <p className="mt-1 text-[11px] text-ink-500">
                 Add one or more names if you want the story to say “Sarah noticed...” instead of only “we noticed...”.

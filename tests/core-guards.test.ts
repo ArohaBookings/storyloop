@@ -13,6 +13,7 @@ import { hasFeatureAccess, normalizePlanKey } from "../lib/plans";
 import { runPrivacyGuardian } from "../lib/privacy-guardian";
 import { hasPhysicalSafetyIncident } from "../lib/safety-incident";
 import { getStoryClarification } from "../lib/story-clarification";
+import { inferPrimaryChildName } from "../lib/story-context";
 import { buildEvidenceLedStory, shouldUseEvidenceLedStory } from "../lib/ai/evidence-story";
 import { buildPhysicalSafetyFallbackStory } from "../lib/ai/physical-safety-story";
 import { buildUserMessage } from "../lib/ai/prompts";
@@ -41,6 +42,17 @@ test("child profile fields are bounded and deduplicated", () => {
   assert.deepEqual(
     sanitiseStringList("blocks, water, blocks, , dramatic play", 3),
     ["blocks", "water"]
+  );
+});
+
+test("primary child name is inferred from observation notes when the field is empty", () => {
+  assert.equal(
+    inferPrimaryChildName('Ruby (3) and Sam played shopkeepers. Ruby said "your turn now". Sarah stayed nearby.'),
+    "Ruby"
+  );
+  assert.equal(
+    inferPrimaryChildName("Sarah noticed Ari pour water between two cups and slow down when it spilled."),
+    "Ari"
   );
 });
 
