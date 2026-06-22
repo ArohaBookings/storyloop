@@ -78,7 +78,7 @@ export default function FamilyTranslationPanel({
 
   if (!canUseTranslation) {
     return (
-      <section className="mt-5 rounded-3xl border border-clay-200 bg-white p-5 shadow-soft">
+      <section className="story-safe mt-5 max-w-full overflow-hidden rounded-3xl border border-clay-200 bg-white p-5 shadow-soft">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-clay-700 text-paper">
@@ -101,7 +101,7 @@ export default function FamilyTranslationPanel({
   }
 
   return (
-    <section className="mt-5 rounded-3xl border border-clay-200 bg-white p-5 shadow-soft">
+    <section className="story-safe mt-5 max-w-full overflow-hidden rounded-3xl border border-clay-200 bg-white p-5 shadow-soft">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="section-title mb-1">Family translation + readability</p>
@@ -110,7 +110,7 @@ export default function FamilyTranslationPanel({
             Useful for multilingual families, simpler reading levels, and quick pickup messages.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex min-w-0 flex-wrap gap-2">
           <select value={language} onChange={(event) => setLanguage(event.target.value)} className="input py-2 text-xs">
             {LANGUAGE_PRESETS.map((option) => <option key={option} value={option}>{option}</option>)}
           </select>
@@ -124,14 +124,14 @@ export default function FamilyTranslationPanel({
       {error && <p className="mb-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">{error}</p>}
 
       {pack && (
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid min-w-0 gap-3 md:grid-cols-2">
           {[
             ["Family message", pack.translatedMessage],
             ["Plain English version", pack.plainEnglishVersion],
             ["Reading level note", pack.readingLevelNote],
             ["Teacher check", pack.teacherCheck],
           ].filter(([, value]) => value).map(([label, value]) => (
-            <div key={label} className="rounded-2xl border border-clay-100 bg-cream-50 p-4">
+            <div key={label} className="min-w-0 rounded-2xl border border-clay-100 bg-cream-50 p-4">
               <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-clay-700">{label}</p>
               <p className="text-sm leading-relaxed text-ink-700">{value}</p>
             </div>
