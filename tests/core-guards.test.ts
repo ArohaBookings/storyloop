@@ -122,6 +122,14 @@ test("privacy guardian flags physical safety and conflict observations", () => {
   assert.ok(result.issues.some((item) => item.id === "physical-safety-incident"));
 });
 
+test("physical safety detector ignores ordinary infant movement", () => {
+  const observation = "Maya reached for the yellow scarf. She waved it slowly. Maya laughed, kicked her legs, and reached for the scarf again.";
+
+  assert.equal(hasPhysicalSafetyIncident(observation), false);
+  assert.equal(hasPhysicalSafetyIncident("Ruby kicked Jax during play."), true);
+  assert.equal(hasPhysicalSafetyIncident("Jax hit Ruby and Ruby cried."), true);
+});
+
 test("planning board highlights open responses and documentation gaps", () => {
   const board = buildPlanningBoard([
     {
