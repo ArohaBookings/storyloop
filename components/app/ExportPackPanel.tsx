@@ -82,7 +82,7 @@ export default function ExportPackPanel({
 
   if (!canExport) {
     return (
-      <section className="mt-5 rounded-3xl border border-clay-200 bg-cream-50 p-5 shadow-soft">
+      <section className="story-safe mt-5 max-w-full overflow-hidden rounded-3xl border border-clay-200 bg-cream-50 p-5 shadow-soft">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-clay-700 text-paper">
@@ -105,7 +105,7 @@ export default function ExportPackPanel({
   }
 
   return (
-    <section className="mt-5 rounded-3xl border border-sage-200 bg-gradient-to-br from-white via-sage-50 to-cream-50 p-5 shadow-soft">
+    <section className="story-safe mt-5 max-w-full overflow-hidden rounded-3xl border border-sage-200 bg-gradient-to-br from-white via-sage-50 to-cream-50 p-5 shadow-soft">
       <div className="mb-4">
         <p className="section-title mb-1">Export packs</p>
         <h3 className="font-display text-xl font-bold text-ink-900">Paste into Storypark, Educa, Kinderloop, or Brightwheel.</h3>
@@ -114,7 +114,7 @@ export default function ExportPackPanel({
         </p>
       </div>
 
-      <div className="mb-4 grid gap-2 sm:grid-cols-4">
+      <div className="mb-4 grid min-w-0 gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {PLATFORM_ORDER.map((option) => {
           const pack = packs.find((item) => item.platform === option);
           if (!pack) return null;
@@ -123,7 +123,7 @@ export default function ExportPackPanel({
               key={option}
               type="button"
               onClick={() => setPlatform(option)}
-              className={`rounded-2xl border p-3 text-left text-xs transition-all ${
+              className={`min-w-0 rounded-2xl border p-3 text-left text-xs transition-all ${
                 platform === option
                   ? "border-clay-500 bg-clay-700 text-paper shadow-warm"
                   : "border-clay-100 bg-white text-ink-600 hover:border-clay-300"
@@ -136,7 +136,7 @@ export default function ExportPackPanel({
         })}
       </div>
 
-      <div className="rounded-2xl border border-clay-100 bg-white p-4">
+      <div className="min-w-0 rounded-2xl border border-clay-100 bg-white p-4">
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs font-bold text-ink-900">{selected.label} copy pack</p>
           <div className="flex flex-wrap gap-2">
@@ -150,8 +150,8 @@ export default function ExportPackPanel({
             </button>
           </div>
         </div>
-        <div className="max-h-80 overflow-y-auto rounded-xl bg-cream-50 p-4">
-          <pre className="whitespace-pre-wrap text-xs leading-relaxed text-ink-700">{selected.text}</pre>
+        <div className="max-h-80 max-w-full overflow-y-auto overflow-x-hidden rounded-xl bg-cream-50 p-4">
+          <pre className="story-safe whitespace-pre-wrap text-xs leading-relaxed text-ink-700">{selected.text}</pre>
         </div>
       </div>
     </section>
