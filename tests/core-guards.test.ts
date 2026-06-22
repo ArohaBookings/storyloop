@@ -16,6 +16,7 @@ import {
   enforceFrameworkForResult,
   type FrameworkGuardStoryResult,
   getMinimumStoryWords,
+  getUnsupportedStoryDetails,
   humaniseQualityNote,
 } from "../lib/ai/quality-guards";
 import {
@@ -195,4 +196,32 @@ test("EYLF result guard removes Aotearoa-only framework leakage", () => {
   assert.equal(/Te Whāriki|Mana aotūroa|Mana reo|whānau/i.test(joined), false);
   assert.ok(cleaned.outcomes.every((item) => item.includes("EYLF Outcome")));
   assert.ok(cleaned.educatorChecks.some((item) => item.includes("EYLF links")));
+});
+
+test("sparse notes reject invented quotes, materials, and peer details", () => {
+  const result: FrameworkGuardStoryResult = {
+    story: "Ruby used toy food and a cash register. She asked her peer, \"Can I have two apples, please?\"",
+    outcomes: ["EYLF Outcome 4"],
+    curriculumLinks: ["Ruby used shopping play to explore roles."],
+    learningSummary: "Ruby counted money and spoke with another child.",
+    childVoice: "Can I have two apples, please?",
+    learningDispositions: ["communication"],
+    socialEmotionalLinks: [],
+    culturalConnections: [],
+    whanauConnection: "Families may notice shopping play.",
+    assumptions: [],
+    evidenceAnchors: ["Ruby played shop."],
+    educatorChecks: [],
+    pedagogyLinks: ["play-based learning"],
+    frameworkEvidence: ["The play links with EYLF."],
+    familyQuestion: "What shopping play happens at home?",
+    followUpPrompt: "Notice what Ruby says next.",
+    nextSteps: ["Offer shop props."],
+    wordCount: 16,
+  };
+
+  const issues = getUnsupportedStoryDetails(result, "Ruby played shop. Ruby went shopping.");
+  assert.ok(issues.some((issue) => issue.includes("cash register")));
+  assert.ok(issues.some((issue) => issue.includes("Unsupported child quote")));
+  assert.ok(issues.some((issue) => issue.includes("peer")));
 });

@@ -34,6 +34,84 @@ export function getMinimumStoryWords(depth: StoryDepth) {
   return 280;
 }
 
+function normaliseEvidenceText(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[“”]/g, "\"")
+    .replace(/[^a-z0-9āēīōū'\" ]+/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function containsPhrase(haystack: string, phrase: string) {
+  return haystack.includes(normaliseEvidenceText(phrase));
+}
+
+const SPARSE_UNSUPPORTED_DETAIL_TERMS = [
+  "cash register",
+  "toy food",
+  "fruit",
+  "fruits",
+  "vegetable",
+  "vegetables",
+  "apple",
+  "apples",
+  "money",
+  "coins",
+  "dollars",
+  "corner",
+  "peer",
+  "another child",
+  "friend",
+  "shopkeeper",
+  "customer",
+  "counted",
+  "counting",
+  "asked",
+  "requested",
+  "said",
+  "smiled",
+  "laughed",
+  "frustrated",
+  "upset",
+  "excited",
+];
+
+export function getUnsupportedStoryDetails(result: FrameworkGuardStoryResult, observations: string) {
+  const story = normaliseEvidenceText(
+    [
+      result.story,
+      result.learningSummary,
+      result.childVoice,
+      result.evidenceAnchors.join(" "),
+      result.curriculumLinks.join(" "),
+      result.frameworkEvidence.join(" "),
+    ].join(" ")
+  );
+  const evidence = normaliseEvidenceText(observations);
+  const issues: string[] = [];
+  const quotedPhrases = Array.from(result.story.matchAll(/[“"]([^"”]{2,160})[”"]/g))
+    .map((match) => match[1]?.trim())
+    .filter(Boolean);
+
+  for (const quote of quotedPhrases) {
+    if (!containsPhrase(evidence, quote)) {
+      issues.push(`Unsupported child quote or exact wording: "${quote}"`);
+    }
+  }
+
+  const sparse = countWords(observations) < 30;
+  if (sparse) {
+    for (const term of SPARSE_UNSUPPORTED_DETAIL_TERMS) {
+      if (containsPhrase(story, term) && !containsPhrase(evidence, term)) {
+        issues.push(`Unsupported specific detail in sparse note: ${term}`);
+      }
+    }
+  }
+
+  return Array.from(new Set(issues)).slice(0, 12);
+}
+
 const QUALITY_NOTE_LABELS: Record<string, string> = {
   naturalEducatorTone: "The draft uses a natural educator tone.",
   childVoiceSupported: "Child voice is only used when the observation supports it.",
@@ -46,6 +124,7 @@ const QUALITY_NOTE_LABELS: Record<string, string> = {
   notAISounding: "The draft does not read like generic AI copy.",
   preciseObservedActions: "Observed actions are described precisely.",
   noInventedDetails: "The draft avoids invented details.",
+  noUnsupportedSpecifics: "The draft avoids unsupported exact quotes or specific details.",
   evidenceToLearningClear: "The link between evidence and learning is clear.",
   familyReadable: "The story is readable for families.",
   usefulForDepth: "The story has enough substance for the selected depth.",

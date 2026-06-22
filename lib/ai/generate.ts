@@ -5,6 +5,7 @@ import {
   countWords,
   enforceFrameworkForResult,
   getMinimumStoryWords,
+  getUnsupportedStoryDetails,
   humaniseQualityNote,
   resultHasFrameworkLeak,
 } from "./quality-guards";
@@ -295,7 +296,7 @@ function normaliseQualityReview(value: QualityReviewResponse, revisionCount: num
 function applyDeterministicQualityGuards(
   review: ReturnType<typeof normaliseQualityReview>,
   result: StoryResult,
-  params: { framework: StoryFrameworkId; depth: StoryDepth }
+  params: { framework: StoryFrameworkId; depth: StoryDepth; observations: string }
 ) {
   const issues = [...review.issues];
   const checks = { ...review.checks };
@@ -322,6 +323,14 @@ function applyDeterministicQualityGuards(
     );
   }
 
+  const unsupportedDetails = getUnsupportedStoryDetails(result, params.observations);
+  if (unsupportedDetails.length > 0) {
+    checks.noInventedDetails = false;
+    passes = false;
+    score = Math.min(score ?? 78, 78);
+    issues.push(...unsupportedDetails);
+  }
+
   return {
     ...review,
     passes,
@@ -333,7 +342,7 @@ function applyDeterministicQualityGuards(
 
 function getStoryRescueReasons(
   result: StoryResult,
-  params: { framework: StoryFrameworkId; depth: StoryDepth }
+  params: { framework: StoryFrameworkId; depth: StoryDepth; observations: string }
 ) {
   const reasons: string[] = [];
   const minimumWords = getMinimumStoryWords(params.depth);
@@ -351,6 +360,7 @@ function getStoryRescueReasons(
   if (result.curriculumLinks.length === 0 || result.nextSteps.length === 0 || result.evidenceAnchors.length === 0) {
     reasons.push("Core educator fields are missing or too thin.");
   }
+  reasons.push(...getUnsupportedStoryDetails(result, params.observations));
   return reasons;
 }
 
@@ -535,6 +545,7 @@ Check:
 - not too AI-sounding
 - avoids vague action language such as "spent time", "was engaged", or "kept trying" when stronger evidence is available
 - no invented details
+- no unsupported exact quotes, materials, peer interactions, emotions, or educator actions
 - clear link between observation and learning
 - family-ready enough that a parent can understand the main learning without curriculum jargon
 - enough substance for the requested depth and minimum story word count
@@ -556,6 +567,7 @@ Return only valid JSON:
     "notAISounding": true,
     "preciseObservedActions": true,
     "noInventedDetails": true,
+    "noUnsupportedSpecifics": true,
     "evidenceToLearningClear": true,
     "familyReadable": true,
     "usefulForDepth": true
@@ -654,7 +666,7 @@ async function runStoryQualityCoach(
     latestReview = applyDeterministicQualityGuards(
       normaliseQualityReview(parsed, revisionCount),
       current,
-      { framework: params.framework, depth: params.depth }
+      { framework: params.framework, depth: params.depth, observations: params.observations }
     );
 
     if (latestReview.passes && (latestReview.score ?? 0) >= 90) break;
@@ -688,7 +700,7 @@ async function runStoryQualityCoach(
           strengths: ["Final rescue rewrite improved depth, framework fit, and educator usefulness."],
         },
         rescued,
-        { framework: params.framework, depth: params.depth }
+        { framework: params.framework, depth: params.depth, observations: params.observations }
       );
 
       if (rescuedReview.passes) {
