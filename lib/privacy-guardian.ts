@@ -1,3 +1,5 @@
+import { hasPhysicalSafetyIncident } from "@/lib/safety-incident";
+
 export type PrivacyGuardianIssue = {
   id: string;
   label: string;
@@ -13,6 +15,7 @@ export type PrivacyGuardianResult = {
     noSensitiveFamilyDetail: boolean;
     noUnsupportedClaims: boolean;
     noExcessIdentifiers: boolean;
+    noPhysicalSafetyIncident: boolean;
   };
 };
 
@@ -69,6 +72,15 @@ export function runPrivacyGuardian(input: {
     ));
   }
 
+  if (hasPhysicalSafetyIncident(combined)) {
+    issues.push(issue(
+      "physical-safety-incident",
+      "Physical safety or conflict moment",
+      "review",
+      "Review this alongside your service behaviour, injury, or incident process before sharing. Keep wording factual, avoid blame, and remove other children's names if needed."
+    ));
+  }
+
   const high = issues.some((item) => item.severity === "high");
   return {
     status: high ? "high" : issues.length ? "review" : "clear",
@@ -78,6 +90,7 @@ export function runPrivacyGuardian(input: {
       noSensitiveFamilyDetail: !FAMILY_DETAIL.test(combined),
       noUnsupportedClaims: !UNSUPPORTED_CERTAINTY.test(combined),
       noExcessIdentifiers: !EXCESS_IDENTIFIERS.test(combined),
+      noPhysicalSafetyIncident: !hasPhysicalSafetyIncident(combined),
     },
   };
 }
