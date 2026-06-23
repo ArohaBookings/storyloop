@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import ObservationCoach from "@/components/app/ObservationCoach";
 import StoryIntelligence from "@/components/app/StoryIntelligence";
+import StoryText from "@/components/app/StoryText";
 import ExportPackPanel from "@/components/app/ExportPackPanel";
 import FamilyTranslationPanel from "@/components/app/FamilyTranslationPanel";
 import type { ChildProfile } from "@/lib/children";
@@ -1632,9 +1633,7 @@ export default function GeneratePage() {
                   </div>
                 </div>
               ) : (
-                <div className="story-safe min-w-0 max-w-full flex-1 whitespace-pre-wrap break-words text-ink-800 leading-relaxed font-display font-normal">
-                  {story}
-                </div>
+                <StoryText text={story} className="flex-1" />
               )}
               {storySaveMessage && !editingStory && (
                 <p className="mt-3 text-xs font-semibold text-sage-700 bg-sage-50 border border-sage-100 rounded-lg px-3 py-2">

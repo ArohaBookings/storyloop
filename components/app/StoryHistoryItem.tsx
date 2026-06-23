@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Copy, Download, Loader2, Pencil, RefreshCw, Save, X } from "lucide-react";
 import StoryIntelligence from "@/components/app/StoryIntelligence";
+import StoryText from "@/components/app/StoryText";
 import LearningLoopPanel from "@/components/app/LearningLoopPanel";
 import ExportPackPanel from "@/components/app/ExportPackPanel";
 import FamilyTranslationPanel from "@/components/app/FamilyTranslationPanel";
@@ -398,9 +399,7 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
             </div>
           </div>
         ) : (
-          <div className="text-sm text-ink-800 leading-relaxed whitespace-pre-wrap font-display">
-            {storyText}
-          </div>
+          <StoryText text={storyText} className="text-sm" />
         )}
 
         {message && <p className="mt-3 text-xs font-semibold text-sage-700">{message}</p>}
