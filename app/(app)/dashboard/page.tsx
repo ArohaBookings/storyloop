@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, Brain, CheckCircle, LifeBuoy, Sparkles, Clock, BookOpen, TrendingUp, MessageCircleHeart, ClipboardList } from "lucide-react";
+import { AlertTriangle, ArrowRight, Brain, CheckCircle, LifeBuoy, Sparkles, Clock, BookOpen, TrendingUp, MessageCircleHeart, ClipboardList, Mic } from "lucide-react";
 import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
 
@@ -100,19 +100,52 @@ export default async function DashboardPage({
         <p className="text-ink-600 mt-1">Turn real observations into editable learning story drafts with your educator judgement still at the centre.</p>
       </div>
 
-      {/* Quick action */}
-      <div className="card-warm p-8 mb-8 relative overflow-hidden">
-        <div className="absolute inset-0 bg-warm-mesh pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 className="font-display text-2xl font-bold text-ink-900 mb-1">Start a new story</h2>
-            <p className="text-sm text-ink-600">Voice note, bullet points, or a messy braindump. StoryLoop will shape a first draft you can review.</p>
+      {/* Quick action — first-run onboarding for new educators, compact CTA for returning */}
+      {(totalStories ?? 0) === 0 ? (
+        <div className="card-warm p-8 mb-8 relative overflow-hidden">
+          <div className="absolute inset-0 bg-warm-mesh pointer-events-none" />
+          <div className="relative z-10">
+            <p className="section-title mb-2">Welcome to StoryLoop</p>
+            <h2 className="font-display text-3xl font-bold text-ink-900 mb-2">Let&apos;s write your first learning story.</h2>
+            <p className="text-sm text-ink-600 mb-6 max-w-2xl leading-relaxed">
+              Most educators have a finished draft in under a minute. Capture a real moment any way you like —
+              StoryLoop shapes the first draft, and your judgement stays at the centre.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-3 mb-6">
+              {[
+                { icon: Mic, t: "1 · Capture the moment", d: "Voice note, bullet points, or a quick braindump — no formal structure." },
+                { icon: Sparkles, t: "2 · StoryLoop drafts it", d: "A warm, evidence-led draft with curriculum links, dispositions, and next steps." },
+                { icon: CheckCircle, t: "3 · You review & share", d: "Edit in your own voice, run the checks, then send to families." },
+              ].map(({ icon: StepIcon, t, d }) => (
+                <div key={t} className="rounded-2xl border border-clay-100 bg-white/70 p-4">
+                  <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-clay-700 text-paper">
+                    <StepIcon className="h-4 w-4" />
+                  </div>
+                  <p className="text-sm font-bold text-ink-900">{t}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-ink-600">{d}</p>
+                </div>
+              ))}
+            </div>
+            <Link href="/generate" className="btn-primary text-base">
+              <Sparkles className="h-4 w-4" /> Write my first story
+            </Link>
+            <p className="mt-3 text-xs text-ink-500">Free plan includes 3 stories a month · no credit card.</p>
           </div>
-          <Link href="/generate" className="btn-primary text-base whitespace-nowrap">
-            <Sparkles className="w-4 h-4" /> New story
-          </Link>
         </div>
-      </div>
+      ) : (
+        <div className="card-warm p-8 mb-8 relative overflow-hidden">
+          <div className="absolute inset-0 bg-warm-mesh pointer-events-none" />
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 className="font-display text-2xl font-bold text-ink-900 mb-1">Start a new story</h2>
+              <p className="text-sm text-ink-600">Voice note, bullet points, or a messy braindump. StoryLoop will shape a first draft you can review.</p>
+            </div>
+            <Link href="/generate" className="btn-primary text-base whitespace-nowrap">
+              <Sparkles className="w-4 h-4" /> New story
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
