@@ -1,21 +1,122 @@
 const BLOCKED_NAME_WORDS = new Set([
+  // Framework / app / structural words
   "Aotearoa",
   "Australia",
-  "During",
   "Educator",
   "EYLF",
   "Family",
-  "Later",
   "Learning",
   "Mana",
   "Story",
   "StoryLoop",
-  "The",
-  "Then",
-  "Today",
-  "When",
   "Whanau",
   "Whāriki",
+  // Pronouns (the common false positives)
+  "He",
+  "She",
+  "It",
+  "They",
+  "We",
+  "You",
+  "I",
+  "His",
+  "Her",
+  "Hers",
+  "Him",
+  "Them",
+  "Their",
+  "Theirs",
+  "Our",
+  "Ours",
+  "My",
+  "Mine",
+  "Your",
+  "Yours",
+  "Its",
+  "Me",
+  "Us",
+  // Articles / conjunctions / prepositions
+  "A",
+  "An",
+  "As",
+  "At",
+  "By",
+  "For",
+  "From",
+  "In",
+  "Into",
+  "Of",
+  "On",
+  "Or",
+  "Nor",
+  "So",
+  "To",
+  "With",
+  "And",
+  "But",
+  "The",
+  // Demonstratives / location
+  "This",
+  "That",
+  "These",
+  "Those",
+  "There",
+  "Here",
+  "Inside",
+  "Outside",
+  // Time / sequence words that often start a sentence
+  "Today",
+  "Yesterday",
+  "Tomorrow",
+  "Now",
+  "Then",
+  "Next",
+  "First",
+  "Last",
+  "Once",
+  "While",
+  "When",
+  "During",
+  "Later",
+  "After",
+  "Before",
+  "Soon",
+  "Morning",
+  "Afternoon",
+  "Evening",
+  "Night",
+  "Meanwhile",
+  "Eventually",
+  "Finally",
+  "Suddenly",
+  "Afterwards",
+  "Afterward",
+  // Quantifiers / common sentence starters
+  "Both",
+  "Each",
+  "Every",
+  "Some",
+  "All",
+  "Also",
+  "Even",
+  "Just",
+  "Still",
+  "Together",
+  "One",
+  "Two",
+  "Three",
+  "Four",
+  "Five",
+  "Another",
+  "Other",
+  // Days
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
 ]);
 
 function cleanNameCandidate(value: string) {
@@ -24,28 +125,47 @@ function cleanNameCandidate(value: string) {
   return cleaned;
 }
 
+// True when this occurrence sits at the start of a sentence (or the text),
+// where capitalised words are usually not names ("It fell", "She asked").
+function isSentenceStart(text: string, index: number) {
+  const before = text.slice(0, index).replace(/\s+$/, "");
+  return before === "" || /[.!?]["')\]]?$/.test(before);
+}
+
 export function inferPrimaryChildName(observations: string) {
   const text = observations.trim();
   if (!text) return "";
 
+  // Strongest signal: an age in parentheses, e.g. "Ruby (3)" or "Noah (3yo)".
   const ageMatch = text.match(/\b([A-Z][a-z][A-Za-z'-]*)\s*\(\s*(?:\d{1,2}\s*(?:yo|years?)?|\d{1,2})\s*\)/);
   const ageName = ageMatch ? cleanNameCandidate(ageMatch[1] ?? "") : "";
   if (ageName) return ageName;
 
+  // Strong signal: an educator verb followed by a name, e.g. "noticed Ari".
   const observedMatch = text.match(/\b(?:noticed|observed|saw|watched|supported|asked|helped)\s+([A-Z][a-z][A-Za-z'-]*)\b/);
   const observedName = observedMatch ? cleanNameCandidate(observedMatch[1] ?? "") : "";
   if (observedName) return observedName;
 
-  const candidates = (text.match(/\b[A-Z][a-z][A-Za-z'-]*\b/g) ?? [])
-    .map(cleanNameCandidate)
-    .filter(Boolean);
-
-  if (candidates.length === 0) return "";
-
+  // Fallback: most frequent capitalised candidate, weighting mid-sentence
+  // appearances higher than sentence-initial ones (which are usually not names).
   const scores = new Map<string, number>();
-  for (const candidate of candidates) {
-    scores.set(candidate, (scores.get(candidate) ?? 0) + 1);
+  const firstIndex = new Map<string, number>();
+  const wordRegex = /\b[A-Z][a-z][A-Za-z'-]*\b/g;
+  let match: RegExpExecArray | null;
+  while ((match = wordRegex.exec(text)) !== null) {
+    const candidate = cleanNameCandidate(match[0]);
+    if (!candidate) continue;
+    const weight = isSentenceStart(text, match.index) ? 1 : 2;
+    scores.set(candidate, (scores.get(candidate) ?? 0) + weight);
+    if (!firstIndex.has(candidate)) firstIndex.set(candidate, match.index);
   }
 
-  return Array.from(scores.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "";
+  if (scores.size === 0) return "";
+
+  return (
+    Array.from(scores.entries()).sort((a, b) => {
+      if (b[1] !== a[1]) return b[1] - a[1];
+      return (firstIndex.get(a[0]) ?? 0) - (firstIndex.get(b[0]) ?? 0);
+    })[0]?.[0] ?? ""
+  );
 }

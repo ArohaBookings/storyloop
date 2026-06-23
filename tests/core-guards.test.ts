@@ -54,6 +54,15 @@ test("primary child name is inferred from observation notes when the field is em
     inferPrimaryChildName("Sarah noticed Ari pour water between two cups and slow down when it spilled."),
     "Ari"
   );
+  // Sentence-initial words like "It"/"She" must not be mistaken for the child's name.
+  assert.equal(
+    inferPrimaryChildName(
+      'Today Lily spent time building a tower with wooden blocks. It fell twice, and she paused each time before trying again. She asked another child to hold the base steady, then smiled and said, "It stayed!" when the tower stood up.'
+    ),
+    "Lily"
+  );
+  // No real name present (only pronouns) should infer nothing rather than a pronoun.
+  assert.equal(inferPrimaryChildName("She built a tower. It fell. She tried again."), "");
 });
 
 test("billing states preserve grace access and block failed subscriptions", () => {
