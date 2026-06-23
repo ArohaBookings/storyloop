@@ -385,7 +385,7 @@ test("EYLF physical conflict stories stay Australian and avoid Te Reo", () => {
     framework: "AU",
     depth: "balanced",
     tone: "professional",
-  });
+  }, [], 0);
   const joined = [
     result.story,
     ...result.outcomes,

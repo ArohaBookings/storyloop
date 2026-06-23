@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Check, Loader2 } from "lucide-react";
 import { getPlanByKey, normalizePlanKey, type CurrencyCode, type PlanKey } from "@/lib/plans";
 
 function normaliseCurrency(value: string | null): CurrencyCode {
@@ -107,7 +107,15 @@ export default function SignupPage() {
                 <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider">Selected plan</p>
                 <p className="font-display text-xl font-bold text-ink-900">{selectedPlan.name}</p>
                 <p className="text-xs text-ink-600 mt-1">{selectedPlan.description}</p>
-                <p className="mt-2 text-[11px] text-clay-700">{selectedPlan.buyer}</p>
+                <ul className="mt-3 space-y-1.5">
+                  {selectedPlan.features.slice(0, 4).map((feature) => (
+                    <li key={feature} className="flex items-start gap-2 text-[11px] text-ink-700">
+                      <Check className="mt-0.5 h-3 w-3 flex-shrink-0 text-sage-600" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                {isPaidPlan && <p className="mt-3 text-[11px] text-clay-700">{selectedPlan.buyer}</p>}
               </div>
               <div className="text-right">
                 <p className="font-bold text-ink-900">{selectedPrice}</p>
