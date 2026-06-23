@@ -1,3 +1,5 @@
+import { extractOtherChildNames } from "../story-context";
+
 type PedagogyFocus =
   | "balanced"
   | "intentional_teaching"
@@ -143,25 +145,6 @@ function extractQuote(observation: string) {
     .replace(/[,"“”]+$/g, "")
     .trim()
     .slice(0, 90);
-}
-
-function extractOtherChildren(observation: string, childName?: string) {
-  const child = childName?.toLowerCase();
-  const blocked = new Set([
-    "Today",
-    "The",
-    "When",
-    "Later",
-    "He",
-    "She",
-    "They",
-    "Educator",
-    "EYLF",
-    "Te",
-  ]);
-  return Array.from(new Set(observation.match(/\b[A-Z][a-z]{2,}\b/g) ?? []))
-    .filter((name) => name.toLowerCase() !== child && !blocked.has(name))
-    .slice(0, 2);
 }
 
 function domainTitle(domain: StoryDomain, child: string) {
@@ -414,7 +397,7 @@ function extensionParagraph(domain: StoryDomain, child: string, names?: string[]
 function reflectionParagraph(domain: StoryDomain, child: string, evidence: string) {
   switch (domain) {
     case "construction":
-      return `What stands out is ${child}'s persistence. ${child} met a real problem, stayed close to it, and used another person's support as part of the solution. The learning is visible in the process: ${evidence}.`;
+      return `What stands out is ${child}'s persistence. ${child} met a real problem, stayed close to it, and kept adjusting the approach instead of giving up. The learning is visible in the process: ${evidence}.`;
     case "pretend":
       return `What stands out is the way ${child} held the pretend story together. ${child} used objects as symbols, created a sequence, added sound, and brought another person into the play. The learning is visible in the process: ${evidence}.`;
     case "sensory":
@@ -430,13 +413,19 @@ function reflectionParagraph(domain: StoryDomain, child: string, evidence: strin
   }
 }
 
-function padForDepth(story: string, depth: StoryDepth, child: string, domain: StoryDomain) {
+function padForDepth(story: string, depth: StoryDepth, child: string) {
   const minimum = getMinimumStoryWords(depth);
   if (countWords(story) >= minimum) return story;
 
+  // Safe, non-inventing additions that add useful educator framing and length.
   const additions = [
     `We will keep the final version accurate by adding any exact words, materials, setting details, or educator responses that were part of the moment but not included in the brief note.`,
-    extensionParagraph(domain, child),
+    `This kind of moment is worth revisiting. A short follow-up next time will show whether this is a one-off for ${child} or a growing pattern worth planning for.`,
+    `When this is shared, families often recognise the same interests, words, or strategies appearing at home. Their knowledge can sit alongside what was noticed here to build a fuller picture of ${child}'s learning.`,
+    `Keeping the language plain and specific keeps this story useful: another educator can read it, add it to ${child}'s profile, and plan a small, well-matched next step.`,
+    `A learning story like this works best as part of a sequence. Over a few weeks, small notes about ${child} build into a picture of how their thinking, language, and relationships are developing.`,
+    `If a photo or short video was captured in the moment, it can support this written record, as long as it follows the service's consent and privacy guidance.`,
+    `The next planning conversation can start from here: one experience, material, or interaction that would gently extend what ${child} showed in this moment.`,
   ];
 
   let next = story;
@@ -472,7 +461,7 @@ export function buildEvidenceLedStory(
   const fragments = splitFragments(observation);
   const domain = detectDomain(observation);
   const quote = extractQuote(observation);
-  const otherChildren = extractOtherChildren(observation, params.childName);
+  const otherChildren = extractOtherChildNames(observation, params.childName);
   const title = current.storyTitle?.trim() || domainTitle(domain, child);
   const framework = frameworkForDomain(params.framework, domain);
   const lens = learningLens(domain);
@@ -515,7 +504,7 @@ export function buildEvidenceLedStory(
     );
   }
 
-  const story = padForDepth(`${title}\n\n${paragraphs.filter((part) => part !== undefined).join("\n\n")}`, params.depth, child, domain);
+  const story = padForDepth(`${title}\n\n${paragraphs.filter((part) => part !== undefined).join("\n\n")}`, params.depth, child);
   const wordCount = countWords(story);
 
   return {

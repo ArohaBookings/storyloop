@@ -117,6 +117,22 @@ const BLOCKED_NAME_WORDS = new Set([
   "Friday",
   "Saturday",
   "Sunday",
+  // Generic child descriptors (not names)
+  "Baby",
+  "Babies",
+  "Bub",
+  "Child",
+  "Children",
+  "Toddler",
+  "Toddlers",
+  "Infant",
+  "Infants",
+  "Kid",
+  "Kids",
+  "Boy",
+  "Boys",
+  "Girl",
+  "Girls",
 ]);
 
 function cleanNameCandidate(value: string) {
@@ -168,4 +184,29 @@ export function inferPrimaryChildName(observations: string) {
       return (firstIndex.get(a[0]) ?? 0) - (firstIndex.get(b[0]) ?? 0);
     })[0]?.[0] ?? ""
   );
+}
+
+// Names of other children mentioned in an observation, excluding the focus child.
+// Uses the same blocked-word and sentence-start guards as name inference so that
+// capitalised sentence-starters ("After", "Suddenly") are never mistaken for names.
+export function extractOtherChildNames(observations: string, childName?: string, limit = 2): string[] {
+  const text = observations.trim();
+  if (!text) return [];
+  const child = childName?.trim().toLowerCase();
+  const seen = new Set<string>();
+  const result: string[] = [];
+  const wordRegex = /\b[A-Z][a-z][A-Za-z'-]*\b/g;
+  let match: RegExpExecArray | null;
+  while ((match = wordRegex.exec(text)) !== null) {
+    const candidate = cleanNameCandidate(match[0]);
+    if (!candidate) continue;
+    // Sentence-initial words are usually not names; skip them to avoid false positives.
+    if (isSentenceStart(text, match.index)) continue;
+    const key = candidate.toLowerCase();
+    if (key === child || seen.has(key)) continue;
+    seen.add(key);
+    result.push(candidate);
+    if (result.length >= limit) break;
+  }
+  return result;
 }

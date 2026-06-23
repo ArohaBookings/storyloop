@@ -13,7 +13,7 @@ import { hasFeatureAccess, normalizePlanKey } from "../lib/plans";
 import { runPrivacyGuardian } from "../lib/privacy-guardian";
 import { hasPhysicalSafetyIncident } from "../lib/safety-incident";
 import { getStoryClarification } from "../lib/story-clarification";
-import { inferPrimaryChildName } from "../lib/story-context";
+import { inferPrimaryChildName, extractOtherChildNames } from "../lib/story-context";
 import { buildEvidenceLedStory, shouldUseEvidenceLedStory } from "../lib/ai/evidence-story";
 import { buildPhysicalSafetyFallbackStory } from "../lib/ai/physical-safety-story";
 import { buildUserMessage } from "../lib/ai/prompts";
@@ -63,6 +63,35 @@ test("primary child name is inferred from observation notes when the field is em
   );
   // No real name present (only pronouns) should infer nothing rather than a pronoun.
   assert.equal(inferPrimaryChildName("She built a tower. It fell. She tried again."), "");
+  // Generic child descriptors are not names.
+  assert.equal(inferPrimaryChildName("Baby reached for the scarf and laughed when it moved."), "");
+});
+
+test("evidence-led detailed depth reaches the detailed word target", () => {
+  const result = buildEvidenceLedStory({}, {
+    observations: "Mia built a block tower. It fell. She tried again with a wider base.",
+    childName: "Mia",
+    framework: "AU",
+    depth: "detailed",
+    tone: "natural",
+  });
+  assert.ok(
+    result.wordCount >= getMinimumStoryWords("detailed"),
+    `expected >= ${getMinimumStoryWords("detailed")} words, got ${result.wordCount}`
+  );
+});
+
+test("other-child detection ignores capitalised sentence-starters", () => {
+  // "After" and "Suddenly" are sentence-starters, not children's names.
+  assert.deepEqual(
+    extractOtherChildNames("After lunch Max painted at the easel. Suddenly the paint dripped.", "Max"),
+    []
+  );
+  // A genuine peer named mid-sentence is detected, and the focus child is excluded.
+  assert.deepEqual(
+    extractOtherChildNames("Max built a tower and asked Mia to help hold the base.", "Max"),
+    ["Mia"]
+  );
 });
 
 test("billing states preserve grace access and block failed subscriptions", () => {
