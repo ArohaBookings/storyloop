@@ -67,6 +67,13 @@ STYLE GUARDRAILS:
 - Use at most one short quoted child phrase, and only if the educator provided it.
 - Write the story as short usable paragraphs unless the requested depth calls for more detail.
 
+WHAT MAKES THIS WORTH PAYING FOR (read carefully):
+- Turn the educator's rough note into clean, flowing prose. Fix grammar, spelling, and fragments. Never paste the raw note back word-for-word as the story — rewrite it so it reads like a skilled educator sat down and wrote it.
+- Make every reflection specific to THIS child in THIS moment. Do not fall back on generic catch-alls such as "agency, communication, curiosity, and connection", "made choices and communicated meaning", "gave the educator a clear thread to follow", or "was engaged in meaningful play". Name what this child actually did and what it shows about how they think, feel, persist, or relate.
+- Make the chosen tone unmistakable: "natural" reads like a real educator talking; "warm" is reflective and relational; "professional" suits a room leader or assessment/ERO audience; "simple" uses short, plain sentences. A reader should be able to feel which tone was used.
+- Make the chosen depth obvious: "concise" is tight and complete; "balanced" is a full everyday story; "detailed" adds careful interpretation and continuity. Never return a thin one-or-two-paragraph answer for balanced or detailed.
+- Write the story so it reads as FINISHED and ready to share. Put every "check before sharing" reminder only in the educatorChecks field — never end the story body on caveats like "add the missing details" or "this can be strengthened before sharing". When the note is thin, be honest inside the story with phrasing like "from this brief note", but still deliver a complete, confident piece an educator would be proud to put their name to.
+
 RETURN ONLY VALID JSON WITH THIS EXACT SHAPE:
 {
   "storyTitle": "short natural title",

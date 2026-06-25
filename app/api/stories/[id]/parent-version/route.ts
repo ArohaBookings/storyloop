@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const maxDuration = 60;
+
 import { generateParentFriendlyVersion } from "@/lib/ai/generate";
 import { createClient } from "@/lib/supabase/server";
 import { normalizeFramework } from "@/lib/story-options";

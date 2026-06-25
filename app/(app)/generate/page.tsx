@@ -52,6 +52,17 @@ const PLACEHOLDERS = [
 const SAMPLE_OBSERVATION =
   "Today Lily spent time building a tower with wooden blocks. It fell twice, and she paused each time before trying again. She asked another child to hold the base steady, then smiled and said, \"It stayed!\" when the tower stood up.";
 
+// Shown while the story is being written. The frontier writer takes a little
+// longer than a quick autocomplete — these steps reassure the educator that
+// real, careful work is happening rather than leaving them on a bare spinner.
+const GENERATION_STEPS = [
+  "Reading your observation closely…",
+  "Noticing the learning that matters most…",
+  "Matching it to the right curriculum links…",
+  "Writing it in a polished educator voice…",
+  "Adding practical, in-the-room next steps…",
+];
+
 type InputMethod = "typed" | "paste" | "voice" | "sample" | "backlog";
 
 type BacklogItem = {
@@ -150,6 +161,7 @@ export default function GeneratePage() {
   const [sourceStoryId, setSourceStoryId] = useState("");
   const [remaining, setRemaining] = useState<string | number>("");
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [transcribing, setTranscribing] = useState(false);
   const [error, setError] = useState("");
   const [clarification, setClarification] = useState<{
@@ -293,6 +305,17 @@ export default function GeneratePage() {
       mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
     };
   }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      setLoadingStep(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setLoadingStep((step) => (step + 1) % GENERATION_STEPS.length);
+    }, 3200);
+    return () => clearInterval(interval);
+  }, [loading]);
 
   useEffect(() => {
     if (location !== "NZ") {
@@ -1520,10 +1543,11 @@ export default function GeneratePage() {
           </div>
 
           {loading ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center">
+            <div className="flex-1 flex flex-col items-center justify-center px-4 text-center">
               <Loader2 className="w-10 h-10 animate-spin text-clay-500 mb-4" />
-              <p className="font-display text-lg font-bold text-ink-900 mb-1">Crafting your story...</p>
-              <p className="text-sm text-ink-500">Usually takes 5-10 seconds</p>
+              <p className="font-display text-lg font-bold text-ink-900 mb-1">Writing your learning story…</p>
+              <p className="min-h-[20px] text-sm font-semibold text-clay-700 transition-all">{GENERATION_STEPS[loadingStep]}</p>
+              <p className="mt-2 text-xs text-ink-500">Shaping your notes into a polished, evidence-led story — usually 15-25 seconds. Worth the wait.</p>
             </div>
           ) : clarification ? (
             <div className="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-cream-50 p-5 shadow-soft">
