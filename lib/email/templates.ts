@@ -11,7 +11,8 @@ export type LifecycleEmailType =
   | "weekly_value"
   | "feedback_request"
   | "family_pack_prompt"
-  | "centre_planning_prompt";
+  | "centre_planning_prompt"
+  | "story_quality_upgrade";
 
 type TemplateInput = {
   type: LifecycleEmailType;
@@ -226,12 +227,12 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
     two_free_stories_used: () => {
       const ctaUrl = url("/billing?offer=activation", "two_free_stories_used");
       const finalStoryUrl = url("/generate", "two_free_stories_used");
-      const subject = "You’ve got 1 free StoryLoop story left";
+      const subject = "One free StoryLoop story left";
       const lines = [
-        "You have 1 free StoryLoop story left this month.",
-        "If it is saving you time, upgrading keeps you turning observations into editable drafts and unlocks Family Connection Packs, Backlog Rescue, and learning threads.",
-        `Your activation offer is ${ACTIVATION_OFFER_LABEL} when you upgrade through this link.`,
-        `Create your final free story: ${finalStoryUrl}`,
+        "You've turned two quick observations into learning stories that are ready to share — that's the slow part of the week mostly handled.",
+        "You have one free story left this month. Educator unlocks unlimited stories so documentation stops being the thing you dread. Educator Pro adds family messages, translation, and a learning thread for each child.",
+        `As an early educator, your first month is ${ACTIVATION_OFFER_LABEL} through this link.`,
+        `Or create your final free story first: ${finalStoryUrl}`,
       ];
       return {
         emailType: "two_free_stories_used",
@@ -241,22 +242,22 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
         html: layout({
           title: "You have 1 free story left",
           preview: `A quiet ${ACTIVATION_OFFER_LABEL} offer if StoryLoop is helping.`,
-          cta: `Use ${ACTIVATION_OFFER_LABEL}`,
+          cta: `Upgrade — ${ACTIVATION_OFFER_LABEL}`,
           ctaUrl,
           unsubscribe,
-          secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Not ready yet? <a href="${finalStoryUrl}" style="color:#7a4f34;font-weight:800;">Create your final free story</a>.</p>`,
-          body: `<p>You have <strong>1 free StoryLoop story left</strong> this month.</p><p>If it is saving you time, upgrading keeps you turning observations into editable drafts and unlocks <strong>Family Connection Packs, Backlog Rescue, and learning threads</strong>.</p><p style="padding:12px 14px;border-radius:14px;background:#f2efe5;color:#51453d;"><strong>Activation offer:</strong> ${esc(ACTIVATION_OFFER_LABEL)}.</p>`,
+          secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Not ready yet? <a href="${finalStoryUrl}" style="color:#7a4f34;font-weight:800;">Create your final free story first</a>.</p>`,
+          body: `<p>You've turned two quick observations into learning stories that are ready to share — that's <strong>the slow part of the week mostly handled</strong>.</p><p>You have <strong>one free story left</strong> this month. <strong>Educator</strong> unlocks unlimited stories so documentation stops being the thing you dread. <strong>Educator Pro</strong> adds family messages, translation, and a learning thread for each child.</p><p style="padding:12px 14px;border-radius:14px;background:#f2efe5;color:#51453d;"><strong>Early-educator offer:</strong> your first month is ${esc(ACTIVATION_OFFER_LABEL)}.</p>`,
         }),
         text: plain({ title: subject, lines, cta: `Use ${ACTIVATION_OFFER_LABEL}`, ctaUrl, unsubscribe }),
       };
     },
     free_limit_reached: () => {
       const ctaUrl = url("/billing?offer=activation", "free_limit_reached");
-      const subject = "Keep using StoryLoop for your learning stories";
+      const subject = "Your free stories are used — keep the time back";
       const lines = [
-        "Your 3 free StoryLoop stories are used for this month.",
-        "Upgrade when you are ready for unlimited stories, Family Connection Packs, Backlog Rescue, learning threads, Te Whāriki/EYLF support, child voice, dispositions, and next steps.",
-        `Your activation offer is ${ACTIVATION_OFFER_LABEL} for the first month.`,
+        "You've used your 3 free StoryLoop stories this month. If each one saved you even fifteen minutes, that's your documentation backlog starting to clear.",
+        "Upgrade for unlimited stories that sound like you wrote them, with Te Whāriki and EYLF links, child voice, dispositions, and practical next steps built in.",
+        `As an early educator, your first month is ${ACTIVATION_OFFER_LABEL}.`,
       ];
       return {
         emailType: "free_limit_reached",
@@ -264,12 +265,12 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
         marketing: true,
         ctaUrl,
         html: layout({
-          title: "Keep using StoryLoop",
-          preview: "Your 3 free stories are used this month.",
-          cta: "Upgrade StoryLoop",
+          title: "Keep the time back",
+          preview: "Your 3 free stories are used this month — upgrade for unlimited.",
+          cta: `Upgrade — ${ACTIVATION_OFFER_LABEL}`,
           ctaUrl,
           unsubscribe,
-          body: `<p>Your <strong>3 free StoryLoop stories</strong> are used for this month.</p><p>Upgrade when you are ready for unlimited stories, <strong>Family Connection Packs, Backlog Rescue, learning threads</strong>, Te Whāriki/EYLF support, child voice, dispositions, and next steps.</p><p style="padding:12px 14px;border-radius:14px;background:#f2efe5;color:#51453d;"><strong>Activation offer:</strong> ${esc(ACTIVATION_OFFER_LABEL)} for the first month.</p>`,
+          body: `<p>You've used your <strong>3 free StoryLoop stories</strong> this month. If each one saved you even fifteen minutes, that's your <strong>documentation backlog starting to clear</strong>.</p><p>Upgrade for unlimited stories that sound like you wrote them — with Te Whāriki and EYLF links, child voice, dispositions, and practical next steps built in.</p><p style="padding:12px 14px;border-radius:14px;background:#f2efe5;color:#51453d;"><strong>Early-educator offer:</strong> your first month is ${esc(ACTIVATION_OFFER_LABEL)}.</p>`,
         }),
         text: plain({ title: subject, lines, cta: "Upgrade StoryLoop", ctaUrl, unsubscribe }),
       };
@@ -393,6 +394,33 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
           body: `<p>Centre plans now include <strong>Room Planning Briefs</strong>.</p><p>StoryLoop reviews recent story evidence and suggests emerging interests, environment ideas, intentional teaching moves, family partnership prompts, and team reflection questions.</p><p>It is built for weekly planning conversations, not extra paperwork.</p>`,
         }),
         text: plain({ title: subject, lines, cta: "Open planning brief", ctaUrl, unsubscribe }),
+      };
+    },
+    story_quality_upgrade: () => {
+      const ctaUrl = url("/generate", "story_quality_upgrade");
+      const subject = "We just made your StoryLoop learning stories noticeably better";
+      const lines = [
+        `Hi ${name}, a short and honest note.`,
+        "You were one of the first educators to use StoryLoop, and some of your early drafts came out flatter and more generic than the moment you actually described. That is on us, not on your observations.",
+        "We have rebuilt the part of StoryLoop that writes your stories. Drafts now read like a thoughtful educator wrote them: they tidy your rough notes into real prose, stay specific to the child in front of you, and respect the tone and depth you choose.",
+        "If you have a spare minute, open one of your observations and generate it again. We think you will see the difference straight away.",
+        "Thank you for giving StoryLoop an early go. Reply any time and it reaches a real person.",
+      ];
+      return {
+        emailType: "story_quality_upgrade",
+        subject,
+        // Service notice about the educator's own stories — not a promotion.
+        marketing: false,
+        ctaUrl,
+        html: layout({
+          title: "Your learning stories just got a serious upgrade",
+          preview: "We rebuilt the StoryLoop writer — your stories now read like a real educator wrote them.",
+          cta: "See the difference",
+          ctaUrl,
+          secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Nothing you saved was changed or deleted. This only affects new stories you generate from here.</p>`,
+          body: `<p>Hi ${esc(name)}, a short and honest note.</p><p>You were one of the first educators to use StoryLoop, and some of your early drafts came out <strong>flatter and more generic</strong> than the moment you actually described. That is on us, not on your observations.</p><p>We have rebuilt the part of StoryLoop that writes your stories. Drafts now read like a thoughtful educator wrote them: they <strong>tidy your rough notes into real prose</strong>, stay <strong>specific to the child</strong> in front of you, and respect the tone and depth you choose.</p><p>If you have a spare minute, open one of your observations and generate it again — we think you will see the difference straight away.</p><p>Thank you for giving StoryLoop an early go.</p>`,
+        }),
+        text: plain({ title: subject, lines, cta: "See the difference", ctaUrl }),
       };
     },
   };

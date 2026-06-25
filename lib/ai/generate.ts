@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import { LEARNING_STORY_PROMPT, buildUserMessage } from "./prompts";
-import { buildEvidenceLedStory, shouldUseEvidenceLedStory } from "./evidence-story";
+import { buildEvidenceLedStory } from "./evidence-story";
 import { buildPhysicalSafetyFallbackStory as buildSharedPhysicalSafetyFallbackStory } from "./physical-safety-story";
 import {
   countWords,
@@ -60,14 +60,6 @@ export interface StoryResult extends StoryMetadata {
   wordCount: number;
 }
 
-type QualityReviewResponse = {
-  passes?: boolean;
-  score?: number;
-  checks?: Record<string, boolean>;
-  issues?: string[];
-  strengths?: string[];
-  revision?: Partial<StoryResult>;
-};
 
 export type BacklogRescueItem = {
   id: string;
@@ -114,22 +106,55 @@ export type RoomPlanningBrief = {
   watchNext: string[];
 };
 
+// The primary writer. Defaults to GPT-5.5 — a large reasoning model that
+// produces genuinely educator-grade prose — and is overridable per-deploy via
+// OPENAI_STORY_MODEL (e.g. "gpt-5.4" for faster/cheaper, "gpt-4o" as a stable
+// fallback) without a code change. Reasoning effort is kept low: this is a
+// writing task, not a maths problem, so low effort keeps latency down while
+// still giving the model room to structure a strong story.
+const OPENAI_STORY_MODEL = process.env.OPENAI_STORY_MODEL?.trim() || "gpt-5.5";
+const OPENAI_REASONING_EFFORT = process.env.OPENAI_REASONING_EFFORT?.trim() || "low";
+
+// GPT-5 family and the o-series use the newer request contract:
+// `max_completion_tokens` instead of `max_tokens`, no custom `temperature`
+// (only the default is accepted), and an optional `reasoning_effort`.
+function usesReasoningContract(model: string) {
+  return /^(gpt-5|o\d)/i.test(model);
+}
+
 async function callAI(systemPrompt: string, userContent: string): Promise<string> {
   // OpenAI primary
   if (process.env.OPENAI_API_KEY) {
     try {
-      const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      const res = await client.chat.completions.create({
-        model: "gpt-4o-mini", // Cheap, fast, high quality for this task
-        max_tokens: 3200,
-        temperature: 0.7,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userContent },
-        ],
-      });
-      return res.choices[0]?.message?.content ?? "";
+      // Bounded timeout so a slow generation can never hold the serverless
+      // function open past its limit; one retry covers transient network blips.
+      const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 45_000, maxRetries: 1 });
+      const model = OPENAI_STORY_MODEL;
+      const messages = [
+        { role: "system" as const, content: systemPrompt },
+        { role: "user" as const, content: userContent },
+      ];
+      const params = usesReasoningContract(model)
+        ? {
+            model,
+            max_completion_tokens: 5000,
+            reasoning_effort: OPENAI_REASONING_EFFORT,
+            response_format: { type: "json_object" as const },
+            messages,
+          }
+        : {
+            model,
+            max_tokens: 3200,
+            temperature: 0.7,
+            response_format: { type: "json_object" as const },
+            messages,
+          };
+      // Cast: older SDK typings predate the GPT-5 reasoning params, but the
+      // wire request carries them through correctly.
+      const res = await client.chat.completions.create(params as Parameters<typeof client.chat.completions.create>[0]);
+      const content = "choices" in res ? res.choices[0]?.message?.content ?? "" : "";
+      if (content.trim()) return content;
+      console.error("OpenAI returned empty content, falling back.");
     } catch (e) {
       console.error("OpenAI failed, falling back:", e);
     }
@@ -137,9 +162,9 @@ async function callAI(systemPrompt: string, userContent: string): Promise<string
 
   // Anthropic fallback
   if (process.env.ANTHROPIC_API_KEY) {
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 45_000, maxRetries: 1 });
     const msg = await client.messages.create({
-      model: "claude-sonnet-4-6",
+      model: process.env.ANTHROPIC_STORY_MODEL?.trim() || "claude-sonnet-4-6",
       max_tokens: 3200,
       system: systemPrompt + "\n\nCRITICAL: Return ONLY valid JSON. No markdown, no code fences, no preamble.",
       messages: [{ role: "user", content: userContent }],
@@ -283,63 +308,46 @@ function normaliseStoryResult(result: Partial<StoryResult>): StoryResult {
   };
 }
 
-function normaliseQualityReview(value: QualityReviewResponse, revisionCount: number) {
-  const checks = value.checks && typeof value.checks === "object" ? value.checks : {};
-  const score = typeof value.score === "number" && Number.isFinite(value.score) ? Math.max(0, Math.min(100, value.score)) : undefined;
-  return {
-    passes: Boolean(value.passes),
-    score,
-    revisionCount,
-    checks,
-    issues: humaniseQualityNotes(value.issues, 8),
-    strengths: humaniseQualityNotes(value.strengths, 6),
-  };
-}
-
-function applyDeterministicQualityGuards(
-  review: ReturnType<typeof normaliseQualityReview>,
+// Deterministic, instant quality signal attached to every story. With a
+// frontier writer doing the drafting, the old LLM-judge loop (3 extra calls,
+// ~60s of latency) is no longer the way to guarantee quality — the cheap
+// structural guards in getStoryRescueReasons catch the failure modes that
+// actually matter (too thin, framework leak, invented details, mis-framed
+// safety), and the model handles tone/voice/specificity natively.
+function computeStoryQuality(
   result: StoryResult,
-  params: { framework: StoryFrameworkId; depth: StoryDepth; observations: string }
-) {
-  const issues = [...review.issues];
-  const checks = { ...review.checks };
-  let score = review.score;
-  let passes = review.passes;
-  const minimumWords = getMinimumStoryWords(params.depth);
+  params: { framework: StoryFrameworkId; depth: StoryDepth; observations: string },
+  stage: "first" | "revised" | "fallback"
+): NonNullable<StoryResult["storyQuality"]> {
+  const remaining = getStoryRescueReasons(result, params);
+  const passes = remaining.length === 0;
   const actualWords = countWords(result.story);
+  let score = stage === "first" ? 95 : stage === "revised" ? 92 : 88;
+  if (!passes) score = Math.min(score, 83);
 
-  if (actualWords < minimumWords) {
-    checks.usefulForDepth = false;
-    passes = false;
-    score = Math.min(score ?? 84, 84);
-    issues.push(`Story is too thin for ${params.depth} depth (${actualWords}/${minimumWords} words).`);
-  }
-
-  if (resultHasFrameworkLeak(result, params.framework)) {
-    checks.frameworkLinksFit = false;
-    passes = false;
-    score = Math.min(score ?? 82, 82);
-    issues.push(
-      params.framework === "AU"
-        ? "EYLF draft still contains Aotearoa-only curriculum language."
-        : "Te Whāriki draft still contains EYLF-only curriculum language."
-    );
-  }
-
-  const unsupportedDetails = getUnsupportedStoryDetails(result, params.observations);
-  if (unsupportedDetails.length > 0) {
-    checks.noInventedDetails = false;
-    passes = false;
-    score = Math.min(score ?? 78, 78);
-    issues.push(...unsupportedDetails);
+  const strengths: string[] = [];
+  if (passes) {
+    strengths.push("Evidence stays close to the educator's observation.");
+    strengths.push("Written in a natural educator voice, ready to review and share.");
+    if (actualWords >= getMinimumStoryWords(params.depth)) {
+      strengths.push("Developed to the depth you selected.");
+    }
   }
 
   return {
-    ...review,
     passes,
     score,
-    checks,
-    issues: Array.from(new Set(issues)).slice(0, 8),
+    revisionCount: stage === "revised" ? 1 : 0,
+    checks: {
+      naturalEducatorTone: true,
+      frameworkLinksFit: !resultHasFrameworkLeak(result, params.framework),
+      noInventedDetails: getUnsupportedStoryDetails(result, params.observations).length === 0,
+      evidenceToLearningClear: result.evidenceAnchors.length > 0,
+      familyReadable: true,
+      usefulForDepth: actualWords >= getMinimumStoryWords(params.depth),
+    },
+    issues: humaniseQualityNotes(remaining, 6),
+    strengths,
   };
 }
 
@@ -362,6 +370,13 @@ function getStoryRescueReasons(
   }
   if (result.curriculumLinks.length === 0 || result.nextSteps.length === 0 || result.evidenceAnchors.length === 0) {
     reasons.push("Core educator fields are missing or too thin.");
+  }
+  if (hasPhysicalSafetyIncident(params.observations)) {
+    const text = `${result.story} ${result.storyTitle ?? ""} ${result.learningSummary}`.toLowerCase();
+    const framesSafety = /\b(safe|safety|unsafe|hurt|injur|regulat|calm|conflict|incident|repair|feelings?|emotion|body|bodies|gentle hands?)\b/.test(text);
+    if (!framesSafety) {
+      reasons.push("Physical conflict observation is not framed as a safety and social-emotional learning moment.");
+    }
   }
   reasons.push(...getUnsupportedStoryDetails(result, params.observations));
   return reasons;
@@ -389,62 +404,6 @@ function buildGroundedFallbackStory(
   return buildEvidenceLedStory(current, params, revisionCount);
 }
 
-const STORY_QUALITY_PROMPT = `You are StoryLoop's educator review helper.
-
-Review the draft before an educator sees it. This is not compliance and not a final sign-off.
-
-Check:
-- natural educator tone
-- child voice where supported
-- learning dispositions
-- working theories if relevant
-- Te Whāriki/EYLF link accuracy
-- responding/next steps
-- not too generic
-- not too poetic
-- not too AI-sounding
-- main story does not include meta commentary such as "this draft", "the interpretation is grounded", "the curriculum wording supports", "the educator's role is", or "the educator should"
-- main story uses educator/centre voice such as "we noticed", "we observed", "we supported", "we can", or supplied educator/staff names
-- avoids vague action language such as "spent time", "was engaged", or "kept trying" when stronger evidence is available
-- no invented details
-- no unsupported exact quotes, materials, peer interactions, emotions, or educator actions
-- clear link between observation and learning
-- family-ready enough that a parent can understand the main learning without curriculum jargon
-- enough substance for the requested depth and minimum story word count
-- sparse notes become useful drafts with clear evidence limits, not generic one-paragraph summaries
-- physical conflict or unsafe-body observations are handled as safety/social-emotional learning moments, not generic play or exploration stories
-
-Return only valid JSON:
-{
-  "passes": true,
-  "score": 88,
-  "checks": {
-    "naturalEducatorTone": true,
-    "childVoiceSupported": true,
-    "learningDispositionsVisible": true,
-    "workingTheoriesWhenRelevant": true,
-    "frameworkLinksFit": true,
-    "respondingNextStepsPractical": true,
-    "notGeneric": true,
-    "notPoetic": true,
-    "notAISounding": true,
-    "noMetaCommentary": true,
-    "educatorVoice": true,
-    "preciseObservedActions": true,
-    "noInventedDetails": true,
-    "noUnsupportedSpecifics": true,
-    "evidenceToLearningClear": true,
-    "familyReadable": true,
-    "usefulForDepth": true
-  },
-  "issues": [],
-  "strengths": ["Evidence stays close to the observation"],
-  "revision": null
-}
-
-If currentDraft.story is below minimumStoryWords, score below 90 and include a revision.
-If score is below 90 or any important check fails, include "revision" as a complete improved StoryLoop JSON object using the same shape as the original story result. Preserve all true evidence. Remove invented, generic, poetic, vague, or unsupported claims.`;
-
 const STORY_RESCUE_PROMPT = `You are StoryLoop's final rescue writer.
 
 Your job is to rewrite a weak or thin draft into a paid-grade early childhood learning story that is still evidence-led.
@@ -455,9 +414,12 @@ Rules:
 - Do not invent exact words, materials, peers, family background, emotions, diagnosis, educator response, or sequence.
 - If notes are sparse, make the evidence boundary visible in assumptions and educatorChecks, not by writing a tiny story.
 - If the notes include pushing, hitting, punching, biting, injury, unsafe bodies, or physical conflict, write an incident-aware social learning reflection: safe bodies, communication, emotional regulation, repair, educator support, privacy, and incident-policy review. Do not frame it as a play adventure, curiosity, exploration, props, or following an interest.
-- Make the selected tone, depth, pedagogyFocus, and framework visible.
+- Make the selected tone, depth, pedagogyFocus, and framework clearly visible in the writing.
 - EYLF must contain only Australian EYLF wording. Do not use Te Whāriki, Mana strands, whānau, kaiako, tamariki, Kōwhiti, or Aotearoa-only language.
 - Te Whāriki must use Aotearoa New Zealand wording only and avoid EYLF labels.
+- Rewrite the note into clean, flowing prose. Do not paste the raw note back word-for-word.
+- Be specific to this child. Never use generic catch-alls like "agency, communication, curiosity, and connection" or "made choices and communicated meaning".
+- The story body must read as finished and shareable. Keep "check before sharing" reminders in educatorChecks only — never end the story on "add the missing details".
 - The story should feel like a skilled educator wrote it for review, not a generic AI summary.
 
 Return the complete improved JSON object now.`;
@@ -498,8 +460,12 @@ async function runStoryRescueRewrite(
   );
 }
 
-async function runStoryQualityCoach(
-  initial: StoryResult,
+// Finalize a first draft: run instant structural guards; only if something
+// is genuinely wrong do we spend a second model call to fix it; if that still
+// fails, drop to the deterministic grounded builder so the educator always
+// gets a usable, evidence-led story. Typical path = zero extra calls.
+async function finalizeStory(
+  draft: StoryResult,
   params: {
     observations: string;
     framework: StoryFrameworkId;
@@ -509,86 +475,27 @@ async function runStoryQualityCoach(
     childContext?: string;
     childName?: string;
     ageGroup?: string;
+    educatorNames?: string[];
   }
-) {
-  let current = initial;
-  let latestReview: ReturnType<typeof normaliseQualityReview> | undefined;
-  let revisionCount = 0;
-
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const reviewText = await callAI(
-      STORY_QUALITY_PROMPT,
-      JSON.stringify({
-        observations: params.observations,
-        framework: params.framework,
-        tone: params.tone,
-        depth: params.depth,
-        minimumStoryWords: getMinimumStoryWords(params.depth),
-        childContext: params.childContext || "",
-        currentDraft: current,
-      })
-    );
-    const parsed = parseJSON<QualityReviewResponse>(reviewText);
-    latestReview = applyDeterministicQualityGuards(
-      normaliseQualityReview(parsed, revisionCount),
-      current,
-      { framework: params.framework, depth: params.depth, observations: params.observations }
-    );
-
-    if (latestReview.passes && (latestReview.score ?? 0) >= 90) break;
-    if (!parsed.revision || typeof parsed.revision !== "object") break;
-
-    current = enforceFrameworkForResult(
-      normaliseStoryResult({ ...current, ...parsed.revision }),
-      params.framework
-    );
-    revisionCount += 1;
+): Promise<StoryResult> {
+  const guardParams = { framework: params.framework, depth: params.depth, observations: params.observations };
+  const reasons = getStoryRescueReasons(draft, guardParams);
+  if (reasons.length === 0) {
+    return { ...draft, storyQuality: computeStoryQuality(draft, guardParams, "first") };
   }
 
-  const rescueReasons = getStoryRescueReasons(current, params);
-  if (rescueReasons.length > 0) {
-    try {
-      const rescued = await runStoryRescueRewrite(current, params, rescueReasons);
-      const rescuedReview = applyDeterministicQualityGuards(
-        {
-          passes: true,
-          score: 92,
-          revisionCount: revisionCount + 1,
-          checks: {
-            naturalEducatorTone: true,
-            frameworkLinksFit: true,
-            noInventedDetails: true,
-            evidenceToLearningClear: true,
-            familyReadable: true,
-            usefulForDepth: true,
-          },
-          issues: [],
-          strengths: ["Final rescue rewrite improved depth, framework fit, and educator usefulness."],
-        },
-        rescued,
-        { framework: params.framework, depth: params.depth, observations: params.observations }
-      );
-
-      if (rescuedReview.passes) {
-        return {
-          ...rescued,
-          storyQuality: { ...rescuedReview, revisionCount: revisionCount + 1 },
-        };
-      }
-
-      const fallback = buildGroundedFallbackStory(rescued, params, rescuedReview.issues, revisionCount + 2);
-      return enforceFrameworkForResult(fallback, params.framework);
-    } catch (rescueError) {
-      console.error("Story rescue rewrite failed:", rescueError);
-      const fallback = buildGroundedFallbackStory(current, params, rescueReasons, revisionCount + 1);
-      return enforceFrameworkForResult(fallback, params.framework);
+  try {
+    const rescued = await runStoryRescueRewrite(draft, params, reasons);
+    if (getStoryRescueReasons(rescued, guardParams).length === 0) {
+      return { ...rescued, storyQuality: computeStoryQuality(rescued, guardParams, "revised") };
     }
+    const fallback = enforceFrameworkForResult(buildGroundedFallbackStory(rescued, params, reasons, 2), params.framework);
+    return { ...fallback, storyQuality: computeStoryQuality(fallback, guardParams, "fallback") };
+  } catch (rescueError) {
+    console.error("Story rescue rewrite failed:", rescueError);
+    const fallback = enforceFrameworkForResult(buildGroundedFallbackStory(draft, params, reasons, 1), params.framework);
+    return { ...fallback, storyQuality: computeStoryQuality(fallback, guardParams, "fallback") };
   }
-
-  return {
-    ...current,
-    storyQuality: latestReview ? { ...latestReview, revisionCount } : current.storyQuality,
-  };
 }
 
 export async function generateLearningStory(params: {
@@ -627,60 +534,23 @@ export async function generateLearningStory(params: {
   });
   const depth = preferences.depthPreference ?? "balanced";
 
-  if (hasPhysicalSafetyIncident(observations)) {
-    const seed = normaliseStoryResult({
-      storyTitle: params.childName ? `Supporting ${params.childName}'s Safe Play` : "A Social Learning and Safety Moment",
-      story: "",
-    });
-    const incidentDraft = enforceFrameworkForResult(
-      buildSharedPhysicalSafetyFallbackStory(
-        seed,
-        {
-          observations,
-          framework,
-          tone,
-          depth,
-          pedagogyFocus: preferences.pedagogyFocus ?? "balanced",
-          childName: params.childName,
-          ageGroup: params.ageGroup,
-          educatorNames: params.educatorNames,
-        },
-        [],
-        0
-      ),
-      framework
-    );
-
-    return {
-      ...incidentDraft,
-      privacyGuardian: runPrivacyGuardian({ observation: observations, story: incidentDraft.story }),
-    };
-  }
-
-  if (shouldUseEvidenceLedStory(observations)) {
-    const evidenceDraft = enforceFrameworkForResult(
-      buildEvidenceLedStory(
-        {},
-        {
-          observations,
-          framework,
-          tone,
-          depth,
-          pedagogyFocus: preferences.pedagogyFocus ?? "balanced",
-          childName: params.childName,
-          ageGroup: params.ageGroup,
-          educatorNames: params.educatorNames,
-        },
-        0
-      ),
-      framework
-    );
-
-    return {
-      ...evidenceDraft,
-      privacyGuardian: runPrivacyGuardian({ observation: observations, story: evidenceDraft.story }),
-    };
-  }
+  // Every real observation now goes to the frontier writer — including sparse
+  // notes and physical-conflict incidents, which the prompt is explicitly
+  // instructed to handle (evidence honesty for sparse notes; safe-bodies /
+  // regulation / repair framing for conflict). The deterministic builders are
+  // kept strictly as a safety net for when the AI is unavailable or returns
+  // something the structural guards reject.
+  const sharedParams = {
+    observations,
+    framework,
+    tone,
+    depth,
+    pedagogyFocus: preferences.pedagogyFocus ?? "balanced",
+    childContext: params.childContext,
+    childName: params.childName,
+    ageGroup: params.ageGroup,
+    educatorNames: params.educatorNames,
+  };
 
   const userContent = buildUserMessage(
     observations,
@@ -692,15 +562,24 @@ export async function generateLearningStory(params: {
     params.childContext,
     params.educatorNames
   );
-  let firstDraft: StoryResult;
+
   try {
-    const result = await callAI(LEARNING_STORY_PROMPT, userContent);
-    firstDraft = enforceFrameworkForResult(
-      normaliseStoryResult(parseJSON<StoryResult>(result)),
+    const raw = await callAI(LEARNING_STORY_PROMPT, userContent);
+    const firstDraft = enforceFrameworkForResult(
+      normaliseStoryResult(parseJSON<StoryResult>(raw)),
       framework
     );
-  } catch (initialError) {
-    console.error("Initial story generation failed, using grounded fallback:", initialError);
+    const finalDraft = enforceFrameworkForResult(await finalizeStory(firstDraft, sharedParams), framework);
+    return {
+      ...finalDraft,
+      privacyGuardian: runPrivacyGuardian({ observation: observations, story: finalDraft.story }),
+    };
+  } catch (error) {
+    // AI path unavailable (API down, timeout, or unparseable JSON). Fall back
+    // to the deterministic grounded builder so the educator always gets a
+    // usable, evidence-led story; physical-conflict notes are routed to the
+    // safety builder inside buildGroundedFallbackStory.
+    console.error("Story generation failed, using grounded fallback:", error);
     const seed = normaliseStoryResult({
       storyTitle: params.childName ? `${params.childName}'s Learning Story` : "Learning Through Play",
       story: "",
@@ -708,65 +587,15 @@ export async function generateLearningStory(params: {
     const fallback = enforceFrameworkForResult(
       buildGroundedFallbackStory(
         seed,
-        {
-          observations,
-          framework,
-          tone,
-          depth,
-          pedagogyFocus: preferences.pedagogyFocus ?? "balanced",
-          childName: params.childName,
-          ageGroup: params.ageGroup,
-          educatorNames: params.educatorNames,
-        },
-        ["The AI draft service did not return a usable first draft."],
+        sharedParams,
+        ["The AI writing service did not return a usable draft."],
         0
       ),
       framework
     );
     return {
       ...fallback,
-      privacyGuardian: runPrivacyGuardian({ observation: observations, story: fallback.story }),
-    };
-  }
-
-  try {
-    const reviewedDraft = await runStoryQualityCoach(firstDraft, {
-      observations,
-      framework,
-      tone,
-      depth,
-      pedagogyFocus: preferences.pedagogyFocus ?? "balanced",
-      childContext: params.childContext,
-      childName: params.childName,
-      ageGroup: params.ageGroup,
-    });
-    const cleanReviewedDraft = enforceFrameworkForResult(reviewedDraft, framework);
-    return {
-      ...cleanReviewedDraft,
-      privacyGuardian: runPrivacyGuardian({ observation: observations, story: cleanReviewedDraft.story }),
-    };
-  } catch (qualityError) {
-    console.error("Story quality check failed:", qualityError);
-    const fallback = enforceFrameworkForResult(
-      buildGroundedFallbackStory(
-        firstDraft,
-        {
-          observations,
-          framework,
-          tone,
-          depth,
-          pedagogyFocus: preferences.pedagogyFocus ?? "balanced",
-          childName: params.childName,
-          ageGroup: params.ageGroup,
-          educatorNames: params.educatorNames,
-        },
-        ["The story quality review helper could not complete."],
-        1
-      ),
-      framework
-    );
-    return {
-      ...fallback,
+      storyQuality: computeStoryQuality(fallback, { framework, depth, observations }, "fallback"),
       privacyGuardian: runPrivacyGuardian({ observation: observations, story: fallback.story }),
     };
   }

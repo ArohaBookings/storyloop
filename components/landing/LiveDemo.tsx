@@ -75,8 +75,8 @@ export default function LiveDemo() {
             {loading ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center">
                 <Loader2 className="w-8 h-8 animate-spin text-clay-500 mb-3" />
-                <p className="text-sm text-ink-600">Crafting your story...</p>
-                <p className="text-xs text-ink-400 mt-1">Usually 5-10 seconds</p>
+                <p className="text-sm text-ink-600">Writing your learning story…</p>
+                <p className="text-xs text-ink-400 mt-1">Polishing your notes into an educator-ready story — about 15-25 seconds.</p>
               </div>
             ) : output ? (
               <div className="story-safe flex min-w-0 flex-1 flex-col">

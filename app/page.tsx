@@ -9,6 +9,7 @@ import Pricing from "@/components/landing/Pricing";
 import FAQ from "@/components/landing/FAQ";
 import CTA from "@/components/landing/CTA";
 import Footer from "@/components/landing/Footer";
+import { LANDING_FAQS } from "@/lib/landing-faqs";
 
 export const metadata: Metadata = {
   alternates: { canonical: "https://storyloop.space/" },
@@ -18,9 +19,22 @@ export const metadata: Metadata = {
   },
 };
 
+// FAQPage structured data so search and answer engines can surface accurate
+// answers about StoryLoop directly. Mirrors the visible FAQ on the page.
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: LANDING_FAQS.map((faq) => ({
+    "@type": "Question",
+    name: faq.q,
+    acceptedAnswer: { "@type": "Answer", text: faq.a },
+  })),
+};
+
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-paper overflow-x-hidden">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <Navbar />
       <main>
         <Hero />

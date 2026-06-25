@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+
+// The frontier story writer can take ~15-30s for a rich draft (plus a rare
+// fix pass). Give the serverless function room so it is never killed mid-write.
+export const maxDuration = 60;
 import { createClient } from "@/lib/supabase/server";
 import { generateLearningStory } from "@/lib/ai/generate";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";

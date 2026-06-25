@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const maxDuration = 60;
+
 import { generateFamilyConnectionPack } from "@/lib/ai/generate";
 import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
 import { hasFeatureAccess, requiredPlanForFeature } from "@/lib/plans";

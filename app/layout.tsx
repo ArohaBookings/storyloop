@@ -85,7 +85,9 @@ const structuredData = {
       "offers": [
         { "@type": "Offer", "price": "0", "priceCurrency": "AUD", "name": "Free plan" },
         { "@type": "Offer", "price": "19", "priceCurrency": "AUD", "name": "Educator plan" },
-        { "@type": "Offer", "price": "49", "priceCurrency": "AUD", "name": "Centre plan" },
+        { "@type": "Offer", "price": "29", "priceCurrency": "AUD", "name": "Educator Pro plan" },
+        { "@type": "Offer", "price": "99", "priceCurrency": "AUD", "name": "Centre Starter plan" },
+        { "@type": "Offer", "price": "199", "priceCurrency": "AUD", "name": "Centre Growth plan" },
       ],
     },
   ],

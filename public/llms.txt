@@ -1,0 +1,42 @@
+# StoryLoop
+
+> StoryLoop is an early childhood education (ECE) documentation tool that turns a real educator's observations, voice notes, or rough bullet points into polished, editable learning story drafts. It supports New Zealand's Te Whāriki and Australia's EYLF curricula, keeps every claim grounded in what was actually observed, and writes in a natural educator voice rather than generic AI phrasing. Educators stay responsible for interpretation, reflection, and final editing. Built by Aria Care.
+
+## What it does
+
+- Turns observations (typed, pasted, or voice) into a complete learning story draft in about 15-25 seconds.
+- Cleans rough, messy notes into clear prose without inventing details.
+- Adds curriculum links (Te Whāriki strands or EYLF V2.0 outcomes), learning dispositions, child voice, family/whānau connection, and practical next steps.
+- Lets educators choose tone (natural, warm, professional, simple) and depth (concise, balanced, detailed), which visibly change the writing.
+- Handles sparse notes honestly (it names the evidence limits) and frames physical-conflict moments as safety and social-emotional learning, not play.
+- Offers Family Connection Packs, family translation, Backlog Rescue, child learning continuity, and centre Room Planning Briefs on higher plans.
+
+## Who it is for
+
+Early childhood educators and teachers in New Zealand and Australia — both new and experienced — and the centres they work in.
+
+## Pricing (AUD)
+
+- Free — $0 — 3 stories per month.
+- Educator — $19/month — unlimited stories, exports, Family Connection Pack, Backlog Rescue.
+- Educator Pro — $29/month — adds family reply loop, translation, child continuity, advanced quality score.
+- Centre Starter — $99/month per centre — adds centre calibration, planning board, documentation radar, admin.
+- Centre Growth — $199/month per centre — adds director ROI dashboard and multi-room analytics.
+
+## Key pages
+
+- Home: https://storyloop.space/
+- About: https://storyloop.space/about
+- Resources: https://storyloop.space/resources
+- Te Whāriki learning stories (NZ): https://storyloop.space/te-whariki-learning-stories
+- EYLF learning stories (Australia): https://storyloop.space/australia-eylf-learning-stories
+- Learning story generator: https://storyloop.space/learning-story-generator
+- Full topic index: https://storyloop.space/sitemap.xml
+
+## Privacy
+
+Observations are not used to train AI models. Data is stored securely and access-controlled. Educators are encouraged to avoid unnecessary identifying details in notes.
+
+## Contact
+
+Email: ariacareapp@gmail.com
