@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Sparkles, Loader2, Copy, Check } from "lucide-react";
+import { Sparkles, Loader2, Copy, Check, HelpCircle } from "lucide-react";
 import Link from "next/link";
 
 const PLACEHOLDER = `• Noah (3yo) filled a bucket with damp sand
@@ -9,25 +9,44 @@ const PLACEHOLDER = `• Noah (3yo) filled a bucket with damp sand
 • Said "I'm making a castle for the dragon"
 • When one side collapsed, he packed more sand around the base and tried again`;
 
+const SAMPLE = `Noah (3yo) filled a bucket with damp sand, turned it over carefully and tapped the sides. He built a tower beside Amelia, then swapped the spade when she asked. He said "I'm making a castle for the dragon". When one side collapsed, he packed more sand around the base and tried again.`;
+
+type Clarify = { reason: string; questions: string[] };
+
 export default function LiveDemo() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
+  const [clarify, setClarify] = useState<Clarify | null>(null);
   const [usage, setUsage] = useState(0);
 
   const handleGenerate = async () => {
     if (!input.trim()) { setError("Add a few observations first"); return; }
     if (usage >= 1) { setError("You've used your free demo. Sign up to keep going with editable story history."); return; }
-    setLoading(true); setError(""); setOutput("");
+    setLoading(true); setError(""); setOutput(""); setClarify(null);
     try {
       const res = await fetch("/api/generate", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ observations: input, ageGroup: "3-4 years", demo: true }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed");
+      if (!res.ok) throw new Error(data.error ?? "Something went wrong. Please try again.");
+      // The quality guard asks for a little more detail on thin/ambiguous notes.
+      // Show the smart follow-up questions instead of a blank panel — and don't burn the free try.
+      if (data.needsClarification) {
+        setClarify({
+          reason: typeof data.clarificationReason === "string" && data.clarificationReason.trim()
+            ? data.clarificationReason
+            : "Add a little more detail so the story stays grounded in what you actually saw.",
+          questions: Array.isArray(data.clarificationQuestions)
+            ? data.clarificationQuestions.filter((q: unknown): q is string => typeof q === "string" && q.trim().length > 0).slice(0, 3)
+            : [],
+        });
+        return;
+      }
+      if (!data.story) throw new Error("No story came back. Please try again.");
       setOutput(data.story); setUsage(usage + 1);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
@@ -48,11 +67,20 @@ export default function LiveDemo() {
         <div className="grid min-w-0 gap-5 lg:grid-cols-2">
           {/* Input */}
           <div className="card min-w-0 p-6">
-            <label className="label">Quick observations</label>
-            <textarea value={input} onChange={e => setInput(e.target.value)} rows={8} placeholder={PLACEHOLDER}
+            <div className="flex items-center justify-between gap-3 mb-1.5">
+              <label className="label mb-0">Quick observations</label>
+              <button
+                type="button"
+                onClick={() => { setInput(SAMPLE); setError(""); setClarify(null); }}
+                className="text-[11px] font-bold text-clay-700 hover:text-clay-900"
+              >
+                Use a sample
+              </button>
+            </div>
+            <textarea value={input} onChange={e => { setInput(e.target.value); if (clarify) setClarify(null); }} rows={8} placeholder={PLACEHOLDER}
               className="input font-mono text-sm leading-relaxed resize-none" />
             <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs text-ink-500">{input.length}/500</p>
+              <p className="text-xs text-ink-500">A few real details work best — what the child did, said, or tried.</p>
               <button onClick={handleGenerate} disabled={loading || !input.trim()} className="btn-primary text-sm">
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                 Generate story
@@ -77,6 +105,32 @@ export default function LiveDemo() {
                 <Loader2 className="w-8 h-8 animate-spin text-clay-500 mb-3" />
                 <p className="text-sm text-ink-600">Writing your learning story…</p>
                 <p className="text-xs text-ink-400 mt-1">Polishing your notes into an educator-ready story — about 15-25 seconds.</p>
+              </div>
+            ) : clarify ? (
+              <div className="flex-1 flex flex-col">
+                <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-cream-50 p-5">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white">
+                      <HelpCircle className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-display text-base font-bold text-ink-900">A little more detail makes it sing</p>
+                      <p className="mt-1 text-sm text-ink-600 leading-relaxed">{clarify.reason}</p>
+                    </div>
+                  </div>
+                  {clarify.questions.length > 0 && (
+                    <ul className="mt-3 space-y-1.5">
+                      {clarify.questions.map((q) => (
+                        <li key={q} className="flex gap-2 text-sm text-ink-700">
+                          <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
+                          <span>{q}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <p className="mt-3 text-xs text-ink-500">Add a detail or two above, then generate again — this didn&apos;t use your free try.</p>
+                </div>
+                <p className="mt-3 text-center text-[11px] text-ink-400">This is the same evidence-check StoryLoop runs on every story so drafts stay grounded.</p>
               </div>
             ) : output ? (
               <div className="story-safe flex min-w-0 flex-1 flex-col">
