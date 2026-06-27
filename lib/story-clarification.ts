@@ -68,9 +68,13 @@ export function getStoryClarification(input: ClarificationInput): StoryClarifica
 
   const readiness = getObservationReadiness(observations);
   const words = wordCount(observations);
-  const vague = VAGUE_PLAY.test(observations) && readiness.found <= 2;
+  // Keep friction low: the frontier writer + evidence-honest prompt handle
+  // moderate notes well, so only ask for more when a note is genuinely too thin
+  // to ground a story — no real signals, or very short with at most one signal,
+  // or vague-play language with no concrete evidence around it.
+  const vague = VAGUE_PLAY.test(observations) && readiness.found <= 1;
 
-  if ((words < 18 && readiness.found <= 2) || vague) {
+  if (readiness.found === 0 || (words < 14 && readiness.found <= 1) || vague) {
     return {
       needsClarification: true,
       kind: "thin_observation",

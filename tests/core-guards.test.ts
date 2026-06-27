@@ -94,6 +94,20 @@ test("other-child detection ignores capitalised sentence-starters", () => {
   );
 });
 
+test("clarification gate fires only on genuinely thin or unsafe notes", () => {
+  const gated = (note: string) => getStoryClarification({ observations: note, childName: null }).needsClarification;
+  // Too thin / junk / vague / unsafe-without-educator-response -> ask for more.
+  assert.equal(gated("test test test"), true);
+  assert.equal(gated("kids played outside and had fun today"), true);
+  assert.equal(gated("Jack pushed Leo and Leo cried"), true);
+  // Decent real observations should generate straight away (no friction).
+  assert.equal(
+    gated("Maya and Sam played shopkeepers, taking turns. Maya used pretend money and said that will be five dollars please."),
+    false
+  );
+  assert.equal(gated("Mia stacked the cups into a tower and knocked them down, then did it again."), false);
+});
+
 test("billing states preserve grace access and block failed subscriptions", () => {
   assert.equal(isBillingPastDue({ plan: "educator", subscription_status: "past_due" }), true);
   assert.equal(isBillingBlocked({ plan: "educator", subscription_status: "past_due" }), false);

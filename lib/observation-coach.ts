@@ -5,10 +5,10 @@ export type ObservationSignal = {
   prompt: string;
 };
 
-const ACTION_WORDS = /\b(built|made|said|asked|noticed|tried|tested|changed|carried|joined|watched|pointed|moved|shared|helped|created|drew|climbed|sorted|counted|explained|returned|adjusted|stopped|started)\b/i;
+const ACTION_WORDS = /\b(built|made|said|asked|noticed|tried|tested|changed|carried|joined|watched|pointed|moved|shared|helped|created|drew|climbed|sorted|counted|explained|returned|adjusted|stopped|started|stacked|knocked|poured|filled|dug|rolled|painted|sang|danced|jumped|balanced|pushed|pulled|opened|grabbed|reached|waved|threw|kicked|splashed|mixed|stirred|scooped|wrote|read|fed|washed|cut|glued|used|picked|placed|lined|collected|explored|investigated|pretended|built up|pretend)\b/i;
 const VOICE_MARKERS = /["“”']|\b(said|asked|told|called|explained|signed|gestured)\b/i;
-const LEARNING_MARKERS = /\b(again|kept|tried|tested|adjusted|solved|worked out|wondered|noticed|compared|changed|planned|persisted|waited|shared|took turns)\b/i;
-const CONTEXT_MARKERS = /\b(outside|inside|garden|sandpit|mat|table|room|home|park|kitchen|water|blocks|scooter|book|paint|group|morning|today|during)\b/i;
+const LEARNING_MARKERS = /\b(again|kept|tried|tested|adjusted|solved|worked out|wondered|noticed|compared|changed|planned|persisted|waited|shared|took turns|taking turns|turn[- ]taking|swapped|swap|negotiated|figured|experimented|problem|persevered)\b/i;
+const CONTEXT_MARKERS = /\b(outside|inside|garden|sandpit|mat|table|room|home|park|kitchen|water|blocks|scooter|book|paint|group|morning|today|during|sand|dough|playdough|clay|easel|puzzle|ball|bike|trike|slide|swing|tower|train|cars|dolls|shop|music|story|cups|bucket|spade|crayon|pencil|playground|lunch|outdoor|art|collage)\b/i;
 const CONNECTION_MARKERS = /\b(wh[aā]nau|family|mum|dad|parent|grandparent|home|culture|language|community|friend|tamariki|children|peer|sibling)\b/i;
 
 export function getObservationSignals(observation: string): ObservationSignal[] {
