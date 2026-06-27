@@ -241,7 +241,10 @@ export default function GeneratePage() {
           setAvoidedPhrases(preferences.avoidedPhrases.join(", "));
         }
         if ((accountData?.profile?.total_stories ?? 0) === 0 && typeof window !== "undefined") {
-          setShowFirstStoryWizard(window.sessionStorage.getItem("storyloop-first-story-wizard") !== "dismissed");
+          // Arriving straight from signup (?welcome=1) always gets the guided
+          // first-story wizard, even if it was dismissed in a past session.
+          const justSignedUp = searchParams.get("welcome") === "1";
+          setShowFirstStoryWizard(justSignedUp || window.sessionStorage.getItem("storyloop-first-story-wizard") !== "dismissed");
         }
         const loadedChildren = Array.isArray(childData?.children) ? childData.children : [];
         setChildren(loadedChildren);

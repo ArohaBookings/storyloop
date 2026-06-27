@@ -172,7 +172,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
       };
     },
     no_first_story: () => {
-      const ctaUrl = url("/generate", "no_first_story");
+      const ctaUrl = url("/generate?welcome=1", "no_first_story");
       const subject = "Need help creating your first StoryLoop story?";
       const sample =
         "Lily built a tall block tower beside Amara. When it fell twice, she paused, moved the wider blocks to the bottom, and asked Amara to hold the base. When it stayed upright, Lily smiled and said, \"It stayed!\"";

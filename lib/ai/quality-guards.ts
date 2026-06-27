@@ -48,65 +48,28 @@ function containsPhrase(haystack: string, phrase: string) {
   return haystack.includes(normaliseEvidenceText(phrase));
 }
 
-const SPARSE_UNSUPPORTED_DETAIL_TERMS = [
-  "cash register",
-  "toy food",
-  "fruit",
-  "fruits",
-  "vegetable",
-  "vegetables",
-  "apple",
-  "apples",
-  "money",
-  "coins",
-  "dollars",
-  "corner",
-  "peer",
-  "another child",
-  "friend",
-  "shopkeeper",
-  "customer",
-  "counted",
-  "counting",
-  "asked",
-  "requested",
-  "said",
-  "smiled",
-  "laughed",
-  "frustrated",
-  "upset",
-  "excited",
-];
-
+// The one reliable fabrication signal worth rejecting a draft over: an exact,
+// multi-word quote the educator never wrote (an invented child sentence).
+//
+// We deliberately do NOT flag interpretive vocabulary ("customer", "cashier",
+// "asked", "smiled", "upset", "frustrated", "friend"). A frontier writer using
+// that language on a short note is interpreting, not fabricating — and flagging
+// it was silently rejecting genuinely strong drafts and replacing them with a
+// rigid template (the real "not good enough" problem). Junk input is already
+// stopped upstream by the clarification gate, and the prompt forbids invention.
+//
+// Short quoted words (1-3 words) are usually educator-suggested phrases ("stop",
+// "I need space") or framework labels, so only quotes of 4+ words are checked.
 export function getUnsupportedStoryDetails(result: FrameworkGuardStoryResult, observations: string) {
-  const story = normaliseEvidenceText(
-    [
-      result.story,
-      result.learningSummary,
-      result.childVoice,
-      result.evidenceAnchors.join(" "),
-      result.curriculumLinks.join(" "),
-      result.frameworkEvidence.join(" "),
-    ].join(" ")
-  );
   const evidence = normaliseEvidenceText(observations);
   const issues: string[] = [];
   const quotedPhrases = Array.from(result.story.matchAll(/[“"]([^"”]{2,160})[”"]/g))
     .map((match) => match[1]?.trim())
-    .filter(Boolean);
+    .filter((quote): quote is string => Boolean(quote) && quote.split(/\s+/).filter(Boolean).length >= 4);
 
   for (const quote of quotedPhrases) {
     if (!containsPhrase(evidence, quote)) {
       issues.push(`Unsupported child quote or exact wording: "${quote}"`);
-    }
-  }
-
-  const sparse = countWords(observations) < 30;
-  if (sparse) {
-    for (const term of SPARSE_UNSUPPORTED_DETAIL_TERMS) {
-      if (containsPhrase(story, term) && !containsPhrase(evidence, term)) {
-        issues.push(`Unsupported specific detail in sparse note: ${term}`);
-      }
     }
   }
 

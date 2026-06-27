@@ -301,7 +301,7 @@ test("EYLF result guard removes Aotearoa-only framework leakage", () => {
   assert.ok(cleaned.educatorChecks.some((item) => item.includes("EYLF links")));
 });
 
-test("sparse notes reject invented quotes, materials, and peer details", () => {
+test("invented multi-word child quotes are rejected; interpretive vocabulary is trusted", () => {
   const result: FrameworkGuardStoryResult = {
     story: "Ruby used toy food and a cash register. She asked her peer, \"Can I have two apples, please?\"",
     outcomes: ["EYLF Outcome 4"],
@@ -324,9 +324,11 @@ test("sparse notes reject invented quotes, materials, and peer details", () => {
   };
 
   const issues = getUnsupportedStoryDetails(result, "Ruby played shop. Ruby went shopping.");
-  assert.ok(issues.some((issue) => issue.includes("cash register")));
+  // The fabricated multi-word child quote is the reliable signal — flag it.
   assert.ok(issues.some((issue) => issue.includes("Unsupported child quote")));
-  assert.ok(issues.some((issue) => issue.includes("peer")));
+  // Interpretive vocabulary on a short note ("cash register", "peer") is now
+  // trusted to the frontier writer rather than rejected into a generic template.
+  assert.equal(issues.some((issue) => /cash register|peer/.test(issue)), false);
 });
 
 test("physical conflict observations use incident-aware story path", () => {

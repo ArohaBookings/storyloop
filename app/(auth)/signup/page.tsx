@@ -65,7 +65,10 @@ export default function SignupPage() {
         return;
       }
 
-      window.location.replace("/dashboard");
+      // Land new free educators straight in the guided first-story flow, not the
+      // dashboard — the fastest path to their first "aha" and the biggest lever
+      // on activation.
+      window.location.replace("/generate?welcome=1");
     } catch {
       setError("Failed to create account");
       setLoading(false);
