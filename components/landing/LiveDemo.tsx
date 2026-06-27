@@ -104,7 +104,7 @@ export default function LiveDemo() {
               <div className="flex-1 flex flex-col items-center justify-center text-center">
                 <Loader2 className="w-8 h-8 animate-spin text-clay-500 mb-3" />
                 <p className="text-sm text-ink-600">Writing your learning story…</p>
-                <p className="text-xs text-ink-400 mt-1">Polishing your notes into an educator-ready story — about 15-25 seconds.</p>
+                <p className="text-xs text-ink-400 mt-1">Polishing your notes into an educator-ready story — this can take up to a minute, usually less.</p>
               </div>
             ) : clarify ? (
               <div className="flex-1 flex flex-col">

@@ -1550,7 +1550,7 @@ export default function GeneratePage() {
               <Loader2 className="w-10 h-10 animate-spin text-clay-500 mb-4" />
               <p className="font-display text-lg font-bold text-ink-900 mb-1">Writing your learning story…</p>
               <p className="min-h-[20px] text-sm font-semibold text-clay-700 transition-all">{GENERATION_STEPS[loadingStep]}</p>
-              <p className="mt-2 text-xs text-ink-500">Shaping your notes into a polished, evidence-led story — usually 15-25 seconds. Worth the wait.</p>
+              <p className="mt-2 text-xs text-ink-500">Shaping your notes into a polished, evidence-led story — this can take up to a minute, usually less. Worth the wait.</p>
             </div>
           ) : clarification ? (
             <div className="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-cream-50 p-5 shadow-soft">
