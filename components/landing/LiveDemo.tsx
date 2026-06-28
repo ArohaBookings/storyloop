@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Sparkles, Loader2, Copy, Check, HelpCircle } from "lucide-react";
 import Link from "next/link";
+import GeneratingIndicator from "@/components/app/GeneratingIndicator";
 
 const PLACEHOLDER = `• Noah (3yo) filled a bucket with damp sand
 • Turned it over carefully and tapped the sides
@@ -101,11 +102,7 @@ export default function LiveDemo() {
               )}
             </div>
             {loading ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center">
-                <Loader2 className="w-8 h-8 animate-spin text-clay-500 mb-3" />
-                <p className="text-sm text-ink-600">Writing your learning story…</p>
-                <p className="text-xs text-ink-400 mt-1">Polishing your notes into an educator-ready story — this can take up to a minute, usually less.</p>
-              </div>
+              <GeneratingIndicator />
             ) : clarify ? (
               <div className="flex-1 flex flex-col">
                 <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-cream-50 p-5">

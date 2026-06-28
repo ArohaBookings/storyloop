@@ -122,13 +122,16 @@ function usesReasoningContract(model: string) {
   return /^(gpt-5|o\d)/i.test(model);
 }
 
-async function callAI(systemPrompt: string, userContent: string): Promise<string> {
+async function callAI(systemPrompt: string, userContent: string, opts: { timeoutMs?: number } = {}): Promise<string> {
+  const started = Date.now();
+  const timeoutMs = opts.timeoutMs ?? 45_000;
   // OpenAI primary
   if (process.env.OPENAI_API_KEY) {
     try {
       // Bounded timeout so a slow generation can never hold the serverless
-      // function open past its limit; one retry covers transient network blips.
-      const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 45_000, maxRetries: 1 });
+      // function open past its limit. No auto-retry: a retried call doubles
+      // latency and can blow the route's 60s budget — we'd rather fall through.
+      const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: timeoutMs, maxRetries: 0 });
       const model = OPENAI_STORY_MODEL;
       const messages = [
         { role: "system" as const, content: systemPrompt },
@@ -157,12 +160,18 @@ async function callAI(systemPrompt: string, userContent: string): Promise<string
       console.error("OpenAI returned empty content, falling back.");
     } catch (e) {
       console.error("OpenAI failed, falling back:", e);
+      // If OpenAI consumed most of our window before failing, do NOT also wait
+      // on Anthropic — that cascade is what blows the 60s limit. Throw so the
+      // caller drops to its instant grounded fallback instead.
+      if (Date.now() - started > 25_000) {
+        throw e instanceof Error ? e : new Error("AI draft failed late");
+      }
     }
   }
 
   // Anthropic fallback
   if (process.env.ANTHROPIC_API_KEY) {
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 45_000, maxRetries: 1 });
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: timeoutMs, maxRetries: 0 });
     const msg = await client.messages.create({
       model: process.env.ANTHROPIC_STORY_MODEL?.trim() || "claude-sonnet-4-6",
       max_tokens: 3200,
@@ -358,7 +367,11 @@ function getStoryRescueReasons(
   const reasons: string[] = [];
   const minimumWords = getMinimumStoryWords(params.depth);
   const actualWords = countWords(result.story);
-  if (actualWords < minimumWords) {
+  // Only treat a draft as "too thin" when it is well under target. A slightly
+  // short GPT-5.5 draft is still a strong, shareable story, and forcing a rescue
+  // rewrite to claw back ~30 words doubles latency and risks a 60s timeout — the
+  // real first-story conversion leak. Educators value meaningful over lengthy.
+  if (actualWords < Math.round(minimumWords * 0.8)) {
     reasons.push(`Story is below the ${params.depth} depth target (${actualWords}/${minimumWords} words).`);
   }
   if (resultHasFrameworkLeak(result, params.framework)) {
@@ -452,7 +465,10 @@ async function runStoryRescueRewrite(
       ageGroup: params.ageGroup ?? "",
       childContext: params.childContext || "",
       currentDraft: current,
-    })
+    }),
+    // The rescue only runs when the first draft was fast (<=22s). Cap it at 30s
+    // so first-draft + rescue stays comfortably under the route's 60s budget.
+    { timeoutMs: 30_000 }
   );
   return enforceFrameworkForResult(
     normaliseStoryResult({ ...current, ...parseJSON<Partial<StoryResult>>(rescueText) }),
@@ -476,11 +492,26 @@ async function finalizeStory(
     childName?: string;
     ageGroup?: string;
     educatorNames?: string[];
-  }
+  },
+  startedAt: number
 ): Promise<StoryResult> {
   const guardParams = { framework: params.framework, depth: params.depth, observations: params.observations };
   const reasons = getStoryRescueReasons(draft, guardParams);
   if (reasons.length === 0) {
+    return { ...draft, storyQuality: computeStoryQuality(draft, guardParams, "first") };
+  }
+
+  // A rescue is a second ~30s model call. If the first draft already used most
+  // of our window, do NOT risk a 60s timeout (which would fail the whole story).
+  // Keep physical-safety framing correct with the instant deterministic builder;
+  // otherwise return the strong GPT-5.5 first draft we already have.
+  const RESCUE_TIME_BUDGET_MS = 22_000;
+  if (Date.now() - startedAt > RESCUE_TIME_BUDGET_MS) {
+    const safetyMisframed = reasons.some((reason) => reason.startsWith("Physical conflict observation is not framed"));
+    if (safetyMisframed) {
+      const fallback = enforceFrameworkForResult(buildGroundedFallbackStory(draft, params, reasons, 1), params.framework);
+      return { ...fallback, storyQuality: computeStoryQuality(fallback, guardParams, "fallback") };
+    }
     return { ...draft, storyQuality: computeStoryQuality(draft, guardParams, "first") };
   }
 
@@ -563,13 +594,14 @@ export async function generateLearningStory(params: {
     params.educatorNames
   );
 
+  const startedAt = Date.now();
   try {
     const raw = await callAI(LEARNING_STORY_PROMPT, userContent);
     const firstDraft = enforceFrameworkForResult(
       normaliseStoryResult(parseJSON<StoryResult>(raw)),
       framework
     );
-    const finalDraft = enforceFrameworkForResult(await finalizeStory(firstDraft, sharedParams), framework);
+    const finalDraft = enforceFrameworkForResult(await finalizeStory(firstDraft, sharedParams, startedAt), framework);
     return {
       ...finalDraft,
       privacyGuardian: runPrivacyGuardian({ observation: observations, story: finalDraft.story }),
