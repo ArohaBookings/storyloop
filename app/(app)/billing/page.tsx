@@ -9,6 +9,10 @@ import { getNextPlan, getPlanByKey, getPlanDefinitions, hasFeatureAccess, normal
 
 // Appealing, benefit-led copy for a feature a user clicked while locked.
 const FEATURE_UPSELL: Partial<Record<FeatureKey, { title: string; blurb: string }>> = {
+  storyAssistant: {
+    title: "Quill, your writing assistant",
+    blurb: "Highlight any line to refine it in your own words, or ask Quill for advice and changes in plain English. Included on Educator, unlimited on Educator Pro.",
+  },
   learningThreads: {
     title: "Learning threads",
     blurb: "Follow each child's learning over time — every story, reflection, and next step connected into one living thread you can share with whānau.",

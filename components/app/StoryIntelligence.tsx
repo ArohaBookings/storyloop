@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, Compass, Fingerprint, LockKeyhole, MessageCircle, ShieldCheck, Sparkles } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Compass, Fingerprint, MessageCircle, ShieldCheck, Sparkles } from "lucide-react";
 import { hasFeatureAccess } from "@/lib/plans";
 import type { PlanKey } from "@/lib/plans";
 import type { PrivacyGuardianResult } from "@/lib/privacy-guardian";
@@ -74,14 +74,6 @@ export default function StoryIntelligence({
               {storyQuality.passes ? "Ready for educator review." : "Generated with review notes for you to check."}
               {storyQuality.revisionCount ? ` Improved internally ${storyQuality.revisionCount} time${storyQuality.revisionCount === 1 ? "" : "s"}.` : ""}
             </p>
-            {!advancedQuality && (
-              <div className="mt-3 rounded-xl border border-clay-100 bg-cream-50 p-3 text-[11px] leading-relaxed text-ink-600">
-                <p className="flex items-center gap-1.5 font-bold text-clay-700">
-                  <LockKeyhole className="h-3.5 w-3.5" /> Advanced score details
-                </p>
-                <p className="mt-1">Educator Pro shows exact score, strengths, and targeted revision notes.</p>
-              </div>
-            )}
             {advancedQuality && storyQuality.strengths?.length ? (
               <ul className="mt-2 space-y-1 text-xs leading-relaxed text-sage-700">
                 {storyQuality.strengths.map((item) => <li key={item}>• {item}</li>)}
