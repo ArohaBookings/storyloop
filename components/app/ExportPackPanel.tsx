@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
-import { Check, Copy, Download, LockKeyhole } from "lucide-react";
+import { Check, Copy, Download } from "lucide-react";
 import { buildExportPacks, type ExportPlatform } from "@/lib/export-packs";
 import { hasFeatureAccess } from "@/lib/plans";
 import type { StoryFrameworkId } from "@/lib/story-options";
@@ -80,29 +79,9 @@ export default function ExportPackPanel({
 
   if (!story.trim()) return null;
 
-  if (!canExport) {
-    return (
-      <section className="story-safe mt-5 max-w-full overflow-hidden rounded-3xl border border-clay-200 bg-cream-50 p-5 shadow-soft">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-clay-700 text-paper">
-              <LockKeyhole className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="section-title mb-1">Export packs</p>
-              <h3 className="font-display text-xl font-bold text-ink-900">Copy-ready formats for the system you already use.</h3>
-              <p className="mt-1 text-xs leading-relaxed text-ink-600">
-                Educator plans unlock Storypark, Educa, Kinderloop, and Brightwheel-friendly layouts.
-              </p>
-            </div>
-          </div>
-          <Link href="/billing?feature=export-packs" className="btn-primary flex-shrink-0 text-xs">
-            Unlock export packs
-          </Link>
-        </div>
-      </section>
-    );
-  }
+  // Keep the story screen clean: users who don't have this feature see nothing
+  // here rather than a mid-generation upsell. Discovery lives on the billing page.
+  if (!canExport) return null;
 
   return (
     <section className="story-safe mt-5 max-w-full overflow-hidden rounded-3xl border border-sage-200 bg-gradient-to-br from-white via-sage-50 to-cream-50 p-5 shadow-soft">

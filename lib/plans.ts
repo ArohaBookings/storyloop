@@ -44,6 +44,11 @@ export type PlanDefinition = {
 
 export const PLAN_ORDER: PlanKey[] = ["free", "educator", "educator_pro", "centre_starter", "centre_growth"];
 
+// Educator's monthly Quill allowance (a generous taste). Educator Pro and
+// centre plans are unlimited. Kept in one place so the API and the plan copy
+// never drift.
+export const EDUCATOR_ASSISTANT_MONTHLY = 15;
+
 export const PLAN_DEFINITIONS: PlanDefinition[] = [
   {
     key: "free",
@@ -80,6 +85,7 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
     buyer: "Individual educators who need fast drafts, family-ready outputs, and export formats.",
     features: [
       "Unlimited learning stories",
+      `Quill writing assistant (${EDUCATOR_ASSISTANT_MONTHLY} refines/month)`,
       "Voice notes and uploads",
       "Observation Coach prompts",
       "Family Connection Pack",
@@ -105,6 +111,7 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
     buyer: "Educators who want stronger family partnership, translation support, and deeper review.",
     features: [
       "Everything in Educator",
+      "Quill writing assistant, unlimited",
       "Family Reply Loop",
       "Parent-friendly translation and readability",
       "Advanced quality score details",

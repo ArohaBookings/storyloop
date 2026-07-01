@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { Check, Copy, Languages, Loader2, LockKeyhole } from "lucide-react";
+import { Check, Copy, Languages, Loader2 } from "lucide-react";
 import { hasFeatureAccess } from "@/lib/plans";
 
 type TranslationPack = {
@@ -76,29 +75,9 @@ export default function FamilyTranslationPanel({
     window.setTimeout(() => setCopied(false), 1800);
   };
 
-  if (!canUseTranslation) {
-    return (
-      <section className="story-safe mt-5 max-w-full overflow-hidden rounded-3xl border border-clay-200 bg-white p-5 shadow-soft">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-clay-700 text-paper">
-              <LockKeyhole className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="section-title mb-1">Family translation + readability</p>
-              <h3 className="font-display text-xl font-bold text-ink-900">Make family updates easier to understand.</h3>
-              <p className="mt-1 text-xs leading-relaxed text-ink-600">
-                Educator Pro adds plain-English rewriting, optional translations, and a teacher review warning.
-              </p>
-            </div>
-          </div>
-          <Link href="/billing?feature=family-translation" className="btn-secondary flex-shrink-0 text-xs">
-            See Pro tools
-          </Link>
-        </div>
-      </section>
-    );
-  }
+  // Keep the story screen clean: no mid-generation upsell for users who don't
+  // have this feature. It's presented on the billing page instead.
+  if (!canUseTranslation) return null;
 
   return (
     <section className="story-safe mt-5 max-w-full overflow-hidden rounded-3xl border border-clay-200 bg-white p-5 shadow-soft">

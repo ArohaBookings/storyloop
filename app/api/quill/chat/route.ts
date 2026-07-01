@@ -6,12 +6,10 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { isBillingBlocked, billingBlockPayload } from "@/lib/billing-access";
-import { hasFeatureAccess, normalizePlanKey } from "@/lib/plans";
+import { hasFeatureAccess, normalizePlanKey, EDUCATOR_ASSISTANT_MONTHLY } from "@/lib/plans";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { chatWithQuill, type QuillChatTurn } from "@/lib/ai/assistant";
 import { normalizeFramework } from "@/lib/story-options";
-
-const EDUCATOR_ASSISTANT_MONTHLY = 10;
 
 function monthStartIso() {
   const now = new Date();

@@ -6,15 +6,13 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { isBillingBlocked, billingBlockPayload } from "@/lib/billing-access";
-import { hasFeatureAccess, normalizePlanKey } from "@/lib/plans";
+import { hasFeatureAccess, normalizePlanKey, EDUCATOR_ASSISTANT_MONTHLY } from "@/lib/plans";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { refineStorySection } from "@/lib/ai/assistant";
 import { normalizeFramework } from "@/lib/story-options";
 
-// Educator gets a monthly taste of Quill; Educator Pro (and centre plans) are
-// unlimited. The cap counts edits the educator actually kept (accepted).
-const EDUCATOR_ASSISTANT_MONTHLY = 10;
-
+// Educator gets a monthly taste of Quill (EDUCATOR_ASSISTANT_MONTHLY); Educator
+// Pro and centre plans are unlimited. The cap counts kept (accepted) edits.
 function monthStartIso() {
   const now = new Date();
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
