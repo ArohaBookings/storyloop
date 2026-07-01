@@ -37,7 +37,14 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  await supabase.auth.getUser();
+  // Refresh the session cookie. If Supabase auth has a transient hiccup, never
+  // let it throw out of middleware — that would break the navigation and can
+  // feel like a random sign-out. The user's existing cookies stay intact.
+  try {
+    await supabase.auth.getUser();
+  } catch (error) {
+    console.error("Session refresh skipped (transient auth error):", error);
+  }
 
   return response;
 }

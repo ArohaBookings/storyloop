@@ -71,39 +71,65 @@ function layout({
     : "";
 
   return `<!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="supported-color-schemes" content="light dark" />
     <title>${esc(title)}</title>
+    <style>
+      :root { color-scheme: light dark; supported-color-schemes: light dark; }
+      a { text-decoration: none; }
+      @media (prefers-color-scheme: dark) {
+        .sl-bg { background:#17130f !important; }
+        .sl-card { background:#241f1b !important; border-color:#3a332c !important; box-shadow:none !important; }
+        .sl-header { background:#2a231e !important; border-bottom-color:#3a332c !important; }
+        .sl-eyebrow { color:#dcab80 !important; }
+        .sl-title { color:#f5ede3 !important; }
+        .sl-body, .sl-body > p:not(.sl-callout) { color:#e7ded3 !important; }
+        .sl-body a { color:#e7a976 !important; }
+        .sl-callout { background:#2c251e !important; color:#f0e7dc !important; }
+        .sl-callout strong { color:#f7efe4 !important; }
+        .sl-footer { background:#201b17 !important; border-top-color:#3a332c !important; }
+        .sl-footer p, .sl-footer { color:#a99f95 !important; }
+        .sl-footer a { color:#e7a976 !important; }
+        .sl-btn { background:#b3774c !important; }
+        .sl-btn a { color:#1b1611 !important; }
+      }
+      @media only screen and (max-width:480px) {
+        .sl-pad { padding:22px !important; }
+        .sl-title { font-size:24px !important; }
+      }
+    </style>
   </head>
-  <body style="margin:0;background:#f8f1e7;font-family:Inter,Manrope,Arial,sans-serif;color:#24201d;">
+  <body class="sl-bg" style="margin:0;background:#f8f1e7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Inter,Manrope,Arial,sans-serif;color:#24201d;">
     <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">${esc(preview)}</div>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8f1e7;padding:28px 12px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="sl-bg" style="background:#f8f1e7;padding:28px 12px;">
       <tr>
         <td align="center">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#fffdf8;border:1px solid #eadbcc;border-radius:28px;overflow:hidden;box-shadow:0 18px 45px rgba(64,43,31,.08);">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="sl-card" style="max-width:640px;background:#fffdf8;border:1px solid #eadbcc;border-radius:28px;overflow:hidden;box-shadow:0 18px 45px rgba(64,43,31,.08);">
             <tr>
-              <td style="padding:28px 28px 18px;border-bottom:1px solid #efe3d7;background:linear-gradient(135deg,#fffaf1,#f4eadf);">
-                <p style="margin:0 0 6px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:#9a6b46;">StoryLoop</p>
-                <h1 style="margin:0;font-family:Georgia,serif;font-size:30px;line-height:1.1;color:#1f1b18;">${esc(title)}</h1>
+              <td class="sl-header sl-pad" style="padding:28px 28px 18px;border-bottom:1px solid #efe3d7;background:linear-gradient(135deg,#fffaf1,#f4eadf);">
+                <p class="sl-eyebrow" style="margin:0 0 6px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:#9a6b46;">StoryLoop</p>
+                <h1 class="sl-title" style="margin:0;font-family:Georgia,serif;font-size:30px;line-height:1.1;color:#1f1b18;">${esc(title)}</h1>
               </td>
             </tr>
             <tr>
-              <td style="padding:28px;">
-                <div style="font-size:15px;line-height:1.72;color:#3a332f;">${body}</div>
+              <td class="sl-pad" style="padding:28px;">
+                <div class="sl-body" style="font-size:15px;line-height:1.72;color:#3a332f;">${body}</div>
                 <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:24px;">
                   <tr>
-                    <td style="border-radius:999px;background:#7a4f34;">
-                      <a href="${ctaUrl}" style="display:inline-block;padding:13px 20px;border-radius:999px;color:#fffaf1;text-decoration:none;font-size:14px;font-weight:800;">${esc(cta)}</a>
+                    <td class="sl-btn" style="border-radius:999px;background:#7a4f34;">
+                      <a href="${ctaUrl}" style="display:inline-block;padding:13px 22px;border-radius:999px;color:#fffaf1;text-decoration:none;font-size:14px;font-weight:800;">${esc(cta)}</a>
                     </td>
                   </tr>
                 </table>
-                ${secondary ?? ""}
+                <div class="sl-body">${secondary ?? ""}</div>
               </td>
             </tr>
             <tr>
-              <td style="padding:22px 28px;background:#fbf6ee;border-top:1px solid #efe3d7;">
+              <td class="sl-footer sl-pad" style="padding:22px 28px;background:#fbf6ee;border-top:1px solid #efe3d7;">
                 <p style="margin:0;font-size:12px;line-height:1.6;color:#6f6660;">StoryLoop by Aria Care. Reply to this email and it will reach ${esc(EMAIL_REPLY_TO)}.</p>
                 ${footer}
               </td>
@@ -246,7 +272,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
           ctaUrl,
           unsubscribe,
           secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Not ready yet? <a href="${finalStoryUrl}" style="color:#7a4f34;font-weight:800;">Create your final free story first</a>.</p>`,
-          body: `<p>You've turned two quick observations into learning stories that are ready to share — that's <strong>the slow part of the week mostly handled</strong>.</p><p>You have <strong>one free story left</strong> this month. <strong>Educator</strong> unlocks unlimited stories so documentation stops being the thing you dread. <strong>Educator Pro</strong> adds family messages, translation, and a learning thread for each child.</p><p style="padding:12px 14px;border-radius:14px;background:#f2efe5;color:#51453d;"><strong>Early-educator offer:</strong> your first month is ${esc(ACTIVATION_OFFER_LABEL)}.</p>`,
+          body: `<p>You've turned two quick observations into learning stories that are ready to share — that's <strong>the slow part of the week mostly handled</strong>.</p><p>You have <strong>one free story left</strong> this month. <strong>Educator</strong> unlocks unlimited stories so documentation stops being the thing you dread. <strong>Educator Pro</strong> adds family messages, translation, and a learning thread for each child.</p><p class="sl-callout" style="padding:12px 14px;border-radius:14px;background:#f2efe5;color:#51453d;"><strong>Early-educator offer:</strong> ${esc(ACTIVATION_OFFER_LABEL)}.</p>`,
         }),
         text: plain({ title: subject, lines, cta: `Use ${ACTIVATION_OFFER_LABEL}`, ctaUrl, unsubscribe }),
       };
@@ -257,7 +283,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
       const lines = [
         "You've used your 3 free StoryLoop stories this month. If each one saved you even fifteen minutes, that's your documentation backlog starting to clear.",
         "Upgrade for unlimited stories that sound like you wrote them, with Te Whāriki and EYLF links, child voice, dispositions, and practical next steps built in.",
-        `As an early educator, your first month is ${ACTIVATION_OFFER_LABEL}.`,
+        `As an early educator, you get ${ACTIVATION_OFFER_LABEL}.`,
       ];
       return {
         emailType: "free_limit_reached",
@@ -270,7 +296,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
           cta: `Upgrade — ${ACTIVATION_OFFER_LABEL}`,
           ctaUrl,
           unsubscribe,
-          body: `<p>You've used your <strong>3 free StoryLoop stories</strong> this month. If each one saved you even fifteen minutes, that's your <strong>documentation backlog starting to clear</strong>.</p><p>Upgrade for unlimited stories that sound like you wrote them — with Te Whāriki and EYLF links, child voice, dispositions, and practical next steps built in.</p><p style="padding:12px 14px;border-radius:14px;background:#f2efe5;color:#51453d;"><strong>Early-educator offer:</strong> your first month is ${esc(ACTIVATION_OFFER_LABEL)}.</p>`,
+          body: `<p>You've used your <strong>3 free StoryLoop stories</strong> this month. If each one saved you even fifteen minutes, that's your <strong>documentation backlog starting to clear</strong>.</p><p>Upgrade for unlimited stories that sound like you wrote them — with Te Whāriki and EYLF links, child voice, dispositions, and practical next steps built in.</p><p class="sl-callout" style="padding:12px 14px;border-radius:14px;background:#f2efe5;color:#51453d;"><strong>Early-educator offer:</strong> ${esc(ACTIVATION_OFFER_LABEL)}.</p>`,
         }),
         text: plain({ title: subject, lines, cta: "Upgrade StoryLoop", ctaUrl, unsubscribe }),
       };

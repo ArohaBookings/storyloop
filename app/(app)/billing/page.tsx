@@ -5,7 +5,27 @@ import { useSearchParams } from "next/navigation";
 import { AlertTriangle, Check, Loader2, CreditCard, ExternalLink, LifeBuoy, ShieldCheck } from "lucide-react";
 import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
-import { getNextPlan, getPlanDefinitions, normalizePlanKey, type CurrencyCode, type PlanKey } from "@/lib/plans";
+import { getNextPlan, getPlanByKey, getPlanDefinitions, hasFeatureAccess, normalizePlanKey, requiredPlanForFeature, type CurrencyCode, type FeatureKey, type PlanKey } from "@/lib/plans";
+
+// Appealing, benefit-led copy for a feature a user clicked while locked.
+const FEATURE_UPSELL: Partial<Record<FeatureKey, { title: string; blurb: string }>> = {
+  learningThreads: {
+    title: "Learning threads",
+    blurb: "Follow each child's learning over time — every story, reflection, and next step connected into one living thread you can share with whānau.",
+  },
+  planningBoard: {
+    title: "Planning brief",
+    blurb: "Turn the stories you already wrote into a room planning brief: emerging interests, environment ideas, and intentional teaching moves — no extra paperwork.",
+  },
+  adminOversight: {
+    title: "Centre tools",
+    blurb: "Shared centre voice, a documentation radar, and light admin oversight so every room stays consistent without surveillance.",
+  },
+  directorRoiDashboard: {
+    title: "Director ROI dashboard",
+    blurb: "Show time saved, backlog cleared, and documentation health across rooms — the proof that StoryLoop pays for itself.",
+  },
+};
 
 export default function BillingPage() {
   const searchParams = useSearchParams();
@@ -65,12 +85,48 @@ export default function BillingPage() {
         ? "bg-sage-100 text-sage-700"
         : "bg-ink-100 text-ink-600";
 
+  const requestedFeature = searchParams.get("feature") as FeatureKey | null;
+  const featureUpsell = requestedFeature ? FEATURE_UPSELL[requestedFeature] : null;
+  const featureLocked = Boolean(requestedFeature) && !hasFeatureAccess(currentPlan, requestedFeature as FeatureKey);
+  const featurePlan = requestedFeature ? getPlanByKey(requiredPlanForFeature(requestedFeature)) : null;
+
   return (
     <div className="w-full max-w-none p-4 sm:p-6 md:p-8">
       <div className="mb-8">
         <h1 className="font-display text-3xl font-bold text-ink-900">Billing & plan</h1>
         <p className="text-ink-600 text-sm mt-1">Upgrade, downgrade, or cancel anytime.</p>
       </div>
+
+      {featureUpsell && featureLocked && featurePlan && (
+        <div className="mb-8 overflow-hidden rounded-3xl border border-clay-200 bg-gradient-to-br from-clay-50 via-white to-sage-50 shadow-warm">
+          <div className="flex flex-col gap-4 p-5 sm:p-6 md:flex-row md:items-center md:justify-between">
+            <div className="min-w-0">
+              <p className="section-title mb-1">Unlock {featureUpsell.title}</p>
+              <h2 className="font-display text-2xl font-bold text-ink-900">
+                {featureUpsell.title} is included in {featurePlan.name}.
+              </h2>
+              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-600">{featureUpsell.blurb}</p>
+            </div>
+            <div className="flex flex-shrink-0 flex-col items-start gap-2 md:items-end">
+              <div className="text-right">
+                <span className="font-display text-3xl font-bold text-ink-900">
+                  {currency === "NZD" ? "NZ$" : "A$"}{featurePlan.price[currency]}
+                </span>
+                <span className="text-sm text-ink-500">/mo</span>
+              </div>
+              <button
+                onClick={() => handlePlanUpgrade(featurePlan.key)}
+                disabled={Boolean(loading)}
+                className="btn-primary justify-center whitespace-nowrap px-5 py-2.5 text-sm"
+              >
+                {loading === featurePlan.key || loading === "portal"
+                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                  : <>Unlock with {featurePlan.name} <ExternalLink className="h-3.5 w-3.5" /></>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {searchParams.get("offer") === "activation" && currentPlan === "free" && (
         <div className="mb-8 rounded-3xl border border-clay-200 bg-gradient-to-br from-cream-100 via-white to-sage-50 p-5 shadow-warm">

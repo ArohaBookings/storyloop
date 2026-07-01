@@ -145,6 +145,9 @@ function preserveInitialCase(source: string, replacement: string) {
 
 function localiseSpelling(text: string) {
   return text
+    // Em dashes read as AI-written; swap for a comma so stories look human.
+    .replace(/\s*—\s*/g, ", ")
+    .replace(/,\s*,/g, ",")
     .replace(/\bcolors\b/gi, (match) => preserveInitialCase(match, "colours"))
     .replace(/\bcolored\b/gi, (match) => preserveInitialCase(match, "coloured"))
     .replace(/\bcoloring\b/gi, (match) => preserveInitialCase(match, "colouring"))
