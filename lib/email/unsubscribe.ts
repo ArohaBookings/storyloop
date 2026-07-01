@@ -55,3 +55,9 @@ export function unsubscribeUrl(userId: string, email: string) {
   const token = createUnsubscribeToken(userId, email);
   return `${SITE_URL}/unsubscribe?token=${encodeURIComponent(token)}`;
 }
+
+// One-click endpoint used in the List-Unsubscribe header (accepts POST).
+export function oneClickUnsubscribeUrl(userId: string, email: string) {
+  const token = createUnsubscribeToken(userId, email);
+  return `${SITE_URL}/api/unsubscribe?token=${encodeURIComponent(token)}`;
+}

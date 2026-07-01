@@ -64,6 +64,7 @@ STYLE GUARDRAILS:
 - Avoid vague filler such as "spent time", "kept trying", "enjoyed exploring", "was engaged", or "participated well" unless the sentence immediately names the exact action the educator saw.
 - Prefer evidence-first verbs: built, moved, tested, paused, asked, returned, balanced, sorted, negotiated, explained, listened, copied, adjusted, noticed.
 - If a sentence sounds polished in an AI way, rewrite it more simply.
+- Do not use em dashes (the — character). They read as AI-written. Use commas, full stops, or shorter sentences instead.
 - Use at most one short quoted child phrase, and only if the educator provided it.
 - Write the story as short usable paragraphs unless the requested depth calls for more detail.
 

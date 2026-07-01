@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import ObservationCoach from "@/components/app/ObservationCoach";
 import StoryIntelligence from "@/components/app/StoryIntelligence";
-import StoryText from "@/components/app/StoryText";
+import QuillAssistant from "@/components/app/QuillAssistant";
 import ExportPackPanel from "@/components/app/ExportPackPanel";
 import FamilyTranslationPanel from "@/components/app/FamilyTranslationPanel";
 import type { ChildProfile } from "@/lib/children";
@@ -612,6 +612,24 @@ export default function GeneratePage() {
     anchor.click();
     anchor.remove();
     window.URL.revokeObjectURL(url);
+  };
+
+  const handleQuillApply = async (newStory: string) => {
+    setStory(newStory);
+    setStoryDraft(newStory);
+    setStorySaveMessage("");
+    if (storyId) {
+      try {
+        await fetch(`/api/stories/${encodeURIComponent(storyId)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ story: newStory }),
+        });
+        router.refresh();
+      } catch {
+        // Keep the change locally even if the background save hiccups.
+      }
+    }
   };
 
   const startStoryEdit = () => {
@@ -1660,7 +1678,17 @@ export default function GeneratePage() {
                   </div>
                 </div>
               ) : (
-                <StoryText text={story} className="flex-1" />
+                <div className="flex-1">
+                  <QuillAssistant
+                    story={story}
+                    storyId={storyId || undefined}
+                    childId={selectedChildId || undefined}
+                    framework={location}
+                    childName={childName || undefined}
+                    plan={accountPlan}
+                    onApply={handleQuillApply}
+                  />
+                </div>
               )}
               {storySaveMessage && !editingStory && (
                 <p className="mt-3 text-xs font-semibold text-sage-700 bg-sage-50 border border-sage-100 rounded-lg px-3 py-2">

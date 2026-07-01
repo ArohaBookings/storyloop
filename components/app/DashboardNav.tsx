@@ -2,12 +2,12 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, Mail, AlertTriangle, Brain, Users, ClipboardList, MessageSquareText, BarChart3, SlidersHorizontal } from "lucide-react";
+import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, Mail, AlertTriangle, Brain, Users, ClipboardList, MessageSquareText, BarChart3, SlidersHorizontal, Lock } from "lucide-react";
 import AnimatedLogo from "@/components/brand/AnimatedLogo";
 import { createClient } from "@/lib/supabase/client";
 import { getMonthlyStoryLimit, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
-import { normalizePlanKey } from "@/lib/plans";
+import { normalizePlanKey, hasFeatureAccess, requiredPlanForFeature, type FeatureKey, type PlanKey } from "@/lib/plans";
 
 type NavItem = {
   href: string;
@@ -15,6 +15,9 @@ type NavItem = {
   label: string;
   highlight?: boolean;
   activePath?: string;
+  // When set, the item is gated: users without access see a lock and are
+  // routed to an upgrade view that highlights exactly what unlocks it.
+  feature?: FeatureKey;
 };
 
 const NAV: NavItem[] = [
@@ -22,14 +25,23 @@ const NAV: NavItem[] = [
   { href: "/generate", icon: Sparkles, label: "New story", highlight: true },
   { href: "/children", icon: Users, label: "Child profiles" },
   { href: "/history", icon: History, label: "Story history" },
-  { href: "/insights", icon: Brain, label: "Learning threads" },
-  { href: "/planning", icon: ClipboardList, label: "Planning brief" },
-  { href: "/centre-tools", icon: SlidersHorizontal, label: "Centre tools" },
-  { href: "/roi", icon: BarChart3, label: "ROI dashboard" },
+  { href: "/insights", icon: Brain, label: "Learning threads", feature: "learningThreads" },
+  { href: "/planning", icon: ClipboardList, label: "Planning brief", feature: "planningBoard" },
+  { href: "/centre-tools", icon: SlidersHorizontal, label: "Centre tools", feature: "adminOversight" },
+  { href: "/roi", icon: BarChart3, label: "ROI dashboard", feature: "directorRoiDashboard" },
   { href: "/feedback", icon: MessageSquareText, label: "Feedback" },
   { href: "/billing", icon: CreditCard, label: "Billing" },
   { href: "/support", icon: LifeBuoy, label: "Support" },
 ];
+
+// Short tier label shown on the lock badge for a gated feature.
+const SHORT_PLAN_LABEL: Record<PlanKey, string> = {
+  free: "Free",
+  educator: "Educator",
+  educator_pro: "Pro",
+  centre_starter: "Centre",
+  centre_growth: "Centre+",
+};
 
 const PLAN_LABEL: Record<string, { label: string; colour: string }> = {
   free: { label: "Free", colour: "bg-ink-100 text-ink-600" },
@@ -126,11 +138,33 @@ export default function DashboardNav({
       </div>
 
       <nav className="flex-shrink-0 px-3 py-4 space-y-1">
-        {navItems.map(({ href, icon: Icon, label, highlight, activePath }) => {
+        {navItems.map(({ href, icon: Icon, label, highlight, activePath, feature }) => {
+          const locked = Boolean(feature) && !hasFeatureAccess(planKey, feature as FeatureKey);
           const resolvedActivePath = activePath ?? href;
-          const active = resolvedActivePath === "/dashboard"
+          const active = !locked && (resolvedActivePath === "/dashboard"
             ? pathname === resolvedActivePath
-            : pathname.startsWith(resolvedActivePath);
+            : pathname.startsWith(resolvedActivePath));
+
+          if (locked) {
+            const tier = SHORT_PLAN_LABEL[requiredPlanForFeature(feature as FeatureKey)];
+            return (
+              <Link
+                key={href}
+                href={`/billing?feature=${feature}`}
+                onClick={() => setMobileOpen(false)}
+                title={`${label} unlocks with ${tier}`}
+                className="group flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-500 transition-all hover:bg-clay-50 hover:text-clay-800"
+              >
+                <Icon className="h-4 w-4 flex-shrink-0 opacity-70 group-hover:opacity-100" />
+                <span className="flex-1 truncate">{label}</span>
+                <span className="flex items-center gap-1 rounded-full bg-clay-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-clay-700 group-hover:bg-clay-700 group-hover:text-paper">
+                  <Lock className="h-2.5 w-2.5" />
+                  {tier}
+                </span>
+              </Link>
+            );
+          }
+
           return (
             <Link key={href} href={href} onClick={() => setMobileOpen(false)}
               className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${

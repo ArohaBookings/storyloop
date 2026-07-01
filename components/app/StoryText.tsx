@@ -30,7 +30,27 @@ function isSectionHeading(block: string) {
   return SECTION_HEADINGS.has(trimmed.toLowerCase());
 }
 
-export default function StoryText({ text, className = "" }: { text: string; className?: string }) {
+function renderWithHighlight(text: string, highlight?: string) {
+  if (!highlight || !highlight.trim() || !text.includes(highlight)) return text;
+  const index = text.indexOf(highlight);
+  return (
+    <>
+      {text.slice(0, index)}
+      <mark className="rounded bg-sage-100 px-0.5 text-ink-900">{highlight}</mark>
+      {text.slice(index + highlight.length)}
+    </>
+  );
+}
+
+export default function StoryText({
+  text,
+  className = "",
+  highlight,
+}: {
+  text: string;
+  className?: string;
+  highlight?: string;
+}) {
   const blocks = text
     .split(/\n{2,}/)
     .map((block) => block.replace(/\s+$/, ""))
@@ -76,7 +96,7 @@ export default function StoryText({ text, className = "" }: { text: string; clas
             key={index}
             className="mb-3 whitespace-pre-line font-display text-[15px] leading-relaxed text-ink-800"
           >
-            {block.trim()}
+            {renderWithHighlight(block.trim(), highlight)}
           </p>
         );
       })}

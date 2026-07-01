@@ -25,7 +25,8 @@ export type FeatureKey =
   | "prioritySupport"
   | "directorRoiDashboard"
   | "multiRoomAnalytics"
-  | "advancedExportSettings";
+  | "advancedExportSettings"
+  | "storyAssistant";
 
 export type PlanDefinition = {
   key: PlanKey;
@@ -192,6 +193,9 @@ const FEATURE_REQUIREMENTS: Record<FeatureKey, PlanKey> = {
   directorRoiDashboard: "centre_growth",
   multiRoomAnalytics: "centre_growth",
   advancedExportSettings: "centre_growth",
+  // Quill (inline refine): Educator gets a monthly taste, Educator Pro
+  // unlimited (the monthly cap for Educator is enforced in the API).
+  storyAssistant: "educator",
 };
 
 export function normalizePlanKey(plan: unknown): PlanKey {
