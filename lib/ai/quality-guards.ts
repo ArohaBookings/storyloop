@@ -39,14 +39,37 @@ function normaliseEvidenceText(text: string) {
   return text
     .toLowerCase()
     .replace(/[“”]/g, "\"")
+    .replace(/[‘’]/g, "'")
     .replace(/[^a-z0-9āēīōū'\" ]+/gi, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-function containsPhrase(haystack: string, phrase: string) {
-  return haystack.includes(normaliseEvidenceText(phrase));
+function evidenceTokens(text: string) {
+  return normaliseEvidenceText(text)
+    .replace(/['"]/g, "")
+    .split(" ")
+    .filter(Boolean);
 }
+
+// A quote is "supported" when nearly all of its words trace back to the
+// observation. Exact substring matching punished the model for fixing the
+// educator's typos inside a real quote ("whos" -> "whose"), which flagged
+// genuinely supplied quotes as fabricated. Word-overlap survives spelling
+// and punctuation cleanup while still catching whole invented sentences.
+function quoteIsSupported(observationTokens: Set<string>, quote: string) {
+  const tokens = evidenceTokens(quote);
+  if (tokens.length === 0) return true;
+  const matched = tokens.filter((token) => observationTokens.has(token)).length;
+  return matched / tokens.length >= 0.8;
+}
+
+// Quotes introduced as suggested or interpretive language are pedagogy advice,
+// not reported speech: "we can model, 'your turn, my turn'", "ways of saying,
+// 'I am here'". Flagging those as fabrication was failing the week's best
+// stories, so anything framed this way in the preceding clause is exempt.
+const SUGGESTED_QUOTE_FRAMING =
+  /\b(such as|for example|for instance|might say|could say|ways? of saying|as if to say|as if|beginning to (?:know|understand|learn)|naming|we (?:can|could|will|might) (?:model|say|use|offer|try|name|practise|practice|ask)|model(?:ling|ing)?|practis(?:e|ing)|practic(?:e|ing)|prompts? (?:like|such as)|questions? (?:like|such as)|language (?:like|such as)|words (?:like|such as)|phrases? (?:like|such as))\b[^.!?]{0,60}$/i;
 
 // The one reliable fabrication signal worth rejecting a draft over: an exact,
 // multi-word quote the educator never wrote (an invented child sentence).
@@ -61,14 +84,27 @@ function containsPhrase(haystack: string, phrase: string) {
 // Short quoted words (1-3 words) are usually educator-suggested phrases ("stop",
 // "I need space") or framework labels, so only quotes of 4+ words are checked.
 export function getUnsupportedStoryDetails(result: FrameworkGuardStoryResult, observations: string) {
-  const evidence = normaliseEvidenceText(observations);
+  const observationTokens = new Set(evidenceTokens(observations));
   const issues: string[] = [];
-  const quotedPhrases = Array.from(result.story.matchAll(/[“"]([^"”]{2,160})[”"]/g))
-    .map((match) => match[1]?.trim())
-    .filter((quote): quote is string => Boolean(quote) && quote.split(/\s+/).filter(Boolean).length >= 4);
+  let previousExemptEnd = -1;
 
-  for (const quote of quotedPhrases) {
-    if (!containsPhrase(evidence, quote)) {
+  for (const match of result.story.matchAll(/[“"]([^"”]{2,160})[”"]/g)) {
+    const quote = match[1]?.trim();
+    if (!quote) continue;
+    const start = match.index ?? 0;
+    const leadIn = result.story.slice(Math.max(0, start - 140), start);
+    // Suggested phrases often come as a list: such as "Q1?" "Q2?" and "Q3?".
+    // A quote joined to an exempt one by a bare connector shares its framing.
+    const connector = previousExemptEnd >= 0 ? result.story.slice(previousExemptEnd, start) : null;
+    const chained = connector !== null && /^[\s,;]*(?:and|or)?[\s,;]*$/i.test(connector) && connector.length <= 20;
+    const framedAsSuggestion = SUGGESTED_QUOTE_FRAMING.test(leadIn) || chained;
+    if (framedAsSuggestion) {
+      previousExemptEnd = start + match[0].length;
+      continue;
+    }
+    previousExemptEnd = -1;
+    if (quote.split(/\s+/).filter(Boolean).length < 4) continue;
+    if (!quoteIsSupported(observationTokens, quote)) {
       issues.push(`Unsupported child quote or exact wording: "${quote}"`);
     }
   }

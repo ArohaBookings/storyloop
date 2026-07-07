@@ -1105,6 +1105,15 @@ export default function GeneratePage() {
               {!recording && !transcribing && isTouchDevice && liveRecordingSupported ? " · On phone, Record will ask for microphone access." : ""}
               {!recording && !transcribing && suggestUploadFallback ? " · Upload audio is the fallback if mic access is blocked." : ""}
             </p>
+            {observations.trim().length === 0 && !recording && !transcribing && (
+              <button
+                type="button"
+                onClick={useSampleObservation}
+                className="mt-2 text-xs font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900"
+              >
+                Not sure where to start? Try an example observation
+              </button>
+            )}
             {liveRecordingSupported && (
               <p className="mt-2 text-xs text-ink-500 bg-cream-50 border border-clay-100 rounded-lg px-3 py-2">
                 Press Record, talk through the observation, then press Stop. StoryLoop will add the transcript into this box automatically.

@@ -467,3 +467,80 @@ test("educator names shape story voice without replacing evidence", () => {
   assert.ok(result.story.includes("Sarah and Moana can continue"));
   assert.equal(/this draft|the educator should|the educator's role/i.test(result.story), false);
 });
+
+// Regression cases from the 2026-07 production audit: every 83-scored story
+// that week was a guard false positive, not a bad draft.
+function guardResult(story: string): FrameworkGuardStoryResult {
+  return {
+    story,
+    outcomes: ["Mana aotūroa | Exploration"],
+    curriculumLinks: ["Links to exploration."],
+    learningSummary: "Summary.",
+    childVoice: "",
+    learningDispositions: [],
+    socialEmotionalLinks: [],
+    culturalConnections: [],
+    whanauConnection: "",
+    assumptions: [],
+    evidenceAnchors: ["anchor"],
+    educatorChecks: [],
+    pedagogyLinks: [],
+    frameworkEvidence: ["fits"],
+    familyQuestion: "",
+    followUpPrompt: "",
+    nextSteps: ["step"],
+    wordCount: 40,
+  };
+}
+
+test("a supplied quote survives spelling and punctuation cleanup", () => {
+  const observations =
+    "She approaches Nanny Marce and shows me the jersey. \"hmmm, whos jersey is that? Its not mine, its not Mia Maes and its not yours\".";
+  const story =
+    "Nanny Marce wondered with her, “Hmm, whose jersey is that? It’s not mine, it’s not Mia Mae’s and it’s not yours.” Together they looked around the room.";
+  assert.deepEqual(getUnsupportedStoryDetails(guardResult(story), observations), []);
+});
+
+test("suggested and interpretive language is not treated as a fabricated quote", () => {
+  const observations = "Ngaio shared the playdough with the other tamariki when they arrived at the table.";
+  const story = [
+    "We can support her fair sharing by noticing and naming the specific action: “You saw more tamariki coming and made sure everyone had some playdough.”",
+    "These were small but clear ways of saying, “I am here, I feel safe enough to join in, and I am interested in what is happening.”",
+    "We can support her by asking simple prompts such as, “How do you know it is fair?” and “What could you change next time?”",
+  ].join(" ");
+  assert.deepEqual(getUnsupportedStoryDetails(guardResult(story), observations), []);
+});
+
+test("an invented reported quote is still rejected", () => {
+  const observations = "Maya and Sam played outside in the rain, jumping in puddles.";
+  const story =
+    "Maya turned to Sam and said, “Let us build a giant rainbow dam across the whole playground today.” They kept playing.";
+  const issues = getUnsupportedStoryDetails(guardResult(story), observations);
+  assert.ok(issues.some((issue) => issue.includes("Unsupported child quote")));
+});
+
+test("adult conduct in the note raises a high-severity guardian flag", () => {
+  const guardian = runPrivacyGuardian({
+    observation:
+      "Maya pushed Sam into a puddle and he fell over. so then I kicked mayas ass because this is not acceptable behavior",
+    story: "Today Maya and Sam played outside in the rain.",
+  });
+  assert.equal(guardian.status, "high");
+  assert.ok(guardian.issues.some((item) => item.id === "adult-conduct"));
+});
+
+test("ordinary educator actions do not trigger the adult-conduct flag", () => {
+  for (const observation of [
+    "I kicked the ball back to Maya and she laughed.",
+    "We hit the road for our neighbourhood walk after morning tea.",
+    "Maya kicked her legs with excitement during waiata.",
+    "I dragged the mat over so Sam could join the circle.",
+  ]) {
+    const guardian = runPrivacyGuardian({ observation, story: "" });
+    assert.equal(
+      guardian.issues.some((item) => item.id === "adult-conduct"),
+      false,
+      `false positive on: ${observation}`
+    );
+  }
+});
