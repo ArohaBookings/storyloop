@@ -268,12 +268,13 @@ export default function DashboardNav({
       </div>
       {!mobileOpen && (
         <button
-          className="md:hidden fixed bottom-4 left-4 z-50 w-11 h-11 bg-white/75 border border-clay-200/80 rounded-full flex items-center justify-center shadow-soft backdrop-blur-md text-ink-700"
+          className="md:hidden fixed bottom-4 left-4 z-50 flex min-h-11 items-center gap-2 rounded-full border border-clay-300 bg-white/95 px-4 py-2.5 text-xs font-bold text-ink-800 shadow-soft backdrop-blur-md"
           onClick={() => setMobileOpen(true)}
           aria-label="Open dashboard navigation"
           aria-expanded={false}
         >
           <Menu className="w-4 h-4" />
+          Menu
         </button>
       )}
       {mobileOpen && (
