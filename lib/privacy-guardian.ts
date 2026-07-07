@@ -19,6 +19,14 @@ export type PrivacyGuardianResult = {
   };
 };
 
+// An adult describing physically punishing or aggressively handling a child.
+// This must never be quietly dropped from a family-facing story: the educator
+// needs a loud, honest flag pointing at their safeguarding process instead.
+// Deliberately case-sensitive on the object so capitalised names match but
+// ordinary nouns ("we hit pause", "I kicked the ball") do not.
+const ADULT_CONDUCT_PATTERN =
+  /\b(?:[Ii]|[Ww]e|[Ee]ducator|[Tt]eacher|[Kk]aiako|[Nn]anny\s+\w+|[Ss]taff)\s+(?:then\s+)?(?:(?:kicked|hit|smacked|slapped|shook|dragged)\s+(?:him|her|them|the\s+(?:child|baby|toddler|boy|girl)|[A-Z][a-z]+|\w+'?s\s+(?:ass|arse|bum|butt|backside|bottom|arm|wrist|hair))|(?:yelled|screamed|swore)\s+at\s+\S+)/;
+
 const DIAGNOSIS_LANGUAGE = /\b(autis(?:m|tic)|adhd|trauma|anxiety|depression|diagnos(?:e|ed|is)|sensory processing disorder|developmental delay)\b/i;
 const FAMILY_DETAIL = /\b(custody|court|violence|abuse|neglect|medication|medical|therapy|social worker|financial|immigration|separation|divorce)\b/i;
 const UNSUPPORTED_CERTAINTY = /\b(will always|never|proves that|clearly has|is behind|is advanced|gifted|delayed|problem behaviour)\b/i;
@@ -35,6 +43,15 @@ export function runPrivacyGuardian(input: {
 }): PrivacyGuardianResult {
   const combined = [input.observation, input.story, input.familyText].filter(Boolean).join("\n");
   const issues: PrivacyGuardianIssue[] = [];
+
+  if (ADULT_CONDUCT_PATTERN.test(input.observation ?? "")) {
+    issues.push(issue(
+      "adult-conduct",
+      "Adult conduct described in the note",
+      "high",
+      "Part of this note describes an adult action that must not appear in a family-facing story and was not included in the draft. Review it against your service's incident and safeguarding process before going further."
+    ));
+  }
 
   if (DIAGNOSIS_LANGUAGE.test(combined)) {
     issues.push(issue(
