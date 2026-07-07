@@ -52,15 +52,52 @@ function evidenceTokens(text: string) {
     .filter(Boolean);
 }
 
+// Small edit-distance check so a quote still counts as supported when the
+// model has normalised spelling ("watta" -> "water", "whos" -> "whose").
+// Bounded early exit keeps it cheap; quotes are short.
+function withinEditDistance(a: string, b: string, max: number) {
+  if (Math.abs(a.length - b.length) > max) return false;
+  const previous = new Array(b.length + 1).fill(0).map((_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    let diagonal = previous[0];
+    previous[0] = i;
+    let rowMin = i;
+    for (let j = 1; j <= b.length; j++) {
+      const next = Math.min(
+        previous[j] + 1,
+        previous[j - 1] + 1,
+        diagonal + (a[i - 1] === b[j - 1] ? 0 : 1)
+      );
+      diagonal = previous[j];
+      previous[j] = next;
+      if (next < rowMin) rowMin = next;
+    }
+    if (rowMin > max) return false;
+  }
+  return previous[b.length] <= max;
+}
+
 // A quote is "supported" when nearly all of its words trace back to the
 // observation. Exact substring matching punished the model for fixing the
 // educator's typos inside a real quote ("whos" -> "whose"), which flagged
-// genuinely supplied quotes as fabricated. Word-overlap survives spelling
-// and punctuation cleanup while still catching whole invented sentences.
+// genuinely supplied quotes as fabricated. Word-overlap with light per-token
+// fuzziness survives spelling cleanup ("watta" -> "water", "bigga" ->
+// "bigger") while whole invented sentences, full of words the educator never
+// wrote, still fail the threshold.
+function tokenIsSupported(observationTokens: Set<string>, token: string) {
+  if (observationTokens.has(token)) return true;
+  if (token.length < 4) return false;
+  for (const candidate of observationTokens) {
+    if (candidate.length < 4 || candidate[0] !== token[0]) continue;
+    if (withinEditDistance(token, candidate, 2)) return true;
+  }
+  return false;
+}
+
 function quoteIsSupported(observationTokens: Set<string>, quote: string) {
   const tokens = evidenceTokens(quote);
   if (tokens.length === 0) return true;
-  const matched = tokens.filter((token) => observationTokens.has(token)).length;
+  const matched = tokens.filter((token) => tokenIsSupported(observationTokens, token)).length;
   return matched / tokens.length >= 0.8;
 }
 
