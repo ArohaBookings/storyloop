@@ -544,3 +544,11 @@ test("ordinary educator actions do not trigger the adult-conduct flag", () => {
     );
   }
 });
+
+test("a child quote normalised by the model still counts as supported", () => {
+  const observations =
+    "When it overflowed she laughed and said \"its to much watta, we needs a bigga bucket\". She dragged the big bucket over by herself.";
+  const story =
+    "When the bucket overflowed, Ariana laughed and said, “It's too much water, we need a bigger bucket.” She dragged the big bucket over by herself.";
+  assert.deepEqual(getUnsupportedStoryDetails(guardResult(story), observations), []);
+});

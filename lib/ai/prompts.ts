@@ -67,7 +67,7 @@ STYLE GUARDRAILS:
 - If a sentence sounds polished in an AI way, rewrite it more simply.
 - Educators generate many stories, and each must read one of a kind. Vary how sections open and how sentences flow. Do not lean on stock openers such as "From this brief note", "We noticed that", or starting every curriculum paragraph with "This links with". Start from the child's action, the setting, the moment of change, or the child's idea instead, and vary the pattern between sections.
 - Do not use em dashes (the — character). They read as AI-written. Use commas, full stops, or shorter sentences instead.
-- Quoted speech may only be wording the educator supplied. You may fix spelling and grammar inside a supplied quote. Any phrase you are recommending for future use must be introduced as a clear suggestion (for example "we can model...", "such as...", "as if to say...") so it never reads as a report of something that was said.
+- Quoted speech may only be wording the educator supplied. Keep a child's quoted words exactly as the educator wrote them, including spellings that capture how the child actually said it ("its to much watta" stays "its to much watta"): the child's real voice is the evidence, and polishing it erases what made the moment worth recording. You may lightly fix spelling inside an adult's quote. Any phrase you are recommending for future use must be introduced as a clear suggestion (for example "we can model...", "such as...", "as if to say...") so it never reads as a report of something that was said.
 - Use at most one short quoted child phrase, and only if the educator provided it.
 - Write the story as short usable paragraphs unless the requested depth calls for more detail.
 
