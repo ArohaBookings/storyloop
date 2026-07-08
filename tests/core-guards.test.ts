@@ -552,3 +552,20 @@ test("a child quote normalised by the model still counts as supported", () => {
     "When the bucket overflowed, Ariana laughed and said, “It's too much water, we need a bigger bucket.” She dragged the big bucket over by herself.";
   assert.deepEqual(getUnsupportedStoryDetails(guardResult(story), observations), []);
 });
+
+test("'bit' as a common phrase does not misfire the safety-incident detector", () => {
+  // Benign uses of "bit" must not be read as biting (these gated real stories).
+  for (const benign of [
+    "Leo stirred the mud soup with a bit of water and said it was nearly ready.",
+    "Ana arrived a bit upset this morning but settled after a cuddle.",
+    "Sam needed a little bit of help to reach the top shelf.",
+    "We spent a bit of time exploring the garden.",
+  ]) {
+    assert.equal(hasPhysicalSafetyIncident(benign), false, `false positive on: ${benign}`);
+  }
+  // Genuine biting incidents must still be caught.
+  assert.equal(hasPhysicalSafetyIncident("Sam bit another child at kai time."), true);
+  assert.equal(hasPhysicalSafetyIncident("Mia bit her friend on the arm."), true);
+  assert.equal(hasPhysicalSafetyIncident("There was biting at lunch today."), true);
+  assert.equal(hasPhysicalSafetyIncident("He bites when he is frustrated."), true);
+});
