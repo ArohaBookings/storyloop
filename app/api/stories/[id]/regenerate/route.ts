@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { getMonthlyStoryLimit, getRemainingStories } from "@/lib/story-limits";
 import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
+import { normalizePlanKey } from "@/lib/plans";
+import { consumeRateLimit } from "@/lib/rate-limit";
 import {
   mergeStoryPreferences,
   normalizeDepth,
@@ -91,16 +93,26 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     const plan = profile.plan ?? "free";
-    const used = profile.stories_this_month ?? 0;
     const limit = getMonthlyStoryLimit(profile);
 
-    if (limit !== null && used >= limit) {
-      return NextResponse.json({
-        error: plan === "free"
-          ? "You've used your 3 free stories this month. Upgrade to keep creating or regenerating learning stories."
-          : "Monthly limit reached.",
-        upgradeRequired: plan === "free",
-      }, { status: 403 });
+    // Improving an existing story is a correction, not a new story. It rewrites
+    // the same row in place, so it must never spend a monthly credit or be
+    // blocked once the free allowance is used up. Only free accounts get a light
+    // rate limit so this can't become an unlimited free-generation loop; paid
+    // plans are unlimited and keep their exact existing behaviour (no new path).
+    if (normalizePlanKey(plan) === "free") {
+      const allowed = await consumeRateLimit({
+        scope: "story-regenerate",
+        key: user.id,
+        limit: 20,
+        windowSeconds: 60 * 60,
+      });
+      if (!allowed) {
+        return NextResponse.json(
+          { error: "You've improved a lot of stories in a short time. Try again in a little while." },
+          { status: 429 }
+        );
+      }
     }
 
     const existingMetadata =
@@ -257,13 +269,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "Could not save regenerated story" }, { status: 500 });
     }
 
+    // Story counters intentionally stay put: regenerating edits the existing
+    // story row in place, so it is not a new story. (Incrementing total_stories
+    // here previously drifted the lifetime count above the real number of rows.)
+    // Only refresh the activity timestamp.
     await supabase
       .from("profiles")
-      .update({
-        stories_this_month: used + 1,
-        total_stories: (profile.total_stories ?? 0) + 1,
-        last_story_at: updatedAt,
-      })
+      .update({ last_story_at: updatedAt })
       .eq("id", user.id);
 
     return NextResponse.json({
@@ -290,10 +302,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
       followUpPrompt: result.followUpPrompt,
       nextSteps: result.nextSteps,
       updatedAt,
-      remaining:
-        limit === null
-          ? "unlimited"
-          : getRemainingStories({ ...profile, stories_this_month: used + 1 }),
+      // Regenerating does not consume a credit, so remaining is unchanged.
+      remaining: limit === null ? "unlimited" : getRemainingStories(profile),
     });
   } catch (error) {
     console.error("Story regenerate error:", error);

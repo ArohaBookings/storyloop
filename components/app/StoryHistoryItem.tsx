@@ -474,10 +474,13 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
                   Tapasā
                 </label>
               </div>
-              <button onClick={regenerateStory} disabled={regenerating || !story.observations} className="btn-secondary px-4 py-2 text-xs disabled:opacity-50">
-                {regenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
-                Improve story
-              </button>
+              <div className="flex flex-col items-start gap-1">
+                <button onClick={regenerateStory} disabled={regenerating || !story.observations} className="btn-secondary px-4 py-2 text-xs disabled:opacity-50">
+                  {regenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                  Improve story
+                </button>
+                <span className="text-[11px] text-ink-500">Free, doesn&apos;t use a monthly story.</span>
+              </div>
             </div>
           </div>
         </div>
