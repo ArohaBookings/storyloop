@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Sparkles, Loader2, Copy, Check, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import GeneratingIndicator from "@/components/app/GeneratingIndicator";
+import { track } from "@/lib/analytics/client";
 
 const PLACEHOLDER = `• Noah (3yo) filled a bucket with damp sand
 • Turned it over carefully and tapped the sides
@@ -25,8 +26,13 @@ export default function LiveDemo() {
 
   const handleGenerate = async () => {
     if (!input.trim()) { setError("Add a few observations first"); return; }
-    if (usage >= 1) { setError("You've used your free demo. Sign up to keep going with editable story history."); return; }
+    if (usage >= 1) {
+      setError("You've used your free demo. Sign up to keep going with editable story history.");
+      track("demo_limit");
+      return;
+    }
     setLoading(true); setError(""); setOutput(""); setClarify(null);
+    track("demo_started", { inputWords: input.trim().split(/\s+/).length });
     try {
       const res = await fetch("/api/generate", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -45,12 +51,15 @@ export default function LiveDemo() {
             ? data.clarificationQuestions.filter((q: unknown): q is string => typeof q === "string" && q.trim().length > 0).slice(0, 3)
             : [],
         });
+        track("demo_clarification");
         return;
       }
       if (!data.story) throw new Error("No story came back. Please try again.");
       setOutput(data.story); setUsage(usage + 1);
+      track("demo_completed", { storyWords: String(data.story).trim().split(/\s+/).length });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
+      track("demo_error", { message: e instanceof Error ? e.message.slice(0, 120) : "unknown" });
     } finally { setLoading(false); }
   };
 

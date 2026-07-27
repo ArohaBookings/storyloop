@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Check, Loader2 } from "lucide-react";
 import { getPlanByKey, normalizePlanKey, type CurrencyCode, type PlanKey } from "@/lib/plans";
+import { captureAttribution, getAttribution, getSessionId, track } from "@/lib/analytics/client";
 
 function normaliseCurrency(value: string | null): CurrencyCode {
   return value === "NZD" ? "NZD" : "AUD";
@@ -28,6 +29,8 @@ export default function SignupPage() {
     setPlan(selectedPlan);
     setCurrency(selectedCurrency ? normaliseCurrency(selectedCurrency) : tz?.includes("Auckland") ? "NZD" : "AUD");
     if (code) setAccessCode(code);
+    captureAttribution();
+    track("signup_view");
   }, []);
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -38,7 +41,14 @@ export default function SignupPage() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, plan, accessCode }),
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          plan,
+          accessCode,
+          attribution: { ...getAttribution(), sessionId: getSessionId() },
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -46,6 +56,7 @@ export default function SignupPage() {
         setLoading(false);
         return;
       }
+      track("signup_completed", { plan });
 
       if (plan !== "free") {
         const checkoutResponse = await fetch("/api/stripe/checkout", {

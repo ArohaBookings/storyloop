@@ -62,7 +62,7 @@ export default function FeedbackPage() {
           <p className="section-title mb-3">Feedback loop</p>
           <h1 className="font-display text-4xl font-bold text-ink-900">Tell us exactly what would make StoryLoop worth keeping.</h1>
           <p className="mt-3 text-sm text-ink-600 md:text-base">
-            Your message goes word-for-word into the admin dashboard so it can be used to improve story quality, conversion, support, and the product roadmap.
+            Every message is read by our team, word for word. It goes straight into what we build next.
           </p>
         </div>
       </div>
@@ -73,7 +73,7 @@ export default function FeedbackPage() {
             <div className="mb-5 rounded-2xl border border-sage-200 bg-sage-50 p-4 text-sm text-sage-800">
               <div className="flex items-start gap-2">
                 <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-                <p>Feedback sent. It is now visible in the StoryLoop admin dashboard.</p>
+                <p>Thank you. Your feedback has reached the team and we read every one.</p>
               </div>
             </div>
           )}

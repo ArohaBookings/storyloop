@@ -10,6 +10,7 @@ import FAQ from "@/components/landing/FAQ";
 import CTA from "@/components/landing/CTA";
 import Footer from "@/components/landing/Footer";
 import { LANDING_FAQS } from "@/lib/landing-faqs";
+import PageTracker from "@/components/analytics/PageTracker";
 
 export const metadata: Metadata = {
   alternates: { canonical: "https://storyloop.space/" },
@@ -35,6 +36,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-paper overflow-x-hidden">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <PageTracker />
       <Navbar />
       <main>
         <Hero />

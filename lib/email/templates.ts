@@ -356,7 +356,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
       const lines = [
         "You have used StoryLoop enough to know what helps and what still gets in the way.",
         "Tell us the exact thing that would save you the most time: story quality, family communication, backlog, planning, mobile flow, billing, or something else.",
-        "Your words go straight into the StoryLoop admin dashboard.",
+        "We read every reply ourselves, and it shapes what we build next.",
       ];
       return {
         emailType: "feedback_request",
@@ -365,11 +365,11 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
         ctaUrl,
         html: layout({
           title: "What should StoryLoop fix next?",
-          preview: "Your exact feedback goes into the admin dashboard.",
+          preview: "We read every reply ourselves.",
           cta: "Send feedback",
           ctaUrl,
           unsubscribe,
-          body: `<p>You have used StoryLoop enough to know what helps and what still gets in the way.</p><p>Tell us the exact thing that would save you the most time: story quality, family communication, backlog, planning, mobile flow, billing, or something else.</p><p>Your words go straight into the StoryLoop admin dashboard.</p>`,
+          body: `<p>You have used StoryLoop enough to know what helps and what still gets in the way.</p><p>Tell us the exact thing that would save you the most time: story quality, family communication, backlog, planning, mobile flow, billing, or something else.</p><p>We read every reply ourselves, and it shapes what we build next.</p>`,
         }),
         text: plain({ title: subject, lines, cta: "Send feedback", ctaUrl, unsubscribe }),
       };

@@ -74,6 +74,33 @@ export async function POST(request: NextRequest) {
 
     if (createdUser.user) {
       await getOrCreateProfile(createdUser.user);
+
+      // Stamp where this signup came from so paid campaigns can be measured.
+      // Best-effort only: attribution must never block account creation.
+      const attribution = body.attribution && typeof body.attribution === "object" ? body.attribution : null;
+      if (attribution) {
+        const str = (value: unknown, max = 120) =>
+          typeof value === "string" && value.trim() ? value.trim().slice(0, max) : null;
+        let referrerHost: string | null = null;
+        const rawReferrer = str(attribution.referrer, 300);
+        if (rawReferrer) {
+          try {
+            referrerHost = new URL(rawReferrer).hostname.replace(/^www\./, "").slice(0, 120);
+          } catch {
+            referrerHost = rawReferrer.replace(/^www\./, "").slice(0, 120);
+          }
+        }
+        await admin
+          .from("profiles")
+          .update({
+            signup_source: str(attribution.utmSource) ?? referrerHost,
+            signup_campaign: str(attribution.utmCampaign),
+            signup_referrer_host: referrerHost,
+            signup_session_id: str(attribution.sessionId, 60),
+          })
+          .eq("id", createdUser.user.id)
+          .then(undefined, (error) => console.error("Signup attribution failed:", error));
+      }
     }
 
     if (createdUser.user && accessCodeGrant) {

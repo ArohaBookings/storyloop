@@ -39,6 +39,7 @@ type ProfileMetric = {
   last_seen_at: string | null;
   last_story_at: string | null;
   created_at: string | null;
+  is_internal?: boolean | null;
 };
 
 type StoryMetric = {
@@ -148,7 +149,7 @@ export default async function AdminPage() {
       .limit(12),
     sb.from("stories").select("id, child_name, age_group, created_at, profiles!inner(full_name, email)").order("created_at", { ascending: false }).limit(8),
     sb.from("admin_audit_log").select("action, target_type, target_id, created_at, details").order("created_at", { ascending: false }).limit(8),
-    sb.from("profiles").select("plan, subscription_status, total_stories, stories_this_month, monthly_story_limit_override, applied_access_code, last_seen_at, last_story_at, created_at").limit(1000),
+    sb.from("profiles").select("plan, subscription_status, total_stories, stories_this_month, monthly_story_limit_override, applied_access_code, last_seen_at, last_story_at, created_at, is_internal").limit(1000),
     sb.from("stories").select("created_at, location, metadata").gte("created_at", since).limit(2000),
     sb.from("email_events").select("email_type, delivery_status, sent_at, opened_at, clicked_at").gte("sent_at", since).limit(2000),
     sb.from("feedback_submissions").select("id, email, category, message, status, created_at, metadata").order("created_at", { ascending: false }).limit(12),
@@ -158,7 +159,9 @@ export default async function AdminPage() {
   const storyRows = (storiesForChart ?? []) as StoryMetric[];
   const emailRows = (emailEventsForChart ?? []) as EmailMetric[];
   const feedbackRows = (feedbackRowsForDashboard ?? []) as FeedbackMetric[];
-  const paidProfiles = profiles.filter((profile) => isPaidPlan(profile.plan));
+  // Founder/staff/comp accounts are real accounts on real plans, but they pay
+  // nothing. They must never inflate revenue, MRR, or conversion rates.
+  const paidProfiles = profiles.filter((profile) => isPaidPlan(profile.plan) && !profile.is_internal);
   const activePaidProfiles = paidProfiles.filter((profile) => REVENUE_STATUSES.has(profile.subscription_status ?? ""));
   const billingRiskProfiles = paidProfiles.filter((profile) => isBillingBlocked(profile) || isBillingPastDue(profile));
   const trialingProfiles = paidProfiles.filter((profile) => profile.subscription_status === "trialing");
@@ -266,6 +269,9 @@ export default async function AdminPage() {
               </a>
               <Link href="/admin/users" className="rounded-xl border border-ink-700 px-3 py-2 text-ink-300 hover:border-clay-500 hover:text-paper">
                 Users
+              </Link>
+              <Link href="/admin/growth" className="rounded-xl border border-ink-700 px-3 py-2 text-ink-300 hover:border-clay-500 hover:text-paper">
+                Growth
               </Link>
             </div>
           </div>
