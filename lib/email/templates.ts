@@ -12,7 +12,18 @@ export type LifecycleEmailType =
   | "feedback_request"
   | "family_pack_prompt"
   | "centre_planning_prompt"
-  | "story_quality_upgrade";
+  | "story_quality_upgrade"
+  // Billing + retention lifecycle. These are transactional or save-the-customer
+  // moments, not marketing, and were the biggest gap in the old set: a paying
+  // educator could go quiet, get charged, and cancel without hearing from us once.
+  | "trial_ending"
+  | "payment_succeeded"
+  | "payment_failed"
+  | "subscription_cancelled"
+  | "winback_offer"
+  | "went_quiet"
+  | "referral_earned"
+  | "referral_invite";
 
 type TemplateInput = {
   type: LifecycleEmailType;
@@ -20,6 +31,19 @@ type TemplateInput = {
   recipient: string;
   name?: string | null;
   relatedStoryId?: string | null;
+  /** Optional billing/referral context. Rendering must never depend on it. */
+  context?: {
+    amountLabel?: string;
+    planLabel?: string;
+    renewsOn?: string;
+    trialEndsOn?: string;
+    storiesThisMonth?: number;
+    hoursSaved?: number;
+    referralCode?: string;
+    referralsEarned?: number;
+    creditLabel?: string;
+    offerCode?: string;
+  };
 };
 
 export type RenderedEmail = {
@@ -172,6 +196,7 @@ function plain({
 export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
   const name = firstName(input.name);
   const unsubscribe = unsubscribeUrl(input.userId, input.recipient);
+  const ctx = input.context ?? {};
 
   const templates: Record<LifecycleEmailType, () => RenderedEmail> = {
     welcome: () => {
@@ -447,6 +472,261 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
           body: `<p>Hi ${esc(name)}, a short and honest note.</p><p>You were one of the first educators to use StoryLoop, and some of your early drafts came out <strong>flatter and more generic</strong> than the moment you actually described. That is on us, not on your observations.</p><p>We have rebuilt the part of StoryLoop that writes your stories. Drafts now read like a thoughtful educator wrote them: they <strong>tidy your rough notes into real prose</strong>, stay <strong>specific to the child</strong> in front of you, and respect the tone and depth you choose.</p><p>If you have a spare minute, open one of your observations and generate it again — we think you will see the difference straight away.</p><p>Thank you for giving StoryLoop an early go.</p>`,
         }),
         text: plain({ title: subject, lines, cta: "See the difference", ctaUrl }),
+      };
+    },
+
+    // ---------------------------------------------------------------------
+    // Billing + retention lifecycle
+    // ---------------------------------------------------------------------
+
+    // Sent BEFORE the first charge. Being surprised by a payment is one of the
+    // fastest ways to lose trust, and a silent charge is a cancellation waiting
+    // to happen.
+    trial_ending: () => {
+      const ctaUrl = url("/billing", "trial_ending");
+      const plan = ctx.planLabel ?? "your plan";
+      const amount = ctx.amountLabel ?? "your plan price";
+      const when = ctx.trialEndsOn ?? "in 2 days";
+      const subject = `Your StoryLoop trial ends ${when}`;
+      const lines = [
+        `Hi ${name}, a quick heads-up so nothing is a surprise.`,
+        `Your free trial of ${plan} ends ${when}, and your first payment of ${amount} will be taken then.`,
+        "If StoryLoop is not right for you, you can cancel in one click before then and you will not be charged.",
+      ];
+      return {
+        emailType: "trial_ending",
+        subject,
+        marketing: false,
+        ctaUrl,
+        html: layout({
+          title: `Your trial ends ${esc(when)}`,
+          preview: `First payment of ${esc(amount)} — cancel any time before then.`,
+          cta: "Manage billing",
+          ctaUrl,
+          secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">No action needed if you want to keep going. Everything you have written stays yours either way.</p>`,
+          body: `<p>Hi ${esc(name)}, a quick heads-up so nothing is a surprise.</p><p>Your free trial of <strong>${esc(plan)}</strong> ends <strong>${esc(when)}</strong>, and your first payment of <strong>${esc(amount)}</strong> will be taken then.</p><p>If StoryLoop is not right for you, you can cancel in one click before then and you will not be charged a cent.</p>`,
+        }),
+        text: plain({ title: subject, lines, cta: "Manage billing", ctaUrl }),
+      };
+    },
+
+    // Receipt + genuine thank you. Reinforces the value they just paid for.
+    payment_succeeded: () => {
+      const ctaUrl = url("/generate", "payment_succeeded");
+      const amount = ctx.amountLabel ?? "your subscription";
+      const plan = ctx.planLabel ?? "StoryLoop";
+      const renews = ctx.renewsOn;
+      const stories = ctx.storiesThisMonth;
+      const subject = "Thank you for using StoryLoop";
+      const lines = [
+        `Hi ${name}, your payment of ${amount} for ${plan} went through.`,
+        stories ? `You wrote ${stories} learning stories this month.` : "Your unlimited stories are ready whenever you are.",
+        renews ? `Your next payment is ${renews}.` : "",
+        "Thank you for backing a small New Zealand product.",
+      ].filter(Boolean);
+      return {
+        emailType: "payment_succeeded",
+        subject,
+        marketing: false,
+        ctaUrl,
+        html: layout({
+          title: "Thank you for using StoryLoop",
+          preview: `Payment received for ${esc(plan)}.`,
+          cta: "Write a story",
+          ctaUrl,
+          secondary: renews
+            ? `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Next payment: ${esc(renews)}. You can view invoices or cancel any time from Billing.</p>`
+            : undefined,
+          body: `<p>Hi ${esc(name)}, your payment of <strong>${esc(amount)}</strong> for ${esc(plan)} went through.</p>${
+            stories
+              ? `<p>You turned <strong>${stories} observations</strong> into finished learning stories this month. That is real evenings back.</p>`
+              : `<p>Your stories are ready whenever you are.</p>`
+          }<p>Thank you for backing a small New Zealand product. If anything is getting in your way, just reply to this email — it comes straight to us.</p>`,
+        }),
+        text: plain({ title: subject, lines, cta: "Write a story", ctaUrl }),
+      };
+    },
+
+    // A failed card is silent churn if nobody tells them.
+    payment_failed: () => {
+      const ctaUrl = url("/billing", "payment_failed");
+      const subject = "Your StoryLoop payment did not go through";
+      const lines = [
+        `Hi ${name}, your latest StoryLoop payment could not be processed.`,
+        "This is almost always an expired card or a bank block, not a problem with your account.",
+        "Updating your card takes about thirty seconds and everything carries on as normal.",
+        "Your stories are safe and nothing has been deleted.",
+      ];
+      return {
+        emailType: "payment_failed",
+        subject,
+        marketing: false,
+        ctaUrl,
+        html: layout({
+          title: "Your payment did not go through",
+          preview: "Usually an expired card. Takes 30 seconds to fix.",
+          cta: "Update payment method",
+          ctaUrl,
+          secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Your stories are safe. Nothing has been deleted and nothing will be.</p>`,
+          body: `<p>Hi ${esc(name)}, your latest StoryLoop payment could not be processed.</p><p>This is almost always an <strong>expired card or a bank block</strong>, not a problem with your account. Updating your card takes about thirty seconds and everything carries on as normal.</p><p>If you would rather stop instead, that is completely fine — no need to reply, it will simply lapse.</p>`,
+        }),
+        text: plain({ title: subject, lines, cta: "Update payment method", ctaUrl }),
+      };
+    },
+
+    // Cancellation confirmation that offers PAUSE rather than begging. Educator
+    // demand is seasonal: holidays and cleared backlogs are the real reason
+    // people leave, and pausing fits that far better than a discount.
+    subscription_cancelled: () => {
+      const ctaUrl = url("/billing", "subscription_cancelled");
+      const subject = "Your StoryLoop subscription is cancelled";
+      const lines = [
+        `Hi ${name}, your StoryLoop subscription is now cancelled and you will not be charged again.`,
+        "Everything you have written is still in your account, and it stays there.",
+        "If you were stopping because it is the holidays or your documentation is caught up, you can pause instead of cancelling and pick it back up next term.",
+        "If something about StoryLoop got in your way, just reply and tell us. We read every one.",
+      ];
+      return {
+        emailType: "subscription_cancelled",
+        subject,
+        marketing: false,
+        ctaUrl,
+        html: layout({
+          title: "Your subscription is cancelled",
+          preview: "Your stories stay yours. Pause is an option if you are coming back.",
+          cta: "Pause instead of cancelling",
+          ctaUrl,
+          secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Not coming back? No hard feelings at all. Thank you for giving StoryLoop a go.</p>`,
+          body: `<p>Hi ${esc(name)}, your StoryLoop subscription is cancelled and you will not be charged again.</p><p><strong>Everything you have written is still in your account</strong>, and it stays there.</p><p>One thing worth knowing: most educators who leave are not unhappy, they are just caught up or heading into the holidays. If that is you, you can <strong>pause instead</strong> and pick it back up next term without losing anything.</p><p>And if something genuinely got in your way, reply to this email and tell us. We read every single one.</p>`,
+        }),
+        text: plain({ title: subject, lines, cta: "Pause instead of cancelling", ctaUrl }),
+      };
+    },
+
+    // Sent a while AFTER cancelling, when the next term's documentation load is
+    // starting to bite. A discount only works once the need has come back.
+    winback_offer: () => {
+      const ctaUrl = url("/billing", "winback_offer");
+      const code = ctx.offerCode;
+      const subject = `${name}, come back for 20% off`;
+      const lines = [
+        `Hi ${name}, StoryLoop has moved on a lot since you left.`,
+        "Stories are sharper, they keep the child's own words, and there is now an assistant that rewrites any line you highlight.",
+        code ? `If you want another go, ${code} takes 20% off your next month.` : "If you want another go, there is 20% off your next month waiting.",
+        "No pressure either way.",
+      ];
+      return {
+        emailType: "winback_offer",
+        subject,
+        marketing: true,
+        ctaUrl,
+        html: layout({
+          title: "Come back for 20% off",
+          preview: "StoryLoop has changed a lot since you left.",
+          cta: "Restart with 20% off",
+          ctaUrl,
+          unsubscribe,
+          secondary: code
+            ? `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Use code <strong>${esc(code)}</strong> at checkout.</p>`
+            : undefined,
+          body: `<p>Hi ${esc(name)}, StoryLoop has moved on a lot since you left.</p><p>Stories are <strong>sharper and more specific</strong>, they keep <strong>the child's own words</strong> exactly as you wrote them, and there is now an assistant that rewrites any line you highlight without touching the rest.</p><p>If the documentation is piling up again, there is <strong>20% off your next month</strong> waiting. Your old stories are all still there.</p><p>No pressure either way — and thank you for having given it a go.</p>`,
+        }),
+        text: plain({ title: subject, lines, cta: "Restart with 20% off", ctaUrl, unsubscribe }),
+      };
+    },
+
+    // The email that would have saved Samantha: heavy use, then silence.
+    went_quiet: () => {
+      const ctaUrl = url("/generate", "went_quiet");
+      const stories = ctx.storiesThisMonth;
+      const subject = "Still there?";
+      const lines = [
+        `Hi ${name}, you were writing a lot of stories and then it went quiet.`,
+        "That usually means one of two things: you are caught up, or something got in the way.",
+        "If you are caught up, brilliant. If something got in the way, reply and tell us what it was.",
+      ];
+      return {
+        emailType: "went_quiet",
+        subject,
+        marketing: true,
+        ctaUrl,
+        html: layout({
+          title: "Still there?",
+          preview: "You were flying, then it went quiet.",
+          cta: "Write one story",
+          ctaUrl,
+          unsubscribe,
+          secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">If you are just between terms, you can pause your plan from Billing rather than cancelling.</p>`,
+          body: `<p>Hi ${esc(name)},</p>${
+            stories
+              ? `<p>You wrote <strong>${stories} learning stories</strong> and then it went quiet.</p>`
+              : `<p>You were writing regularly, and then it went quiet.</p>`
+          }<p>In our experience that means one of two things: you are <strong>caught up</strong> (in which case, brilliant, that was the point) or <strong>something got in the way</strong>.</p><p>If it is the second one, hit reply and tell us what it was. It goes straight to us and it genuinely changes what we build.</p>`,
+        }),
+        text: plain({ title: subject, lines, cta: "Write one story", ctaUrl, unsubscribe }),
+      };
+    },
+
+    // ---------------------------------------------------------------------
+    // Referral
+    // ---------------------------------------------------------------------
+
+    referral_earned: () => {
+      const ctaUrl = url("/billing", "referral_earned");
+      const credit = ctx.creditLabel ?? "a free month";
+      const earned = ctx.referralsEarned ?? 1;
+      const remaining = Math.max(0, 5 - earned);
+      const subject = `You just earned ${credit}`;
+      const lines = [
+        `Hi ${name}, someone you referred just became a paying StoryLoop member.`,
+        `${credit} has been credited to your account automatically — it comes off your next invoice.`,
+        remaining > 0 ? `You can earn ${remaining} more free ${remaining === 1 ? "month" : "months"}.` : "That is all five free months earned. Thank you.",
+      ];
+      return {
+        emailType: "referral_earned",
+        subject,
+        marketing: false,
+        ctaUrl,
+        html: layout({
+          title: `You earned ${esc(credit)}`,
+          preview: "Someone you referred just subscribed.",
+          cta: "See your credit",
+          ctaUrl,
+          secondary: remaining > 0
+            ? `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">You can earn up to 5 free months in total. ${remaining} to go.</p>`
+            : undefined,
+          body: `<p>Hi ${esc(name)}, someone you referred just became a paying StoryLoop member.</p><p><strong>${esc(credit)}</strong> has been credited to your account automatically. It comes straight off your next invoice, nothing for you to do.</p><p>Thank you for telling another educator about us. It genuinely matters at our size.</p>`,
+        }),
+        text: plain({ title: subject, lines, cta: "See your credit", ctaUrl }),
+      };
+    },
+
+    referral_invite: () => {
+      const ctaUrl = url("/support", "referral_invite");
+      const code = ctx.referralCode;
+      const subject = "Give an educator 10% off, get a free month";
+      const lines = [
+        `Hi ${name}, if StoryLoop is saving you time, there is a good chance someone in your team could use it too.`,
+        code ? `Your code is ${code}.` : "Your referral code is in the app.",
+        "They get 10% off their first month. You get a free month once they subscribe, up to five.",
+      ];
+      return {
+        emailType: "referral_invite",
+        subject,
+        marketing: true,
+        ctaUrl,
+        html: layout({
+          title: "Give 10% off, get a free month",
+          preview: "Share StoryLoop with another educator.",
+          cta: "Get your referral link",
+          ctaUrl,
+          unsubscribe,
+          secondary: code
+            ? `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Your code: <strong>${esc(code)}</strong></p>`
+            : undefined,
+          body: `<p>Hi ${esc(name)}, if StoryLoop is saving you time, chances are someone in your team or centre could use it too.</p><p>Share your code and <strong>they get 10% off their first month</strong>. Once they subscribe, <strong>you get a whole month free</strong> — up to five months in total.</p><p>No catch, and nothing to claim. The credit lands on your account by itself.</p>`,
+        }),
+        text: plain({ title: subject, lines, cta: "Get your referral link", ctaUrl, unsubscribe }),
       };
     },
   };
