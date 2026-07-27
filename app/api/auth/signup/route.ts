@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
+import { getOrCreateReferralCode, recordReferralSignup } from "@/lib/referrals";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { incrementAccessCodeRedemption, resolveAccessCode } from "@/lib/access-codes";
@@ -74,6 +75,17 @@ export async function POST(request: NextRequest) {
 
     if (createdUser.user) {
       await getOrCreateProfile(createdUser.user);
+
+      // Give every account its own share code, and attribute this signup to a
+      // referrer if they arrived through one. Both are best-effort: a referral
+      // problem must never stop someone creating an account.
+      try {
+        await getOrCreateReferralCode(createdUser.user.id);
+        const referralCode = typeof body.referralCode === "string" ? body.referralCode.trim() : "";
+        if (referralCode) await recordReferralSignup(createdUser.user.id, referralCode);
+      } catch (referralError) {
+        console.error("Referral setup failed (signup unaffected):", referralError);
+      }
 
       // Stamp where this signup came from so paid campaigns can be measured.
       // Best-effort only: attribution must never block account creation.

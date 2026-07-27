@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ReferralCard from "@/components/app/ReferralCard";
 import { AlertTriangle, ArrowRight, Bug, CreditCard, Lightbulb, Mail, MessageCircle, Sparkles } from "lucide-react";
 
 export const metadata = { title: "Support · StoryLoop" };
@@ -66,6 +67,10 @@ export default function SupportPage() {
             Email {SUPPORT_EMAIL}
           </a>
         </div>
+      </div>
+
+      <div className="mt-6">
+        <ReferralCard />
       </div>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">

@@ -19,6 +19,7 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [plan, setPlan] = useState<PlanKey>("free");
   const [currency, setCurrency] = useState<CurrencyCode>("AUD");
+  const [referralCode, setReferralCode] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -29,6 +30,13 @@ export default function SignupPage() {
     setPlan(selectedPlan);
     setCurrency(selectedCurrency ? normaliseCurrency(selectedCurrency) : tz?.includes("Auckland") ? "NZD" : "AUD");
     if (code) setAccessCode(code);
+    // Referral links look like /signup?ref=ABC1234. Remembered in state so the
+    // referrer still gets credit even if the visitor edits the form first.
+    const ref = params.get("ref") ?? window.localStorage.getItem("storyloop_ref");
+    if (ref) {
+      setReferralCode(ref.trim().toUpperCase());
+      try { window.localStorage.setItem("storyloop_ref", ref.trim().toUpperCase()); } catch {}
+    }
     captureAttribution();
     track("signup_view");
   }, []);
@@ -47,6 +55,7 @@ export default function SignupPage() {
           password,
           plan,
           accessCode,
+          referralCode,
           attribution: { ...getAttribution(), sessionId: getSessionId() },
         }),
       });

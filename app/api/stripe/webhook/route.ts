@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { normalizePlanKey } from "@/lib/plans";
+import { grantReferralCreditForPayment } from "@/lib/referrals";
 
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -112,6 +113,44 @@ async function updateProfileByInvoiceCustomer(
   await admin.from("profiles").update(update).eq("stripe_customer_id", customerId);
 }
 
+/**
+ * A referred user has actually paid money, so their referrer has earned a free
+ * month. Deliberately runs only on a paid invoice, never on signup or trial
+ * start, and only when real money moved (amount_paid > 0) so a fully discounted
+ * or zero invoice cannot mint a reward.
+ *
+ * Failures here must never fail the webhook: billing state is the important
+ * part of this handler, the reward is secondary and can be retried.
+ */
+async function grantReferralRewardIfEarned(
+  admin: ReturnType<typeof createAdminSupabase>,
+  invoice: Stripe.Invoice
+) {
+  try {
+    if ((invoice.amount_paid ?? 0) <= 0) return;
+    const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+    if (!customerId) return;
+
+    const { data: payer } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("stripe_customer_id", customerId)
+      .maybeSingle();
+    if (!payer?.id) return;
+
+    const result = await grantReferralCreditForPayment(getStripe(), payer.id, invoice.id ?? `inv_${Date.now()}`);
+    if (result.granted) {
+      console.info("Referral credit granted", {
+        referrerId: result.referrerId,
+        amountCents: result.amountCents,
+        currency: result.currency,
+      });
+    }
+  } catch (error) {
+    console.error("Referral reward check failed (billing unaffected):", error);
+  }
+}
+
 async function handleInvoicePaid(admin: ReturnType<typeof createAdminSupabase>, invoice: Stripe.Invoice) {
   const subscriptionId = invoiceSubscriptionId(invoice);
   if (subscriptionId) {
@@ -119,10 +158,12 @@ async function handleInvoicePaid(admin: ReturnType<typeof createAdminSupabase>, 
     await updateProfileForSubscription(admin, subscription, {
       customerId: typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id,
     });
+    await grantReferralRewardIfEarned(admin, invoice);
     return;
   }
 
   await updateProfileByInvoiceCustomer(admin, invoice, { subscription_status: "active" });
+  await grantReferralRewardIfEarned(admin, invoice);
 }
 
 async function handlePaymentFailed(admin: ReturnType<typeof createAdminSupabase>, invoice: Stripe.Invoice) {

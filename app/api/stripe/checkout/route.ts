@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { getPlanByKey, normalizePlanKey, type CurrencyCode, type PlanKey } from "@/lib/plans";
 import { getRuntimeSecret } from "@/lib/runtime-secrets";
+import { getOrCreateReferralCoupon } from "@/lib/referrals";
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-05-27.dahlia" });
@@ -81,6 +82,28 @@ export async function POST(request: NextRequest) {
         ? await getRuntimeSecret("STRIPE_FIRST_MONTH_COUPON_ID", "stripe_first_month_coupon_id")
         : undefined;
 
+    // Someone who signed up through a referral link gets 10% off their first
+    // month. The activation offer wins if both apply, because Stripe accepts
+    // only one coupon per checkout and the activation offer is the stronger one.
+    let referralCoupon: string | undefined;
+    if (!activationCoupon) {
+      const { data: referralRow } = await supabase
+        .from("referrals")
+        .select("id")
+        .eq("referred_user_id", user.id)
+        .maybeSingle();
+      if (referralRow) {
+        try {
+          const coupon = await getOrCreateReferralCoupon(stripe);
+          referralCoupon = coupon.id;
+        } catch (error) {
+          // A missing discount must never block someone from subscribing.
+          console.error("Referral coupon unavailable:", error);
+        }
+      }
+    }
+    const appliedCoupon = activationCoupon ?? referralCoupon;
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: "subscription",
@@ -89,13 +112,13 @@ export async function POST(request: NextRequest) {
       line_items: [buildLineItem(selectedPlan, selectedCurrency)],
       success_url: `${origin}/dashboard?upgraded=true`,
       cancel_url: `${origin}/billing`,
-      allow_promotion_codes: !activationCoupon,
-      discounts: activationCoupon ? [{ coupon: activationCoupon }] : undefined,
+      allow_promotion_codes: !appliedCoupon,
+      discounts: appliedCoupon ? [{ coupon: appliedCoupon }] : undefined,
       subscription_data: {
         trial_period_days: 7,
-        metadata: { user_id: user.id, plan: selectedPlan, currency: selectedCurrency, activation_offer: activationCoupon ? "true" : "false" },
+        metadata: { user_id: user.id, plan: selectedPlan, currency: selectedCurrency, activation_offer: activationCoupon ? "true" : "false", referral_discount: referralCoupon ? "true" : "false" },
       },
-      metadata: { user_id: user.id, plan: selectedPlan, currency: selectedCurrency, activation_offer: activationCoupon ? "true" : "false" },
+      metadata: { user_id: user.id, plan: selectedPlan, currency: selectedCurrency, activation_offer: activationCoupon ? "true" : "false", referral_discount: referralCoupon ? "true" : "false" },
     });
 
     return NextResponse.json({ url: session.url });
