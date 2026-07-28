@@ -11,6 +11,7 @@ import { buildExportPacks } from "../lib/export-packs";
 import { buildPlanningBoard } from "../lib/planning-board";
 import { hasFeatureAccess, normalizePlanKey } from "../lib/plans";
 import { runPrivacyGuardian } from "../lib/privacy-guardian";
+import { calculateArr, calculateMrr, isActiveRevenue, isPayingCustomer, isRevenueAccount } from "../lib/revenue";
 import { hasPhysicalSafetyIncident } from "../lib/safety-incident";
 import { getStoryClarification } from "../lib/story-clarification";
 import { inferPrimaryChildName, extractOtherChildNames } from "../lib/story-context";
@@ -568,4 +569,36 @@ test("'bit' as a common phrase does not misfire the safety-incident detector", (
   assert.equal(hasPhysicalSafetyIncident("Mia bit her friend on the arm."), true);
   assert.equal(hasPhysicalSafetyIncident("There was biting at lunch today."), true);
   assert.equal(hasPhysicalSafetyIncident("He bites when he is frustrated."), true);
+});
+
+// Revenue accounting. An internal/comp account on a paid plan must never reach
+// MRR, ARR, or the paid counts, or every number on the dashboard is a lie.
+test("internal and comp accounts are excluded from all revenue maths", () => {
+  const PRICES = { free: 0, educator: 19, educator_pro: 29, centre_starter: 99, centre_growth: 199 } as const;
+  const accounts = [
+    { plan: "educator", subscription_status: "active", is_internal: false },        // real, counts
+    { plan: "educator", subscription_status: "trialing", is_internal: false },      // real trial, counts
+    { plan: "centre_growth", subscription_status: "admin_override", is_internal: true },  // founder, must NOT count
+    { plan: "centre_growth", subscription_status: "admin_override", is_internal: false }, // comp w/o flag, must NOT count
+    { plan: "educator", subscription_status: "cancelled", is_internal: false },     // churned, no revenue
+    { plan: "free", subscription_status: "free", is_internal: false },              // free, no revenue
+  ];
+
+  assert.equal(calculateMrr(accounts, PRICES), 38, "only the two real educators contribute");
+  assert.equal(calculateArr(accounts, PRICES), 38 * 12);
+  // "Paying customer" is plan-based, so a just-cancelled educator still counts
+  // here (they remain a customer until the period ends, and must stay visible
+  // in billing-risk views). Revenue is status-based and excludes them.
+  assert.equal(accounts.filter(isPayingCustomer).length, 3);
+  assert.equal(accounts.filter(isActiveRevenue).length, 2, "cancelled generates no revenue");
+
+  // The founder's own account, on the most expensive plan, adds nothing.
+  const founder = { plan: "centre_growth", subscription_status: "admin_override", is_internal: true };
+  assert.equal(isRevenueAccount(founder), false);
+  assert.equal(isPayingCustomer(founder), false);
+  assert.equal(isActiveRevenue(founder), false);
+  assert.equal(calculateMrr([founder], PRICES), 0);
+
+  // Belt and braces: admin_override never counts even if is_internal is missed.
+  assert.equal(calculateMrr([{ plan: "centre_growth", subscription_status: "admin_override" }], PRICES), 0);
 });

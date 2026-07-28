@@ -26,6 +26,7 @@ import { getMonthlyStoryLimit } from "@/lib/story-limits";
 import { isBillingBlocked, isBillingPastDue, isPaidPlan } from "@/lib/billing-access";
 import { OUTREACH_REPLY_TEMPLATES } from "@/lib/email/outreach";
 import { normalizePlanKey, type PlanKey } from "@/lib/plans";
+import { calculateArr, calculateMrr, isActiveRevenue, isPayingCustomer, isRevenueAccount } from "@/lib/revenue";
 
 export const metadata = { title: "Admin · StoryLoop" };
 
@@ -159,19 +160,26 @@ export default async function AdminPage() {
   const storyRows = (storiesForChart ?? []) as StoryMetric[];
   const emailRows = (emailEventsForChart ?? []) as EmailMetric[];
   const feedbackRows = (feedbackRowsForDashboard ?? []) as FeedbackMetric[];
-  // Founder/staff/comp accounts are real accounts on real plans, but they pay
-  // nothing. They must never inflate revenue, MRR, or conversion rates.
-  const paidProfiles = profiles.filter((profile) => isPaidPlan(profile.plan) && !profile.is_internal);
-  const activePaidProfiles = paidProfiles.filter((profile) => REVENUE_STATUSES.has(profile.subscription_status ?? ""));
+  // Founder/staff/comp accounts are real accounts sitting on real plans, but
+  // they pay nothing. Every commercial number below is derived from
+  // `revenueProfiles` so an internal account can never inflate MRR, ARR, the
+  // paid counts, the plan mix, or the conversion rate. `profiles` stays the
+  // full list, because internal accounts are still real users of the product.
+  const revenueProfiles = profiles.filter(isRevenueAccount);
+  const paidProfiles = profiles.filter(isPayingCustomer);
+  const activePaidProfiles = profiles.filter(isActiveRevenue);
   const billingRiskProfiles = paidProfiles.filter((profile) => isBillingBlocked(profile) || isBillingPastDue(profile));
   const trialingProfiles = paidProfiles.filter((profile) => profile.subscription_status === "trialing");
-  const mrr = activePaidProfiles.reduce((sum, user) => sum + PRICES[normalizePlanKey(user.plan)], 0);
+  const mrr = calculateMrr(profiles, PRICES);
+  const arr = calculateArr(profiles, PRICES);
+  const countOnPlan = (plan: PlanKey) =>
+    revenueProfiles.filter((profile) => normalizePlanKey(profile.plan) === plan).length;
   const planCounts = {
-    free: profiles.filter((profile) => normalizePlanKey(profile.plan) === "free").length,
-    educator: profiles.filter((profile) => normalizePlanKey(profile.plan) === "educator").length,
-    educator_pro: profiles.filter((profile) => normalizePlanKey(profile.plan) === "educator_pro").length,
-    centre_starter: profiles.filter((profile) => normalizePlanKey(profile.plan) === "centre_starter").length,
-    centre_growth: profiles.filter((profile) => normalizePlanKey(profile.plan) === "centre_growth").length,
+    free: countOnPlan("free"),
+    educator: countOnPlan("educator"),
+    educator_pro: countOnPlan("educator_pro"),
+    centre_starter: countOnPlan("centre_starter"),
+    centre_growth: countOnPlan("centre_growth"),
   };
   const zeroStoryUsers = profiles.filter((profile) => (profile.total_stories ?? 0) === 0);
   const oneStoryUsers = profiles.filter((profile) => (profile.total_stories ?? 0) === 1);
@@ -281,7 +289,7 @@ export default async function AdminPage() {
           {[
             { label: "Total users", value: totalUsers ?? 0, icon: Users, color: "text-blue-400", sub: `${paidProfiles.length} on paid plans` },
             { label: "Active paid", value: activePaidProfiles.length, icon: TrendingUp, color: "text-sage-400", sub: `${billingRiskProfiles.length} billing risks` },
-            { label: "MRR estimate", value: `$${mrr}`, icon: DollarSign, color: "text-amber-400", sub: `$${mrr * 12} ARR · base pricing` },
+            { label: "MRR estimate", value: `$${mrr}`, icon: DollarSign, color: "text-amber-400", sub: `$${arr} ARR · base pricing` },
             { label: "Stories generated", value: totalStories ?? 0, icon: BookOpen, color: "text-clay-400", sub: `${storyRows.length} in last 14 days` },
           ].map(({ label, value, icon: Icon, color, sub }, index) => (
             <div key={label} className={`bg-ink-900 border border-ink-800 rounded-2xl p-5 shadow-2xl animate-fade-up-${Math.min(index + 1, 4)}`}>
@@ -323,10 +331,10 @@ export default async function AdminPage() {
               <PieChart className="w-5 h-5 text-ink-500" />
             </div>
             <div className="flex items-center gap-5">
-              <div className="relative h-32 w-32 flex-shrink-0 rounded-full" style={{ background: getPlanGradient(planCounts, profiles.length) }}>
+              <div className="relative h-32 w-32 flex-shrink-0 rounded-full" style={{ background: getPlanGradient(planCounts, revenueProfiles.length) }}>
                 <div className="absolute inset-5 rounded-full bg-ink-900 flex items-center justify-center text-center">
                   <div>
-                    <p className="font-display text-2xl font-bold">{profiles.length}</p>
+                    <p className="font-display text-2xl font-bold">{revenueProfiles.length}</p>
                     <p className="text-[10px] text-ink-500">users</p>
                   </div>
                 </div>
@@ -342,10 +350,10 @@ export default async function AdminPage() {
                   <div key={row.label}>
                     <div className="flex items-center justify-between text-xs">
                       <span className="flex items-center gap-2 text-ink-300"><span className={`h-2.5 w-2.5 rounded-full ${row.dot}`} />{row.label}</span>
-                      <span className="font-mono text-ink-500">{row.value} · {percent(row.value, profiles.length)}%</span>
+                      <span className="font-mono text-ink-500">{row.value} · {percent(row.value, revenueProfiles.length)}%</span>
                     </div>
                     <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-ink-800">
-                      <div className={`h-full rounded-full ${row.dot}`} style={{ width: `${percent(row.value, profiles.length)}%` }} />
+                      <div className={`h-full rounded-full ${row.dot}`} style={{ width: `${percent(row.value, revenueProfiles.length)}%` }} />
                     </div>
                   </div>
                 ))}
@@ -425,7 +433,7 @@ export default async function AdminPage() {
                     <span className="font-bold text-paper">{row.value}</span>
                   </div>
                   <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-ink-800">
-                    <div className={`h-full rounded-full ${row.colour}`} style={{ width: `${Math.max(percent(row.value, Math.max(profiles.length, 1)), row.value ? 8 : 0)}%` }} />
+                    <div className={`h-full rounded-full ${row.colour}`} style={{ width: `${Math.max(percent(row.value, Math.max(revenueProfiles.length, 1)), row.value ? 8 : 0)}%` }} />
                   </div>
                 </div>
               ))}
