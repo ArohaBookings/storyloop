@@ -28,8 +28,12 @@ type Metrics = {
   signups_per_day: { day: string; count: number }[];
   acquisition: { source: string; signups: number; activated: number; paid: number }[];
   traffic: {
-    visitors_30d: number; demo_started_30d: number; demo_completed_30d: number; signup_views_30d: number;
+    visitors_30d: number; pageviews_30d: number; demo_started_30d: number; demo_completed_30d: number; signup_views_30d: number;
     by_source: { source: string; visitors: number }[];
+    by_device: { device: string; visitors: number }[];
+    by_country: { country: string; visitors: number }[];
+    by_page: { path: string; views: number; visitors: number }[];
+    landing_pages: { path: string; sessions: number; reached_signup: number }[];
   };
   referrals: { total: number; pending: number; credited: number; credit_cents: number };
 };
@@ -236,6 +240,69 @@ export default async function GrowthPage() {
                 {m.referrals.total} total · {m.referrals.pending} awaiting payment · {m.referrals.credited} credited ·
                 ${(m.referrals.credit_cents / 100).toFixed(2)} given away
               </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Pages */}
+        <section className="mt-7 grid gap-5 lg:grid-cols-2">
+          <div className="rounded-2xl border border-ink-800 bg-ink-900/60 p-5">
+            <h2 className="mb-1 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-ink-300">
+              <Globe className="h-4 w-4" /> Pages visited (30d)
+            </h2>
+            <p className="mb-3 text-xs text-ink-500">
+              {m.traffic.pageviews_30d} views from {m.traffic.visitors_30d} people.
+            </p>
+            {m.traffic.by_page.length ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="text-ink-500">
+                    <tr><th className="py-1.5 font-semibold">Page</th><th className="font-semibold">Views</th><th className="font-semibold">People</th></tr>
+                  </thead>
+                  <tbody className="divide-y divide-ink-800">
+                    {m.traffic.by_page.slice(0, 15).map((p) => (
+                      <tr key={p.path} className="text-ink-200">
+                        <td className="py-1.5 pr-2 font-mono text-[11px]">{p.path}</td>
+                        <td className="tabular-nums">{p.views}</td>
+                        <td className="tabular-nums font-bold text-white">{p.visitors}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : <p className="text-sm text-ink-400">No page views recorded yet.</p>}
+          </div>
+
+          <div className="rounded-2xl border border-ink-800 bg-ink-900/60 p-5">
+            <h2 className="mb-1 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-ink-300">
+              <MousePointerClick className="h-4 w-4" /> Landing pages that convert
+            </h2>
+            <p className="mb-3 text-xs text-ink-500">
+              The first page each visitor saw, and whether they went on to reach signup.
+            </p>
+            {m.traffic.landing_pages.length ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="text-ink-500">
+                    <tr><th className="py-1.5 font-semibold">Landed on</th><th className="font-semibold">Sessions</th><th className="font-semibold">Reached signup</th><th className="font-semibold">Rate</th></tr>
+                  </thead>
+                  <tbody className="divide-y divide-ink-800">
+                    {m.traffic.landing_pages.slice(0, 15).map((p) => (
+                      <tr key={p.path} className="text-ink-200">
+                        <td className="py-1.5 pr-2 font-mono text-[11px]">{p.path}</td>
+                        <td className="tabular-nums">{p.sessions}</td>
+                        <td className="tabular-nums font-bold text-white">{p.reached_signup}</td>
+                        <td className="tabular-nums text-sage-400">{pct(p.reached_signup, p.sessions)}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : <p className="text-sm text-ink-400">No landing data yet.</p>}
+            <div className="mt-4 border-t border-ink-800 pt-3 text-xs text-ink-400">
+              Devices: {m.traffic.by_device.map((d) => `${d.device} ${d.visitors}`).join(" · ") || "none"}
+              <br />
+              Countries: {m.traffic.by_country.slice(0, 8).map((c) => `${c.country} ${c.visitors}`).join(" · ") || "unknown"}
             </div>
           </div>
         </section>
