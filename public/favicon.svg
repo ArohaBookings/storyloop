@@ -1,6 +1,11 @@
 <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="StoryLoop">
-  <!-- Identical geometry to logo.svg, scaled. Solid tile and a heavy open loop
-       so the mark still reads in a browser tab or a search result. -->
+  <!-- Identical geometry to logo.svg, scaled. Solid bars only, so the mark
+       still reads in a browser tab or a search result. -->
+  <defs>
+    <clipPath id="slWeaveSm"><rect x="26" y="30" width="12" height="12"/></clipPath>
+  </defs>
   <rect width="64" height="64" rx="14.5" fill="#4A3226"/>
-  <path d="M49 32A17 17 0 1 1 32 15" fill="none" stroke="#FBF8F2" stroke-width="7" stroke-linecap="round"/>
+  <rect x="26" y="9" width="12" height="46" rx="6" fill="#FBF8F2"/>
+  <rect x="9" y="26" width="46" height="12" rx="6" fill="#C08A5A"/>
+  <g clip-path="url(#slWeaveSm)"><rect x="26" y="9" width="12" height="46" rx="6" fill="#FBF8F2"/></g>
 </svg>
