@@ -128,6 +128,25 @@ export default async function SeoPage({ params }: PageProps) {
           </div>
         </section>
 
+        {page.deepDive?.length ? (
+          <section className="border-y border-clay-100 bg-white py-16 md:py-20">
+            <div className="reading-shell">
+              <div className="space-y-12">
+                {page.deepDive.map((block) => (
+                  <div key={block.heading}>
+                    <h2 className="font-display text-2xl font-bold text-ink-900 md:text-3xl">{block.heading}</h2>
+                    <div className="mt-4 space-y-4 text-[17px] leading-relaxed text-ink-700">
+                      {block.paragraphs.map((paragraph, index) => (
+                        <p key={index}>{paragraph}</p>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
         {page.slug === "pricing" && <Pricing />}
 
         {page.sources?.length ? (

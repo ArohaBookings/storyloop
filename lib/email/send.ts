@@ -52,6 +52,9 @@ type SendLifecycleEmailParams = {
   relatedStoryId?: string | null;
   force?: boolean;
   metadata?: Record<string, unknown>;
+  // Optional billing/referral values the template can weave in. The template
+  // must still render correctly if this is absent.
+  context?: Parameters<typeof renderLifecycleEmail>[0]["context"];
 };
 
 type EmailStatus = "sent" | "skipped_unconfigured" | "skipped_unsubscribed" | "skipped_duplicate" | "skipped_frequency_cap" | "failed";
@@ -127,6 +130,7 @@ export async function sendLifecycleEmail(params: SendLifecycleEmailParams) {
     recipient,
     name: params.name,
     relatedStoryId: params.relatedStoryId,
+    context: params.context,
   });
 
   if (!params.force && params.type !== "weekly_value") {

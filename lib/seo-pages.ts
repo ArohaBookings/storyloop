@@ -9,6 +9,12 @@ export type SeoPage = {
   faqs: Array<{ question: string; answer: string }>;
   reviewedAt?: string;
   sources?: Array<{ label: string; url: string }>;
+  /**
+   * Long-form, human-written body. This is what turns a thin marketing page
+   * into something worth reading and worth ranking. Each block is a heading and
+   * a set of plain paragraphs. Kept as data so pages stay easy to edit.
+   */
+  deepDive?: Array<{ heading: string; paragraphs: string[] }>;
 };
 
 const sharedFaqs = [
@@ -772,5 +778,14 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     ],
   },
 };
+
+// Attach long-form bodies to the pages that have them. Kept separate so the
+// heavy prose lives in its own file and this one stays a readable index.
+import { SEO_DEEP_DIVES } from "./seo-deep-dives";
+for (const [slug, deepDive] of Object.entries(SEO_DEEP_DIVES)) {
+  if (SEO_PAGES[slug]) {
+    SEO_PAGES[slug].deepDive = deepDive;
+  }
+}
 
 export const SEO_PAGE_SLUGS = Object.keys(SEO_PAGES);

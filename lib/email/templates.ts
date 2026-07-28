@@ -735,7 +735,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
           secondary: code
             ? `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Your code: <strong>${esc(code)}</strong></p>`
             : undefined,
-          body: `<p>Hi ${esc(name)}, if StoryLoop is saving you time, chances are someone in your team or centre could use it too.</p><p>Share your code and <strong>they get 10% off their first month</strong>. Once they subscribe, <strong>you get a whole month free</strong> — up to five months in total.</p><p>No catch, and nothing to claim. The credit lands on your account by itself.</p>`,
+          body: `<p>Hi ${esc(name)}, if StoryLoop is saving you time, chances are someone in your team or centre could use it too.</p><p>Share your code and <strong>they get 10% off their first month</strong>. Once they subscribe, <strong>you get a whole month free</strong>, up to five months in total.</p><p>No catch, and nothing to claim. The credit lands on your account by itself.</p>`,
         }),
         text: plain({ title: subject, lines, cta: "Get your referral link", ctaUrl, unsubscribe }),
       };

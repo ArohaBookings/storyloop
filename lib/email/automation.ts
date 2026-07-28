@@ -1,6 +1,7 @@
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getMonthlyStoryLimit } from "@/lib/story-limits";
 import { sendLifecycleEmail } from "./send";
+import { getOrCreateReferralCode } from "@/lib/referrals";
 import type { LifecycleEmailType } from "./templates";
 
 type ProfileEmailRow = {
@@ -259,6 +260,46 @@ export async function runLifecycleAutomation() {
   for (const row of (winbackUsers ?? []) as ProfileEmailRow[]) {
     // Once per quarter at most. A win-back that nags is just spam.
     sent.push(await sendIfNeeded(row, "winback_offer", daysAgo(90)));
+  }
+
+  // 4. Monthly referral reminder. Once a month, remind active members who have
+  //    not yet earned all five free months that they can. Only to people
+  //    getting value (they have written something), so it never lands as a cold
+  //    ask. The weekly marketing cap still applies, so it will not stack on top
+  //    of another nudge in the same week.
+  const { data: referralUsers, error: referralError } = await sb
+    .from("profiles")
+    .select(baseSelect)
+    .in("subscription_status", Array.from(ACTIVE_PAID_STATUSES))
+    .gte("total_stories", 1)
+    .is("marketing_unsubscribed_at", null)
+    .limit(200);
+
+  if (referralError) errors.push(referralError.message);
+  for (const row of (referralUsers ?? []) as ProfileEmailRow[]) {
+    if (row.is_internal) { sent.push({ type: "referral_invite" as const, status: "skipped_internal" }); continue; }
+    // Skip anyone who has already maxed out their five referral credits.
+    const { count: earned } = await sb
+      .from("referrals")
+      .select("id", { count: "exact", head: true })
+      .eq("referrer_id", row.id)
+      .eq("status", "credited");
+    if ((earned ?? 0) >= 5) { sent.push({ type: "referral_invite" as const, status: "already_maxed" }); continue; }
+    if (await sentRecently(row.id, "referral_invite", daysAgo(30))) { sent.push({ type: "referral_invite" as const, status: "already_sent" }); continue; }
+
+    // Put the real code and a working link in the email itself, so the reader
+    // does not have to go hunting for it.
+    const code = await getOrCreateReferralCode(row.id);
+    sent.push(
+      await sendLifecycleEmail({
+        type: "referral_invite",
+        userId: row.id,
+        recipient: row.email,
+        name: row.full_name,
+        metadata: { automation: true },
+        context: code ? { referralCode: code, referralsEarned: earned ?? 0 } : undefined,
+      })
+    );
   }
 
   return { success: errors.length === 0, sent, errors };
