@@ -10,6 +10,7 @@ import FAQ from "@/components/landing/FAQ";
 import CTA from "@/components/landing/CTA";
 import Footer from "@/components/landing/Footer";
 import { LANDING_FAQS } from "@/lib/landing-faqs";
+import StraightAnswers from "@/components/landing/StraightAnswers";
 import PageTracker from "@/components/analytics/PageTracker";
 
 export const metadata: Metadata = {
@@ -44,6 +45,7 @@ export default function LandingPage() {
         <Features />
         <HowItWorks />
         <Examples />
+        <StraightAnswers />
         <Pricing />
         <FAQ />
         <CTA />
