@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import DashboardNav from "@/components/app/DashboardNav";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { isAdminEmail } from "@/lib/admin-session";
-import ReferralCard from "@/components/app/ReferralCard";
+import WhatsNewModal from "@/components/app/WhatsNewModal";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -41,8 +41,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         subscriptionStatus={profile?.subscription_status ?? null}
       />
       <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden">{children}</main>
-      {/* One-time referral welcome. Renders nothing once dismissed. */}
-      <ReferralCard variant="modal" />
+      {/* One-time welcome card: what changed, then the referral offer.
+          Renders nothing once dismissed. */}
+      <WhatsNewModal />
     </div>
   );
 }

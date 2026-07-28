@@ -26,7 +26,7 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
-          {[["Features", "/#features"], ["How It Works", "/#how-it-works"], ["Resources", "/resources"], ["Examples", "/examples"], ["Pricing", "/pricing"]].map(([label, href]) => (
+          {[["Features", "/#features"], ["How It Works", "/#how-it-works"], ["Guides", "/blog"], ["Resources", "/resources"], ["Pricing", "/pricing"]].map(([label, href]) => (
             <Link key={label} href={href} className="text-sm text-ink-600 hover:text-ink-900 transition-colors font-medium">{label}</Link>
           ))}
         </div>
