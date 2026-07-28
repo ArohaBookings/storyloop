@@ -11,6 +11,7 @@ import { buildExportPacks } from "../lib/export-packs";
 import { buildPlanningBoard } from "../lib/planning-board";
 import { hasFeatureAccess, normalizePlanKey } from "../lib/plans";
 import { runPrivacyGuardian } from "../lib/privacy-guardian";
+import { renderLifecycleEmail } from "../lib/email/templates";
 import { calculateArr, calculateMrr, isActiveRevenue, isPayingCustomer, isRevenueAccount } from "../lib/revenue";
 import { hasPhysicalSafetyIncident } from "../lib/safety-incident";
 import { getStoryClarification } from "../lib/story-clarification";
@@ -601,4 +602,30 @@ test("internal and comp accounts are excluded from all revenue maths", () => {
 
   // Belt and braces: admin_override never counts even if is_internal is missed.
   assert.equal(calculateMrr([{ plan: "centre_growth", subscription_status: "admin_override" }], PRICES), 0);
+});
+
+// Marketing email frequency. An educator getting several sales emails in a week
+// unsubscribes, and then we cannot reach them even for billing.
+test("every marketing template is covered by the weekly frequency cap", () => {
+  const MARKETING_TYPES = [
+    "no_first_story", "weekly_value", "feedback_request", "family_pack_prompt",
+    "centre_planning_prompt", "went_quiet", "winback_offer", "referral_invite",
+    "two_free_stories_used", "free_limit_reached",
+  ] as const;
+  const TRANSACTIONAL_TYPES = [
+    "welcome", "first_story_created", "paid_no_usage_checkin", "story_quality_upgrade",
+    "trial_ending", "payment_succeeded", "payment_failed", "subscription_cancelled",
+    "referral_earned",
+  ] as const;
+
+  for (const type of MARKETING_TYPES) {
+    const email = renderLifecycleEmail({ type, userId: "u", recipient: "a@b.com", name: "Sam" });
+    assert.equal(email.marketing, true, `${type} must be flagged marketing so the cap applies`);
+    assert.ok(email.html.includes("unsubscribe"), `${type} must carry an unsubscribe link`);
+  }
+
+  for (const type of TRANSACTIONAL_TYPES) {
+    const email = renderLifecycleEmail({ type, userId: "u", recipient: "a@b.com", name: "Sam" });
+    assert.equal(email.marketing, false, `${type} is transactional and must not be capped or unsubscribable`);
+  }
 });

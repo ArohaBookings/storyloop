@@ -1,7 +1,8 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="StoryLoop">
-  <!-- "Return" mark. Identical geometry to the favicon, scaled: one identity
-       that holds from a 16px browser tab to a 512px social card. -->
-  <rect width="512" height="512" rx="120" fill="#4A3226"/>
-  <path d="M256 112a144 144 0 1 1-132 88" fill="none" stroke="#FBF8F2" stroke-width="52" stroke-linecap="round"/>
-  <circle cx="256" cy="256" r="48" fill="#A87851"/>
+  <!-- "Return" mark: one open loop, three quarters of a turn.
+       The earlier version swept ~330 degrees around a centre dot, which read as
+       an accidental ring rather than a designed mark. A clean 270 degree arc
+       with a generous gap reads as a loop still turning, and survives 16px. -->
+  <rect width="512" height="512" rx="116" fill="#4A3226"/>
+  <path d="M392 256A136 136 0 1 1 256 120" fill="none" stroke="#FBF8F2" stroke-width="56" stroke-linecap="round"/>
 </svg>

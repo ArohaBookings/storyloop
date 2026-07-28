@@ -11,14 +11,25 @@ import { getRuntimeSecret } from "@/lib/runtime-secrets";
 // window, so an active educator can't get several tips/reminders in a few days.
 // Time-sensitive account emails (welcome, first story, limit reached, payment)
 // are deliberately NOT in this list and always send.
+// Every template that is marketing rather than transactional. Kept in one place
+// and asserted against the rendered template's own `marketing` flag at send
+// time, so a new marketing email cannot be added and silently escape the cap.
 const NUDGE_EMAIL_TYPES: LifecycleEmailType[] = [
   "no_first_story",
   "weekly_value",
   "feedback_request",
   "family_pack_prompt",
   "centre_planning_prompt",
+  "went_quiet",
+  "winback_offer",
+  "referral_invite",
+  "two_free_stories_used",
+  "free_limit_reached",
 ];
-const NUDGE_COOLDOWN_DAYS = 5;
+// At most one marketing email per user per week. Transactional mail (receipts,
+// payment failures, trial ending, password, referral earned) is never capped,
+// because withholding those would be worse than sending them.
+const NUDGE_COOLDOWN_DAYS = 7;
 
 async function hasRecentNudgeEmail(userId: string, sinceIso: string) {
   const { data } = await createAdminSupabase()
@@ -148,7 +159,8 @@ export async function sendLifecycleEmail(params: SendLifecycleEmailParams) {
   }
 
   // Anti-spam frequency cap: at most one "nudge" email per user per window.
-  if (!params.force && NUDGE_EMAIL_TYPES.includes(params.type)) {
+  const isMarketing = email.marketing || NUDGE_EMAIL_TYPES.includes(params.type);
+  if (!params.force && isMarketing) {
     const since = new Date(Date.now() - NUDGE_COOLDOWN_DAYS * 24 * 60 * 60 * 1000).toISOString();
     if (await hasRecentNudgeEmail(params.userId, since)) {
       await logEmailEvent({

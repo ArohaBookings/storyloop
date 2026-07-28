@@ -121,6 +121,17 @@ function layout({
         .sl-btn { background:#b3774c !important; }
         .sl-btn a { color:#1b1611 !important; }
       }
+      /* Outlook (windows/web/mobile) signals dark mode with these attributes
+         rather than prefers-color-scheme, so the same overrides are repeated. */
+      [data-ogsc] .sl-bg { background:#17130f !important; }
+      [data-ogsc] .sl-card { background:#241f1b !important; border-color:#3a332c !important; }
+      [data-ogsc] .sl-header { background:#2a231e !important; }
+      [data-ogsc] .sl-eyebrow { color:#dcab80 !important; }
+      [data-ogsc] .sl-title { color:#f5ede3 !important; }
+      [data-ogsc] .sl-body, [data-ogsc] .sl-body p { color:#e7ded3 !important; }
+      [data-ogsc] .sl-body a { color:#e7a976 !important; }
+      [data-ogsc] .sl-footer, [data-ogsc] .sl-footer p { color:#a99f95 !important; }
+      [data-ogsc] .sl-footer a { color:#e7a976 !important; }
       @media only screen and (max-width:480px) {
         .sl-pad { padding:22px !important; }
         .sl-title { font-size:24px !important; }
@@ -129,10 +140,10 @@ function layout({
   </head>
   <body class="sl-bg" style="margin:0;background:#f8f1e7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Inter,Manrope,Arial,sans-serif;color:#24201d;">
     <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">${esc(preview)}</div>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="sl-bg" style="background:#f8f1e7;padding:28px 12px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#f8f1e7" class="sl-bg" style="background:#f8f1e7;padding:28px 12px;">
       <tr>
         <td align="center">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="sl-card" style="max-width:640px;background:#fffdf8;border:1px solid #eadbcc;border-radius:28px;overflow:hidden;box-shadow:0 18px 45px rgba(64,43,31,.08);">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#fffdf8" class="sl-card" style="max-width:640px;background:#fffdf8;border:1px solid #eadbcc;border-radius:28px;overflow:hidden;box-shadow:0 18px 45px rgba(64,43,31,.08);">
             <tr>
               <td class="sl-header sl-pad" style="padding:28px 28px 18px;border-bottom:1px solid #efe3d7;background:linear-gradient(135deg,#fffaf1,#f4eadf);">
                 <p class="sl-eyebrow" style="margin:0 0 6px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:#9a6b46;">StoryLoop</p>
