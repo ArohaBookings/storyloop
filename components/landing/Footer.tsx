@@ -4,7 +4,7 @@ import AnimatedLogo from "@/components/brand/AnimatedLogo";
 export default function Footer() {
   return (
     <footer className="bg-ink-900 text-ink-200 py-16">
-      <div className="wide-shell">
+      <div className="edge-shell">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
           {/* Brand */}
           <div className="md:col-span-2 max-w-md">

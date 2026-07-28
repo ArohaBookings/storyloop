@@ -96,6 +96,17 @@
     padding-inline: clamp(1rem, 2.2vw, 2.5rem);
   }
 
+  /* Header and footer are chrome, not reading material, so they run the full
+     width of the viewport at every size. Padding scales with the viewport
+     instead of a fixed cap, which is what stops a 2560px monitor showing a
+     narrow band of content marooned in the middle. Body copy keeps its own
+     narrower measure, because a 2000px line length is unreadable. */
+  .edge-shell {
+    width: 100%;
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 3.5vw, 4rem);
+  }
+
   .reading-shell {
     width: min(100%, 1120px);
     margin-inline: auto;
