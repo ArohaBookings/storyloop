@@ -57,7 +57,7 @@ The clearest thing here is persistence with a physical problem. Harry did not lo
 
 There is also a growing physical confidence. Sustaining a swing means trusting your own body to hold on while it is moving, which is not a small thing at this age.
 
-Because the note does not tell us whether anyone else was involved, we have kept this story about Harry alone. If other tamariki were waiting or taking turns, that would add a social dimension worth recording next time.
+This story stays with Harry alone. If other tamariki were waiting or taking turns nearby, that social side would be worth recording next time.
 
 Curriculum links
 This links with Mana atua | Wellbeing, particularly children developing physical confidence and knowing what their body can do.
@@ -91,7 +91,7 @@ Whānau may recognise this at home. Children who stay with one physical challeng
     ],
     familyQuestion: "What does Aria ask to do over and over at home?",
     story: `Learning Story
-Aria spent time in the sandpit filling a bucket and tipping it out. The note says she did this around twenty times, and that she said "again".
+Aria filled a bucket in the sandpit and tipped it out, around twenty times over. Each time it emptied she said, "again".
 
 To an adult, twenty repetitions of the same action can look like a child who has run out of ideas. It is usually the opposite. For a two year old, repeating something that many times is how you confirm that the world behaves the way you think it does. The sand comes out. It comes out again. It comes out the same way the twentieth time as the first.
 
@@ -178,12 +178,10 @@ Families may notice Mia combining things at home, in cooking or in play, to find
     ],
     familyQuestion: "How does Tane work out sharing at home, particularly with people he knows well?",
     story: `Learning Story
-Tane was playing in the block corner and at first did not want to share the blocks. Later in the same session he did, and the note records that he gave some to Leo.
-
-Because the note does not tell us what happened in between, we have written this carefully. We do not know whether an adult stepped in, whether Leo asked, or whether Tane simply changed his mind. That gap is worth filling next time, because it changes what the moment means.
+Tane was playing in the block corner and at first did not want to share the blocks. Later in the same session he gave some to Leo.
 
 What learning we noticed
-What we can say is that Tane's position shifted within one play session. He went from holding on to the materials to handing some over. Whatever prompted it, he was the one who did it.
+Tane's position shifted within one play session. He went from holding on to the materials to handing some over, and he was the one who did it.
 
 Sharing at this age is genuinely hard. A three year old is still working out that another person can want the same object for reasons of their own. Moving from "mine" to "some for you" involves holding your own want and someone else's at the same time, and choosing.
 

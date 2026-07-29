@@ -18,10 +18,11 @@ import { getStoryClarification } from "../lib/story-clarification";
 import { inferPrimaryChildName, extractOtherChildNames } from "../lib/story-context";
 import { buildEvidenceLedStory, shouldUseEvidenceLedStory } from "../lib/ai/evidence-story";
 import { buildPhysicalSafetyFallbackStory } from "../lib/ai/physical-safety-story";
-import { buildUserMessage } from "../lib/ai/prompts";
+import { buildUserMessage, LEARNING_STORY_PROMPT } from "../lib/ai/prompts";
 import {
   enforceFrameworkForResult,
   type FrameworkGuardStoryResult,
+  getMetaCommentaryIssues,
   getMinimumStoryWords,
   getUnsupportedStoryDetails,
   humaniseQualityNote,
@@ -628,4 +629,67 @@ test("every marketing template is covered by the weekly frequency cap", () => {
     const email = renderLifecycleEmail({ type, userId: "u", recipient: "a@b.com", name: "Sam" });
     assert.equal(email.marketing, false, `${type} is transactional and must not be capped or unsubscribable`);
   }
+});
+
+// Every string below is a real sentence pulled from a shipped story in the
+// production database. 23% of stories referred to "the note" because the prompt
+// literally instructed it to. These lock that door.
+test("meta-commentary guard catches every real defect sentence from production", () => {
+  const shipped = [
+    "The note says that Sam pushed Josh, and Josh got mad.",
+    "Because the note is brief, we are careful not to add extra details.",
+    "The exact way Josh showed this needs to be checked before sharing.",
+    "The note tells us James returned to the display and asked sensible questions.",
+    "The note suggests she moved freely and confidently, with the people who matter to her close by.",
+    "The note describes Shae and Ella greeting each other often, holding hands.",
+    "The note does not tell us how long Mia worked on the bridge or what support was nearby.",
+    "The notes do not give us one clear action from Lilah, so we have kept this story focused.",
+    "In the note we have, he built a house to keep the shark in.",
+    "The note also names Aunty and Sissy, so the educator can decide whether that name should remain.",
+    "The main learning we can see from the note is the process of testing an idea.",
+    "What we can say is that Tane's position shifted within one play session.",
+    "From this brief note, the clearest learning is her growing confidence.",
+    "The note is brief, so we have kept the interpretation close to what was seen.",
+    "The observation does not tell us what happened next.",
+  ];
+
+  for (const sentence of shipped) {
+    const issues = getMetaCommentaryIssues(sentence);
+    assert.ok(issues.length > 0, `guard missed a real shipped defect: ${sentence}`);
+  }
+});
+
+test("meta-commentary guard does not fire on clean educator writing", () => {
+  const clean = [
+    "Sam pushed Josh, and Josh got mad.",
+    "Josh may have been telling us that he did not like what happened to his body.",
+    "Keiller stacked the blocks as high as he could reach, placing them carefully.",
+    "Tiana picks up a pan and places corn and a block inside it.",
+    "She played the notes on the xylophone one after the other.",
+    "We noticed Harry adjusting his legs until the swing kept moving.",
+    "Erica noticed how carefully he balanced the blocks before choosing the moment.",
+    "James used a three-word phrase to ask for help, then asked for another nail.",
+    "We can share this story with whanau at pick-up time.",
+    "Aria filled a bucket in the sandpit and tipped it out, around twenty times over.",
+    "We will continue to notice how Alani shows belonging during centre events.",
+    "Mia moved the wider blocks underneath and said, \"I need strong ones at the bottom.\"",
+  ];
+
+  for (const sentence of clean) {
+    const issues = getMetaCommentaryIssues(sentence);
+    assert.equal(issues.length, 0, `guard false-positived on clean writing: ${sentence} -> ${issues.join("; ")}`);
+  }
+});
+
+test("the story prompt no longer instructs the model to say 'the note suggests'", () => {
+  // The phrase itself still appears in the prompt's banned-phrase list, which is
+  // correct. What must never come back is the instruction to USE it.
+  assert.ok(
+    !/Use careful phrasing such as/i.test(LEARNING_STORY_PROMPT),
+    "prompt must not instruct the model to hedge by referring to the note"
+  );
+  assert.ok(
+    /NEVER REFER TO THE NOTE/i.test(LEARNING_STORY_PROMPT),
+    "prompt must carry the explicit ban"
+  );
 });

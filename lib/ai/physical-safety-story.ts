@@ -79,15 +79,6 @@ function getMinimumStoryWords(depth: StoryDepth) {
   return 280;
 }
 
-function cleanObservationSummary(observations: string) {
-  return observations
-    .replace(/\s+/g, " ")
-    .replace(/ignore (all )?previous/gi, "")
-    .replace(/system:/gi, "")
-    .trim()
-    .slice(0, 500);
-}
-
 function incidentFrameworkMetadata(framework: StoryFrameworkId) {
   if (framework === "NZ") {
     return {
@@ -198,7 +189,6 @@ export function buildPhysicalSafetyFallbackStory(
 ): PhysicalSafetyStoryResult {
   const child = params.childName?.trim() || "the child";
   const childLower = child === "the child" ? "the child" : child;
-  const observation = cleanObservationSummary(params.observations) || "The educator noted a brief social learning and safety moment.";
   const title = child === "the child" ? "A Social Learning and Safety Moment" : `Supporting ${child}'s Safe Play`;
   const framework = incidentFrameworkMetadata(params.framework);
   const frameworkName = params.framework === "NZ" ? "Te Whāriki" : "EYLF";
@@ -218,7 +208,7 @@ export function buildPhysicalSafetyFallbackStory(
     "",
     "What learning we noticed",
     `${child} is still learning how to manage a hard moment in play, how to communicate when something feels wrong, and how to return to a safe relationship after conflict. We can name this honestly while keeping the wording respectful and proportionate.`,
-    `The note says: "${observation}". Before this is shared with ${familyWord} or saved as a final record, ${voice.observer} should confirm whether anyone was hurt, what happened immediately before the physical action, what words were used, how long the moment lasted, and what support was given.`,
+    `Moments like this are how children learn where their body ends and someone else's begins. A strong feeling arrived faster than the words for it, and the physical response came out first. That is developmentally ordinary and still not okay, and both of those things can be true at once. What matters for ${child} now is having an adult close enough to help before the feeling turns into hands, and enough calm afterwards to rejoin the play without carrying shame from it.`,
     "",
     curriculumHeading,
     ...framework.curriculumLinks,

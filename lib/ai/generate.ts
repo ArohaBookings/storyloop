@@ -8,6 +8,7 @@ import {
   enforceFrameworkForResult,
   getMinimumStoryWords,
   getUnsupportedStoryDetails,
+  getMetaCommentaryIssues,
   humaniseQualityNote,
   resultHasFrameworkLeak,
 } from "./quality-guards";
@@ -351,6 +352,7 @@ function computeStoryQuality(
       naturalEducatorTone: true,
       frameworkLinksFit: !resultHasFrameworkLeak(result, params.framework),
       noInventedDetails: getUnsupportedStoryDetails(result, params.observations).length === 0,
+      noNoteReferences: getMetaCommentaryIssues(result.story).length === 0,
       evidenceToLearningClear: result.evidenceAnchors.length > 0,
       familyReadable: true,
       usefulForDepth: actualWords >= getMinimumStoryWords(params.depth),
@@ -392,6 +394,9 @@ function getStoryRescueReasons(
     }
   }
   reasons.push(...getUnsupportedStoryDetails(result, params.observations));
+  // Writing about the note instead of the child is the one defect a family sees
+  // immediately, so it always earns a rewrite.
+  reasons.push(...getMetaCommentaryIssues(result.story));
   return reasons;
 }
 

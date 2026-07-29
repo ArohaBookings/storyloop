@@ -149,6 +149,61 @@ export function getUnsupportedStoryDetails(result: FrameworkGuardStoryResult, ob
   return Array.from(new Set(issues)).slice(0, 12);
 }
 
+/**
+ * A learning story is written about a child, never about the piece of paper the
+ * educator jotted down. Sentences like "The note says Sam pushed Josh" or
+ * "Because the note is brief, we are careful not to add extra details" show a
+ * family the machinery instead of their child, and they leak educator-facing QA
+ * language into the one field families actually read.
+ *
+ * These patterns are deliberately narrow. They require the note to be acting as
+ * a narrator ("the note says/does not/also names") rather than matching the bare
+ * word, so a child playing musical notes never trips the guard.
+ *
+ * Only ever run this on the story body. Assumptions and educatorChecks are
+ * educator-facing, and naming an evidence gap there is exactly right.
+ */
+const META_COMMENTARY_PATTERNS: Array<{ pattern: RegExp; label: string }> = [
+  {
+    pattern:
+      /\b(?:the|this|your)\s+notes?\s+(?:says?|said|tells?|told|suggests?|describes?|records?|mentions?|indicates?|shows?|gives?|is\s+brief|does\s*n[o']t|do\s*n[o']t|also\s+names)\b/i,
+    label: 'refers to "the note" as the narrator',
+  },
+  {
+    pattern: /\bfrom\s+(?:the|this)\s+(?:brief\s+|short\s+)?(?:note|observation)\b/i,
+    label: 'opens with "from this brief note"',
+  },
+  { pattern: /\bin\s+the\s+notes?\s+we\s+have\b/i, label: 'says "in the note we have"' },
+  { pattern: /\bbecause\s+the\s+notes?\b/i, label: 'explains itself with "because the note"' },
+  {
+    pattern: /\bthe\s+notes?\s+(?:is|are)\s+(?:brief|short|thin|sparse|limited)\b/i,
+    label: "comments on how brief the note is",
+  },
+  {
+    pattern: /\bthe\s+observation\s+(?:says?|tells?|suggests?|does\s*n[o']t)\b/i,
+    label: 'refers to "the observation" as the narrator',
+  },
+  { pattern: /\bwhat\s+we\s+can\s+say\s+is\b/i, label: 'hedges with "what we can say is"' },
+  { pattern: /\bwe\s+are\s+careful\s+not\s+to\b/i, label: "narrates its own caution" },
+  {
+    pattern: /\bbefore\s+(?:this\s+is\s+|it\s+is\s+|being\s+)?shar(?:ed|ing)\b/i,
+    label: "puts a before-sharing caveat in the story body",
+  },
+  { pattern: /\bneeds?\s+to\s+be\s+(?:checked|confirmed)\b/i, label: "puts a QA flag in the story body" },
+];
+
+/** Meta-commentary found in the story body. Empty means clean. */
+export function getMetaCommentaryIssues(story: string) {
+  const issues: string[] = [];
+  for (const { pattern, label } of META_COMMENTARY_PATTERNS) {
+    const match = story.match(pattern);
+    if (match) {
+      issues.push(`Story ${label}: "${match[0].trim()}". Write about the child, not about the note.`);
+    }
+  }
+  return issues;
+}
+
 const QUALITY_NOTE_LABELS: Record<string, string> = {
   naturalEducatorTone: "The draft uses a natural educator tone.",
   childVoiceSupported: "Child voice is only used when the observation supports it.",
@@ -160,6 +215,7 @@ const QUALITY_NOTE_LABELS: Record<string, string> = {
   notPoetic: "The tone avoids poetic or sentimental language.",
   notAISounding: "The draft does not read like generic AI copy.",
   noMetaCommentary: "The story avoids draft-review commentary.",
+  noNoteReferences: "The story is written about the child, not about the note.",
   educatorVoice: "The story uses educator or centre voice.",
   preciseObservedActions: "Observed actions are described precisely.",
   noInventedDetails: "The draft avoids invented details.",

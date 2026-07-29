@@ -468,7 +468,11 @@ export function buildEvidenceLedStory(
   const frameworkName = params.framework === "NZ" ? "Te Whāriki" : "EYLF";
   const familyWord = params.framework === "NZ" ? "whānau" : "families";
   const childVoice = quote ? `${child} said, "${quote}".` : "";
-  const peerPhrase = otherChildren.length > 0 ? ` The note also names ${otherChildren.join(" and ")}, so the educator can decide whether that name should remain in the final family-facing version.` : "";
+  // Peer names and "before sharing" reminders are educator-facing. They must
+  // never appear in the story body, which is what a family reads.
+  const peerCheck = otherChildren.length > 0
+    ? `Another child (${otherChildren.join(" and ")}) is named in your notes. Decide whether that name should stay in the family-facing version.`
+    : "";
   const evidenceLine = fragments.slice(0, 3).map((item) => item.replace(/[.!?]*$/, "")).join("; ");
   const voice = educatorVoice(params.educatorNames);
   const curriculumHeading = params.framework === "NZ" ? "Te Whāriki links" : "EYLF links";
@@ -490,10 +494,7 @@ export function buildEvidenceLedStory(
   ];
 
   if (params.depth !== "concise") {
-    paragraphs.push(
-      extensionParagraph(domain, child, params.educatorNames),
-      `Before sharing, ${voice.observer} can add any missing details that would make the story more personal: where it happened, what materials were used, exact words or gestures, how long ${child} stayed with the moment, and how an adult responded.${peerPhrase}`
-    );
+    paragraphs.push(extensionParagraph(domain, child, params.educatorNames));
   }
 
   if (params.depth === "detailed") {
@@ -513,7 +514,7 @@ export function buildEvidenceLedStory(
     story,
     outcomes: framework.outcomes,
     curriculumLinks: framework.curriculumLinks,
-    learningSummary: `${child} was showing ${lens.summary}. The story stays close to the recorded actions and can be strengthened with any exact words, setting details, or educator responses.`,
+    learningSummary: `${child} was showing ${lens.summary}, visible in the actions recorded in this moment.`,
     childVoice,
     learningDispositions: lens.dispositions,
     socialEmotionalLinks: lens.social,
@@ -533,6 +534,7 @@ export function buildEvidenceLedStory(
       `What exact words, sounds, gestures, or choices did ${child} use?`,
       "What adult response, setting, or material detail should be added before sharing?",
       `Does this ${frameworkName} link match the strongest learning in the observation?`,
+      ...(peerCheck ? [peerCheck] : []),
     ],
     pedagogyLinks: framework.pedagogyLinks,
     frameworkEvidence: framework.frameworkEvidence,
