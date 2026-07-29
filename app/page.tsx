@@ -16,6 +16,11 @@ import Reviews from "@/components/landing/Reviews";
 import WhoItsFor from "@/components/landing/WhoItsFor";
 import PageTracker from "@/components/analytics/PageTracker";
 
+// Keep the landing static for speed, but regenerate every 5 minutes so a review
+// published in the admin appears without waiting for a redeploy. Build stays
+// safe with no database: the reviews read is guarded and returns empty.
+export const revalidate = 300;
+
 export const metadata: Metadata = {
   alternates: { canonical: "https://storyloop.space/" },
   openGraph: {
