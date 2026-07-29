@@ -25,6 +25,12 @@ type MatrixCase = {
 
 const cases: MatrixCase[] = [
   {
+    label: "AU brief social play and community outing",
+    observation:
+      "John played with the kids, John played hide and seek, he played with Phoebe on the playground, then we went shopping. We took him shopping as well which made his day.",
+    child: "John",
+  },
+  {
     label: "AU water working theory with peer collaboration",
     observation:
       'Ariana, aged 3, filled a small jug at the water trough and poured it into a clear container. When it spilled, she said "we needs a bigga bucket". Ariana asked Luca to hold the funnel, poured more slowly, and said "we did it" when the water stayed inside.',

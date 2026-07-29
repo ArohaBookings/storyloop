@@ -120,6 +120,10 @@ test("clarification gate fires only on genuinely thin or unsafe notes", () => {
     false
   );
   assert.equal(gated("Mia stacked the cups into a tower and knocked them down, then did it again."), false);
+  assert.equal(
+    gated("John played with the kids, John played hide and seek, he played with Phoebe on the playground, then we went shopping. We took him shopping as well which made his day."),
+    false
+  );
 });
 
 test("billing states preserve grace access and block failed subscriptions", () => {
@@ -289,6 +293,23 @@ test("clarification asks valid questions before unsafe or vague notes become sto
   assert.ok(vague.questions.join(" ").includes("Ruby"));
   assert.ok(/did|where|materials|respond|support|extend/i.test(vague.questions.join(" ")));
   assert.equal(/learning or response do you want/i.test(vague.questions.join(" ")), false);
+
+  const painting = getStoryClarification({
+    observations: "Ella enjoyed painting.",
+    childName: "Ella",
+  });
+  assert.equal(painting.kind, "thin_observation");
+  assert.ok(painting.questions.length > 0 && painting.questions.length <= 3);
+  assert.match(painting.questions[0], /Ella/);
+  assert.match(painting.questions[0], /art experience/);
+
+  const socialPlay = getStoryClarification({
+    observations: "John played hide and seek with Phoebe.",
+    childName: "John",
+  });
+  assert.equal(socialPlay.questions.length <= 3, true);
+  assert.match(socialPlay.questions.join(" "), /hide and seek/);
+  assert.match(socialPlay.questions.join(" "), /Phoebe/);
 
   const ready = getStoryClarification({
     observations: "Maya lay on the mat and watched the scarf move above her. She smiled when I paused, then kicked her legs until I moved it again.",

@@ -1,5 +1,25 @@
 import type { Metadata } from "next";
+import { Fraunces, JetBrains_Mono, Manrope } from "next/font/google";
 import "./globals.css";
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  display: "swap",
+  variable: "--font-fraunces",
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-manrope",
+});
+
+const jetBrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-jetbrains-mono",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://storyloop.space"),
@@ -102,12 +122,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en-AU">
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,400;1,9..144,600&family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       </head>
-      <body>{children}</body>
+      <body className={`${fraunces.variable} ${manrope.variable} ${jetBrainsMono.variable}`}>{children}</body>
     </html>
   );
 }

@@ -38,7 +38,7 @@ export default function ObservationCoach({
             <p className="flex items-center gap-1.5 font-bold text-clay-700">
               <LockKeyhole className="h-3.5 w-3.5" /> Observation Coach
             </p>
-            <p className="mt-1">Educator plans show the exact missing-detail checklist before the AI writes.</p>
+            <p className="mt-1">Educator plans suggest optional details that could make the draft more specific.</p>
             <Link href="/billing?feature=observation-coach" className="mt-1 inline-block font-bold text-clay-700 hover:text-clay-900">
               Unlock coach
             </Link>

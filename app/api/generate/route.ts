@@ -20,7 +20,10 @@ import {
 } from "@/lib/story-options";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { sendStoryMilestoneEmails } from "@/lib/email/automation";
-import { getStoryClarification } from "@/lib/story-clarification";
+import {
+  getStoryClarification,
+  MIN_STORY_OBSERVATION_CHARACTERS,
+} from "@/lib/story-clarification";
 import { inferPrimaryChildName } from "@/lib/story-context";
 
 function getClientIp(request: NextRequest): string {
@@ -87,11 +90,12 @@ export async function POST(request: NextRequest) {
       inputMethod,
       educatorNames,
       clarificationAnswers,
+      proceedWithoutClarification,
       demo,
     } = body;
 
-    if (!observations || observations.trim().length < 10) {
-      return NextResponse.json({ error: "Please add a few observations (at least 10 characters)" }, { status: 400 });
+    if (!observations || observations.trim().length < MIN_STORY_OBSERVATION_CHARACTERS) {
+      return NextResponse.json({ error: "Please add at least a very short observation" }, { status: 400 });
     }
 
     // DEMO MODE — public, rate limited per IP
@@ -101,7 +105,7 @@ export async function POST(request: NextRequest) {
         ? childName.trim()
         : inferPrimaryChildName(observations);
       const demoClarificationAnswers = normalizeClarificationAnswers(clarificationAnswers);
-      const demoClarification = demoClarificationAnswers.length === 0
+      const demoClarification = demoClarificationAnswers.length === 0 && proceedWithoutClarification !== true
         ? getStoryClarification({ observations, childName: demoChildName })
         : { needsClarification: false, kind: "ready" as const, reason: "", questions: [] };
       if (demoClarification.needsClarification) {
@@ -269,7 +273,7 @@ export async function POST(request: NextRequest) {
     const resolvedAgeGroup = selectedChild?.age_group ?? ageGroup;
     const resolvedEducatorNames = normalizeEducatorNames(educatorNames);
     const resolvedClarificationAnswers = normalizeClarificationAnswers(clarificationAnswers);
-    const clarification = resolvedClarificationAnswers.length === 0
+    const clarification = resolvedClarificationAnswers.length === 0 && proceedWithoutClarification !== true
       ? getStoryClarification({ observations, childName: resolvedChildName })
       : { needsClarification: false, kind: "ready" as const, reason: "", questions: [] };
     if (clarification.needsClarification) {

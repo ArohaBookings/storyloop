@@ -10,9 +10,9 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        display: ["'Fraunces'", "Georgia", "serif"],
-        body: ["'Manrope'", "system-ui", "sans-serif"],
-        mono: ["'JetBrains Mono'", "monospace"],
+        display: ["var(--font-fraunces)", "Georgia", "serif"],
+        body: ["var(--font-manrope)", "system-ui", "sans-serif"],
+        mono: ["var(--font-jetbrains-mono)", "monospace"],
       },
       colors: {
         cream: {
