@@ -10,8 +10,42 @@ export default async function Reviews() {
   const [reviews, summary] = await Promise.all([listPublishedReviews(9), reviewSummary()]);
   if (reviews.length === 0) return null;
 
+  const reviewJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "@id": "https://storyloop.space/#software",
+    name: "StoryLoop",
+    operatingSystem: "Web",
+    applicationCategory: "EducationalApplication",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "AUD",
+      description: "Free plan with three learning stories and ten Today Loop moments per month.",
+    },
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: summary.average,
+      ratingCount: summary.count,
+      bestRating: 5,
+      worstRating: 1,
+    },
+    review: reviews.map((review) => ({
+      "@type": "Review",
+      author: { "@type": "Person", name: review.displayName },
+      reviewBody: review.body,
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: review.rating,
+        bestRating: 5,
+        worstRating: 1,
+      },
+    })),
+  };
+
   return (
     <section className="border-y border-clay-100 bg-cream-50 py-20 md:py-24">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewJsonLd) }} />
       <div className="wide-shell">
         <div className="mx-auto mb-12 max-w-2xl text-center">
           <div className="mb-3 flex items-center justify-center gap-1.5">

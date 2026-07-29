@@ -13,7 +13,7 @@ type Band = {
   title: string;
   body: string;
   points: string[];
-  image: { src: string; alt: string; emoji: string; caption?: string };
+  image: { src: string; alt: string; caption?: string };
 };
 
 const BANDS: Band[] = [
@@ -24,8 +24,7 @@ const BANDS: Band[] = [
     points: ["Te Whāriki or EYLF links, with the reasoning", "Your rough note tidied into real prose", "Every word yours to change"],
     image: {
       src: "/images/writing.jpg",
-      alt: "A teacher smiling at their desk in a classroom",
-      emoji: "✍️",
+      alt: "Children and educators exploring a train track together in an early learning room",
       caption: "Evenings back, without losing your voice",
     },
   },
@@ -37,7 +36,6 @@ const BANDS: Band[] = [
     image: {
       src: "/images/children-learning.jpg",
       alt: "Children engaged in a learning activity with letter cards",
-      emoji: "🔤",
       caption: "About the real child in front of you",
     },
   },
@@ -50,7 +48,6 @@ function Band({ band, flip }: { band: Band; flip: boolean }) {
         <SiteImage
           src={band.image.src}
           alt={band.image.alt}
-          emoji={band.image.emoji}
           caption={band.image.caption}
           className="aspect-[4/3] w-full shadow-warm"
         />

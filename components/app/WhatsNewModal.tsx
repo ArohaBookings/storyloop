@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { BookOpen, Check, Copy, Gift, RefreshCw, ShieldCheck, Sparkles, X } from "lucide-react";
+import { BarChart3, BookOpen, Check, Copy, Gift, MessageCircleHeart, RefreshCw, ShieldCheck, Sparkles, Star, Sunrise, X } from "lucide-react";
 import { WHATS_NEW_ITEMS, type WhatsNewItem } from "@/lib/whats-new";
+import { PLAN_DEFINITIONS } from "@/lib/plans";
 
 type State = {
+  userId: string;
   showWhatsNew: boolean;
   showReferralIntro: boolean;
   code: string | null;
@@ -21,6 +23,10 @@ const ICONS: Record<WhatsNewItem["icon"], typeof Sparkles> = {
   voice: Sparkles,
   guides: BookOpen,
   refresh: RefreshCw,
+  today: Sunrise,
+  family: MessageCircleHeart,
+  centre: BarChart3,
+  review: Star,
 };
 
 /**
@@ -38,29 +44,46 @@ export default function WhatsNewModal() {
     let active = true;
     fetch("/api/whats-new")
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => { if (active && data && !data.error) setState(data); })
+      .then((data) => {
+        if (!active || !data || data.error) return;
+        const dismissalKey = `storyloop-whats-new-dismissed:${data.userId}`;
+        if (window.localStorage.getItem(dismissalKey)) {
+          setClosed(true);
+          void fetch("/api/whats-new", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "dismiss" }),
+            keepalive: true,
+          }).catch(() => {});
+          return;
+        }
+        setState(data);
+      })
       .catch(() => {});
     return () => { active = false; };
   }, []);
 
   const pages = state ? [state.showWhatsNew ? "updates" : null, state.showReferralIntro ? "referral" : null].filter(Boolean) as string[] : [];
 
-  const dismiss = () => {
+  const dismiss = useCallback(() => {
     setClosed(true);
+    if (state?.userId) {
+      window.localStorage.setItem(`storyloop-whats-new-dismissed:${state.userId}`, "1");
+    }
     void fetch("/api/whats-new", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "dismiss" }),
+      keepalive: true,
     }).catch(() => {});
-  };
+  }, [state?.userId]);
 
   useEffect(() => {
     if (closed || !pages.length) return;
     const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") dismiss(); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [closed, pages.length]);
+  }, [closed, dismiss, pages.length]);
 
   if (!state || closed || pages.length === 0) return null;
 
@@ -82,8 +105,11 @@ export default function WhatsNewModal() {
       role="dialog"
       aria-modal="true"
       aria-label="What's new in StoryLoop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) dismiss();
+      }}
     >
-      <div className="relative flex w-full max-w-md flex-col overflow-hidden rounded-3xl border border-clay-200 bg-paper shadow-warm">
+      <div className="relative flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-clay-200 bg-paper shadow-warm">
         <button
           type="button"
           onClick={dismiss}
@@ -94,9 +120,12 @@ export default function WhatsNewModal() {
         </button>
 
         {current === "updates" ? (
-          <div className="px-7 pb-6 pt-10">
+          <div className="min-h-0 overflow-y-auto px-5 pb-6 pt-10 sm:px-7">
             <h2 className="text-center font-display text-2xl font-bold text-ink-900">What&apos;s new in StoryLoop</h2>
-            <div className="mt-7 space-y-5">
+            <p className="mx-auto mt-2 max-w-lg text-center text-[13px] leading-relaxed text-ink-600">
+              The complete educator workflow is below. This card is shown only once; closing it dismisses it permanently for your account.
+            </p>
+            <div className="mt-7 grid gap-5 sm:grid-cols-2">
               {WHATS_NEW_ITEMS.map((item) => {
                 const Icon = ICONS[item.icon];
                 return (
@@ -111,6 +140,36 @@ export default function WhatsNewModal() {
                   </div>
                 );
               })}
+            </div>
+
+            <div className="mt-7 border-t border-clay-100 pt-6">
+              <div className="mb-4">
+                <p className="section-title mb-1">Everything available</p>
+                <h3 className="font-display text-xl font-bold text-ink-900">Every feature, listed by plan.</h3>
+                <p className="mt-1 text-xs leading-relaxed text-ink-500">
+                  Higher plans include the features in the plans before them.
+                </p>
+              </div>
+              <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+                {PLAN_DEFINITIONS.map((plan) => (
+                  <section key={plan.key} className="min-w-0 rounded-2xl border border-clay-100 bg-white p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-bold text-ink-900">{plan.name}</p>
+                      <span className="rounded-full bg-cream-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-clay-700">
+                        {plan.stories}
+                      </span>
+                    </div>
+                    <ul className="mt-3 space-y-1.5">
+                      {plan.features.map((feature) => (
+                        <li key={feature} className="flex items-start gap-2 text-[11px] leading-relaxed text-ink-600">
+                          <Check className="mt-0.5 h-3 w-3 shrink-0 text-sage-600" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+              </div>
             </div>
           </div>
         ) : (

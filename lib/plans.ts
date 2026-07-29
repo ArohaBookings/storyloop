@@ -3,6 +3,8 @@ export type CurrencyCode = "AUD" | "NZD";
 
 export type FeatureKey =
   | "coreStories"
+  | "todayLoop"
+  | "unlimitedTodayLoop"
   | "voiceTrial"
   | "unlimitedStories"
   | "observationCoach"
@@ -60,6 +62,7 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
     buyer: "Curious educators validating the writing style before changing habits.",
     features: [
       "3 learning stories per month",
+      "Today Loop (10 captured moments/month)",
       "Basic story quality guard",
       "Basic privacy and evidence check",
       "EYLF or Te Whāriki links",
@@ -85,6 +88,7 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
     buyer: "Individual educators who need fast drafts, family-ready outputs, and export formats.",
     features: [
       "Unlimited learning stories",
+      "Today Loop, unlimited captured moments",
       `Quill writing assistant (${EDUCATOR_ASSISTANT_MONTHLY} refines/month)`,
       "Voice notes and uploads",
       "Observation Coach prompts",
@@ -177,6 +181,8 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
 
 const FEATURE_REQUIREMENTS: Record<FeatureKey, PlanKey> = {
   coreStories: "free",
+  todayLoop: "free",
+  unlimitedTodayLoop: "educator",
   voiceTrial: "free",
   storyQualityGuard: "free",
   privacyEvidenceGuardian: "free",

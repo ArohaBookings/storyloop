@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { SEO_PAGE_SLUGS } from "@/lib/seo-pages";
+import { SEO_PAGES, SEO_PAGE_SLUGS } from "@/lib/seo-pages";
 import { listPublishedPosts } from "@/lib/blog";
 
 const SITE_URL = "https://storyloop.space";
@@ -11,6 +11,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const base: MetadataRoute.Sitemap = [...staticPages, ...SEO_PAGE_SLUGS].map((slug) => ({
     url: slug ? `${SITE_URL}/${slug}` : `${SITE_URL}/`,
+    lastModified: slug && SEO_PAGES[slug]?.reviewedAt
+      ? new Date(`${SEO_PAGES[slug].reviewedAt}T00:00:00.000Z`)
+      : undefined,
     changeFrequency: slug ? "monthly" : "weekly",
     priority: slug ? 0.75 : 1,
   }));

@@ -1,4 +1,4 @@
-import { createAdminSupabase } from "@/lib/supabase/admin";
+import { createAdminSupabase, hasSupabaseAdminConfig } from "@/lib/supabase/admin";
 
 export type Review = {
   id: string;
@@ -44,6 +44,8 @@ export function shortenName(fullName: string) {
  * acceptable.
  */
 export async function listPublishedReviews(limit = 12): Promise<PublicReview[]> {
+  if (!hasSupabaseAdminConfig()) return [];
+
   try {
     const { data } = await createAdminSupabase()
       .from("reviews")
@@ -67,6 +69,8 @@ export async function listPublishedReviews(limit = 12): Promise<PublicReview[]> 
 }
 
 export async function reviewSummary() {
+  if (!hasSupabaseAdminConfig()) return { count: 0, average: 0 };
+
   try {
     const admin = createAdminSupabase();
     const { data } = await admin.from("reviews").select("rating").eq("status", "published");

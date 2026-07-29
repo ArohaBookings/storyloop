@@ -7,7 +7,7 @@ import PageTracker from "@/components/analytics/PageTracker";
 import { STORY_EXAMPLES } from "@/lib/story-examples";
 
 export const metadata: Metadata = {
-  title: "Learning story examples: rough notes turned into finished drafts | StoryLoop",
+  title: "Learning story examples: rough notes turned into finished drafts",
   description:
     "Real before and after examples of early childhood learning stories. See exactly what a scribbled note becomes, with Te Whariki and EYLF links, dispositions and next steps.",
   alternates: { canonical: "https://storyloop.space/examples" },

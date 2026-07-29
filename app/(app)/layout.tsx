@@ -40,7 +40,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         appliedAccessCode={profile?.applied_access_code ?? null}
         subscriptionStatus={profile?.subscription_status ?? null}
       />
-      <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden">{children}</main>
+      <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden pt-14 md:pt-0">{children}</main>
       {/* One-time welcome card: what changed, then the referral offer.
           Renders nothing once dismissed. */}
       <WhatsNewModal />

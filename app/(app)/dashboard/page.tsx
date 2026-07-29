@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AlertTriangle, ArrowRight, Brain, CheckCircle, LifeBuoy, Sparkles, Clock, BookOpen, TrendingUp, MessageCircleHeart, ClipboardList, Mic } from "lucide-react";
 import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
+import { redirect } from "next/navigation";
 
 export const metadata = { title: "Dashboard" };
 
@@ -13,16 +14,17 @@ export default async function DashboardPage({
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
   const params = await searchParams;
 
   const [{ data: profile }, { data: recentStories, count: totalStories }] = await Promise.all([
     supabase
       .from("profiles")
       .select("full_name, plan, subscription_status, stories_this_month, monthly_story_limit_override, applied_access_code, stripe_customer_id")
-      .eq("id", user!.id)
+      .eq("id", user.id)
       .single(),
     supabase.from("stories").select("id, story_text, outcomes, age_group, child_name, created_at", { count: "exact" })
-      .eq("user_id", user!.id).order("created_at", { ascending: false }).limit(3),
+      .eq("user_id", user.id).order("created_at", { ascending: false }).limit(3),
   ]);
 
   const firstName = profile?.full_name?.split(" ")[0] ?? "there";

@@ -137,6 +137,86 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       ...sharedFaqs,
     ],
   },
+  "today-loop-ece": {
+    slug: "today-loop-ece",
+    title: "Today Loop for ECE Observation and Planning",
+    description:
+      "Capture real ECE moments in seconds, revisit open next steps, and decide later what deserves a learning story or planning response.",
+    kicker: "Daily ECE workflow",
+    heading: "Capture the moment now. Make the documentation decision later.",
+    intro:
+      "Today Loop is a lightweight daily observation inbox for early childhood educators. It brings forward unfinished moments and open next steps without turning children into scores or asking educators to complete another daily sheet.",
+    sections: [
+      {
+        title: "A daily focus drawn from work you already did",
+        body:
+          "StoryLoop surfaces up to three prompts from unfinished captures, open next steps, and saved story history. The prompts are for attention and follow-up, not compliance or educator surveillance.",
+      },
+      {
+        title: "Text-first capture in roughly 20 seconds",
+        body:
+          "Save one real action, quote, attempt, change, or question. A child is optional, a photo is never required, and analysis can wait until there is time away from the floor.",
+      },
+      {
+        title: "An inbox designed to be cleared",
+        body:
+          "A moment can become a learning story, be held for planning, or be archived. StoryLoop does not suggest that every observation needs a polished story.",
+      },
+    ],
+    deepDive: [
+      {
+        heading: "Why the daily workflow starts with less data entry",
+        paragraphs: [
+          "A 2025 Australian study reported that educators spent less than 30 percent of their day in focused interaction with children, while many also reported substantial unpaid work. A daily feature that creates another compulsory form would make the wrong problem bigger.",
+          "Today Loop therefore keeps the capture small and the decision explicit. It is a memory and follow-up tool, not an attendance, routine, incident, consent, or regulatory records system.",
+        ],
+      },
+      {
+        heading: "How it fits assessment and planning in Aotearoa",
+        paragraphs: [
+          "Te Whāriki guidance describes assessment and planning through noticing, recognising, responding, recording and revisiting, supported by formal and informal assessment and partnership with whānau.",
+          "Today Loop supports the noticing and revisiting rhythm while leaving the educator to decide what should be formally recorded and shared.",
+        ],
+      },
+      {
+        heading: "Why a photo is never required",
+        paragraphs: [
+          "Australian child-safety changes place stronger expectations on policies for taking, using, storing and destroying images, including authorised-device practices. A text-first capture gives educators a useful default when an image is unnecessary.",
+          "Each service remains responsible for its own policies, consent, records and approved systems. StoryLoop helps with drafting and reflection; it does not replace those obligations.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Do I have to capture a moment every day?",
+        answer: "No. Today Loop is available when it helps. An empty inbox is treated as a healthy state, not a missed target.",
+      },
+      {
+        question: "Does every Today Loop moment become a story?",
+        answer: "No. You choose whether to turn it into a story, hold it for planning, or archive it.",
+      },
+      {
+        question: "How much of Today Loop is free?",
+        answer: "The Free plan includes 10 captured moments per month. Educator and higher plans include unlimited captured moments.",
+      },
+      ...sharedFaqs,
+    ],
+    reviewedAt: "2026-07-29",
+    sources: [
+      {
+        label: "University of Sydney: educator workload and child-facing time (2025)",
+        url: "https://www.sydney.edu.au/news-opinion/news/2025/07/16/childcare-educators-spend-less-than-30-percent-of-time-in-focused-interaction-with-children-research.html",
+      },
+      {
+        label: "New Zealand Ministry of Education: Assessment, planning and evaluation",
+        url: "https://tewhariki.tahurangi.education.govt.nz/te-whariki-online/assessment-planning-and-evaluation/5637165598.p",
+      },
+      {
+        label: "ACECQA: National Model Code for taking images or videos",
+        url: "https://www.acecqa.gov.au/national-model-code-images-ecec",
+      },
+    ],
+  },
   "story-quality-check": {
     slug: "story-quality-check",
     title: "Story Quality Check for Learning Stories",

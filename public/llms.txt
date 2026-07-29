@@ -5,11 +5,13 @@
 ## What it does
 
 - Turns observations (typed, pasted, or voice) into a complete learning story draft in about 15-25 seconds.
+- Today Loop captures one real moment in seconds, surfaces up to three follow-up prompts from unfinished work, and lets the educator turn it into a story, hold it for planning, or archive it.
 - Cleans rough, messy notes into clear prose without inventing details.
 - Adds curriculum links (Te Whāriki strands or EYLF V2.0 outcomes), learning dispositions, child voice, family/whānau connection, and practical next steps.
 - Lets educators choose tone (natural, warm, professional, simple) and depth (concise, balanced, detailed), which visibly change the writing.
 - Handles sparse notes honestly (it names the evidence limits) and frames physical-conflict moments as safety and social-emotional learning, not play.
 - Offers Family Connection Packs, family translation, Backlog Rescue, child learning continuity, and centre Room Planning Briefs on higher plans.
+- Accepts educator reviews from Support; reviews remain private until an administrator publishes them, then show only a first name and last initial.
 
 ## Who it is for
 
@@ -17,8 +19,8 @@ Early childhood educators and teachers in New Zealand and Australia — both new
 
 ## Pricing (AUD)
 
-- Free — $0 — 3 stories per month.
-- Educator — $19/month — unlimited stories, exports, Family Connection Pack, Backlog Rescue.
+- Free — $0 — 3 stories and 10 Today Loop moments per month.
+- Educator — $19/month — unlimited stories and Today Loop moments, exports, Family Connection Pack, Backlog Rescue.
 - Educator Pro — $29/month — adds family reply loop, translation, child continuity, advanced quality score.
 - Centre Starter — $99/month per centre — adds centre calibration, planning board, documentation radar, admin.
 - Centre Growth — $199/month per centre — adds director ROI dashboard and multi-room analytics.
@@ -31,6 +33,7 @@ Early childhood educators and teachers in New Zealand and Australia — both new
 - Te Whāriki learning stories (NZ): https://storyloop.space/te-whariki-learning-stories
 - EYLF learning stories (Australia): https://storyloop.space/australia-eylf-learning-stories
 - Learning story generator: https://storyloop.space/learning-story-generator
+- Today Loop for ECE: https://storyloop.space/today-loop-ece
 - Full topic index: https://storyloop.space/sitemap.xml
 
 ## Privacy

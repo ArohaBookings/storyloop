@@ -1,4 +1,4 @@
-import { createAdminSupabase } from "@/lib/supabase/admin";
+import { createAdminSupabase, hasSupabaseAdminConfig } from "@/lib/supabase/admin";
 
 export type BlogPost = {
   id: string;
@@ -44,6 +44,8 @@ export async function listPublishedPosts(limit = 50) {
   // Runs during static generation of /blog and the sitemap, so it must never
   // throw. If the database is unreachable at build time the blog simply shows
   // nothing rather than failing the whole deploy.
+  if (!hasSupabaseAdminConfig()) return [] as BlogPost[];
+
   try {
     const { data } = await createAdminSupabase()
       .from("blog_posts")
@@ -59,6 +61,8 @@ export async function listPublishedPosts(limit = 50) {
 }
 
 export async function getPublishedPost(slug: string) {
+  if (!hasSupabaseAdminConfig()) return null;
+
   try {
     const { data } = await createAdminSupabase()
       .from("blog_posts")

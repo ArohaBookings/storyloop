@@ -4,6 +4,7 @@ import {
   MessageCircleHeart,
   PenLine,
   ShieldCheck,
+  Sunrise,
   type LucideIcon,
 } from "lucide-react";
 
@@ -16,6 +17,17 @@ type FeatureGroup = {
 };
 
 const GROUPS: FeatureGroup[] = [
+  {
+    icon: Sunrise,
+    theme: "Daily practice",
+    promise: "Capture the real moment now, then decide later what deserves a story or planning response.",
+    items: [
+      { title: "Today Loop", desc: "A one-screen daily focus drawn from unfinished captures, open next steps, and your own saved history." },
+      { title: "20-second moment capture", desc: "Save one action, quote, attempt, or change without filling out an analysis form." },
+      { title: "Decision inbox", desc: "Turn a moment into a story, hold it for planning, or archive it so notes do not become another backlog." },
+      { title: "Text first by default", desc: "A photo is never required, helping services keep image capture deliberate and policy-led." },
+    ],
+  },
   {
     icon: PenLine,
     theme: "Draft faster",

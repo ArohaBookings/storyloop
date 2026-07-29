@@ -38,6 +38,13 @@ type Metrics = {
   referrals: { total: number; pending: number; credited: number; credit_cents: number };
 };
 
+type ProductHealth = {
+  window_days: number;
+  quality: { stories: number; scored: number; average_score: number; passed: number; pass_rate: number };
+  today_loop: { captures: number; active_users: number; open: number; planned: number; story_ready: number; archived: number };
+  reviews: { pending: number; published: number; hidden: number };
+};
+
 function pct(part: number, total: number) {
   if (!total) return 0;
   return Math.round((part / total) * 100);
@@ -76,13 +83,14 @@ export default async function GrowthPage() {
 
   const sb = createAdminSupabase();
   const started = Date.now();
-  const [{ data: metricsRaw, error }, { data: recentRows }] = await Promise.all([
+  const [{ data: metricsRaw, error }, { data: recentRows }, { data: productRaw }] = await Promise.all([
     sb.rpc("admin_dashboard_metrics"),
     sb
       .from("profiles")
       .select("id, email, full_name, plan, subscription_status, total_stories, created_at, last_story_at, signup_source, signup_campaign, signup_referrer_host, referral_code, is_internal")
       .order("created_at", { ascending: false })
       .limit(60),
+    sb.rpc("admin_product_health", { p_days: 30 }),
   ]);
   const queryMs = Date.now() - started;
 
@@ -98,6 +106,12 @@ export default async function GrowthPage() {
   }
 
   const m = metricsRaw as Metrics;
+  const product = (productRaw ?? {
+    window_days: 30,
+    quality: { stories: 0, scored: 0, average_score: 0, passed: 0, pass_rate: 0 },
+    today_loop: { captures: 0, active_users: 0, open: 0, planned: 0, story_ready: 0, archived: 0 },
+    reviews: { pending: 0, published: 0, hidden: 0 },
+  }) as ProductHealth;
   const recent = (recentRows ?? []).filter((r) => !r.is_internal && !(r.email ?? "").startsWith("qa-"));
 
   const mrr = Object.entries(m.revenue.by_plan).reduce(
@@ -137,6 +151,56 @@ export default async function GrowthPage() {
             <Stat label="ARPU" value={`$${arpu}`} />
             <Stat label="At risk" value={m.revenue.at_risk} sub="failed / past due" tone={m.revenue.at_risk ? "warn" : "default"} />
             <Stat label="Churned" value={m.revenue.churned} sub={`${churnShare}% of all who paid`} tone={churnShare > 20 ? "warn" : "default"} />
+          </div>
+        </section>
+
+        {/* Product health: direct values remain visible without hover, and the
+            bars compare workflow decisions rather than ranking people. */}
+        <section className="mt-7 grid gap-5 lg:grid-cols-2">
+          <div className="rounded-2xl border border-ink-800 bg-ink-900/60 p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-bold uppercase tracking-wide text-ink-300">Story quality · 30 days</h2>
+                <p className="mt-1 text-xs text-ink-500">Server-side checks; educator review remains the final gate.</p>
+              </div>
+              <p className="font-display text-4xl font-bold text-sage-300">{product.quality.average_score || "—"}</p>
+            </div>
+            <div className="mt-5 grid grid-cols-3 gap-3">
+              <Stat label="Generated" value={product.quality.stories} />
+              <Stat label="Scored" value={product.quality.scored} />
+              <Stat label="Quality pass" value={`${product.quality.pass_rate}%`} tone={product.quality.pass_rate >= 90 ? "good" : "warn"} />
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-ink-800 bg-ink-900/60 p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-bold uppercase tracking-wide text-ink-300">Today Loop · 30 days</h2>
+                <p className="mt-1 text-xs text-ink-500">{product.today_loop.active_users} educators captured {product.today_loop.captures} moments.</p>
+              </div>
+              <Link href="/admin/reviews" className="text-xs font-bold text-clay-300 hover:text-white">
+                {product.reviews.pending} reviews waiting →
+              </Link>
+            </div>
+            <div className="mt-5 space-y-3" role="img" aria-label="Today Loop moment decisions over the last 30 days">
+              {[
+                { label: "Open", value: product.today_loop.open, colour: "bg-amber-400" },
+                { label: "Held for planning", value: product.today_loop.planned, colour: "bg-sage-400" },
+                { label: "Turned into stories", value: product.today_loop.story_ready, colour: "bg-clay-400" },
+                { label: "Archived", value: product.today_loop.archived, colour: "bg-ink-500" },
+              ].map((row) => (
+                <div key={row.label} className="grid grid-cols-[8rem_minmax(0,1fr)_2rem] items-center gap-2 text-xs">
+                  <span className="text-ink-300">{row.label}</span>
+                  <span className="h-3 overflow-hidden rounded-full bg-ink-800">
+                    <span
+                      className={`block h-full rounded-full ${row.colour}`}
+                      style={{ width: `${pct(row.value, Math.max(product.today_loop.captures, 1))}%` }}
+                    />
+                  </span>
+                  <span className="text-right font-bold tabular-nums text-white">{row.value}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 

@@ -159,6 +159,7 @@ export default function GeneratePage() {
   const [familyQuestion, setFamilyQuestion] = useState("");
   const [followUpPrompt, setFollowUpPrompt] = useState("");
   const [sourceStoryId, setSourceStoryId] = useState("");
+  const [sourceCaptureId, setSourceCaptureId] = useState("");
   const [remaining, setRemaining] = useState<string | number>("");
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
@@ -302,6 +303,28 @@ export default function GeneratePage() {
         setError(followUpError instanceof Error ? followUpError.message : "Could not load the earlier story.");
       });
   }, [searchParams, sourceStoryId]);
+
+  useEffect(() => {
+    const captureId = searchParams.get("capture");
+    if (!captureId || captureId === sourceCaptureId) return;
+
+    void fetch(`/api/daily-captures/${encodeURIComponent(captureId)}`)
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "Could not load the captured moment.");
+        return data.capture;
+      })
+      .then((capture) => {
+        setObservations(capture.note ?? "");
+        setSelectedChildId(capture.child_id ?? "");
+        setChildName(capture.child_name ?? "");
+        setInputMethod("typed");
+        setSourceCaptureId(captureId);
+      })
+      .catch((captureError) => {
+        setError(captureError instanceof Error ? captureError.message : "Could not load the captured moment.");
+      });
+  }, [searchParams, sourceCaptureId]);
 
   useEffect(() => {
     return () => {
@@ -496,6 +519,13 @@ export default function GeneratePage() {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ followUpStatus: "revisited" }),
+        });
+      }
+      if (sourceCaptureId) {
+        void fetch(`/api/daily-captures/${encodeURIComponent(sourceCaptureId)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "story_ready" }),
         });
       }
       router.refresh();
