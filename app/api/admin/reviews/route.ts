@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { verifyAdmin } from "@/lib/admin-auth";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 
@@ -31,6 +32,7 @@ export async function POST(request: NextRequest) {
   if (action === "delete") {
     const { error } = await admin.from("reviews").delete().eq("id", id);
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    revalidatePath("/", "page");
     return NextResponse.json({ ok: true });
   }
 
@@ -41,6 +43,7 @@ export async function POST(request: NextRequest) {
         : { status: "hidden" };
     const { error } = await admin.from("reviews").update(update).eq("id", id);
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    revalidatePath("/", "page");
     return NextResponse.json({ ok: true });
   }
 

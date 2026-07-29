@@ -51,12 +51,12 @@ function pct(part: number, total: number) {
 }
 
 function Stat({ label, value, sub, tone = "default" }: { label: string; value: string | number; sub?: string; tone?: "default" | "good" | "warn" }) {
-  const ring = tone === "good" ? "border-sage-500/30" : tone === "warn" ? "border-amber-500/40" : "border-ink-800";
+  const ring = tone === "good" ? "border-sage-500/50" : tone === "warn" ? "border-amber-500/60" : "border-ink-700";
   return (
-    <div className={`rounded-2xl border ${ring} bg-ink-900/60 p-4`}>
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-400">{label}</p>
+    <div className={`rounded-2xl border ${ring} bg-ink-900 p-4`}>
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-300">{label}</p>
       <p className="mt-1 font-display text-2xl font-bold tabular-nums text-white">{value}</p>
-      {sub && <p className="mt-1 text-xs text-ink-400">{sub}</p>}
+      {sub && <p className="mt-1 text-xs text-ink-300">{sub}</p>}
     </div>
   );
 }
@@ -66,7 +66,7 @@ function Bars({ rows, max }: { rows: { day: string; count: number }[]; max: numb
     <div className="space-y-1.5">
       {rows.map((r) => (
         <div key={r.day} className="flex items-center gap-2 text-xs">
-          <span className="w-12 shrink-0 text-ink-400">{r.day.slice(5)}</span>
+          <span className="w-12 shrink-0 text-ink-300">{r.day.slice(5)}</span>
           <div className="h-3 flex-1 overflow-hidden rounded-full bg-ink-800">
             <div className="h-full rounded-full bg-clay-500" style={{ width: `${(r.count / max) * 100}%` }} />
           </div>
@@ -97,7 +97,7 @@ export default async function GrowthPage() {
   if (error || !metricsRaw) {
     return (
       <div className="min-h-screen bg-ink-950 p-8 text-white">
-        <Link href="/admin" className="text-sm text-ink-400 hover:text-white">← Back to admin</Link>
+        <Link href="/admin" className="text-sm text-ink-300 hover:text-white">← Back to admin</Link>
         <p className="mt-6 rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">
           Could not load metrics: {error?.message ?? "no data"}
         </p>
@@ -129,12 +129,12 @@ export default async function GrowthPage() {
   return (
     <div className="min-h-screen bg-ink-950 px-4 py-8 text-white md:px-8">
       <div className="mx-auto max-w-7xl">
-        <Link href="/admin" className="mb-6 inline-flex items-center gap-2 text-sm text-ink-400 hover:text-white">
+        <Link href="/admin" className="mb-6 inline-flex items-center gap-2 text-sm text-ink-300 hover:text-white">
           <ArrowLeft className="h-4 w-4" /> Back to admin
         </Link>
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h1 className="font-display text-3xl font-bold">Growth &amp; revenue</h1>
-          <p className="text-xs text-ink-500">
+          <p className="text-xs text-ink-400">
             aggregated in Postgres · {queryMs}ms · built to stay flat past 100k accounts
           </p>
         </div>
@@ -157,11 +157,11 @@ export default async function GrowthPage() {
         {/* Product health: direct values remain visible without hover, and the
             bars compare workflow decisions rather than ranking people. */}
         <section className="mt-7 grid gap-5 lg:grid-cols-2">
-          <div className="rounded-2xl border border-ink-800 bg-ink-900/60 p-5">
+          <div className="rounded-2xl border border-ink-700 bg-ink-900 p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h2 className="text-sm font-bold uppercase tracking-wide text-ink-300">Story quality · 30 days</h2>
-                <p className="mt-1 text-xs text-ink-500">Server-side checks; educator review remains the final gate.</p>
+                <p className="mt-1 text-xs text-ink-400">Server-side checks; educator review remains the final gate.</p>
               </div>
               <p className="font-display text-4xl font-bold text-sage-300">{product.quality.average_score || "—"}</p>
             </div>
@@ -172,11 +172,11 @@ export default async function GrowthPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-ink-800 bg-ink-900/60 p-5">
+          <div className="rounded-2xl border border-ink-700 bg-ink-900 p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h2 className="text-sm font-bold uppercase tracking-wide text-ink-300">Today Loop · 30 days</h2>
-                <p className="mt-1 text-xs text-ink-500">{product.today_loop.active_users} educators captured {product.today_loop.captures} moments.</p>
+                <p className="mt-1 text-xs text-ink-400">{product.today_loop.active_users} educators captured {product.today_loop.captures} moments.</p>
               </div>
               <Link href="/admin/reviews" className="text-xs font-bold text-clay-300 hover:text-white">
                 {product.reviews.pending} reviews waiting →
@@ -240,13 +240,13 @@ export default async function GrowthPage() {
 
         {/* Charts */}
         <section className="mt-7 grid gap-5 lg:grid-cols-2">
-          <div className="rounded-2xl border border-ink-800 bg-ink-900/60 p-5">
+          <div className="rounded-2xl border border-ink-700 bg-ink-900 p-5">
             <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-ink-300">
               <TrendingUp className="h-4 w-4" /> Signups per day
             </h2>
             {m.signups_per_day.length ? <Bars rows={m.signups_per_day} max={signupMax} /> : <p className="text-sm text-ink-400">No signups in 30 days.</p>}
           </div>
-          <div className="rounded-2xl border border-ink-800 bg-ink-900/60 p-5">
+          <div className="rounded-2xl border border-ink-700 bg-ink-900 p-5">
             <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-ink-300">
               <TrendingUp className="h-4 w-4" /> Stories per day
             </h2>
@@ -256,14 +256,14 @@ export default async function GrowthPage() {
 
         {/* Attribution: the money question */}
         <section className="mt-7 grid gap-5 lg:grid-cols-2">
-          <div className="rounded-2xl border border-ink-800 bg-ink-900/60 p-5">
+          <div className="rounded-2xl border border-ink-700 bg-ink-900 p-5">
             <h2 className="mb-1 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-ink-300">
               <Globe className="h-4 w-4" /> Where signups came from
             </h2>
-            <p className="mb-3 text-xs text-ink-500">Which channel produces customers, not just clicks.</p>
+            <p className="mb-3 text-xs text-ink-400">Which channel produces customers, not just clicks.</p>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="text-ink-500">
+                <thead className="text-ink-400">
                   <tr><th className="py-1.5 font-semibold">Source</th><th className="font-semibold">Signups</th><th className="font-semibold">Activated</th><th className="font-semibold">Paid</th><th className="font-semibold">Conv.</th></tr>
                 </thead>
                 <tbody className="divide-y divide-ink-800">
@@ -281,11 +281,11 @@ export default async function GrowthPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-ink-800 bg-ink-900/60 p-5">
+          <div className="rounded-2xl border border-ink-700 bg-ink-900 p-5">
             <h2 className="mb-1 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-ink-300">
               <Globe className="h-4 w-4" /> Traffic sources (30d)
             </h2>
-            <p className="mb-3 text-xs text-ink-500">Unique visitors before signup.</p>
+            <p className="mb-3 text-xs text-ink-400">Unique visitors before signup.</p>
             {m.traffic.by_source.length ? (
               <ul className="space-y-2">
                 {m.traffic.by_source.slice(0, 12).map((s) => (
@@ -296,8 +296,8 @@ export default async function GrowthPage() {
                 ))}
               </ul>
             ) : <p className="text-sm text-ink-400">No traffic recorded yet.</p>}
-            <div className="mt-4 border-t border-ink-800 pt-3">
-              <h3 className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-ink-400">
+            <div className="mt-4 border-t border-ink-700 pt-3">
+              <h3 className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-ink-300">
                 <Gift className="h-3.5 w-3.5" /> Referrals
               </h3>
               <p className="text-xs text-ink-300">
@@ -310,17 +310,17 @@ export default async function GrowthPage() {
 
         {/* Pages */}
         <section className="mt-7 grid gap-5 lg:grid-cols-2">
-          <div className="rounded-2xl border border-ink-800 bg-ink-900/60 p-5">
+          <div className="rounded-2xl border border-ink-700 bg-ink-900 p-5">
             <h2 className="mb-1 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-ink-300">
               <Globe className="h-4 w-4" /> Pages visited (30d)
             </h2>
-            <p className="mb-3 text-xs text-ink-500">
+            <p className="mb-3 text-xs text-ink-400">
               {m.traffic.pageviews_30d} views from {m.traffic.visitors_30d} people.
             </p>
             {m.traffic.by_page.length ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="text-ink-500">
+                  <thead className="text-ink-400">
                     <tr><th className="py-1.5 font-semibold">Page</th><th className="font-semibold">Views</th><th className="font-semibold">People</th></tr>
                   </thead>
                   <tbody className="divide-y divide-ink-800">
@@ -337,17 +337,17 @@ export default async function GrowthPage() {
             ) : <p className="text-sm text-ink-400">No page views recorded yet.</p>}
           </div>
 
-          <div className="rounded-2xl border border-ink-800 bg-ink-900/60 p-5">
+          <div className="rounded-2xl border border-ink-700 bg-ink-900 p-5">
             <h2 className="mb-1 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-ink-300">
               <MousePointerClick className="h-4 w-4" /> Landing pages that convert
             </h2>
-            <p className="mb-3 text-xs text-ink-500">
+            <p className="mb-3 text-xs text-ink-400">
               The first page each visitor saw, and whether they went on to reach signup.
             </p>
             {m.traffic.landing_pages.length ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="text-ink-500">
+                  <thead className="text-ink-400">
                     <tr><th className="py-1.5 font-semibold">Landed on</th><th className="font-semibold">Sessions</th><th className="font-semibold">Reached signup</th><th className="font-semibold">Rate</th></tr>
                   </thead>
                   <tbody className="divide-y divide-ink-800">
@@ -363,7 +363,7 @@ export default async function GrowthPage() {
                 </table>
               </div>
             ) : <p className="text-sm text-ink-400">No landing data yet.</p>}
-            <div className="mt-4 border-t border-ink-800 pt-3 text-xs text-ink-400">
+            <div className="mt-4 border-t border-ink-700 pt-3 text-xs text-ink-300">
               Devices: {m.traffic.by_device.map((d) => `${d.device} ${d.visitors}`).join(" · ") || "none"}
               <br />
               Countries: {m.traffic.by_country.slice(0, 8).map((c) => `${c.country} ${c.visitors}`).join(" · ") || "unknown"}
@@ -376,9 +376,9 @@ export default async function GrowthPage() {
           <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-ink-300">
             <AlertTriangle className="h-4 w-4" /> Newest accounts
           </h2>
-          <div className="overflow-x-auto rounded-2xl border border-ink-800">
+          <div className="overflow-x-auto rounded-2xl border border-ink-700">
             <table className="w-full min-w-[820px] text-left text-xs">
-              <thead className="bg-ink-900 text-ink-400">
+              <thead className="bg-ink-900 text-ink-300">
                 <tr>
                   <th className="px-3 py-2 font-semibold">Joined</th>
                   <th className="px-3 py-2 font-semibold">Who</th>
@@ -395,15 +395,15 @@ export default async function GrowthPage() {
                   const journey = !stories ? "signed up only" : paid ? "signed up → wrote → paid" : stories === 1 ? "1 story → stopped" : "writing";
                   return (
                     <tr key={p.id} className="text-ink-200">
-                      <td className="px-3 py-2 text-ink-400">{p.created_at.slice(0, 10)}</td>
+                      <td className="px-3 py-2 text-ink-300">{p.created_at.slice(0, 10)}</td>
                       <td className="px-3 py-2">
                         <div className="font-semibold text-white">{p.full_name || "—"}</div>
-                        <div className="text-[11px] text-ink-500">{p.email}</div>
+                        <div className="text-[11px] text-ink-400">{p.email}</div>
                       </td>
-                      <td className="px-3 py-2">{p.signup_source || p.signup_referrer_host || <span className="text-ink-600">unknown</span>}</td>
+                      <td className="px-3 py-2">{p.signup_source || p.signup_referrer_host || <span className="text-ink-400">unknown</span>}</td>
                       <td className="px-3 py-2">{p.plan}</td>
                       <td className="px-3 py-2 font-bold tabular-nums text-white">{stories}</td>
-                      <td className="px-3 py-2 text-ink-400">{journey}</td>
+                      <td className="px-3 py-2 text-ink-300">{journey}</td>
                     </tr>
                   );
                 })}
