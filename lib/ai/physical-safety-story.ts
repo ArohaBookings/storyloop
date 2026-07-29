@@ -139,7 +139,7 @@ function escapeRegExp(value: string) {
 function buildIncidentSequence(observations: string, childName?: string) {
   const child = childName?.trim();
   if (!child) {
-    return "The note records shared play followed by physical conflict, including unsafe physical responses that need adult support.";
+    return "Shared play was followed by physical conflict, including unsafe physical responses that need adult support.";
   }
 
   const escaped = escapeRegExp(child);
@@ -155,10 +155,10 @@ function buildIncidentSequence(observations: string, childName?: string) {
   ).test(observations);
 
   if (wasPushed && usedPhysicalResponse) {
-    return `${child} was playing with another child. The note records that another child pushed ${child}, ${child} did not like it, and ${child} responded with an unsafe physical action.`;
+    return `${child} was playing with another child. Another child pushed ${child}, ${child} did not like it, and ${child} responded with an unsafe physical action.`;
   }
   if (pushedOther && receivedPhysicalResponse) {
-    return `${child} was playing with another child. The note records that ${child} pushed, and another child then responded with an unsafe physical action.`;
+    return `${child} was playing with another child. ${child} pushed, and another child then responded with an unsafe physical action.`;
   }
   if (usedPhysicalResponse) {
     return `${child} was involved in shared play that became unsafe when ${child} used a physical response.`;
@@ -245,8 +245,8 @@ export function buildPhysicalSafetyFallbackStory(
     paragraphs.push(
       "",
       familyHeading,
-      `This may also need to sit beside the service's behaviour, injury, or incident process. The learning story can record the teaching response, but it should not replace required incident documentation, family communication, or centre policy. If another child is named in the rough note, ${voice.observer} may need to remove that name from the family-facing version.`,
-      `${voice.continue} look for repair and replacement skills next time: whether ${childLower} can use a word, gesture, pause, seek help, accept support, re-enter play safely, recognise when another child needs space, or show care after a hard moment with growing confidence.`
+      `This may also need to sit beside the service's behaviour, injury, or incident process. The learning story can record the teaching response, but it should not replace required incident documentation, family communication, or centre policy. If another child is named, ${voice.observer} may need to remove that name from the family-facing version.`,
+      `${voice.continue} look for repair and replacement skills next time: whether ${childLower} can use a word, gesture, pause, seek help, accept support, re-enter play safely, recognise when another child needs space, or show care after a hard moment with growing confidence. That follow-up can document the safer strategy ${childLower} uses, not only the earlier physical response.`
     );
   }
 

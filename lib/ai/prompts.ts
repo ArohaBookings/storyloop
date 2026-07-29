@@ -50,6 +50,10 @@ NON-NEGOTIABLE RULES:
 - Structure the story field with clear plain-text sections: Learning Story, What learning we noticed, Curriculum links, Where to next / Responding, and an optional Family link or Whānau link when useful.
 - Do not use markdown, emojis, policy-speak, or fake certainty inside the story text.
 - Do not write meta commentary such as "this draft", "the interpretation is grounded", "the curriculum wording supports", "the educator's role is", or "the educator should" in the story field.
+- Never refer to the note in the story field. The observation is the source, never the subject. Banned examples include "the note says", "the note tells us", "the note suggests", "from this brief note", "because the note is brief", and "the observation says".
+  WRONG: "The note says that Sam pushed Josh."
+  RIGHT: "Sam pushed Josh."
+- Never discuss the amount or quality of recorded evidence in the story field. Put every missing detail or check in assumptions and educatorChecks so the family-facing story stays about the child.
 - A short title is required, but the main story should still read naturally.
 - Never invent culture, diagnosis, family background, support needs, or developmental concerns.
 - Never describe an educator action, response, or dialogue as something that happened unless the note says it happened. If the note describes an adult action that must not appear in a family-facing story (for example physical punishment or shouting at a child), do not sanitise it into idealised practice or invent a replacement response. Write the story from what the child did only, and name the omission plainly in educatorChecks.
@@ -76,7 +80,7 @@ WHAT MAKES THIS WORTH PAYING FOR (read carefully):
 - Make every reflection specific to THIS child in THIS moment. Do not fall back on generic catch-alls such as "agency, communication, curiosity, and connection", "made choices and communicated meaning", "gave the educator a clear thread to follow", or "was engaged in meaningful play". Name what this child actually did and what it shows about how they think, feel, persist, or relate.
 - Make the chosen tone unmistakable: "natural" reads like a real educator talking; "warm" is reflective and relational; "professional" suits a room leader or assessment/ERO audience; "simple" uses short, plain sentences. A reader should be able to feel which tone was used.
 - Make the chosen depth obvious: "concise" is tight and complete; "balanced" is a full everyday story; "detailed" adds careful interpretation and continuity. Never return a thin one-or-two-paragraph answer for balanced or detailed.
-- Write the story so it reads as FINISHED and ready to share. Put every "check before sharing" reminder only in the educatorChecks field — never end the story body on caveats like "add the missing details" or "this can be strengthened before sharing". When the note is thin, be honest inside the story about the evidence limits in your own words (vary the phrasing from story to story rather than repeating a stock opener), but still deliver a complete, confident piece an educator would be proud to put their name to.
+- Write the story so it reads as FINISHED and ready to share. Put every "check before sharing" reminder only in the educatorChecks field, never in the story body. When the note is thin, write a shorter story that is completely true instead of padding it with disclaimers. Put every doubt in assumptions and educatorChecks.
 
 RETURN ONLY VALID JSON WITH THIS EXACT SHAPE:
 {
@@ -106,7 +110,7 @@ CRITICAL:
 - Return JSON only.
 - Never include anything beyond what the educator provided, except careful curriculum interpretation.
 - If a field is not strongly supported, return an empty array or a short neutral sentence.
-- A brief educator note still deserves a useful draft. Do not respond with a tiny generic paragraph; make the limits of the evidence visible in assumptions and educator checks.`;
+- A brief educator note still deserves a useful draft. Keep the limits of the evidence in assumptions and educatorChecks only, never in the story body and never by referring to the note.`;
 
 function countObservationWords(observations: string) {
   return observations.trim().split(/\s+/).filter(Boolean).length;
@@ -123,7 +127,8 @@ function getObservationDetailGuidance(observations: string) {
     return [
       "OBSERVATION DETAIL LEVEL: Sparse note.",
       "- The draft must be useful and educator-ready, but it must not pretend the educator supplied details that are missing.",
-      "- Use careful phrasing such as \"the note suggests\", \"this may show\", or \"from this brief observation\" where interpretation is thin. Vary which phrasing you use so repeat stories do not open the same way.",
+      "- Write shorter rather than padding. Two tight paragraphs that are entirely true beat five padded ones.",
+      "- Soften a claim with \"may\", \"seemed\", or \"was beginning to\" attached to the child. Never soften it by talking about the note.",
       "- Build the story around the exact action supplied, then add practical educator response, family question, and next noticing prompts.",
       "- Put missing details in assumptions and educatorChecks, especially child voice, peer interaction, materials, context, and educator response.",
       "- Do not add specific objects, dialogue, emotions, sequence, or other children unless the notes say so.",
@@ -319,7 +324,7 @@ CENTRE VOICE MEMORY:
 FIELD GUIDANCE:
 - storyTitle: a short human title, not cute or poetic.
 - story: plain text only. Use clear plain-text sections: Learning Story; What learning we noticed; Curriculum links; Where to next / Responding; and an optional ${familyHeading} only when useful. Start from the clearest observable action, then explain what learning was noticed. Include the educator's likely response or a review-ready next response, and end with how the learning can be followed.
-- story: for sparse notes, write a worthwhile draft while making evidence limits clear in your own fresh wording. Compose the phrasing yourself each time; never reuse a stock formula for it. Never invent materials, dialogue, reactions, duration, other children, or educator actions.
+- story: for sparse notes, write a shorter story rather than a padded one. Keep every sentence anchored to what the educator recorded. Evidence limits belong in assumptions and educatorChecks, never in the story body and never as a remark about the note. Never invent materials, dialogue, reactions, duration, other children, or educator actions.
 - story: if the note describes pushing, hitting, punching, biting, injury, unsafe bodies, or physical conflict, write a careful social learning/safety reflection. Do not use a cute title, do not call it an adventure, do not praise the conflict, and do not suggest following the interest with props. Focus on safe bodies, communication, emotional regulation, repair, educator support, and required review before sharing.
 - Never write "spent time building/playing/exploring" when the notes show a more precise action. Write what the child actually did, changed, said, asked, tried, or noticed.
 - outcomes: 1-3 concise curriculum tags. For Australia, use "EYLF Outcome ..." wording only. Never use Mana, Te Whāriki, whānau, kaiako, tamariki, Kōwhiti, or Aotearoa-only language in EYLF output. For Aotearoa New Zealand, do not write "Te Whāriki: Exploration"; write strand plus relevant outcome idea.

@@ -18,10 +18,11 @@ import { getStoryClarification } from "../lib/story-clarification";
 import { inferPrimaryChildName, extractOtherChildNames } from "../lib/story-context";
 import { buildEvidenceLedStory, shouldUseEvidenceLedStory } from "../lib/ai/evidence-story";
 import { buildPhysicalSafetyFallbackStory } from "../lib/ai/physical-safety-story";
-import { buildUserMessage } from "../lib/ai/prompts";
+import { buildUserMessage, LEARNING_STORY_PROMPT } from "../lib/ai/prompts";
 import {
   enforceFrameworkForResult,
   type FrameworkGuardStoryResult,
+  getMetaCommentaryIssues,
   getMinimumStoryWords,
   getUnsupportedStoryDetails,
   humaniseQualityNote,
@@ -673,4 +674,20 @@ test("every marketing template is covered by the weekly frequency cap", () => {
     const email = renderLifecycleEmail({ type, userId: "u", recipient: "a@b.com", name: "Sam" });
     assert.equal(email.marketing, false, `${type} is transactional and must not be capped or unsubscribable`);
   }
+});
+
+test("story bodies never narrate the educator's note", () => {
+  const shippedDefects = [
+    "The note says that Sam pushed Josh.",
+    "The note tells us James returned to the display.",
+    "Because the note is brief, we are careful not to add extra details.",
+    "From this brief observation, the clearest learning is her growing confidence.",
+    "The observation does not tell us what happened next.",
+  ];
+
+  for (const sentence of shippedDefects) {
+    assert.ok(getMetaCommentaryIssues(sentence).length > 0, `guard missed: ${sentence}`);
+  }
+  assert.equal(getMetaCommentaryIssues("Mila played the musical notes twice.").length, 0);
+  assert.ok(LEARNING_STORY_PROMPT.includes("Never refer to the note in the story field."));
 });

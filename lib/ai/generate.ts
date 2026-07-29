@@ -6,6 +6,7 @@ import { buildPhysicalSafetyFallbackStory as buildSharedPhysicalSafetyFallbackSt
 import {
   countWords,
   enforceFrameworkForResult,
+  getMetaCommentaryIssues,
   getMinimumStoryWords,
   getUnsupportedStoryDetails,
   humaniseQualityNote,
@@ -419,6 +420,7 @@ function getStoryRescueReasons(
     }
   }
   reasons.push(...getUnsupportedStoryDetails(result, params.observations));
+  reasons.push(...getMetaCommentaryIssues(result.story));
   return reasons;
 }
 
@@ -458,6 +460,8 @@ Rules:
 - EYLF must contain only Australian EYLF wording. Do not use Te Whāriki, Mana strands, whānau, kaiako, tamariki, Kōwhiti, or Aotearoa-only language.
 - Te Whāriki must use Aotearoa New Zealand wording only and avoid EYLF labels.
 - Rewrite the note into clean, flowing prose. Do not paste the raw note back word-for-word.
+- Write about the child, never about the note. The story field must not say "the note says", "the note tells us", "the note suggests", "from this brief note", or discuss missing evidence.
+- For sparse observations, write a shorter finished story. Keep evidence gaps in assumptions and educatorChecks only.
 - Be specific to this child. Never use generic catch-alls like "agency, communication, curiosity, and connection" or "made choices and communicated meaning".
 - The story body must read as finished and shareable. Keep "check before sharing" reminders in educatorChecks only — never end the story on "add the missing details".
 - The story should feel like a skilled educator wrote it for review, not a generic AI summary.

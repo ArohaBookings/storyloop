@@ -37,6 +37,34 @@ export function getMinimumStoryWords(depth: StoryDepth) {
 
 const META_COMMENTARY_PATTERN =
   /\b(this draft|the draft|before this can be shared|add the missing details|the interpretation is grounded|the curriculum wording supports|the educator should|the educator's role is)\b/i;
+const NOTE_META_COMMENTARY_PATTERNS: Array<{ pattern: RegExp; label: string }> = [
+  {
+    pattern:
+      /\b(?:the|this|your)\s+notes?\s+(?:says?|said|tells?|told|suggests?|describes?|records?|mentions?|indicates?|shows?|gives?|is\s+brief|does\s*n[o']t|do\s*n[o']t|also\s+names)\b/i,
+    label: 'refers to "the note" as the narrator',
+  },
+  {
+    pattern: /\bfrom\s+(?:the|this)\s+(?:brief\s+|short\s+)?(?:note|observation)\b/i,
+    label: 'opens with "from this brief note"',
+  },
+  { pattern: /\bin\s+the\s+notes?\s+we\s+have\b/i, label: 'says "in the note we have"' },
+  { pattern: /\bbecause\s+the\s+notes?\b/i, label: 'explains itself with "because the note"' },
+  {
+    pattern: /\bthe\s+notes?\s+(?:is|are)\s+(?:brief|short|thin|sparse|limited)\b/i,
+    label: "comments on how brief the note is",
+  },
+  {
+    pattern: /\bthe\s+observation\s+(?:says?|tells?|suggests?|does\s*n[o']t)\b/i,
+    label: 'refers to "the observation" as the narrator',
+  },
+  { pattern: /\bwhat\s+we\s+can\s+say\s+is\b/i, label: 'hedges with "what we can say is"' },
+  { pattern: /\bwe\s+are\s+careful\s+not\s+to\b/i, label: "narrates its own caution" },
+  {
+    pattern: /\bbefore\s+(?:this\s+is\s+|it\s+is\s+|being\s+)?shar(?:ed|ing)\b/i,
+    label: "puts a before-sharing caveat in the story body",
+  },
+  { pattern: /\bneeds?\s+to\s+be\s+(?:checked|confirmed)\b/i, label: "puts a QA flag in the story body" },
+];
 const GENERIC_AI_PATTERN =
   /\b(beautiful moment|remarkable|wonderful|deepening sense|fascination continued|meaningful journey|holistic development|significant learning|agency, communication, curiosity, and connection|made choices and communicated meaning|gave the educator a clear thread to follow)\b/i;
 const AI_DASH_PUNCTUATION_PATTERN = /[—–]|\s-\s/;
@@ -85,6 +113,17 @@ function keepsFocusChild(story: string, childName?: string) {
   return (story.match(new RegExp(`\\b${escaped}\\b`, "gi")) ?? []).length >= 2;
 }
 
+export function getMetaCommentaryIssues(story: string) {
+  const issues: string[] = [];
+  for (const { pattern, label } of NOTE_META_COMMENTARY_PATTERNS) {
+    const match = story.match(pattern);
+    if (match) {
+      issues.push(`Story ${label}: "${match[0].trim()}". Write about the child, not about the note.`);
+    }
+  }
+  return issues;
+}
+
 export function inspectStoryQuality(
   result: FrameworkGuardStoryResult,
   params: {
@@ -119,7 +158,9 @@ export function inspectStoryQuality(
     familyReadable: isFamilyReadable(result.story),
     usefulForDepth: actualWords >= Math.round(getMinimumStoryWords(params.depth) * 0.8),
     requiredSectionsPresent: REQUIRED_STORY_SECTIONS.every((pattern) => pattern.test(result.story)),
-    noMetaCommentary: !META_COMMENTARY_PATTERN.test(result.story),
+    noMetaCommentary:
+      !META_COMMENTARY_PATTERN.test(result.story) &&
+      getMetaCommentaryIssues(result.story).length === 0,
     noAiDashPunctuation: !AI_DASH_PUNCTUATION_PATTERN.test(outputText),
     focusChildMaintained: keepsFocusChild(result.story, params.childName),
   };
