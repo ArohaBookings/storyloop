@@ -328,7 +328,7 @@ function learningLens(domain: StoryDomain) {
       };
     default:
       return {
-        summary: "agency, communication, curiosity, and connection",
+        summary: "focus, choice, and follow-through in the moment",
         dispositions: ["agency", "communication", "curiosity", "confidence"],
         social: ["belonging", "shared attention", "participation"],
       };
@@ -397,19 +397,19 @@ function extensionParagraph(domain: StoryDomain, child: string, names?: string[]
 function reflectionParagraph(domain: StoryDomain, child: string, evidence: string) {
   switch (domain) {
     case "construction":
-      return `What stands out is ${child}'s persistence. ${child} met a real problem, stayed close to it, and kept adjusting the approach instead of giving up. The learning is visible in the process: ${evidence}.`;
+      return `What stands out is ${child}'s persistence. ${child} met a real problem, stayed close to it, and kept adjusting the approach instead of giving up.`;
     case "pretend":
-      return `What stands out is the way ${child} held the pretend story together. ${child} used objects as symbols, created a sequence, added sound, and brought another person into the play. The learning is visible in the process: ${evidence}.`;
+      return `What stands out is the way ${child} held the pretend story together. ${child} used objects as symbols, created a sequence, added sound, and brought another person into the play.`;
     case "sensory":
-      return `What stands out is ${child}'s communication through the whole body. ${child} used reaching, movement, laughter, repetition, or attention to keep the interaction going. The learning is visible in the process: ${evidence}.`;
+      return `What stands out is ${child}'s communication through the whole body. ${child} used reaching, movement, laughter, repetition, or attention to keep the interaction going.`;
     case "working_theory":
-      return `What stands out is ${child}'s inquiry. ${child} was not waiting for an answer; ${child} was testing one through materials, movement, language, and another person's participation. The learning is visible in the process: ${evidence}.`;
+      return `What stands out is ${child}'s inquiry. ${child} was not waiting for an answer; ${child} was testing one through materials, movement, language, and another person's participation.`;
     case "self_regulation":
-      return `What stands out is ${child}'s growing awareness of what felt hard and what helped. ${child} used movement, distance, watching, gesture, or language to manage the moment. The learning is visible in the process: ${evidence}.`;
+      return `What stands out is ${child}'s growing awareness of what felt hard and what helped. ${child} used movement, distance, watching, gesture, or language to manage the moment.`;
     case "creative":
-      return `What stands out is ${child}'s expression and decision-making. ${child} used the materials to show an idea, adjust it, and communicate meaning. The learning is visible in the process: ${evidence}.`;
+      return `What stands out is ${child}'s expression and decision-making. ${child} used the materials to show an idea, adjust it, and communicate meaning.`;
     default:
-      return `What stands out is ${child}'s agency. ${child} made choices, communicated meaning, and gave the educator a clear thread to follow. The learning is visible in the process: ${evidence}.`;
+      return `What stands out is what ${child} chose to do and how ${child} stayed with it. The value of the moment is in the action itself, not in a broad activity label.`;
   }
 }
 
@@ -419,7 +419,7 @@ function padForDepth(story: string, depth: StoryDepth, child: string) {
 
   // Safe, non-inventing additions that add useful educator framing and length.
   const additions = [
-    `We will keep the final version accurate by adding any exact words, materials, setting details, or educator responses that were part of the moment but not included in the brief note.`,
+    `What makes a moment like this worth writing down is that it shows ${child} in the middle of working something out, rather than at the tidy end of it. The value for planning sits in the attempt itself: what ${child} reached for, what changed, and what came next.`,
     `This kind of moment is worth revisiting. A short follow-up next time will show whether this is a one-off for ${child} or a growing pattern worth planning for.`,
     `When this is shared, families often recognise the same interests, words, or strategies appearing at home. Their knowledge can sit alongside what was noticed here to build a fuller picture of ${child}'s learning.`,
     `Keeping the language plain and specific keeps this story useful: another educator can read it, add it to ${child}'s profile, and plan a small, well-matched next step.`,

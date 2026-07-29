@@ -84,7 +84,7 @@ export default function Hero() {
             <div className="hero-proof-motion absolute -bottom-5 -left-3 hidden max-w-[16rem] rounded-2xl border border-clay-100 bg-paper/95 p-4 shadow-soft backdrop-blur sm:block">
               <p className="text-xs font-bold text-ink-900">From a 12-word note</p>
               <p className="mt-1 text-[11px] leading-relaxed text-ink-600">
-                to an editable draft with evidence checks and curriculum links—while the moment is still fresh.
+                to an editable draft with evidence checks and curriculum links, while the moment is still fresh.
               </p>
             </div>
           </div>

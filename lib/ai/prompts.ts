@@ -68,7 +68,7 @@ STYLE GUARDRAILS:
 - No gush, no corporate tone, no generic inspiration language.
 - Avoid phrases like "beautiful moment", "remarkable", "wonderful", "deepening sense", or "fascination continued" unless the educator's notes clearly justify them.
 - Avoid academic filler such as "demonstrated", "illustrates", "overall", "critical thinking", "important part", "significant learning", or "holistic development". Prefer "showed", "I noticed", "this links with", and direct explanation.
-- Avoid vague filler such as "spent time", "kept trying", "enjoyed exploring", "was engaged", or "participated well" unless the sentence immediately names the exact action the educator saw.
+- Never write "spent time", "was engaged", "participated well", "enjoyed exploring", or "kept trying". Lead with the verb instead. Not "Sylvie spent time at the magnet board looking through the letters" but "Sylvie looked through the letters at the magnet board". The weaker version delays the action by three words and adds nothing.
 - Prefer evidence-first verbs: built, moved, tested, paused, asked, returned, balanced, sorted, negotiated, explained, listened, copied, adjusted, noticed.
 - If a sentence sounds polished in an AI way, rewrite it more simply.
 - Educators generate many stories, and each must read one of a kind. Vary how sections open and how sentences flow. Do not lean on stock openers such as "From this brief note", "Today's note captures", "We noticed that", "We will continue to notice", or starting every curriculum paragraph with "This links with". Compose each opener freshly from the child's action, the setting, the moment of change, or the child's idea. If a phrase feels like a formula you would reuse in the next story, reword it.

@@ -8,14 +8,35 @@ const TARGETED_HIT_KICK_PATTERN =
 const HIT_KICK_PATTERN = /\b(hit(?:s|ting)?|kicked?|kick(?:s|ing)?)\b/i;
 const BENIGN_KICKING_MOVEMENT_PATTERN = /\bkick(?:ed|s|ing)?\s+(?:his|her|their|both)?\s*(?:legs?|feet)\b/gi;
 const PUSH_PULL_PATTERN = /\b(push(?:ed|es|ing)?|grab(?:bed|s|bing)?|rough)\b/i;
+
+// Pushing a PERSON is a safety moment on its own, with no other cue needed.
+// It was previously treated as ordinary play unless a context word happened to
+// appear, so "Sam pushed Josh" was written up as an exploration story with a
+// cheerful title. The optional "off"/"of" covers the way educators actually
+// type it in a hurry ("sam pushed of josh"). Pushing an OBJECT (a trolley, a
+// door, a block) still reads as play because only person-like targets match.
+const TARGETED_PUSH_PATTERN =
+  /\b(?:push(?:ed|es|ing)?|shov(?:e|ed|es|ing))\s+(?:o(?:ff|f|n(?:to)?)\s+)?(?:[A-Z][a-z]+|another child|a child|the child|him|her|them|his friend|her friend|peer|friend|educator|teacher)\b/;
+
+// Educators type notes in a hurry and in lower case, so "sam pushed off josh"
+// has no capital to key on and no emotion word to fall back to. "pushed off"
+// followed by anything that is not a determiner is a person in practice;
+// objects read as "pushed off the shelf" or "pushed off his shoes".
+const LOWERCASE_PUSHED_OFF_PATTERN =
+  /\b(?:push(?:ed|es|ing)?|shov(?:e|ed|es|ing))\s+o(?:ff|f)\s+(?!the\b|a\b|an\b|his\b|her\b|their\b|its\b|my\b|our\b|from\b|and\b|it\b)[a-z]{2,}/i;
+
+// "mad" was missing, which is the word educators most often use for a young
+// child's anger, so a real push incident could read as play.
 const SAFETY_CONTEXT_PATTERN =
-  /\b(didn'?t like|did not like|unacceptable|not safe|unsafe|hurt|cry(?:ing)?|cried|upset|angry|stop|no\b|conflict|argument|fight|rough|physical|body)\b/i;
+  /\b(didn'?t like|did not like|unacceptable|not safe|unsafe|hurt|cry(?:ing)?|cried|upset|angry|mad|annoyed|frustrated|snatch(?:ed|ing)?|stop|no\b|conflict|argument|fight|rough|physical|body)\b/i;
 
 export function hasPhysicalSafetyIncident(text: string) {
   if (!text.trim()) return false;
   const incidentText = text.replace(BENIGN_KICKING_MOVEMENT_PATTERN, "");
   if (DIRECT_PHYSICAL_SAFETY_PATTERN.test(incidentText)) return true;
   if (TARGETED_HIT_KICK_PATTERN.test(incidentText)) return true;
+  if (TARGETED_PUSH_PATTERN.test(incidentText)) return true;
+  if (LOWERCASE_PUSHED_OFF_PATTERN.test(incidentText)) return true;
   if (HIT_KICK_PATTERN.test(incidentText) && SAFETY_CONTEXT_PATTERN.test(incidentText)) return true;
   return PUSH_PULL_PATTERN.test(incidentText) && SAFETY_CONTEXT_PATTERN.test(incidentText);
 }

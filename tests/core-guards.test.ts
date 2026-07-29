@@ -739,3 +739,52 @@ test("child quote preservation is graded only when the educator recorded one", (
   // No quote recorded means there is nothing to keep.
   assert.equal(childQuotePreserved("Harry swung.", "harry played on the swing"), null);
 });
+
+test("pushing a child is a safety incident, pushing an object is not", () => {
+  // "pushed" only counted as a safety incident when a context word happened to
+  // appear, and the context list had "angry" but not "mad", so a real push
+  // incident was written up as an exploration story with a cheerful title.
+  const incidents = [
+    "josh played with sam on the playground, sam pushed of josh, josh got mad",
+    "sam pushed off josh",
+    "Sam pushed Josh",
+    "During the outdoor transition, Luca pushed Ava near the gate.",
+    "He pushed another child at the gate",
+    "she shoved her friend",
+  ];
+  for (const note of incidents) {
+    assert.equal(hasPhysicalSafetyIncident(note), true, `should be a safety incident: ${note}`);
+  }
+
+  const ordinaryPlay = [
+    "Leni pushed the trolley around the yard and kept going",
+    "Harry pushed the door open with both hands",
+    "Mia pushed the blocks together to make a bridge",
+    "Aria pushed the swing to make it move",
+    "She pushed off the wall in the pool",
+    "he pushed off his shoes at the mat",
+    "Ari pushed off from the edge",
+    "Nikau was a bit unsure at mat time but joined in after a bit of encouragement",
+  ];
+  for (const note of ordinaryPlay) {
+    assert.equal(hasPhysicalSafetyIncident(note), false, `should read as play: ${note}`);
+  }
+});
+
+test("the offline fallback never pastes the raw note or uses banned generic phrases", () => {
+  const note = "mila stacked the cups and knocked them over then did it again";
+  const result = buildEvidenceLedStory({}, {
+    observations: note,
+    childName: "Mila",
+    framework: "NZ",
+    depth: "balanced",
+    tone: "natural",
+  });
+  assert.equal(result.story.includes(note), false, "must not paste the note back verbatim");
+  assert.equal(
+    /agency, communication, curiosity, and connection|clear thread to follow|not included in the brief note/i.test(result.story),
+    false,
+    "must not use the generic catch-alls the prompt forbids"
+  );
+  assert.equal(getMetaCommentaryIssues(result.story).length, 0, "fallback must not talk about the note");
+});
