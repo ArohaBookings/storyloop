@@ -14,9 +14,21 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  // Middleware runs on every request. If the Supabase env is not configured in
+  // this environment, creating the client throws ("supabaseUrl is required")
+  // and every single page 500s. A missing env var must never take down the
+  // whole site: pass the request through untouched instead of crashing.
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error("Supabase env missing in middleware; skipping session refresh.");
+    return response;
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
