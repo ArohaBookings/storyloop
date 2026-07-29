@@ -23,6 +23,9 @@ export const metadata: Metadata = {
     "learning story quality check",
   ],
   authors: [{ name: "StoryLoop by Aria Care" }],
+  creator: "StoryLoop by Aria Care",
+  publisher: "StoryLoop by Aria Care",
+  category: "Early childhood education software",
   openGraph: {
     title: "StoryLoop — Learning stories drafted faster, without losing educator voice",
     description: "Editable learning story drafts for early childhood educators, with Te Whāriki or EYLF links, dispositions, child voice, and next steps.",
@@ -30,13 +33,13 @@ export const metadata: Metadata = {
     siteName: "StoryLoop",
     type: "website",
     locale: "en_AU",
-    images: [{ url: "/logo.svg", width: 512, height: 512, alt: "StoryLoop" }],
+    images: [{ url: "/images/hero.jpg", width: 1800, height: 1200, alt: "Early childhood educator in a prepared classroom" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "StoryLoop — Learning Story Drafts for ECE Educators",
     description: "Turn observations into editable Te Whāriki or EYLF learning story drafts.",
-    images: ["/logo.svg"],
+    images: ["/images/hero.jpg"],
   },
   icons: { icon: "/favicon.svg" },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
@@ -72,6 +75,7 @@ const structuredData = {
       "publisher": { "@id": "https://storyloop.space/#organization" },
       "featureList": [
         "Voice notes to editable learning stories",
+        "Today Loop for quick moments and daily follow-up focus",
         "EYLF and Te Whāriki curriculum links",
         "Child learning continuity profiles",
         "Curriculum compass for reflection",

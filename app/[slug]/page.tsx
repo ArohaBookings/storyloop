@@ -5,6 +5,7 @@ import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import Pricing from "@/components/landing/Pricing";
 import { SEO_PAGES, SEO_PAGE_SLUGS } from "@/lib/seo-pages";
+import { PenLine, ShieldCheck } from "lucide-react";
 
 const SITE_URL = "https://storyloop.space";
 
@@ -69,6 +70,9 @@ export default async function SeoPage({ params }: PageProps) {
         author: { "@type": "Organization", name: "StoryLoop educator practice team" },
         publisher: { "@type": "Organization", name: "StoryLoop", url: SITE_URL },
         mainEntityOfPage: `${SITE_URL}/${page.slug}`,
+        inLanguage: "en-AU",
+        isPartOf: { "@type": "WebSite", "@id": `${SITE_URL}/#website` },
+        citation: page.sources?.map((source) => source.url),
       }
     : null;
   const breadcrumbJsonLd = {
@@ -96,6 +100,20 @@ export default async function SeoPage({ params }: PageProps) {
               {page.heading}
             </h1>
             <p className="mt-6 text-lg text-ink-600 max-w-3xl leading-relaxed">{page.intro}</p>
+            <div className="mt-7 grid max-w-4xl gap-3 sm:grid-cols-2">
+              <div className="flex min-w-0 items-start gap-3 rounded-2xl border border-clay-200 bg-white/80 p-4 shadow-soft">
+                <PenLine className="mt-0.5 h-4 w-4 shrink-0 text-clay-700" />
+                <p className="text-sm leading-relaxed text-ink-700">
+                  Start with what actually happened: one action, quote, attempt, change, or question. A polished observation is never required.
+                </p>
+              </div>
+              <div className="flex min-w-0 items-start gap-3 rounded-2xl border border-sage-200 bg-sage-50/80 p-4 shadow-soft">
+                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-sage-700" />
+                <p className="text-sm leading-relaxed text-ink-700">
+                  StoryLoop drafts and checks. The educator reviews, edits, decides what is true, and chooses whether anything is shared.
+                </p>
+              </div>
+            </div>
             {page.reviewedAt && (
               <p className="mt-4 text-xs font-semibold text-clay-700">
                 Reviewed {new Date(`${page.reviewedAt}T00:00:00`).toLocaleDateString("en-NZ", {

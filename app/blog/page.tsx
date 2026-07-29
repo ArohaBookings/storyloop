@@ -8,7 +8,7 @@ import { listPublishedPosts, readingMinutes, BLOG_CATEGORIES } from "@/lib/blog"
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "Learning story guides for ECE educators | StoryLoop",
+  title: "Learning story guides for ECE educators",
   description:
     "Practical guides on writing learning stories, Te Whāriki and EYLF links, observation technique, and documentation that does not eat your evenings.",
   alternates: { canonical: "https://storyloop.space/blog" },

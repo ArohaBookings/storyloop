@@ -15,6 +15,8 @@ import FeatureBands from "@/components/landing/FeatureBands";
 import Reviews from "@/components/landing/Reviews";
 import WhoItsFor from "@/components/landing/WhoItsFor";
 import PageTracker from "@/components/analytics/PageTracker";
+import TodayLoop from "@/components/landing/TodayLoop";
+import EceReality from "@/components/landing/EceReality";
 
 // Keep the landing static for speed, but regenerate every 5 minutes so a review
 // published in the admin appears without waiting for a redeploy. Build stays
@@ -50,8 +52,10 @@ export default function LandingPage() {
       <main>
         <Hero />
         <LiveDemo />
+        <TodayLoop />
         <FeatureBands />
         <Features />
+        <EceReality />
         <HowItWorks />
         <WhoItsFor />
         <Examples />

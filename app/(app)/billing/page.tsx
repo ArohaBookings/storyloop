@@ -9,6 +9,10 @@ import { getNextPlan, getPlanByKey, getPlanDefinitions, hasFeatureAccess, normal
 
 // Appealing, benefit-led copy for a feature a user clicked while locked.
 const FEATURE_UPSELL: Partial<Record<FeatureKey, { title: string; blurb: string }>> = {
+  unlimitedTodayLoop: {
+    title: "Unlimited Today Loop",
+    blurb: "Capture real moments as they happen, close unfinished loops, and decide later what deserves a full story. Educator and every higher plan remove the monthly capture limit.",
+  },
   storyAssistant: {
     title: "Quill, your writing assistant",
     blurb: "Highlight any line to refine it in your own words, or ask Quill for advice and changes in plain English. Included on Educator, unlimited on Educator Pro.",

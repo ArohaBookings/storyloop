@@ -26,7 +26,7 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden lg:flex items-center gap-8">
-          {[["Features", "/#features"], ["How It Works", "/#how-it-works"], ["Guides", "/blog"], ["Resources", "/resources"], ["Pricing", "/pricing"]].map(([label, href]) => (
+          {[["Today Loop", "/#today-loop"], ["Features", "/#features"], ["How It Works", "/#how-it-works"], ["Guides", "/blog"], ["Pricing", "/pricing"]].map(([label, href]) => (
             <Link key={label} href={href} className="text-sm text-ink-600 hover:text-ink-900 transition-colors font-medium">{label}</Link>
           ))}
         </div>
@@ -48,7 +48,7 @@ export default function Navbar() {
 
       {open && (
         <div className="lg:hidden bg-paper border-t border-clay-100 px-4 py-4 space-y-2">
-          {[["Features", "/#features"], ["How It Works", "/#how-it-works"], ["Resources", "/resources"], ["Examples", "/examples"], ["Pricing", "/pricing"], ["FAQ", "/faq"]].map(([label, href]) => (
+          {[["Today Loop", "/#today-loop"], ["Features", "/#features"], ["How It Works", "/#how-it-works"], ["Resources", "/resources"], ["Examples", "/examples"], ["Pricing", "/pricing"], ["FAQ", "/faq"]].map(([label, href]) => (
             <Link key={label} href={href} className="block text-sm text-ink-600 py-2" onClick={() => setOpen(false)}>{label}</Link>
           ))}
           <div className="pt-3 border-t border-clay-100 flex flex-col gap-2">

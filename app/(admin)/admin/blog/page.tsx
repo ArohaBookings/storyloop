@@ -109,30 +109,30 @@ export default function AdminBlogPage() {
     await load();
   };
 
-  const field = "w-full rounded-xl border border-ink-700 bg-ink-900 px-3 py-2 text-sm text-white placeholder-ink-500 focus:border-clay-500 focus:outline-none";
+  const field = "w-full rounded-xl border border-ink-600 bg-ink-900 px-3 py-2 text-sm text-white placeholder-ink-400 focus:border-clay-400 focus:outline-none";
 
   return (
     <div className="min-h-screen bg-ink-950 px-4 py-8 text-white md:px-8">
       <div className="mx-auto max-w-5xl">
-        <Link href="/admin" className="mb-6 inline-flex items-center gap-2 text-sm text-ink-400 hover:text-white">
+        <Link href="/admin" className="mb-6 inline-flex items-center gap-2 text-sm text-ink-300 hover:text-white">
           <ArrowLeft className="h-4 w-4" /> Back to admin
         </Link>
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h1 className="font-display text-3xl font-bold">Write a guide</h1>
           <Link href="/blog" target="_blank" className="text-xs text-clay-400 hover:text-clay-300">View public blog →</Link>
         </div>
-        <p className="mt-1 text-sm text-ink-400">
+        <p className="mt-1 text-sm text-ink-300">
           Every published guide is a page Google and AI answer engines can find and cite. Write the thing educators
           keep asking about.
         </p>
 
-        <section className="mt-6 rounded-2xl border border-ink-800 bg-ink-900/60 p-5">
+        <section className="mt-6 rounded-2xl border border-ink-700 bg-ink-900 p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-bold uppercase tracking-wide text-ink-300">
               {form.id ? "Editing" : "New post"}
             </h2>
             {form.id && (
-              <button type="button" onClick={() => setForm({ ...BLANK })} className="inline-flex items-center gap-1.5 text-xs text-ink-400 hover:text-white">
+              <button type="button" onClick={() => setForm({ ...BLANK })} className="inline-flex items-center gap-1.5 text-xs text-ink-300 hover:text-white">
                 <Plus className="h-3.5 w-3.5" /> Start a new one
               </button>
             )}
@@ -172,12 +172,12 @@ export default function AdminBlogPage() {
               placeholder={"## A heading\n\nNormal paragraph text. **Bold**, *italic*, `code`, and [links](https://example.com).\n\n- bullet\n- bullet\n\n> A quote"}
               aria-label="Body"
             />
-            <p className="text-[11px] text-ink-500">
+            <p className="text-[11px] text-ink-400">
               Markdown: ## headings, **bold**, *italic*, - bullets, 1. numbered, &gt; quotes, [links](url).
             </p>
 
-            <details className="rounded-xl border border-ink-800 p-3">
-              <summary className="cursor-pointer text-xs font-bold uppercase tracking-wide text-ink-400">SEO overrides (optional)</summary>
+            <details className="rounded-xl border border-ink-700 p-3">
+              <summary className="cursor-pointer text-xs font-bold uppercase tracking-wide text-ink-300">SEO overrides (optional)</summary>
               <div className="mt-3 grid gap-3">
                 <input className={field} value={form.seo_title} onChange={(e) => setForm({ ...form, seo_title: e.target.value })} placeholder="Custom <title> — defaults to the post title" aria-label="SEO title" />
                 <textarea className={field} rows={2} value={form.seo_description} onChange={(e) => setForm({ ...form, seo_description: e.target.value })} placeholder="Custom meta description — defaults to the excerpt" aria-label="SEO description" />
@@ -201,23 +201,23 @@ export default function AdminBlogPage() {
         <section className="mt-8">
           <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-ink-300">All posts</h2>
           {loading ? (
-            <p className="text-sm text-ink-400"><Loader2 className="mr-2 inline h-4 w-4 animate-spin" />Loading…</p>
+            <p className="text-sm text-ink-300"><Loader2 className="mr-2 inline h-4 w-4 animate-spin" />Loading…</p>
           ) : posts.length === 0 ? (
-            <p className="text-sm text-ink-400">Nothing written yet.</p>
+            <p className="text-sm text-ink-300">Nothing written yet.</p>
           ) : (
-            <ul className="divide-y divide-ink-800 overflow-hidden rounded-2xl border border-ink-800">
+            <ul className="divide-y divide-ink-700 overflow-hidden rounded-2xl border border-ink-700">
               {posts.map((post) => (
-                <li key={post.id} className="flex flex-wrap items-center gap-3 bg-ink-900/40 px-4 py-3">
+                <li key={post.id} className="flex flex-wrap items-center gap-3 bg-ink-900 px-4 py-3">
                   <span className="text-lg" aria-hidden="true">{post.cover_emoji ?? "📝"}</span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-bold text-white">{post.title}</p>
-                    <p className="truncate text-[11px] text-ink-500">/blog/{post.slug}</p>
+                    <p className="truncate text-[11px] text-ink-400">/blog/{post.slug}</p>
                   </div>
                   <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${post.published ? "bg-sage-500/20 text-sage-300" : "bg-ink-700 text-ink-300"}`}>
                     {post.published ? "Live" : "Draft"}
                   </span>
                   <button type="button" onClick={() => edit(post)} className="text-xs text-clay-400 hover:text-clay-300">Edit</button>
-                  <button type="button" onClick={() => remove(post.id)} aria-label={`Delete ${post.title}`} className="text-ink-500 hover:text-red-400">
+                  <button type="button" onClick={() => remove(post.id)} aria-label={`Delete ${post.title}`} className="text-ink-400 hover:text-red-400">
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </li>

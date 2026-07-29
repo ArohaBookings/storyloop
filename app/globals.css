@@ -134,6 +134,20 @@
   .animate-fade-up-4 { animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.4s both; }
   .animate-fade-up-5 { animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.5s both; }
 
+  /* Motion is applied to the real educator photograph and trust labels, not a
+     decorative fake UI. Transform-only animation keeps the hero smooth, and
+     the reduced-motion rule below disables it for visitors who request that. */
+  .hero-photo-motion img {
+    animation: heroPhotoBreathe 14s cubic-bezier(0.33, 1, 0.68, 1) infinite alternate;
+    transform-origin: 52% 42%;
+    will-change: transform;
+  }
+
+  .hero-proof-motion {
+    animation: heroProofFloat 6s ease-in-out infinite;
+    will-change: transform;
+  }
+
   .storyloop-mark {
     position: relative;
     display: inline-flex;
@@ -149,6 +163,16 @@
     width: 100%;
     height: 100%;
   }
+}
+
+@keyframes heroPhotoBreathe {
+  from { transform: scale(1.01) translate3d(0, 0, 0); }
+  to { transform: scale(1.055) translate3d(-0.4%, -0.6%, 0); }
+}
+
+@keyframes heroProofFloat {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -6px, 0); }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { ArrowRight, Sparkles, Check } from "lucide-react";
+import { ArrowRight, Sparkles, Check, PenLine, ShieldCheck } from "lucide-react";
 import SiteImage from "./SiteImage";
 
 export default function Hero() {
@@ -16,7 +16,7 @@ export default function Hero() {
               <div className="inline-flex items-center gap-2 rounded-full border border-clay-200 bg-cream-100 px-4 py-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-clay-500" />
                 <span className="text-xs font-semibold tracking-wide text-clay-700">
-                  Built with educators in Aotearoa and Australia
+                  Built for real ECE rooms in Aotearoa and Australia
                 </span>
               </div>
             </div>
@@ -27,11 +27,28 @@ export default function Hero() {
             </h1>
 
             <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-ink-600 animate-fade-up-2 lg:mx-0 md:text-lg">
-              Turn a rough note or a voice memo into an editable learning story draft. You review and edit every
-              word. StoryLoop just means you never start from a blank page at 9pm.
+              Thumb in half-sentences after block play, record a voice memo beside the sandpit, or paste the note
+              you meant to finish at lunch. StoryLoop turns it into an editable draft; you review every word.
             </p>
 
-            <div className="mt-9 flex flex-col items-center gap-3 animate-fade-up-3 sm:flex-row lg:justify-start">
+            <div className="mx-auto mt-5 max-w-xl rounded-2xl border border-clay-200 bg-white/75 p-4 text-left shadow-soft backdrop-blur animate-fade-up-3 lg:mx-0">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sage-100 text-sage-700">
+                  <PenLine className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-clay-600">A realistic starting note</p>
+                  <p className="mt-1 text-sm font-semibold leading-relaxed text-ink-800">
+                    “Made the bridge wider after it fell. Said, ‘It needs two blocks.’”
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-ink-500">
+                    Exact words stay exact. Curriculum links appear only when the observation supports them.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-7 flex flex-col items-center gap-3 animate-fade-up-4 sm:flex-row lg:justify-start">
               <Link href="/signup" className="btn-primary group px-8 py-4 text-base">
                 <Sparkles className="h-4 w-4" /> Start free, 3 stories included
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -41,7 +58,7 @@ export default function Hero() {
               </a>
             </div>
 
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-ink-500 animate-fade-up-4 lg:justify-start">
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-ink-500 animate-fade-up-5 lg:justify-start">
               {["No credit card", "Te Whāriki + EYLF", "Works on your phone"].map((item) => (
                 <span key={item} className="flex items-center gap-1.5">
                   <Check className="h-4 w-4 text-sage-500" />
@@ -52,18 +69,22 @@ export default function Hero() {
           </div>
 
           {/* Right: a real face. This is the trust gap versus Storypark. */}
-          <div className="relative animate-fade-up-2">
+          <div className="hero-photo-motion relative animate-fade-up-2">
             <SiteImage
               src="/images/hero.jpg"
-              alt="An early childhood educator on the floor with children during play"
-              emoji="🧸"
+              alt="An early childhood educator in a classroom prepared for children's learning"
               className="aspect-[4/5] w-full shadow-warm md:aspect-[5/6]"
+              priority
             />
+            <div className="hero-proof-motion absolute right-3 top-3 hidden max-w-[13rem] items-center gap-2 rounded-xl border border-sage-200 bg-paper/95 px-3 py-2 text-[11px] font-bold leading-tight text-sage-800 shadow-soft backdrop-blur sm:flex">
+              <ShieldCheck className="h-4 w-4 shrink-0" />
+              Private draft. Nothing publishes without you.
+            </div>
             {/* Small floating proof card, the kind that reads as human and real */}
-            <div className="absolute -bottom-5 -left-3 hidden max-w-[15rem] rounded-2xl border border-clay-100 bg-paper/95 p-4 shadow-soft backdrop-blur sm:block">
-              <p className="text-xs font-bold text-ink-900">From a 12 word note</p>
+            <div className="hero-proof-motion absolute -bottom-5 -left-3 hidden max-w-[16rem] rounded-2xl border border-clay-100 bg-paper/95 p-4 shadow-soft backdrop-blur sm:block">
+              <p className="text-xs font-bold text-ink-900">From a 12-word note</p>
               <p className="mt-1 text-[11px] leading-relaxed text-ink-600">
-                to a finished draft with curriculum links, in the time it takes to make a coffee.
+                to an editable draft with evidence checks and curriculum links—while the moment is still fresh.
               </p>
             </div>
           </div>

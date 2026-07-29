@@ -22,7 +22,6 @@ export async function updateSession(request: NextRequest) {
   // and every single page 500s. A missing env var must never take down the
   // whole site: pass the request through untouched instead of crashing.
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.error("Supabase env missing in middleware; skipping session refresh.");
     return response;
   }
 

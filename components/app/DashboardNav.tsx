@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, Mail, AlertTriangle, Brain, Users, ClipboardList, MessageSquareText, BarChart3, SlidersHorizontal, Lock } from "lucide-react";
+import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, Mail, AlertTriangle, Brain, Users, ClipboardList, MessageSquareText, BarChart3, SlidersHorizontal, Lock, Sunrise } from "lucide-react";
 import AnimatedLogo from "@/components/brand/AnimatedLogo";
 import { createClient } from "@/lib/supabase/client";
 import { getMonthlyStoryLimit, getStoryAllowanceLabel } from "@/lib/story-limits";
@@ -22,6 +22,7 @@ type NavItem = {
 
 const NAV: NavItem[] = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/today", icon: Sunrise, label: "Today Loop" },
   { href: "/generate", icon: Sparkles, label: "New story", highlight: true },
   { href: "/children", icon: Users, label: "Child profiles" },
   { href: "/history", icon: History, label: "Story history" },
@@ -267,18 +268,24 @@ export default function DashboardNav({
         <Content />
       </div>
       {!mobileOpen && (
-        <button
-          className="md:hidden fixed bottom-4 left-4 z-50 flex min-h-11 items-center gap-2 rounded-full border border-clay-300 bg-white/95 px-4 py-2.5 text-xs font-bold text-ink-800 shadow-soft backdrop-blur-md"
-          onClick={() => setMobileOpen(true)}
-          aria-label="Open dashboard navigation"
-          aria-expanded={false}
-        >
-          <Menu className="w-4 h-4" />
-          Menu
-        </button>
+        <div className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-clay-100 bg-white/95 px-4 shadow-soft backdrop-blur-md md:hidden">
+          <div className="flex min-w-0 items-center gap-2">
+            <AnimatedLogo size={28} />
+            <span className="truncate font-display text-base font-bold text-ink-900">StoryLoop</span>
+          </div>
+          <button
+            className="flex min-h-10 items-center gap-2 rounded-xl border border-clay-200 bg-cream-50 px-3 py-2 text-xs font-bold text-ink-800"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open dashboard navigation"
+            aria-expanded={false}
+          >
+            <Menu className="h-4 w-4" />
+            Menu
+          </button>
+        </div>
       )}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-40 flex overflow-hidden bg-black/30">
+        <div className="fixed inset-0 z-[70] flex overflow-hidden bg-black/30 md:hidden">
           <div
             className="h-dvh max-h-dvh w-[min(18.5rem,86vw)] overflow-y-auto overscroll-contain bg-white/95 border-r border-clay-100 shadow-xl backdrop-blur"
             onWheel={(event) => event.stopPropagation()}
