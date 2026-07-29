@@ -12,6 +12,7 @@ import Footer from "@/components/landing/Footer";
 import { LANDING_FAQS } from "@/lib/landing-faqs";
 import StraightAnswers from "@/components/landing/StraightAnswers";
 import FeatureBands from "@/components/landing/FeatureBands";
+import Reviews from "@/components/landing/Reviews";
 import PageTracker from "@/components/analytics/PageTracker";
 
 export const metadata: Metadata = {
@@ -48,6 +49,7 @@ export default function LandingPage() {
         <HowItWorks />
         <Examples />
         <StraightAnswers />
+        <Reviews />
         <Pricing />
         <FAQ />
         <CTA />

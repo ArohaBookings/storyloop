@@ -281,6 +281,12 @@ export default async function AdminPage() {
               <Link href="/admin/growth" className="rounded-xl border border-ink-700 px-3 py-2 text-ink-300 hover:border-clay-500 hover:text-paper">
                 Growth
               </Link>
+              <Link href="/admin/reviews" className="rounded-xl border border-ink-700 px-3 py-2 text-ink-300 hover:border-clay-500 hover:text-paper">
+                Reviews
+              </Link>
+              <Link href="/admin/blog" className="rounded-xl border border-ink-700 px-3 py-2 text-ink-300 hover:border-clay-500 hover:text-paper">
+                Blog
+              </Link>
             </div>
           </div>
         </div>
