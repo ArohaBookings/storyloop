@@ -41,23 +41,36 @@ export function readingMinutes(markdown: string) {
 }
 
 export async function listPublishedPosts(limit = 50) {
-  const { data } = await createAdminSupabase()
-    .from("blog_posts")
-    .select("*")
-    .eq("published", true)
-    .order("published_at", { ascending: false })
-    .limit(limit);
-  return (data ?? []) as BlogPost[];
+  // Runs during static generation of /blog and the sitemap, so it must never
+  // throw. If the database is unreachable at build time the blog simply shows
+  // nothing rather than failing the whole deploy.
+  try {
+    const { data } = await createAdminSupabase()
+      .from("blog_posts")
+      .select("*")
+      .eq("published", true)
+      .order("published_at", { ascending: false })
+      .limit(limit);
+    return (data ?? []) as BlogPost[];
+  } catch (error) {
+    console.error("listPublishedPosts failed, returning empty:", error);
+    return [] as BlogPost[];
+  }
 }
 
 export async function getPublishedPost(slug: string) {
-  const { data } = await createAdminSupabase()
-    .from("blog_posts")
-    .select("*")
-    .eq("slug", slug)
-    .eq("published", true)
-    .maybeSingle();
-  return (data ?? null) as BlogPost | null;
+  try {
+    const { data } = await createAdminSupabase()
+      .from("blog_posts")
+      .select("*")
+      .eq("slug", slug)
+      .eq("published", true)
+      .maybeSingle();
+    return (data ?? null) as BlogPost | null;
+  } catch (error) {
+    console.error("getPublishedPost failed:", error);
+    return null;
+  }
 }
 
 /**
