@@ -152,26 +152,38 @@ export function inferPrimaryChildName(observations: string) {
   const text = observations.trim();
   if (!text) return "";
 
-  // Strongest signal: an age in parentheses, e.g. "Ruby (3)" or "Noah (3yo)".
-  const ageMatch = text.match(/\b([A-Z][a-z][A-Za-z'-]*)\s*\(\s*(?:\d{1,2}\s*(?:yo|years?)?|\d{1,2})\s*\)/);
+  // Strongest signal: a name paired with an age, e.g. "Ruby (3)",
+  // "Noah (3yo)", or the common educator shorthand "Ariana, aged 3".
+  const ageMatch = text.match(
+    /\b([A-Z][a-z][A-Za-z'-]*)\s*(?:\(\s*\d{1,2}\s*(?:yo|years?)?\s*\)|,?\s+aged\s+\d{1,2}\b|,?\s+age\s+\d{1,2}\b|,?\s+is\s+\d{1,2}\s+years?\s+old\b)/i
+  );
   const ageName = ageMatch ? cleanNameCandidate(ageMatch[1] ?? "") : "";
   if (ageName) return ageName;
 
-  // Strong signal: an educator verb followed by a name, e.g. "noticed Ari".
-  const observedMatch = text.match(/\b(?:noticed|observed|saw|watched|supported|asked|helped)\s+([A-Z][a-z][A-Za-z'-]*)\b/);
+  // Strong signal: an observation verb followed by a name, e.g. "noticed
+  // Ari". Do not include ordinary child-to-child verbs such as "asked",
+  // "helped", or "supported": "Ariana asked Luca" describes Luca as the
+  // recipient and previously caused the entire story to focus on him.
+  const observedMatch = text.match(/\b(?:noticed|observed|saw|watched)\s+([A-Z][a-z][A-Za-z'-]*)\b/);
   const observedName = observedMatch ? cleanNameCandidate(observedMatch[1] ?? "") : "";
   if (observedName) return observedName;
 
   // Fallback: most frequent capitalised candidate, weighting mid-sentence
-  // appearances higher than sentence-initial ones (which are usually not names).
+  // appearances higher than sentence-initial ones (which are usually not
+  // names). Give the first valid name a modest focus-child bonus because
+  // educators normally introduce the observed child before peers.
   const scores = new Map<string, number>();
   const firstIndex = new Map<string, number>();
   const wordRegex = /\b[A-Z][a-z][A-Za-z'-]*\b/g;
+  let firstCandidate = "";
   let match: RegExpExecArray | null;
   while ((match = wordRegex.exec(text)) !== null) {
     const candidate = cleanNameCandidate(match[0]);
     if (!candidate) continue;
-    const weight = isSentenceStart(text, match.index) ? 1 : 2;
+    const isFirstCandidate = !firstCandidate;
+    if (isFirstCandidate) firstCandidate = candidate;
+    const focusBonus = isFirstCandidate ? 3 : 0;
+    const weight = (isSentenceStart(text, match.index) ? 1 : 2) + focusBonus;
     scores.set(candidate, (scores.get(candidate) ?? 0) + weight);
     if (!firstIndex.has(candidate)) firstIndex.set(candidate, match.index);
   }

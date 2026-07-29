@@ -14,7 +14,7 @@ export type StoryClarificationResult = {
 };
 
 const PRETEND_CONTEXT = /\b(pretend|role[- ]?play|make[- ]?believe|acting|game|imaginary|not real|dramatic play)\b/i;
-const EDUCATOR_RESPONSE = /\b(educator|teacher|kaiako|we|i)\s+(supported|helped|moved|separated|checked|comforted|named|guided|sat|talked|asked|modelled|modeled|reminded|responded|stayed)\b/i;
+const EDUCATOR_RESPONSE = /\b(educator|teacher|kaiako|we|i)\s+(supported|helped|moved|separated|checked|comforted|named|guided|sat|talked|asked|modelled|modeled|reminded|responded|stayed|stopped|intervened)\b/i;
 const SAFETY_CONTEXT = /\b(hurt|upset|cried|crying|unsafe|not safe|unacceptable|incident|injury|rough|angry|scared|stop|no\b|didn'?t like|did not like)\b/i;
 const VAGUE_PLAY = /\b(played|had fun|did activity|was good|enjoyed|spent time|joined in|was engaged)\b/i;
 

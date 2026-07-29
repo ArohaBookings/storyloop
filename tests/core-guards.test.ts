@@ -53,6 +53,18 @@ test("primary child name is inferred from observation notes when the field is em
     "Ruby"
   );
   assert.equal(
+    inferPrimaryChildName(
+      'Ariana, aged 3, filled a jug and poured it into a container. Ariana asked Luca to hold the funnel, then Ariana said "we did it".'
+    ),
+    "Ariana"
+  );
+  assert.equal(
+    inferPrimaryChildName(
+      "Ariana filled a jug and poured it into a container. Ariana asked Luca to hold the funnel, then Ariana poured more slowly."
+    ),
+    "Ariana"
+  );
+  assert.equal(
     inferPrimaryChildName("Sarah noticed Ari pour water between two cups and slow down when it spilled."),
     "Ari"
   );
@@ -193,6 +205,14 @@ test("physical safety detector ignores ordinary infant movement", () => {
   const observation = "Maya reached for the yellow scarf. She waved it slowly. Maya laughed, kicked her legs, and reached for the scarf again.";
 
   assert.equal(hasPhysicalSafetyIncident(observation), false);
+  assert.equal(
+    hasPhysicalSafetyIncident("Noah laughed, kicked his legs, and reached again. His whole body showed interest."),
+    false
+  );
+  assert.equal(
+    hasPhysicalSafetyIncident("The rough note includes an address and medical information."),
+    false
+  );
   assert.equal(hasPhysicalSafetyIncident("Ruby kicked Jax during play."), true);
   assert.equal(hasPhysicalSafetyIncident("Jax hit Ruby and Ruby cried."), true);
 });
@@ -234,6 +254,8 @@ test("EYLF prompt explicitly disables Te Reo and Kōwhiti guidance", () => {
   assert.ok(prompt.includes("not used in EYLF mode"));
   assert.ok(prompt.includes("Australian EYLF mode. Do not include Kōwhiti Whakapae references."));
   assert.ok(prompt.includes("Do not use te reo Māori terms or Aotearoa-only framework language."));
+  assert.ok(prompt.includes("an optional Family link"));
+  assert.equal(prompt.includes("Family/family link"), false);
 });
 
 test("story quality helpers enforce paid-grade depth and readable notes", () => {
@@ -393,6 +415,8 @@ test("evidence-led stories turn thin block notes into child-centred educator doc
   assert.equal(result.storyTitle, "Lily's Tower That Stood");
   assert.ok(result.story.includes("Learning Story"));
   assert.ok(result.story.includes("What learning we noticed"));
+  assert.ok(result.story.includes("Whānau link"));
+  assert.equal(result.story.includes("Family/whānau link"), false);
   assert.ok(result.story.includes("We noticed Lily staying with a real problem"));
   assert.ok(result.story.includes("asked Mia to help hold the side"));
   assert.equal(result.story.includes("meaningful in the moment"), false);

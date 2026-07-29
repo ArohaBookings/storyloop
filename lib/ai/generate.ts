@@ -9,6 +9,7 @@ import {
   getMinimumStoryWords,
   getUnsupportedStoryDetails,
   humaniseQualityNote,
+  inspectStoryQuality,
   resultHasFrameworkLeak,
 } from "./quality-guards";
 import { hasPhysicalSafetyIncident } from "@/lib/safety-incident";
@@ -234,6 +235,9 @@ function preserveInitialCase(source: string, replacement: string) {
 
 function localiseSpelling(text: string) {
   return text
+    .replace(/\s*[—–]\s*/g, ", ")
+    .replace(/\s+-\s+/g, ", ")
+    .replace(/,\s*,/g, ",")
     .replace(/\bcolors\b/gi, (match) => preserveInitialCase(match, "colours"))
     .replace(/\bcolored\b/gi, (match) => preserveInitialCase(match, "coloured"))
     .replace(/\bcoloring\b/gi, (match) => preserveInitialCase(match, "colouring"))
@@ -325,14 +329,29 @@ function normaliseStoryResult(result: Partial<StoryResult>): StoryResult {
 // safety), and the model handles tone/voice/specificity natively.
 function computeStoryQuality(
   result: StoryResult,
-  params: { framework: StoryFrameworkId; depth: StoryDepth; observations: string },
+  params: { framework: StoryFrameworkId; depth: StoryDepth; observations: string; childName?: string },
   stage: "first" | "revised" | "fallback"
 ): NonNullable<StoryResult["storyQuality"]> {
   const remaining = getStoryRescueReasons(result, params);
-  const passes = remaining.length === 0;
+  const checks = inspectStoryQuality(result, params);
+  const weights: Record<keyof typeof checks, number> = {
+    naturalEducatorTone: 10,
+    frameworkLinksFit: 15,
+    noInventedDetails: 20,
+    evidenceToLearningClear: 15,
+    familyReadable: 10,
+    usefulForDepth: 10,
+    requiredSectionsPresent: 6,
+    noMetaCommentary: 5,
+    noAiDashPunctuation: 4,
+    focusChildMaintained: 5,
+  };
+  const rawScore = (Object.keys(checks) as Array<keyof typeof checks>)
+    .reduce((score, key) => score + (checks[key] ? weights[key] : 0), 0);
+  const stageCap = stage === "first" ? 100 : stage === "revised" ? 98 : 94;
+  const score = Math.min(rawScore, stageCap);
+  const passes = remaining.length === 0 && Object.values(checks).every(Boolean);
   const actualWords = countWords(result.story);
-  let score = stage === "first" ? 95 : stage === "revised" ? 92 : 88;
-  if (!passes) score = Math.min(score, 83);
 
   const strengths: string[] = [];
   if (passes) {
@@ -347,22 +366,20 @@ function computeStoryQuality(
     passes,
     score,
     revisionCount: stage === "revised" ? 1 : 0,
-    checks: {
-      naturalEducatorTone: true,
-      frameworkLinksFit: !resultHasFrameworkLeak(result, params.framework),
-      noInventedDetails: getUnsupportedStoryDetails(result, params.observations).length === 0,
-      evidenceToLearningClear: result.evidenceAnchors.length > 0,
-      familyReadable: true,
-      usefulForDepth: actualWords >= getMinimumStoryWords(params.depth),
-    },
-    issues: humaniseQualityNotes(remaining, 6),
+    checks,
+    issues: humaniseQualityNotes([
+      ...remaining,
+      ...Object.entries(checks)
+        .filter(([, passed]) => !passed)
+        .map(([key]) => key),
+    ], 10),
     strengths,
   };
 }
 
 function getStoryRescueReasons(
   result: StoryResult,
-  params: { framework: StoryFrameworkId; depth: StoryDepth; observations: string }
+  params: { framework: StoryFrameworkId; depth: StoryDepth; observations: string; childName?: string }
 ) {
   const reasons: string[] = [];
   const minimumWords = getMinimumStoryWords(params.depth);
@@ -383,6 +400,16 @@ function getStoryRescueReasons(
   }
   if (result.curriculumLinks.length === 0 || result.nextSteps.length === 0 || result.evidenceAnchors.length === 0) {
     reasons.push("Core educator fields are missing or too thin.");
+  }
+  const qualityChecks = inspectStoryQuality(result, params);
+  if (!qualityChecks.requiredSectionsPresent) {
+    reasons.push("Story is missing one or more educator-ready sections.");
+  }
+  if (!qualityChecks.noMetaCommentary) {
+    reasons.push("Story contains draft-review commentary in the family-facing body.");
+  }
+  if (!qualityChecks.focusChildMaintained) {
+    reasons.push("Story does not stay centred on the selected child.");
   }
   if (hasPhysicalSafetyIncident(params.observations)) {
     const text = `${result.story} ${result.storyTitle ?? ""} ${result.learningSummary}`.toLowerCase();
@@ -495,7 +522,12 @@ async function finalizeStory(
   },
   startedAt: number
 ): Promise<StoryResult> {
-  const guardParams = { framework: params.framework, depth: params.depth, observations: params.observations };
+  const guardParams = {
+    framework: params.framework,
+    depth: params.depth,
+    observations: params.observations,
+    childName: params.childName,
+  };
   const reasons = getStoryRescueReasons(draft, guardParams);
   if (reasons.length === 0) {
     return { ...draft, storyQuality: computeStoryQuality(draft, guardParams, "first") };
@@ -508,7 +540,14 @@ async function finalizeStory(
   const RESCUE_TIME_BUDGET_MS = 22_000;
   if (Date.now() - startedAt > RESCUE_TIME_BUDGET_MS) {
     const safetyMisframed = reasons.some((reason) => reason.startsWith("Physical conflict observation is not framed"));
-    if (safetyMisframed) {
+    const hardGuardFailed = reasons.some((reason) =>
+      reason.startsWith("Unsupported child quote or exact wording") ||
+      reason.includes("framework language") ||
+      reason.startsWith("Story is missing one or more educator-ready sections") ||
+      reason.startsWith("Story contains draft-review commentary") ||
+      reason.startsWith("Story does not stay centred")
+    );
+    if (safetyMisframed || hardGuardFailed) {
       const fallback = enforceFrameworkForResult(buildGroundedFallbackStory(draft, params, reasons, 1), params.framework);
       return { ...fallback, storyQuality: computeStoryQuality(fallback, guardParams, "fallback") };
     }
@@ -627,7 +666,11 @@ export async function generateLearningStory(params: {
     );
     return {
       ...fallback,
-      storyQuality: computeStoryQuality(fallback, { framework, depth, observations }, "fallback"),
+      storyQuality: computeStoryQuality(
+        fallback,
+        { framework, depth, observations, childName: params.childName },
+        "fallback"
+      ),
       privacyGuardian: runPrivacyGuardian({ observation: observations, story: fallback.story }),
     };
   }

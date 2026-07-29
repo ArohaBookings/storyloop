@@ -35,6 +35,96 @@ export function getMinimumStoryWords(depth: StoryDepth) {
   return 280;
 }
 
+const META_COMMENTARY_PATTERN =
+  /\b(this draft|the draft|before this can be shared|add the missing details|the interpretation is grounded|the curriculum wording supports|the educator should|the educator's role is)\b/i;
+const GENERIC_AI_PATTERN =
+  /\b(beautiful moment|remarkable|wonderful|deepening sense|fascination continued|meaningful journey|holistic development|significant learning|agency, communication, curiosity, and connection|made choices and communicated meaning|gave the educator a clear thread to follow)\b/i;
+const AI_DASH_PUNCTUATION_PATTERN = /[—–]|\s-\s/;
+const REQUIRED_STORY_SECTIONS = [
+  /\bLearning Story\b/i,
+  /\bWhat learning we noticed\b/i,
+  /\b(?:Curriculum|EYLF|Te Wh[aā]riki) links\b/i,
+  /\bWhere to next\s*\/\s*Responding\b/i,
+];
+const EVIDENCE_STOP_WORDS = new Set([
+  "about", "after", "again", "and", "because", "before", "child", "from", "have", "into",
+  "more", "said", "that", "their", "then", "they", "this", "through", "when", "where", "with",
+]);
+
+function hasGroundedEvidenceAnchor(evidenceAnchors: string[], observations: string) {
+  const observationTokens = new Set(
+    evidenceTokens(observations).filter((token) => token.length >= 3 && !EVIDENCE_STOP_WORDS.has(token))
+  );
+  if (observationTokens.size === 0) return false;
+
+  return evidenceAnchors.some((anchor) => {
+    const anchorTokens = evidenceTokens(anchor).filter(
+      (token) => token.length >= 3 && !EVIDENCE_STOP_WORDS.has(token)
+    );
+    if (anchorTokens.length === 0) return false;
+    const supported = anchorTokens.filter((token) => tokenIsSupported(observationTokens, token)).length;
+    return supported / anchorTokens.length >= 0.5;
+  });
+}
+
+function isFamilyReadable(story: string) {
+  const sentences = story
+    .split(/[.!?]+/)
+    .map((sentence) => countWords(sentence))
+    .filter((words) => words > 0);
+  if (sentences.length === 0) return false;
+  const average = sentences.reduce((sum, words) => sum + words, 0) / sentences.length;
+  const longest = Math.max(...sentences);
+  return average <= 28 && longest <= 52;
+}
+
+function keepsFocusChild(story: string, childName?: string) {
+  const child = childName?.trim();
+  if (!child) return true;
+  const escaped = child.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return (story.match(new RegExp(`\\b${escaped}\\b`, "gi")) ?? []).length >= 2;
+}
+
+export function inspectStoryQuality(
+  result: FrameworkGuardStoryResult,
+  params: {
+    framework: StoryFrameworkId;
+    depth: StoryDepth;
+    observations: string;
+    childName?: string;
+  }
+) {
+  const actualWords = countWords(result.story);
+  const outputText = [
+    result.storyTitle ?? "",
+    result.story,
+    result.learningSummary,
+    result.childVoice,
+    ...result.curriculumLinks,
+    ...result.nextSteps,
+    result.familyQuestion,
+    result.followUpPrompt,
+  ].join("\n");
+
+  return {
+    naturalEducatorTone: !GENERIC_AI_PATTERN.test(outputText),
+    frameworkLinksFit:
+      !resultHasFrameworkLeak(result, params.framework) &&
+      result.outcomes.length > 0 &&
+      result.curriculumLinks.length > 0,
+    noInventedDetails: getUnsupportedStoryDetails(result, params.observations).length === 0,
+    evidenceToLearningClear:
+      result.evidenceAnchors.length > 0 &&
+      hasGroundedEvidenceAnchor(result.evidenceAnchors, params.observations),
+    familyReadable: isFamilyReadable(result.story),
+    usefulForDepth: actualWords >= Math.round(getMinimumStoryWords(params.depth) * 0.8),
+    requiredSectionsPresent: REQUIRED_STORY_SECTIONS.every((pattern) => pattern.test(result.story)),
+    noMetaCommentary: !META_COMMENTARY_PATTERN.test(result.story),
+    noAiDashPunctuation: !AI_DASH_PUNCTUATION_PATTERN.test(outputText),
+    focusChildMaintained: keepsFocusChild(result.story, params.childName),
+  };
+}
+
 function normaliseEvidenceText(text: string) {
   return text
     .toLowerCase()
@@ -160,6 +250,9 @@ const QUALITY_NOTE_LABELS: Record<string, string> = {
   notPoetic: "The tone avoids poetic or sentimental language.",
   notAISounding: "The draft does not read like generic AI copy.",
   noMetaCommentary: "The story avoids draft-review commentary.",
+  noAiDashPunctuation: "The story avoids AI-style dash punctuation.",
+  requiredSectionsPresent: "The story includes the educator-ready review sections.",
+  focusChildMaintained: "The story stays centred on the selected child.",
   educatorVoice: "The story uses educator or centre voice.",
   preciseObservedActions: "Observed actions are described precisely.",
   noInventedDetails: "The draft avoids invented details.",
@@ -218,8 +311,10 @@ function preserveInitialCase(source: string, replacement: string) {
 
 function localiseSpelling(text: string) {
   return text
-    // Em dashes read as AI-written; swap for a comma so stories look human.
-    .replace(/\s*—\s*/g, ", ")
+    // Dash punctuation reads as AI-written; swap it for ordinary punctuation.
+    // Hyphens inside real words or names are left intact.
+    .replace(/\s*[—–]\s*/g, ", ")
+    .replace(/\s+-\s+/g, ", ")
     .replace(/,\s*,/g, ",")
     .replace(/\bcolors\b/gi, (match) => preserveInitialCase(match, "colours"))
     .replace(/\bcolored\b/gi, (match) => preserveInitialCase(match, "coloured"))

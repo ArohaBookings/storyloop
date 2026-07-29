@@ -88,6 +88,14 @@ function cleanObservationSummary(observations: string) {
     .slice(0, 500);
 }
 
+function observationEvidenceAnchors(observations: string) {
+  return cleanObservationSummary(observations)
+    .split(/[.!?]+/)
+    .map((part) => part.trim())
+    .filter((part) => part.length > 5)
+    .slice(0, 4);
+}
+
 function incidentFrameworkMetadata(framework: StoryFrameworkId) {
   if (framework === "NZ") {
     return {
@@ -198,7 +206,6 @@ export function buildPhysicalSafetyFallbackStory(
 ): PhysicalSafetyStoryResult {
   const child = params.childName?.trim() || "the child";
   const childLower = child === "the child" ? "the child" : child;
-  const observation = cleanObservationSummary(params.observations) || "The educator noted a brief social learning and safety moment.";
   const title = child === "the child" ? "A Social Learning and Safety Moment" : `Supporting ${child}'s Safe Play`;
   const framework = incidentFrameworkMetadata(params.framework);
   const frameworkName = params.framework === "NZ" ? "Te Whāriki" : "EYLF";
@@ -210,7 +217,7 @@ export function buildPhysicalSafetyFallbackStory(
   const pedagogyParagraph = incidentPedagogyParagraph(params.pedagogyFocus ?? "balanced", child, params.educatorNames);
   const voice = educatorVoice(params.educatorNames);
   const curriculumHeading = params.framework === "NZ" ? "Te Whāriki links" : "EYLF links";
-  const familyHeading = params.framework === "NZ" ? "Family/whānau link" : "Family link";
+  const familyHeading = params.framework === "NZ" ? "Whānau link" : "Family link";
 
   const paragraphs = [
     "Learning Story",
@@ -218,7 +225,7 @@ export function buildPhysicalSafetyFallbackStory(
     "",
     "What learning we noticed",
     `${child} is still learning how to manage a hard moment in play, how to communicate when something feels wrong, and how to return to a safe relationship after conflict. We can name this honestly while keeping the wording respectful and proportionate.`,
-    `The note says: "${observation}". Before this is shared with ${familyWord} or saved as a final record, ${voice.observer} should confirm whether anyone was hurt, what happened immediately before the physical action, what words were used, how long the moment lasted, and what support was given.`,
+    `The learning here is not the unsafe action itself. It is the supported process of noticing impact, communicating a boundary, accepting help, and finding a safer way to be with others.`,
     "",
     curriculumHeading,
     ...framework.curriculumLinks,
@@ -239,7 +246,7 @@ export function buildPhysicalSafetyFallbackStory(
       "",
       familyHeading,
       `This may also need to sit beside the service's behaviour, injury, or incident process. The learning story can record the teaching response, but it should not replace required incident documentation, family communication, or centre policy. If another child is named in the rough note, ${voice.observer} may need to remove that name from the family-facing version.`,
-      `${voice.continue} look for repair and replacement skills next time: whether ${childLower} can use a word, gesture, pause, seek help, accept support, re-enter play safely, or show care after a hard moment.`
+      `${voice.continue} look for repair and replacement skills next time: whether ${childLower} can use a word, gesture, pause, seek help, accept support, re-enter play safely, recognise when another child needs space, or show care after a hard moment with growing confidence.`
     );
   }
 
@@ -267,11 +274,7 @@ export function buildPhysicalSafetyFallbackStory(
       "The note is brief, so exact words, educator response, what happened before, and whether anyone was hurt need confirming.",
       ageSentence,
     ],
-    evidenceAnchors: [
-      "The children were playing together.",
-      "The note records pushing during the play.",
-      "The note records an unsafe physical response after the push.",
-    ],
+    evidenceAnchors: observationEvidenceAnchors(params.observations),
     educatorChecks: [
       "Was anyone hurt, and does this need an incident or behaviour record under your service policy?",
       "What exact words, gestures, or educator support happened before and after the physical response?",

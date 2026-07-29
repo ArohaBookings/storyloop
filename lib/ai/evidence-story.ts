@@ -328,7 +328,7 @@ function learningLens(domain: StoryDomain) {
       };
     default:
       return {
-        summary: "agency, communication, curiosity, and connection",
+        summary: "choice-making, purposeful communication, sustained attention, and connection",
         dispositions: ["agency", "communication", "curiosity", "confidence"],
         social: ["belonging", "shared attention", "participation"],
       };
@@ -373,7 +373,7 @@ function firstParagraph(child: string, fragments: string[], quote: string, domai
   if (domain === "self_regulation") {
     return `${voice.noticed} ${child} communicating a wellbeing need through action. ${first} ${rest}${quoteSentence}`.replace(/\s+/g, " ").trim();
   }
-  return `${voice.noticed} ${child} making choices and communicating meaning. ${first} ${rest}${quoteSentence}`.replace(/\s+/g, " ").trim();
+  return `${voice.noticed} ${child} following an idea through action and communication. ${first} ${rest}${quoteSentence}`.replace(/\s+/g, " ").trim();
 }
 
 function extensionParagraph(domain: StoryDomain, child: string, names?: string[]) {
@@ -409,7 +409,7 @@ function reflectionParagraph(domain: StoryDomain, child: string, evidence: strin
     case "creative":
       return `What stands out is ${child}'s expression and decision-making. ${child} used the materials to show an idea, adjust it, and communicate meaning. The learning is visible in the process: ${evidence}.`;
     default:
-      return `What stands out is ${child}'s agency. ${child} made choices, communicated meaning, and gave the educator a clear thread to follow. The learning is visible in the process: ${evidence}.`;
+      return `What stands out is ${child}'s purposeful involvement. ${child} made a choice, stayed with the experience, and showed us what mattered through action or communication. The learning is visible in the process: ${evidence}.`;
   }
 }
 
@@ -417,15 +417,16 @@ function padForDepth(story: string, depth: StoryDepth, child: string) {
   const minimum = getMinimumStoryWords(depth);
   if (countWords(story) >= minimum) return story;
 
-  // Safe, non-inventing additions that add useful educator framing and length.
+  // Safe, non-inventing additions that deepen the reflection without inserting
+  // draft-review instructions into the family-facing story.
   const additions = [
-    `We will keep the final version accurate by adding any exact words, materials, setting details, or educator responses that were part of the moment but not included in the brief note.`,
-    `This kind of moment is worth revisiting. A short follow-up next time will show whether this is a one-off for ${child} or a growing pattern worth planning for.`,
-    `When this is shared, families often recognise the same interests, words, or strategies appearing at home. Their knowledge can sit alongside what was noticed here to build a fuller picture of ${child}'s learning.`,
-    `Keeping the language plain and specific keeps this story useful: another educator can read it, add it to ${child}'s profile, and plan a small, well-matched next step.`,
-    `A learning story like this works best as part of a sequence. Over a few weeks, small notes about ${child} build into a picture of how their thinking, language, and relationships are developing.`,
-    `If a photo or short video was captured in the moment, it can support this written record, as long as it follows the service's consent and privacy guidance.`,
-    `The next planning conversation can start from here: one experience, material, or interaction that would gently extend what ${child} showed in this moment.`,
+    `This moment is worth revisiting because the learning sits in the sequence: what ${child} noticed, what ${child} tried, and what changed as the experience continued.`,
+    `A related experience will help us see whether ${child} returns to the same strategy, adapts it for a new situation, or begins to explain the idea in another way.`,
+    `We can respond by allowing enough time for ${child} to lead, staying available when support is needed, and noticing the small decisions that move the learning forward.`,
+    `Over the coming weeks, brief observations can show whether this interest is becoming a pattern in ${child}'s thinking, language, relationships, or approach to challenge.`,
+    `The most useful next step is a close match for what happened here: a familiar idea with one small change that gives ${child} room to compare, choose, repeat, or extend.`,
+    `When family knowledge is added, it may reveal where else ${child} uses this interest or strategy and help us recognise learning across home and the service.`,
+    `We will keep listening to ${child}'s words, gestures, choices, and repeated actions so the next response grows from what ${child} actually shows us.`,
   ];
 
   let next = story;
@@ -469,10 +470,10 @@ export function buildEvidenceLedStory(
   const familyWord = params.framework === "NZ" ? "whānau" : "families";
   const childVoice = quote ? `${child} said, "${quote}".` : "";
   const peerPhrase = otherChildren.length > 0 ? ` The note also names ${otherChildren.join(" and ")}, so the educator can decide whether that name should remain in the final family-facing version.` : "";
-  const evidenceLine = fragments.slice(0, 3).map((item) => item.replace(/[.!?]*$/, "")).join("; ");
+  const evidenceLine = fragments.slice(0, 3).map((item) => item.replace(/[.!?]*$/, "")).join(". ");
   const voice = educatorVoice(params.educatorNames);
   const curriculumHeading = params.framework === "NZ" ? "Te Whāriki links" : "EYLF links";
-  const familyHeading = params.framework === "NZ" ? "Family/whānau link" : "Family link";
+  const familyHeading = params.framework === "NZ" ? "Whānau link" : "Family link";
 
   const paragraphs = [
     "Learning Story",
@@ -492,7 +493,7 @@ export function buildEvidenceLedStory(
   if (params.depth !== "concise") {
     paragraphs.push(
       extensionParagraph(domain, child, params.educatorNames),
-      `Before sharing, ${voice.observer} can add any missing details that would make the story more personal: where it happened, what materials were used, exact words or gestures, how long ${child} stayed with the moment, and how an adult responded.${peerPhrase}`
+      `${child}'s actions give us a clear place to return to. We can stay close to the same interest, notice what ${child} repeats or changes, and respond to the next decision rather than deciding the direction in advance.`
     );
   }
 
@@ -533,6 +534,7 @@ export function buildEvidenceLedStory(
       `What exact words, sounds, gestures, or choices did ${child} use?`,
       "What adult response, setting, or material detail should be added before sharing?",
       `Does this ${frameworkName} link match the strongest learning in the observation?`,
+      ...(peerPhrase ? [`The note names ${otherChildren.join(" and ")}. Confirm whether that name should remain in the family-facing version.`] : []),
     ],
     pedagogyLinks: framework.pedagogyLinks,
     frameworkEvidence: framework.frameworkEvidence,

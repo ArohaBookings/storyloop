@@ -47,7 +47,7 @@ NON-NEGOTIABLE RULES:
 - Keep the story tight enough that an educator would actually use it.
 - Main story must sound like the educator or centre wrote it. Use "we noticed", "we observed", "we supported", "we can", and "we will continue" unless educator/staff names are supplied.
 - If educator/staff names are supplied, use them naturally in the main story, for example "Sarah noticed..." or "Sarah and Moana can continue...". Do not repeat names in every sentence.
-- Structure the story field with clear plain-text sections: Learning Story, What learning we noticed, Curriculum links, Where to next / Responding, and an optional Family/whānau link when useful.
+- Structure the story field with clear plain-text sections: Learning Story, What learning we noticed, Curriculum links, Where to next / Responding, and an optional Family link or Whānau link when useful.
 - Do not use markdown, emojis, policy-speak, or fake certainty inside the story text.
 - Do not write meta commentary such as "this draft", "the interpretation is grounded", "the curriculum wording supports", "the educator's role is", or "the educator should" in the story field.
 - A short title is required, but the main story should still read naturally.
@@ -67,7 +67,7 @@ STYLE GUARDRAILS:
 - If a sentence sounds polished in an AI way, rewrite it more simply.
 - Educators generate many stories, and each must read one of a kind. Vary how sections open and how sentences flow. Do not lean on stock openers such as "From this brief note", "Today's note captures", "We noticed that", "We will continue to notice", or starting every curriculum paragraph with "This links with". Compose each opener freshly from the child's action, the setting, the moment of change, or the child's idea. If a phrase feels like a formula you would reuse in the next story, reword it.
 - Do not use em dashes (the — character). They read as AI-written. Use commas, full stops, or shorter sentences instead.
-- Quoted speech may only be wording the educator supplied. Keep a child's quoted words exactly as the educator wrote them, including spellings that capture how the child actually said it ("its to much watta" stays "its to much watta"): the child's real voice is the evidence, and polishing it erases what made the moment worth recording. You may lightly fix spelling inside an adult's quote. Any phrase you are recommending for future use must be introduced as a clear suggestion (for example "we can model...", "such as...", "as if to say...") so it never reads as a report of something that was said.
+- Quoted speech may only be wording the educator supplied. Keep a child's quoted words exactly as the educator wrote them, including spellings that capture how the child actually said it ("its to much watta" stays "its to much watta"): the child's real voice is the evidence, and polishing it erases what made the moment worth recording. You may lightly fix spelling inside an adult's quote. Never put an imagined child voice in quotation marks, including after phrases such as "seemed to say" or "as if to say". Any language recommended for future use must be introduced plainly as a suggestion, never as reported speech.
 - Use at most one short quoted child phrase, and only if the educator provided it.
 - Write the story as short usable paragraphs unless the requested depth calls for more detail.
 
@@ -225,6 +225,7 @@ export function buildUserMessage(
       ? "Sound like a teacher or kaiako writing for colleagues and whānau, not for a sales page."
       : "Sound like an Australian early childhood teacher writing for colleagues and families, not for a sales page.";
   const familyWord = framework === "NZ" ? "whānau" : "family";
+  const familyHeading = framework === "NZ" ? "Whānau link" : "Family link";
   const observationDetailGuidance = getObservationDetailGuidance(observations);
   const ageGroupGuidance = getAgeGroupGuidance(ageGroup);
   const cleanEducatorNames = Array.from(
@@ -317,7 +318,7 @@ CENTRE VOICE MEMORY:
 
 FIELD GUIDANCE:
 - storyTitle: a short human title, not cute or poetic.
-- story: plain text only. Use clear plain-text sections: Learning Story; What learning we noticed; Curriculum links; Where to next / Responding; and a Family/${familyWord} link only when useful. Start from the clearest observable action, then explain what learning was noticed. Include the educator's likely response or a review-ready next response, and end with how the learning can be followed.
+- story: plain text only. Use clear plain-text sections: Learning Story; What learning we noticed; Curriculum links; Where to next / Responding; and an optional ${familyHeading} only when useful. Start from the clearest observable action, then explain what learning was noticed. Include the educator's likely response or a review-ready next response, and end with how the learning can be followed.
 - story: for sparse notes, write a worthwhile draft while making evidence limits clear in your own fresh wording. Compose the phrasing yourself each time; never reuse a stock formula for it. Never invent materials, dialogue, reactions, duration, other children, or educator actions.
 - story: if the note describes pushing, hitting, punching, biting, injury, unsafe bodies, or physical conflict, write a careful social learning/safety reflection. Do not use a cute title, do not call it an adventure, do not praise the conflict, and do not suggest following the interest with props. Focus on safe bodies, communication, emotional regulation, repair, educator support, and required review before sharing.
 - Never write "spent time building/playing/exploring" when the notes show a more precise action. Write what the child actually did, changed, said, asked, tried, or noticed.
