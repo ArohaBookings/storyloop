@@ -22,8 +22,11 @@ import { buildUserMessage, LEARNING_STORY_PROMPT } from "../lib/ai/prompts";
 import {
   enforceFrameworkForResult,
   type FrameworkGuardStoryResult,
+  childQuotePreserved,
   getMetaCommentaryIssues,
   getMinimumStoryWords,
+  getReadabilityFlags,
+  getToneTells,
   getUnsupportedStoryDetails,
   humaniseQualityNote,
 } from "../lib/ai/quality-guards";
@@ -692,4 +695,47 @@ test("the story prompt no longer instructs the model to say 'the note suggests'"
     /NEVER REFER TO THE NOTE/i.test(LEARNING_STORY_PROMPT),
     "prompt must carry the explicit ban"
   );
+});
+
+test("tone grading catches AI tells but not ordinary educator writing", () => {
+  const bad = [
+    "This was a beautiful moment for Harry.",
+    "Mia demonstrated her understanding of balance.",
+    "The story showcases holistic development.",
+    "Ari spent time exploring the water table.",
+    "Josh was engaged in meaningful play.",
+    "It was remarkable to watch.",
+  ];
+  for (const s of bad) assert.ok(getToneTells(s).length > 0, `missed tone tell: ${s}`);
+
+  const good = [
+    "Harry kept adjusting his legs until the swing held its movement.",
+    "Mia moved the wider blocks underneath and tried the car again.",
+    "Ari pressed wet sand against the gap and watched what happened.",
+    "Josh got mad when Sam pushed him.",
+    "Keiller waited until his cousin had finished before knocking it down.",
+  ];
+  for (const s of good) assert.equal(getToneTells(s).length, 0, `false positive: ${s} -> ${getToneTells(s).join(";")}`);
+});
+
+test("readability splits sentences correctly around quoted speech", () => {
+  // A period inside a closing quote still ends the sentence. Missing this made
+  // stories that preserve a child's words look like they ran on.
+  const quoted =
+    'We can use simple words, such as, "You have some blocks, and Leo has some too." ' +
+    'We can offer clear choices when more than one child wants the same thing. ' +
+    'We will keep noticing how Tane responds when that happens.';
+  assert.equal(getReadabilityFlags(quoted).length, 0, `false positive: ${getReadabilityFlags(quoted).join(";")}`);
+
+  const runOn = `Harry ${"kept going and ".repeat(30)}stopped.`;
+  assert.ok(getReadabilityFlags(runOn).length > 0, "should flag a genuine run-on sentence");
+});
+
+test("child quote preservation is graded only when the educator recorded one", () => {
+  const obs = 'Kahu said "its to much watta" when it spilled.';
+  assert.equal(childQuotePreserved('Kahu said, "its to much watta", then tipped some out.', obs), true);
+  // Polishing the child's spelling loses the evidence.
+  assert.equal(childQuotePreserved('Kahu said it was too much water.', obs), false);
+  // No quote recorded means there is nothing to keep.
+  assert.equal(childQuotePreserved("Harry swung.", "harry played on the swing"), null);
 });

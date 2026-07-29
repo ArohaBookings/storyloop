@@ -9,6 +9,9 @@ import {
   getMinimumStoryWords,
   getUnsupportedStoryDetails,
   getMetaCommentaryIssues,
+  getToneTells,
+  getReadabilityFlags,
+  childQuotePreserved,
   humaniseQualityNote,
   resultHasFrameworkLeak,
 } from "./quality-guards";
@@ -332,32 +335,66 @@ function computeStoryQuality(
   const remaining = getStoryRescueReasons(result, params);
   const passes = remaining.length === 0;
   const actualWords = countWords(result.story);
-  let score = stage === "first" ? 95 : stage === "revised" ? 92 : 88;
-  if (!passes) score = Math.min(score, 83);
+  const minimumWords = getMinimumStoryWords(params.depth);
+
+  // Every check below is measured. Previously naturalEducatorTone and
+  // familyReadable were hardcoded true and the score was a constant per stage,
+  // so a mediocre draft and an excellent one both reported 95. A score an
+  // educator cannot trust is worse than no score.
+  const toneTells = getToneTells(result.story);
+  const readabilityFlags = getReadabilityFlags(result.story);
+  const quoteKept = childQuotePreserved(result.story, params.observations);
+  const metaIssues = getMetaCommentaryIssues(result.story);
+  const inventedDetails = getUnsupportedStoryDetails(result, params.observations);
+  const frameworkFits = !resultHasFrameworkLeak(result, params.framework);
+  const depthMet = actualWords >= minimumWords;
+
+  const checks = {
+    naturalEducatorTone: toneTells.length === 0,
+    frameworkLinksFit: frameworkFits,
+    noInventedDetails: inventedDetails.length === 0,
+    noNoteReferences: metaIssues.length === 0,
+    childVoicePreserved: quoteKept !== false,
+    evidenceToLearningClear: result.evidenceAnchors.length > 0,
+    familyReadable: readabilityFlags.length === 0,
+    usefulForDepth: depthMet,
+  };
+
+  // Start from a clean draft and subtract for what is actually wrong, so the
+  // number moves with the writing rather than with which code path produced it.
+  let score = 100;
+  if (!frameworkFits) score -= 15;
+  if (inventedDetails.length > 0) score -= 20;
+  if (metaIssues.length > 0) score -= 15;
+  if (quoteKept === false) score -= 12;
+  if (result.evidenceAnchors.length === 0) score -= 8;
+  score -= Math.min(8, toneTells.length * 3);
+  score -= Math.min(6, readabilityFlags.length * 3);
+  if (!depthMet) {
+    // A draft a little under target is still shareable; well under is not.
+    score -= actualWords < Math.round(minimumWords * 0.8) ? 10 : 4;
+  }
+  if (stage === "fallback") score -= 6;
+  score = Math.max(40, Math.min(100, score));
 
   const strengths: string[] = [];
-  if (passes) {
-    strengths.push("Evidence stays close to the educator's observation.");
-    strengths.push("Written in a natural educator voice, ready to review and share.");
-    if (actualWords >= getMinimumStoryWords(params.depth)) {
-      strengths.push("Developed to the depth you selected.");
-    }
+  if (checks.noInventedDetails && checks.noNoteReferences) {
+    strengths.push("Every claim stays anchored to what you actually recorded.");
   }
+  if (checks.naturalEducatorTone) strengths.push("Reads like an educator wrote it, not a template.");
+  if (quoteKept === true) strengths.push("The child's own words are kept exactly as you wrote them.");
+  if (checks.familyReadable) strengths.push("Plain enough for families to read easily.");
+  if (depthMet) strengths.push("Developed to the depth you selected.");
 
   return {
     passes,
     score,
     revisionCount: stage === "revised" ? 1 : 0,
-    checks: {
-      naturalEducatorTone: true,
-      frameworkLinksFit: !resultHasFrameworkLeak(result, params.framework),
-      noInventedDetails: getUnsupportedStoryDetails(result, params.observations).length === 0,
-      noNoteReferences: getMetaCommentaryIssues(result.story).length === 0,
-      evidenceToLearningClear: result.evidenceAnchors.length > 0,
-      familyReadable: true,
-      usefulForDepth: actualWords >= getMinimumStoryWords(params.depth),
-    },
-    issues: humaniseQualityNotes(remaining, 6),
+    checks,
+    issues: humaniseQualityNotes(
+      [...remaining, ...toneTells, ...readabilityFlags, ...(quoteKept === false ? ["The child's quoted words did not carry through to the story."] : [])],
+      6
+    ),
     strengths,
   };
 }
