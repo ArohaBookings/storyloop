@@ -149,10 +149,10 @@ export default function ExamplesPage() {
               </h2>
               <div className="mt-6 space-y-5 text-[15px] leading-relaxed text-ink-600">
                 <p>
-                  Look at the Tane example. The note says he would not share, and then he did, and it says nothing
-                  about what happened in between. The draft does not fill that in. It says plainly that we do not
-                  know whether an adult stepped in, and it puts that question to the educator instead of inventing
-                  a tidy answer.
+                  Look at the Tane example. His notes say he would not share, and then he did, and say nothing
+                  about what happened in between. The draft does not fill that in, and it does not pad the story
+                  with a disclaimer either. It writes only what was actually seen, then puts the open question to
+                  the educator in the check underneath, where a family never has to read it.
                 </p>
                 <p>
                   That is the part most people do not expect. It would be easy to write a lovely paragraph about
