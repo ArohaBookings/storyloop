@@ -54,6 +54,6 @@ export function getObservationReadiness(observation: string) {
     signals,
     found,
     total: signals.length,
-    label: found >= 4 ? "Strong observation" : found >= 2 ? "Good start" : "Add one more detail",
+    label: found >= 4 ? "Rich detail" : found >= 2 ? "Ready to draft" : "Brief note — still usable",
   };
 }

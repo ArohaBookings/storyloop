@@ -17,6 +17,7 @@ import {
   normalizeTone,
   sanitizeStoryPreferences,
 } from "@/lib/story-options";
+import { MIN_STORY_OBSERVATION_CHARACTERS } from "@/lib/story-clarification";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "Story not found" }, { status: 404 });
     }
 
-    if (!existingStory.observations || existingStory.observations.trim().length < 10) {
+    if (!existingStory.observations || existingStory.observations.trim().length < MIN_STORY_OBSERVATION_CHARACTERS) {
       return NextResponse.json({ error: "This story does not have enough original observation text to regenerate." }, { status: 400 });
     }
 

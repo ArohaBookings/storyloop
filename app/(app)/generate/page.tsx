@@ -42,6 +42,7 @@ import {
   type TeReoLevel,
 } from "@/lib/story-options";
 import type { PrivacyGuardianResult } from "@/lib/privacy-guardian";
+import { MIN_STORY_OBSERVATION_CHARACTERS } from "@/lib/story-clarification";
 
 const PLACEHOLDERS = [
   "Example only - replace this with your real notes:\nRuby (2yo) built a block tower. It fell twice, then she tried again with a wider base and clapped when it stayed up.",
@@ -421,9 +422,12 @@ export default function GeneratePage() {
       )
     );
 
-  const handleGenerate = async (clarificationAnswersOverride: string[] = []) => {
-    if (observations.trim().length < 10) {
-      setError("Please add more detail (at least 10 characters)");
+  const handleGenerate = async (
+    clarificationAnswersOverride: string[] = [],
+    proceedWithoutClarification = false
+  ) => {
+    if (observations.trim().length < MIN_STORY_OBSERVATION_CHARACTERS) {
+      setError("Please add at least a very short observation");
       return;
     }
 
@@ -458,6 +462,7 @@ export default function GeneratePage() {
           inputMethod,
           educatorNames: parseEducatorNames(educatorNames),
           clarificationAnswers: submittedClarificationAnswers,
+          proceedWithoutClarification,
         }),
       });
       const data = await res.json();
@@ -558,13 +563,6 @@ export default function GeneratePage() {
     if (!clarification) return;
 
     const answers = clarification.questions.map((_, index) => (clarificationAnswers[index] ?? "").trim());
-    const currentAnswer = answers[clarificationStep] ?? "";
-
-    if (!currentAnswer) {
-      setError("Answer this question before continuing.");
-      return;
-    }
-
     setError("");
 
     if (clarificationStep < clarification.questions.length - 1) {
@@ -572,14 +570,8 @@ export default function GeneratePage() {
       return;
     }
 
-    if (answers.some((answer) => !answer)) {
-      const firstMissingIndex = answers.findIndex((answer) => !answer);
-      setClarificationStep(Math.max(firstMissingIndex, 0));
-      setError("Answer each clarification question before generating.");
-      return;
-    }
-
-    await handleGenerate(answers);
+    const providedAnswers = answers.filter(Boolean);
+    await handleGenerate(providedAnswers, providedAnswers.length === 0);
   };
 
   const dismissUpgradePrompt = () => {
@@ -1454,7 +1446,11 @@ export default function GeneratePage() {
               )}
             </button>
           ) : (
-            <button onClick={() => handleGenerate()} disabled={loading || transcribing || observations.length < 10} className="btn-primary w-full py-4 text-base">
+            <button
+              onClick={() => handleGenerate()}
+              disabled={loading || transcribing || observations.trim().length < MIN_STORY_OBSERVATION_CHARACTERS}
+              className="btn-primary w-full py-4 text-base"
+            >
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" /> Writing your story...
@@ -1616,10 +1612,10 @@ export default function GeneratePage() {
                   <AlertCircle className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="section-title mb-1">Context needed before writing</p>
-                  <h2 className="font-display text-2xl font-bold text-ink-900">Please answer these questions first.</h2>
+                  <p className="section-title mb-1">Optional context</p>
+                  <h2 className="font-display text-2xl font-bold text-ink-900">Add only what you know.</h2>
                   <p className="mt-1 text-sm leading-relaxed text-ink-600">
-                    {clarification.reason} This has not used a story credit, and your original observation is unchanged.
+                    {clarification.reason} The questions are optional, this has not used a story credit, and your original observation is unchanged.
                   </p>
                 </div>
               </div>
@@ -1629,7 +1625,7 @@ export default function GeneratePage() {
                   <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-800">
                     Question {boundedClarificationStep + 1}/{clarificationQuestionCount}
                   </span>
-                  <span className="text-[11px] font-semibold text-ink-500">Answer only what you observed.</span>
+                  <span className="text-[11px] font-semibold text-ink-500">Skip anything you did not observe.</span>
                 </div>
                 <label className="block text-sm font-bold leading-relaxed text-ink-900" htmlFor="clarification-answer">
                   {currentClarificationQuestion}
@@ -1671,24 +1667,38 @@ export default function GeneratePage() {
                 </div>
               )}
 
-              <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <button
                   type="button"
-                  onClick={() => setClarificationStep((step) => Math.max(0, step - 1))}
-                  disabled={boundedClarificationStep === 0}
-                  className="btn-secondary justify-center px-4 py-2 text-xs disabled:opacity-40"
+                  onClick={() => handleGenerate([], true)}
+                  className="btn-ghost justify-center px-4 py-2 text-xs"
                 >
-                  Back
+                  Write with what I have
                 </button>
-                <button
-                  type="button"
-                  onClick={handleClarificationContinue}
-                  disabled={!currentClarificationAnswer.trim()}
-                  className="btn-primary justify-center px-5 py-2.5 text-sm disabled:opacity-50"
-                >
-                  {isFinalClarificationQuestion ? "Generate story with answers" : "Next question"}
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </button>
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setClarificationStep((step) => Math.max(0, step - 1))}
+                    disabled={boundedClarificationStep === 0}
+                    className="btn-secondary justify-center px-4 py-2 text-xs disabled:opacity-40"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClarificationContinue}
+                    className="btn-primary justify-center px-5 py-2.5 text-sm"
+                  >
+                    {isFinalClarificationQuestion
+                      ? clarificationAnswers.some((answer) => answer.trim())
+                        ? "Generate with these details"
+                        : "Write story now"
+                      : currentClarificationAnswer.trim()
+                        ? "Save and next"
+                        : "Skip question"}
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           ) : story ? (

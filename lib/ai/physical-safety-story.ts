@@ -79,6 +79,23 @@ function getMinimumStoryWords(depth: StoryDepth) {
   return 280;
 }
 
+function cleanObservationSummary(observations: string) {
+  return observations
+    .replace(/\s+/g, " ")
+    .replace(/ignore (all )?previous/gi, "")
+    .replace(/system:/gi, "")
+    .trim()
+    .slice(0, 500);
+}
+
+function observationEvidenceAnchors(observations: string) {
+  return cleanObservationSummary(observations)
+    .split(/[.!?]+/)
+    .map((part) => part.trim())
+    .filter((part) => part.length > 5)
+    .slice(0, 4);
+}
+
 function incidentFrameworkMetadata(framework: StoryFrameworkId) {
   if (framework === "NZ") {
     return {
@@ -122,7 +139,7 @@ function escapeRegExp(value: string) {
 function buildIncidentSequence(observations: string, childName?: string) {
   const child = childName?.trim();
   if (!child) {
-    return "The note records shared play followed by physical conflict, including unsafe physical responses that need adult support.";
+    return "Shared play was followed by physical conflict, including unsafe physical responses that need adult support.";
   }
 
   const escaped = escapeRegExp(child);
@@ -138,10 +155,10 @@ function buildIncidentSequence(observations: string, childName?: string) {
   ).test(observations);
 
   if (wasPushed && usedPhysicalResponse) {
-    return `${child} was playing with another child. The note records that another child pushed ${child}, ${child} did not like it, and ${child} responded with an unsafe physical action.`;
+    return `${child} was playing with another child. Another child pushed ${child}, ${child} did not like it, and ${child} responded with an unsafe physical action.`;
   }
   if (pushedOther && receivedPhysicalResponse) {
-    return `${child} was playing with another child. The note records that ${child} pushed, and another child then responded with an unsafe physical action.`;
+    return `${child} was playing with another child. ${child} pushed, and another child then responded with an unsafe physical action.`;
   }
   if (usedPhysicalResponse) {
     return `${child} was involved in shared play that became unsafe when ${child} used a physical response.`;
@@ -200,7 +217,7 @@ export function buildPhysicalSafetyFallbackStory(
   const pedagogyParagraph = incidentPedagogyParagraph(params.pedagogyFocus ?? "balanced", child, params.educatorNames);
   const voice = educatorVoice(params.educatorNames);
   const curriculumHeading = params.framework === "NZ" ? "Te Whāriki links" : "EYLF links";
-  const familyHeading = params.framework === "NZ" ? "Family/whānau link" : "Family link";
+  const familyHeading = params.framework === "NZ" ? "Whānau link" : "Family link";
 
   const paragraphs = [
     "Learning Story",
@@ -208,6 +225,7 @@ export function buildPhysicalSafetyFallbackStory(
     "",
     "What learning we noticed",
     `${child} is still learning how to manage a hard moment in play, how to communicate when something feels wrong, and how to return to a safe relationship after conflict. We can name this honestly while keeping the wording respectful and proportionate.`,
+    `The learning here is not the unsafe action itself. It is the supported process of noticing impact, communicating a boundary, accepting help, and finding a safer way to be with others.`,
     `Moments like this are how children learn where their body ends and someone else's begins. A strong feeling arrived faster than the words for it, and the physical response came out first. That is developmentally ordinary and still not okay, and both of those things can be true at once. What matters for ${child} now is having an adult close enough to help before the feeling turns into hands, and enough calm afterwards to rejoin the play without carrying shame from it.`,
     "",
     curriculumHeading,
@@ -228,8 +246,8 @@ export function buildPhysicalSafetyFallbackStory(
     paragraphs.push(
       "",
       familyHeading,
-      `This may also need to sit beside the service's behaviour, injury, or incident process. The learning story can record the teaching response, but it should not replace required incident documentation, family communication, or centre policy. If another child is named in the rough note, ${voice.observer} may need to remove that name from the family-facing version.`,
-      `${voice.continue} look for repair and replacement skills next time: whether ${childLower} can use a word, gesture, pause, seek help, accept support, re-enter play safely, or show care after a hard moment.`
+      `This may also need to sit beside the service's behaviour, injury, or incident process. The learning story can record the teaching response, but it should not replace required incident documentation, family communication, or centre policy. If another child is named, ${voice.observer} may need to remove that name from the family-facing version.`,
+      `${voice.continue} look for repair and replacement skills next time: whether ${childLower} can use a word, gesture, pause, seek help, accept support, re-enter play safely, recognise when another child needs space, or show care after a hard moment with growing confidence. That follow-up can document the safer strategy ${childLower} uses, not only the earlier physical response.`
     );
   }
 
@@ -257,11 +275,7 @@ export function buildPhysicalSafetyFallbackStory(
       "The note is brief, so exact words, educator response, what happened before, and whether anyone was hurt need confirming.",
       ageSentence,
     ],
-    evidenceAnchors: [
-      "The children were playing together.",
-      "The note records pushing during the play.",
-      "The note records an unsafe physical response after the push.",
-    ],
+    evidenceAnchors: observationEvidenceAnchors(params.observations),
     educatorChecks: [
       "Was anyone hurt, and does this need an incident or behaviour record under your service policy?",
       "What exact words, gestures, or educator support happened before and after the physical response?",

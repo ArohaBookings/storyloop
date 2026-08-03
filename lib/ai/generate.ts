@@ -6,13 +6,12 @@ import { buildPhysicalSafetyFallbackStory as buildSharedPhysicalSafetyFallbackSt
 import {
   countWords,
   enforceFrameworkForResult,
+  childQuotePreserved,
+  getMetaCommentaryIssues,
   getMinimumStoryWords,
   getUnsupportedStoryDetails,
-  getMetaCommentaryIssues,
-  getToneTells,
-  getReadabilityFlags,
-  childQuotePreserved,
   humaniseQualityNote,
+  inspectStoryQuality,
   resultHasFrameworkLeak,
 } from "./quality-guards";
 import { hasPhysicalSafetyIncident } from "@/lib/safety-incident";
@@ -238,6 +237,9 @@ function preserveInitialCase(source: string, replacement: string) {
 
 function localiseSpelling(text: string) {
   return text
+    .replace(/\s*[—–]\s*/g, ", ")
+    .replace(/\s+-\s+/g, ", ")
+    .replace(/,\s*,/g, ",")
     .replace(/\bcolors\b/gi, (match) => preserveInitialCase(match, "colours"))
     .replace(/\bcolored\b/gi, (match) => preserveInitialCase(match, "coloured"))
     .replace(/\bcoloring\b/gi, (match) => preserveInitialCase(match, "colouring"))
@@ -329,79 +331,64 @@ function normaliseStoryResult(result: Partial<StoryResult>): StoryResult {
 // safety), and the model handles tone/voice/specificity natively.
 function computeStoryQuality(
   result: StoryResult,
-  params: { framework: StoryFrameworkId; depth: StoryDepth; observations: string },
+  params: { framework: StoryFrameworkId; depth: StoryDepth; observations: string; childName?: string },
   stage: "first" | "revised" | "fallback"
 ): NonNullable<StoryResult["storyQuality"]> {
   const remaining = getStoryRescueReasons(result, params);
-  const passes = remaining.length === 0;
-  const actualWords = countWords(result.story);
-  const minimumWords = getMinimumStoryWords(params.depth);
-
-  // Every check below is measured. Previously naturalEducatorTone and
-  // familyReadable were hardcoded true and the score was a constant per stage,
-  // so a mediocre draft and an excellent one both reported 95. A score an
-  // educator cannot trust is worse than no score.
-  const toneTells = getToneTells(result.story);
-  const readabilityFlags = getReadabilityFlags(result.story);
-  const quoteKept = childQuotePreserved(result.story, params.observations);
-  const metaIssues = getMetaCommentaryIssues(result.story);
-  const inventedDetails = getUnsupportedStoryDetails(result, params.observations);
-  const frameworkFits = !resultHasFrameworkLeak(result, params.framework);
-  const depthMet = actualWords >= minimumWords;
-
-  const checks = {
-    naturalEducatorTone: toneTells.length === 0,
-    frameworkLinksFit: frameworkFits,
-    noInventedDetails: inventedDetails.length === 0,
-    noNoteReferences: metaIssues.length === 0,
-    childVoicePreserved: quoteKept !== false,
-    evidenceToLearningClear: result.evidenceAnchors.length > 0,
-    familyReadable: readabilityFlags.length === 0,
-    usefulForDepth: depthMet,
+  const checks = inspectStoryQuality(result, params);
+  const weights: Record<keyof typeof checks, number> = {
+    naturalEducatorTone: 10,
+    frameworkLinksFit: 15,
+    noInventedDetails: 20,
+    evidenceToLearningClear: 15,
+    familyReadable: 10,
+    usefulForDepth: 10,
+    requiredSectionsPresent: 6,
+    noMetaCommentary: 5,
+    noAiDashPunctuation: 4,
+    focusChildMaintained: 4,
+    childVoicePreserved: 6,
   };
+  const rawScore = (Object.keys(checks) as Array<keyof typeof checks>)
+    .reduce((score, key) => score + (checks[key] ? weights[key] : 0), 0);
+  const stageCap = stage === "first" ? 100 : stage === "revised" ? 98 : 94;
+  const score = Math.min(rawScore, stageCap);
+  const passes = remaining.length === 0 && Object.values(checks).every(Boolean);
+  const actualWords = countWords(result.story);
 
-  // Start from a clean draft and subtract for what is actually wrong, so the
-  // number moves with the writing rather than with which code path produced it.
-  let score = 100;
-  if (!frameworkFits) score -= 15;
-  if (inventedDetails.length > 0) score -= 20;
-  if (metaIssues.length > 0) score -= 15;
-  if (quoteKept === false) score -= 12;
-  if (result.evidenceAnchors.length === 0) score -= 8;
-  score -= Math.min(8, toneTells.length * 3);
-  score -= Math.min(6, readabilityFlags.length * 3);
-  if (!depthMet) {
-    // A draft a little under target is still shareable; well under is not.
-    score -= actualWords < Math.round(minimumWords * 0.8) ? 10 : 4;
-  }
-  if (stage === "fallback") score -= 6;
-  score = Math.max(40, Math.min(100, score));
-
+  // Strengths name what actually held up, so an educator can see at a glance
+  // why the draft is trustworthy rather than reading a bare number.
   const strengths: string[] = [];
-  if (checks.noInventedDetails && checks.noNoteReferences) {
+  if (checks.noInventedDetails && checks.noMetaCommentary) {
     strengths.push("Every claim stays anchored to what you actually recorded.");
   }
   if (checks.naturalEducatorTone) strengths.push("Reads like an educator wrote it, not a template.");
-  if (quoteKept === true) strengths.push("The child's own words are kept exactly as you wrote them.");
+  if (checks.childVoicePreserved && /["“']/.test(params.observations)) {
+    strengths.push("The child's own words are kept exactly as you wrote them.");
+  }
   if (checks.familyReadable) strengths.push("Plain enough for families to read easily.");
-  if (depthMet) strengths.push("Developed to the depth you selected.");
+  if (actualWords >= getMinimumStoryWords(params.depth)) {
+    strengths.push("Developed to the depth you selected.");
+  }
 
   return {
     passes,
     score,
     revisionCount: stage === "revised" ? 1 : 0,
     checks,
-    issues: humaniseQualityNotes(
-      [...remaining, ...toneTells, ...readabilityFlags, ...(quoteKept === false ? ["The child's quoted words did not carry through to the story."] : [])],
-      6
-    ),
+    issues: humaniseQualityNotes([
+      ...remaining,
+      ...Object.entries(checks)
+        .filter(([, passed]) => !passed)
+        .map(([key]) => key),
+    ], 10),
     strengths,
   };
 }
 
 function getStoryRescueReasons(
   result: StoryResult,
-  params: { framework: StoryFrameworkId; depth: StoryDepth; observations: string }
+  params: { framework: StoryFrameworkId; depth: StoryDepth; observations: string; childName?: string }
 ) {
   const reasons: string[] = [];
   const minimumWords = getMinimumStoryWords(params.depth);
@@ -423,6 +410,16 @@ function getStoryRescueReasons(
   if (result.curriculumLinks.length === 0 || result.nextSteps.length === 0 || result.evidenceAnchors.length === 0) {
     reasons.push("Core educator fields are missing or too thin.");
   }
+  const qualityChecks = inspectStoryQuality(result, params);
+  if (!qualityChecks.requiredSectionsPresent) {
+    reasons.push("Story is missing one or more educator-ready sections.");
+  }
+  if (!qualityChecks.noMetaCommentary) {
+    reasons.push("Story contains draft-review commentary in the family-facing body.");
+  }
+  if (!qualityChecks.focusChildMaintained) {
+    reasons.push("Story does not stay centred on the selected child.");
+  }
   if (hasPhysicalSafetyIncident(params.observations)) {
     const text = `${result.story} ${result.storyTitle ?? ""} ${result.learningSummary}`.toLowerCase();
     const framesSafety = /\b(safe|safety|unsafe|hurt|injur|regulat|calm|conflict|incident|repair|feelings?|emotion|body|bodies|gentle hands?)\b/.test(text);
@@ -431,8 +428,6 @@ function getStoryRescueReasons(
     }
   }
   reasons.push(...getUnsupportedStoryDetails(result, params.observations));
-  // Writing about the note instead of the child is the one defect a family sees
-  // immediately, so it always earns a rewrite.
   reasons.push(...getMetaCommentaryIssues(result.story));
   return reasons;
 }
@@ -473,6 +468,8 @@ Rules:
 - EYLF must contain only Australian EYLF wording. Do not use Te Whāriki, Mana strands, whānau, kaiako, tamariki, Kōwhiti, or Aotearoa-only language.
 - Te Whāriki must use Aotearoa New Zealand wording only and avoid EYLF labels.
 - Rewrite the note into clean, flowing prose. Do not paste the raw note back word-for-word.
+- Write about the child, never about the note. The story field must not say "the note says", "the note tells us", "the note suggests", "from this brief note", or discuss missing evidence.
+- For sparse observations, write a shorter finished story. Keep evidence gaps in assumptions and educatorChecks only.
 - Be specific to this child. Never use generic catch-alls like "agency, communication, curiosity, and connection" or "made choices and communicated meaning".
 - The story body must read as finished and shareable. Keep "check before sharing" reminders in educatorChecks only — never end the story on "add the missing details".
 - The story should feel like a skilled educator wrote it for review, not a generic AI summary.
@@ -537,7 +534,12 @@ async function finalizeStory(
   },
   startedAt: number
 ): Promise<StoryResult> {
-  const guardParams = { framework: params.framework, depth: params.depth, observations: params.observations };
+  const guardParams = {
+    framework: params.framework,
+    depth: params.depth,
+    observations: params.observations,
+    childName: params.childName,
+  };
   const reasons = getStoryRescueReasons(draft, guardParams);
   if (reasons.length === 0) {
     return { ...draft, storyQuality: computeStoryQuality(draft, guardParams, "first") };
@@ -550,7 +552,14 @@ async function finalizeStory(
   const RESCUE_TIME_BUDGET_MS = 22_000;
   if (Date.now() - startedAt > RESCUE_TIME_BUDGET_MS) {
     const safetyMisframed = reasons.some((reason) => reason.startsWith("Physical conflict observation is not framed"));
-    if (safetyMisframed) {
+    const hardGuardFailed = reasons.some((reason) =>
+      reason.startsWith("Unsupported child quote or exact wording") ||
+      reason.includes("framework language") ||
+      reason.startsWith("Story is missing one or more educator-ready sections") ||
+      reason.startsWith("Story contains draft-review commentary") ||
+      reason.startsWith("Story does not stay centred")
+    );
+    if (safetyMisframed || hardGuardFailed) {
       const fallback = enforceFrameworkForResult(buildGroundedFallbackStory(draft, params, reasons, 1), params.framework);
       return { ...fallback, storyQuality: computeStoryQuality(fallback, guardParams, "fallback") };
     }
@@ -669,7 +678,11 @@ export async function generateLearningStory(params: {
     );
     return {
       ...fallback,
-      storyQuality: computeStoryQuality(fallback, { framework, depth, observations }, "fallback"),
+      storyQuality: computeStoryQuality(
+        fallback,
+        { framework, depth, observations, childName: params.childName },
+        "fallback"
+      ),
       privacyGuardian: runPrivacyGuardian({ observation: observations, story: fallback.story }),
     };
   }

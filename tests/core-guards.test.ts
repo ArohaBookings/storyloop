@@ -57,6 +57,18 @@ test("primary child name is inferred from observation notes when the field is em
     "Ruby"
   );
   assert.equal(
+    inferPrimaryChildName(
+      'Ariana, aged 3, filled a jug and poured it into a container. Ariana asked Luca to hold the funnel, then Ariana said "we did it".'
+    ),
+    "Ariana"
+  );
+  assert.equal(
+    inferPrimaryChildName(
+      "Ariana filled a jug and poured it into a container. Ariana asked Luca to hold the funnel, then Ariana poured more slowly."
+    ),
+    "Ariana"
+  );
+  assert.equal(
     inferPrimaryChildName("Sarah noticed Ari pour water between two cups and slow down when it spilled."),
     "Ari"
   );
@@ -112,6 +124,10 @@ test("clarification gate fires only on genuinely thin or unsafe notes", () => {
     false
   );
   assert.equal(gated("Mia stacked the cups into a tower and knocked them down, then did it again."), false);
+  assert.equal(
+    gated("John played with the kids, John played hide and seek, he played with Phoebe on the playground, then we went shopping. We took him shopping as well which made his day."),
+    false
+  );
 });
 
 test("billing states preserve grace access and block failed subscriptions", () => {
@@ -197,6 +213,14 @@ test("physical safety detector ignores ordinary infant movement", () => {
   const observation = "Maya reached for the yellow scarf. She waved it slowly. Maya laughed, kicked her legs, and reached for the scarf again.";
 
   assert.equal(hasPhysicalSafetyIncident(observation), false);
+  assert.equal(
+    hasPhysicalSafetyIncident("Noah laughed, kicked his legs, and reached again. His whole body showed interest."),
+    false
+  );
+  assert.equal(
+    hasPhysicalSafetyIncident("The rough note includes an address and medical information."),
+    false
+  );
   assert.equal(hasPhysicalSafetyIncident("Ruby kicked Jax during play."), true);
   assert.equal(hasPhysicalSafetyIncident("Jax hit Ruby and Ruby cried."), true);
 });
@@ -238,6 +262,8 @@ test("EYLF prompt explicitly disables Te Reo and Kōwhiti guidance", () => {
   assert.ok(prompt.includes("not used in EYLF mode"));
   assert.ok(prompt.includes("Australian EYLF mode. Do not include Kōwhiti Whakapae references."));
   assert.ok(prompt.includes("Do not use te reo Māori terms or Aotearoa-only framework language."));
+  assert.ok(prompt.includes("an optional Family link"));
+  assert.equal(prompt.includes("Family/family link"), false);
 });
 
 test("story quality helpers enforce paid-grade depth and readable notes", () => {
@@ -271,6 +297,23 @@ test("clarification asks valid questions before unsafe or vague notes become sto
   assert.ok(vague.questions.join(" ").includes("Ruby"));
   assert.ok(/did|where|materials|respond|support|extend/i.test(vague.questions.join(" ")));
   assert.equal(/learning or response do you want/i.test(vague.questions.join(" ")), false);
+
+  const painting = getStoryClarification({
+    observations: "Ella enjoyed painting.",
+    childName: "Ella",
+  });
+  assert.equal(painting.kind, "thin_observation");
+  assert.ok(painting.questions.length > 0 && painting.questions.length <= 3);
+  assert.match(painting.questions[0], /Ella/);
+  assert.match(painting.questions[0], /art experience/);
+
+  const socialPlay = getStoryClarification({
+    observations: "John played hide and seek with Phoebe.",
+    childName: "John",
+  });
+  assert.equal(socialPlay.questions.length <= 3, true);
+  assert.match(socialPlay.questions.join(" "), /hide and seek/);
+  assert.match(socialPlay.questions.join(" "), /Phoebe/);
 
   const ready = getStoryClarification({
     observations: "Maya lay on the mat and watched the scarf move above her. She smiled when I paused, then kicked her legs until I moved it again.",
@@ -397,6 +440,8 @@ test("evidence-led stories turn thin block notes into child-centred educator doc
   assert.equal(result.storyTitle, "Lily's Tower That Stood");
   assert.ok(result.story.includes("Learning Story"));
   assert.ok(result.story.includes("What learning we noticed"));
+  assert.ok(result.story.includes("Whānau link"));
+  assert.equal(result.story.includes("Family/whānau link"), false);
   assert.ok(result.story.includes("We noticed Lily staying with a real problem"));
   assert.ok(result.story.includes("asked Mia to help hold the side"));
   assert.equal(result.story.includes("meaningful in the moment"), false);
@@ -787,4 +832,25 @@ test("the offline fallback never pastes the raw note or uses banned generic phra
     "must not use the generic catch-alls the prompt forbids"
   );
   assert.equal(getMetaCommentaryIssues(result.story).length, 0, "fallback must not talk about the note");
+});
+
+test("story bodies never narrate the educator's note", () => {
+  const shippedDefects = [
+    "The note says that Sam pushed Josh.",
+    "The note tells us James returned to the display.",
+    "Because the note is brief, we are careful not to add extra details.",
+    "From this brief observation, the clearest learning is her growing confidence.",
+    "The observation does not tell us what happened next.",
+  ];
+
+  for (const sentence of shippedDefects) {
+    assert.ok(getMetaCommentaryIssues(sentence).length > 0, `guard missed: ${sentence}`);
+  }
+  assert.equal(getMetaCommentaryIssues("Mila played the musical notes twice.").length, 0);
+  // Assert the rule exists, not one exact sentence, so rewording the prompt for
+  // emphasis does not fail a test that is really about the rule being present.
+  assert.ok(
+    /never refer to the note/i.test(LEARNING_STORY_PROMPT),
+    "the prompt must forbid referring to the note in the story field"
+  );
 });

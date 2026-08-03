@@ -24,7 +24,7 @@ export default function LiveDemo() {
   const [clarify, setClarify] = useState<Clarify | null>(null);
   const [usage, setUsage] = useState(0);
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (proceedWithoutClarification = false) => {
     if (!input.trim()) { setError("Add a few observations first"); return; }
     if (usage >= 1) {
       setError("You've used your free demo. Sign up to keep going with editable story history.");
@@ -36,7 +36,12 @@ export default function LiveDemo() {
     try {
       const res = await fetch("/api/generate", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ observations: input, ageGroup: "3-4 years", demo: true }),
+        body: JSON.stringify({
+          observations: input,
+          ageGroup: "3-4 years",
+          demo: true,
+          proceedWithoutClarification,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Something went wrong. Please try again.");
@@ -91,7 +96,7 @@ export default function LiveDemo() {
               className="input font-mono text-sm leading-relaxed resize-none" />
             <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs text-ink-500">A few real details work best — what the child did, said, or tried.</p>
-              <button onClick={handleGenerate} disabled={loading || !input.trim()} className="btn-primary text-sm">
+              <button onClick={() => handleGenerate()} disabled={loading || !input.trim()} className="btn-primary text-sm">
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                 Generate story
               </button>
@@ -120,7 +125,7 @@ export default function LiveDemo() {
                       <HelpCircle className="h-4 w-4" />
                     </div>
                     <div className="min-w-0">
-                      <p className="font-display text-base font-bold text-ink-900">A little more detail makes it sing</p>
+                      <p className="font-display text-base font-bold text-ink-900">One optional detail could make this stronger</p>
                       <p className="mt-1 text-sm text-ink-600 leading-relaxed">{clarify.reason}</p>
                     </div>
                   </div>
@@ -134,7 +139,17 @@ export default function LiveDemo() {
                       ))}
                     </ul>
                   )}
-                  <p className="mt-3 text-xs text-ink-500">Add a detail or two above, then generate again — this didn&apos;t use your free try.</p>
+                  <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-xs text-ink-500">Add anything you remember above, or continue with exactly what you have. This did not use your free try.</p>
+                    <button
+                      type="button"
+                      onClick={() => handleGenerate(true)}
+                      disabled={loading}
+                      className="btn-primary flex-shrink-0 px-4 py-2 text-xs"
+                    >
+                      Write with what I have
+                    </button>
+                  </div>
                 </div>
                 <p className="mt-3 text-center text-[11px] text-ink-400">This is the same evidence-check StoryLoop runs on every story so drafts stay grounded.</p>
               </div>

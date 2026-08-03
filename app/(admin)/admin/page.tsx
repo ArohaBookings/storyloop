@@ -23,7 +23,7 @@ import {
 import { verifyAdmin } from "@/lib/admin-auth";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getMonthlyStoryLimit } from "@/lib/story-limits";
-import { isBillingBlocked, isBillingPastDue, isPaidPlan } from "@/lib/billing-access";
+import { isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
 import { OUTREACH_REPLY_TEMPLATES } from "@/lib/email/outreach";
 import { normalizePlanKey, type PlanKey } from "@/lib/plans";
 import { calculateArr, calculateMrr, isActiveRevenue, isPayingCustomer, isRevenueAccount } from "@/lib/revenue";
@@ -74,8 +74,6 @@ const PRICES: Record<PlanKey, number> = {
   centre_starter: 99,
   centre_growth: 199,
 };
-const REVENUE_STATUSES = new Set(["active", "trialing", "admin_override"]);
-
 function toDateKey(date: Date) {
   return date.toISOString().slice(0, 10);
 }
