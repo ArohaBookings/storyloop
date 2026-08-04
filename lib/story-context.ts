@@ -255,7 +255,11 @@ function inferLowercaseName(text: string) {
       FOLLOWING_VERBS.has(next) ||
       (INTERVENING_ADVERBS.has(next) && afterNext !== undefined && FOLLOWING_VERBS.has(afterNext));
     const ageFollows = /^\d/.test(next);
-    if (!verbFollows && !ageFollows) continue;
+    // A jotted fragment often has no verb at all ("billy playdough", "ruby
+    // puzzles"). In something that short, an opening word that is not ordinary
+    // vocabulary is the child, and requiring a verb lost the name entirely.
+    const isShortFragment = tokens.length <= 4 && i === 0;
+    if (!verbFollows && !ageFollows && !isShortFragment) continue;
 
     return titleCaseName(token);
   }

@@ -941,3 +941,18 @@ test("a name is found mid-sentence, and a two-word name is not cut in half", () 
     assert.equal(inferPrimaryChildName(note), "", `must not invent a name from: ${note}`);
   }
 });
+
+test("a jotted two-word note still names the child", () => {
+  // "billy playdough" has no verb, so the subject-position rule rejected it and
+  // the story opened "The child played with playdough". Fragments like this are
+  // how notes get typed between activities.
+  assert.equal(inferPrimaryChildName("billy playdough"), "Billy");
+  assert.equal(inferPrimaryChildName("ruby puzzles"), "Ruby");
+  assert.equal(inferPrimaryChildName("harry swing"), "Harry");
+  assert.equal(inferPrimaryChildName("mia painted"), "Mia");
+
+  // The same shortness must not turn a generic fragment into a child.
+  for (const note of ["the group played", "kids playing", "group time", "outside play"]) {
+    assert.equal(inferPrimaryChildName(note), "", `must not invent a name from: ${note}`);
+  }
+});
