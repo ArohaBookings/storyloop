@@ -148,6 +148,52 @@ function isSentenceStart(text: string, index: number) {
   return before === "" || /[.!?]["')\]]?$/.test(before);
 }
 
+
+/**
+ * Words that can open an observation but are never the child's name. Educators
+ * type notes in a hurry and in lower case ("bob played with his socks"), so
+ * without a lower-case pass every one of those stories said "the child"
+ * instead of the child's name, which is the single most noticeable thing a
+ * family reads.
+ */
+const NON_NAME_OPENERS = new Set([
+  // articles, pronouns, determiners
+  "the", "a", "an", "this", "that", "these", "those", "his", "her", "their", "its", "our", "my",
+  "he", "she", "it", "they", "we", "i", "you", "him", "them", "us",
+  // generic child words
+  "child", "children", "kid", "kids", "baby", "babies", "toddler", "toddlers", "boy", "girl",
+  "tamariki", "tamaiti", "mokopuna", "group", "everyone", "some", "one", "two", "both",
+  // time and place openers
+  "today", "yesterday", "morning", "afternoon", "at", "in", "on", "during", "after", "before",
+  "when", "while", "then", "so", "and", "but", "for", "with", "as", "just", "now", "later",
+  "outside", "inside", "out", "up", "down", "here", "there",
+  // common note openers
+  "observation", "note", "notes", "obs", "learning", "story", "date", "time",
+  "was", "were", "is", "are", "had", "has", "have", "did", "does", "went", "saw", "noticed",
+  "watched", "observed", "played", "playing", "sat", "stood", "made", "took", "got", "said",
+]);
+
+function titleCaseName(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+}
+
+/**
+ * Last resort for an all-lower-case note: educators overwhelmingly open with
+ * the child's name, so take the first token when it is not an ordinary word.
+ * A token that also repeats later is even stronger evidence.
+ */
+function inferLowercaseName(text: string) {
+  const tokens = text.toLowerCase().match(/\b[a-z][a-z'-]{1,}\b/g);
+  if (!tokens || tokens.length < 2) return "";
+
+  const first = tokens[0];
+  if (NON_NAME_OPENERS.has(first)) return "";
+  if (BLOCKED_NAME_WORDS.has(titleCaseName(first))) return "";
+  // A single token followed by nothing useful is not an observation.
+  if (first.length < 2) return "";
+  return titleCaseName(first);
+}
+
 export function inferPrimaryChildName(observations: string) {
   const text = observations.trim();
   if (!text) return "";
@@ -188,7 +234,8 @@ export function inferPrimaryChildName(observations: string) {
     if (!firstIndex.has(candidate)) firstIndex.set(candidate, match.index);
   }
 
-  if (scores.size === 0) return "";
+  // No capitalised candidate at all: the note is probably all lower case.
+  if (scores.size === 0) return inferLowercaseName(text);
 
   return (
     Array.from(scores.entries()).sort((a, b) => {

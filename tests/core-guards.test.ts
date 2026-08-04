@@ -879,3 +879,33 @@ test("filler the prompt forbids outright earns a rewrite, not a quiet deduction"
     assert.equal(getBannedFillerPhrases(good).length, 0, `false positive: ${good}`);
   }
 });
+
+test("a lower-case name in the note is still the child's name", () => {
+  // Educators type notes in a hurry: "bob played with his socks". Name
+  // inference only matched capitalised words, so every one of those stories
+  // called the child "the child", which is the first thing a family notices.
+  const found: Array<[string, string]> = [
+    ["bob played with his socks, then bob went shopping we took the whole group out", "Bob"],
+    ["josh played with sam on the playground, sam pushed of josh, josh got mad", "Josh"],
+    ["mila stacked the cups and knocked them over then did it again", "Mila"],
+    ["keiller 15 mnths buiding towr stacks as hi as he can reeach", "Keiller"],
+    ["ruby did puzzles", "Ruby"],
+    ["harry played on the swing", "Harry"],
+  ];
+  for (const [note, expected] of found) {
+    assert.equal(inferPrimaryChildName(note), expected, `should infer ${expected} from: ${note}`);
+  }
+
+  // Ordinary words that open a note must never become a child's name.
+  const none = [
+    "the child stacked cups and knocked them over",
+    "kids played outside and had fun today",
+    "today we went to the park with everyone",
+    "children were exploring the sandpit",
+    "we took the whole group out shopping",
+    "during outdoor play the group built a hut",
+  ];
+  for (const note of none) {
+    assert.equal(inferPrimaryChildName(note), "", `must not invent a name from: ${note}`);
+  }
+});
