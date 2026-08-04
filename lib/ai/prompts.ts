@@ -103,6 +103,7 @@ RETURN ONLY VALID JSON WITH THIS EXACT SHAPE:
   "frameworkEvidence": ["1-3 short educator-friendly explanations of why the selected curriculum links fit"],
   "familyQuestion": "one optional open question that invites family knowledge without assumption",
   "followUpPrompt": "one specific thing to notice next time so learning can be followed over time",
+  "childNameUsed": "the child's name exactly as it should be spelled, or empty string if the note names no individual child",
   "childAge": "extracted or inferred age range",
   "nextSteps": ["2-3 practical next steps"],
   "wordCount": 360
@@ -247,7 +248,14 @@ export function buildUserMessage(
   return `EDUCATOR OBSERVATIONS:
 ${observations}
 
-CHILD NAME: ${childName ? childName : "Not provided. Use 'the child' when needed."}
+CHILD NAME: ${childName ? `${childName}. Use this spelling exactly.` : "Not provided. Read the observation and work out the child's name yourself."}
+IDENTIFYING THE CHILD:
+- If a name is supplied above, use exactly that spelling and do not substitute a different name.
+- If no name is supplied, take it from the observation. Educators type in a hurry, so it may be lower case ("bob played with his socks" is Bob), it may appear part-way through ("so today at mat time jonah joined in" is Jonah), the note may be a fragment ("billy playdough" is Billy), and it may be more than one word ("Te Ao (9 months)" is Te Ao, never "Te"). Capitalise it correctly and keep the whole name.
+- Use the child's name naturally through the story instead of "the child". A family reading "the child" about their own tamaiti sees a form letter.
+- Only fall back to "the child" or "tamariki" when the note genuinely names no individual, such as a whole-room or group observation.
+- Never invent a name, and never promote another child mentioned in passing (a peer, a sibling, an educator) to be the subject.
+- Return whatever name you used in childNameUsed, spelled exactly as it appears in the story, or an empty string if you used none.
 AGE GROUP: ${ageGroup ? ageGroup : "Not provided"}
 EDUCATOR/STAFF NAMES TO USE IN THE STORY: ${cleanEducatorNames.length ? cleanEducatorNames.join(", ") : "Not provided. Use we/us/our."}
 SAVED CONTINUITY CONTEXT:

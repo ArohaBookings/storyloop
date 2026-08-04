@@ -43,6 +43,8 @@ export interface StoryResult extends StoryMetadata {
   culturalConnections: string[];
   whanauConnection: string;
   childAge: string;
+  /** The name the writer used, so the caller can save the correct spelling. */
+  childNameUsed?: string;
   nextSteps: string[];
   assumptions: string[];
   evidenceAnchors: string[];
@@ -315,6 +317,13 @@ function normaliseStoryResult(result: Partial<StoryResult>): StoryResult {
     followUpPrompt:
       typeof result.followUpPrompt === "string" ? localiseSpelling(result.followUpPrompt.trim()) : "",
     childAge: typeof result.childAge === "string" && result.childAge.trim() ? result.childAge.trim() : "Not stated",
+    // The model reads the whole note, so it identifies the name far more
+    // reliably than a word list can: lower case, part-way through a
+    // sentence, a bare fragment, or two words such as "Te Ao".
+    childNameUsed:
+      typeof result.childNameUsed === "string" && result.childNameUsed.trim()
+        ? result.childNameUsed.trim().slice(0, 60)
+        : undefined,
     nextSteps: localiseStringArray(toShortStringArray(result.nextSteps, 4)),
     wordCount:
       typeof result.wordCount === "number" && Number.isFinite(result.wordCount)

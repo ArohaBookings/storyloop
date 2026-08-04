@@ -335,7 +335,11 @@ export async function POST(request: NextRequest) {
       outcomes: result.outcomes,
       next_steps: result.nextSteps,
       age_group: resolvedAgeGroup ?? result.childAge,
-      child_name: resolvedChildName,
+      // A name the educator chose always wins. Otherwise take the one the
+      // writer worked out from the note: it reads the whole observation, so it
+      // catches a lower-case name, a name part-way through a sentence, or a
+      // two-word name that a pattern match would cut in half.
+      child_name: resolvedChildName || result.childNameUsed || null,
       tone: resolvedTone,
       location: framework,
       word_count: result.wordCount,
