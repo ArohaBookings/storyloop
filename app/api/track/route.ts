@@ -30,6 +30,13 @@ function clean(value: unknown, max = 200) {
   return trimmed.slice(0, max);
 }
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function uuidOrNull(value: unknown) {
+  const raw = clean(value, 60);
+  return raw && UUID_PATTERN.test(raw) ? raw : null;
+}
+
 function hostOf(value: unknown) {
   const raw = clean(value, 300);
   if (!raw) return null;
@@ -57,20 +64,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // Cheap abuse guard so this endpoint can't be used to flood the table.
-    const allowed = await consumeRateLimit({
-      scope: "track",
-      key: sessionId,
-      limit: 60,
-      windowSeconds: 60 * 10,
-    });
-    if (!allowed) return NextResponse.json({ ok: true });
+    // Abuse guard. The session id comes from the browser, so limiting on it
+    // alone is trivially bypassed by generating a new one per request. Limit on
+    // the client IP as well, which a flooder cannot rotate as cheaply, and keep
+    // the per-session limit so one tab cannot spam on a shared network.
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+      ?? request.headers.get("x-real-ip")
+      ?? "unknown";
+    const [sessionAllowed, ipAllowed] = await Promise.all([
+      consumeRateLimit({ scope: "track", key: sessionId, limit: 60, windowSeconds: 60 * 10 }),
+      consumeRateLimit({ scope: "track-ip", key: ip, limit: 600, windowSeconds: 60 * 10 }),
+    ]);
+    if (!sessionAllowed || !ipAllowed) return NextResponse.json({ ok: true });
 
     const admin = createAdminSupabase();
     await admin.from("page_events").insert({
       event_type: eventType,
       session_id: sessionId,
-      user_id: clean(body.userId, 60),
+      // Client-supplied, so it is attribution only and never a trust signal.
+      // Constrain it to a UUID so nothing arbitrary reaches the column.
+      user_id: uuidOrNull(body.userId),
       path: clean(body.path, 200),
       referrer_host: hostOf(body.referrer),
       utm_source: clean(body.utmSource, 80),
