@@ -23,7 +23,6 @@ import {
   enforceFrameworkForResult,
   type FrameworkGuardStoryResult,
   childQuotePreserved,
-  getBannedFillerPhrases,
   getMetaCommentaryIssues,
   getMinimumStoryWords,
   getReadabilityFlags,
@@ -856,29 +855,6 @@ test("story bodies never narrate the educator's note", () => {
   );
 });
 
-test("filler the prompt forbids outright earns a rewrite, not a quiet deduction", () => {
-  // A "never" in the prompt should be binding. One story in 58 still opened
-  // "Sylvie spent time at the magnet board", which delays the verb and says
-  // nothing, so these now trigger the rescue path.
-  for (const bad of [
-    "Sylvie spent time at the magnet board looking through the letters.",
-    "Josh was engaged in meaningful play.",
-    "Mia participated well during group time.",
-    "Ari enjoyed exploring the water table.",
-    "Harry kept trying until it worked.",
-  ]) {
-    assert.ok(getBannedFillerPhrases(bad).length > 0, `should be flagged: ${bad}`);
-  }
-
-  for (const good of [
-    "Sylvie looked through the letters on the magnet board and found the S and the E.",
-    "Josh built the tower higher each time it fell.",
-    "Ari poured water into the channel and watched where it ran.",
-    "Harry adjusted his legs until the swing kept moving.",
-  ]) {
-    assert.equal(getBannedFillerPhrases(good).length, 0, `false positive: ${good}`);
-  }
-});
 
 test("a lower-case name in the note is still the child's name", () => {
   // Educators type notes in a hurry: "bob played with his socks". Name

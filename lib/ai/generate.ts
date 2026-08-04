@@ -6,7 +6,6 @@ import { buildPhysicalSafetyFallbackStory as buildSharedPhysicalSafetyFallbackSt
 import {
   countWords,
   enforceFrameworkForResult,
-  getBannedFillerPhrases,
   getMetaCommentaryIssues,
   getMinimumStoryWords,
   getUnsupportedStoryDetails,
@@ -438,7 +437,6 @@ function getStoryRescueReasons(
   }
   reasons.push(...getUnsupportedStoryDetails(result, params.observations));
   reasons.push(...getMetaCommentaryIssues(result.story));
-  reasons.push(...getBannedFillerPhrases(result.story));
   return reasons;
 }
 

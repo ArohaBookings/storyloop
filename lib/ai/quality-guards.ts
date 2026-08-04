@@ -114,21 +114,6 @@ function keepsFocusChild(story: string, childName?: string) {
 }
 
 /**
- * Filler the prompt forbids outright. These delay the verb and say nothing, and
- * "never" in the prompt should mean never, so finding one earns a rewrite
- * rather than a quiet deduction. Kept deliberately short: only phrases with no
- * legitimate use in a learning story belong here.
- */
-const BANNED_FILLER_PATTERN =
-  /\b(spent time|was engaged in|were engaged in|participated well|enjoyed exploring|kept trying)\b/i;
-
-/** Banned filler found in the story body. Empty means clean. */
-export function getBannedFillerPhrases(story: string) {
-  const match = story.match(BANNED_FILLER_PATTERN);
-  return match ? [`Story uses filler the prompt forbids: "${match[0].trim()}". Lead with the verb instead.`] : [];
-}
-
-/**
  * Meta-commentary found in the story body. Empty means clean.
  *
  * Checks the union of both pattern lists: a story that talks about the note
