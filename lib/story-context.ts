@@ -136,7 +136,8 @@ const BLOCKED_NAME_WORDS = new Set([
 ]);
 
 function cleanNameCandidate(value: string) {
-  const cleaned = value.trim().replace(/[^A-Za-z'-]/g, "");
+  // Keep internal spaces so two-word names survive ("Te Ao", "Anna Maria").
+  const cleaned = value.trim().replace(/[^A-Za-z'\- ]/g, "").replace(/\s+/g, " ").trim();
   if (cleaned.length < 2 || BLOCKED_NAME_WORDS.has(cleaned)) return "";
   return cleaned;
 }
@@ -156,22 +157,74 @@ function isSentenceStart(text: string, index: number) {
  * instead of the child's name, which is the single most noticeable thing a
  * family reads.
  */
-const NON_NAME_OPENERS = new Set([
-  // articles, pronouns, determiners
-  "the", "a", "an", "this", "that", "these", "those", "his", "her", "their", "its", "our", "my",
-  "he", "she", "it", "they", "we", "i", "you", "him", "them", "us",
-  // generic child words
-  "child", "children", "kid", "kids", "baby", "babies", "toddler", "toddlers", "boy", "girl",
-  "tamariki", "tamaiti", "mokopuna", "group", "everyone", "some", "one", "two", "both",
-  // time and place openers
-  "today", "yesterday", "morning", "afternoon", "at", "in", "on", "during", "after", "before",
-  "when", "while", "then", "so", "and", "but", "for", "with", "as", "just", "now", "later",
-  "outside", "inside", "out", "up", "down", "here", "there",
-  // common note openers
-  "observation", "note", "notes", "obs", "learning", "story", "date", "time",
-  "was", "were", "is", "are", "had", "has", "have", "did", "does", "went", "saw", "noticed",
-  "watched", "observed", "played", "playing", "sat", "stood", "made", "took", "got", "said",
+// A name is not merely an unfamiliar word: it is an unfamiliar word sitting in
+// subject position. Requiring a verb (or an age) to follow is what separates
+// "jonah joined in" from "the child stacked cups", where "stacked" is also
+// absent from any word list but is plainly not a name.
+const FOLLOWING_VERBS = new Set([
+  "was","were","is","are","had","has","have","did","does","went","goes","got","gets",
+  "said","says","saw","sees","made","makes","took","takes","put","puts","kept","keeps",
+  "played","plays","playing","stayed","stays","joined","joins","sat","sits","stood","stands",
+  "walked","walks","ran","runs","looked","looks","watched","watches","noticed","notices",
+  "started","starts","stopped","stops","tried","tries","turned","turns","asked","asks",
+  "helped","helps","wanted","wants","needed","needs","liked","likes","used","uses","held",
+  "holds","gave","gives","found","finds","showed","shows","told","tells","knew","knows",
+  "thought","thinks","built","builds","filled","fills","poured","pours","moved","moves",
+  "picked","picks","carried","carries","opened","opens","closed","closes","cried","cries",
+  "laughed","laughs","smiled","smiles","pointed","points","reached","reaches","bit","bites",
+  "pushed","pushes","pulled","pulls","hit","hits","kicked","kicks","stacked","stacks",
+  "knocked","knocks","climbed","climbs","jumped","jumps","danced","dances","sang","sings",
+  "painted","paints","drew","draws","cut","cuts","sorted","sorts","counted","counts",
+  "chose","chooses","came","comes","left","leaves","arrived","arrives","enjoyed","enjoys",
+  "loved","loves","managed","manages","decided","decides","returned","returns","waited","waits",
 ]);
+
+// Adverbs an educator drops between the name and the verb.
+const INTERVENING_ADVERBS = new Set([
+  "actually","just","really","then","also","again","still","always","usually","often",
+  "quickly","slowly","carefully","happily","confidently","independently","today","later",
+  "immediately","suddenly","finally","first","next","soon","already",
+]);
+
+const COMMON_WORDS = new Set([
+  // articles, pronouns, determiners, conjunctions, prepositions
+  "the","a","an","this","that","these","those","his","her","their","its","our","my","your",
+  "he","she","it","they","we","i","you","him","them","us","who","which","what","when","where",
+  "and","but","or","so","then","if","because","as","with","without","for","from","to","of","at",
+  "in","on","into","onto","over","under","up","down","out","off","by","about","after","before",
+  "while","during","again","also","just","now","later","today","yesterday","tomorrow","very",
+  "not","no","yes","all","some","any","each","both","other","another","more","most","less",
+  // generic child / people words
+  "child","children","kid","kids","baby","babies","toddler","toddlers","boy","girl","boys","girls",
+  "group","everyone","someone","friend","friends","peer","peers","teacher","teachers","educator",
+  "educators","staff","mum","mom","dad","parent","parents","family","families","nana","koro",
+  "tamariki","tamaiti","mokopuna","whanau","kaiako","kaimahi",
+  // time / place / routine vocabulary
+  "morning","afternoon","evening","day","time","week","lunch","snack","kai","mat","sleep","nap",
+  "outside","inside","outdoors","indoors","playground","sandpit","room","centre","center","yard",
+  "garden","table","floor","corner","area","space","home","door","window","gate","fence",
+  "hui","waiata","karakia","mara",
+  // very common verbs (past and present)
+  "was","were","is","are","am","be","been","being","had","has","have","did","does","do","doing",
+  "went","go","goes","going","came","come","got","get","gets","getting","said","say","says",
+  "saw","see","sees","seeing","made","make","makes","took","take","takes","put","puts","kept",
+  "keep","keeps","played","play","plays","playing","stayed","stay","stays","joined","join","joins",
+  "sat","sit","sits","stood","stand","stands","walked","walk","walks","ran","run","runs","looked",
+  "look","looks","watched","watch","watches","noticed","notice","notices","observed","started",
+  "start","starts","stopped","stop","stops","tried","try","tries","turned","turn","turns","asked",
+  "ask","asks","helped","help","helps","wanted","want","wants","needed","need","needs","liked",
+  "like","likes","used","use","uses","held","hold","holds","gave","give","gives","found","find",
+  "showed","show","shows","told","tell","tells","knew","know","knows","thought","think","thinks",
+  "built","build","builds","filled","fill","fills","poured","pour","pours","moved","move","moves",
+  "picked","pick","picks","carried","carry","opened","open","closed","close","cried","cry","cries",
+  "laughed","laugh","smiled","smile","pointed","point","points","reached","reach","actually",
+  // common note nouns
+  "story","stories","note","notes","observation","obs","learning","date","song","songs","book",
+  "books","blocks","block","cup","cups","water","sand","paint","ball","toy","toys","puzzle",
+  "puzzles","truck","trucks","car","cars","bucket","spade","swing","slide","picture","pictures",
+  "actions","action","words","word","hands","hand","body","feet","legs","face","eyes",
+]);
+
 
 function titleCaseName(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
@@ -183,15 +236,30 @@ function titleCaseName(value: string) {
  * A token that also repeats later is even stronger evidence.
  */
 function inferLowercaseName(text: string) {
-  const tokens = text.toLowerCase().match(/\b[a-z][a-z'-]{1,}\b/g);
+  const tokens = text.toLowerCase().match(/\b[a-z0-9][a-z0-9'-]{1,}\b/g);
   if (!tokens || tokens.length < 2) return "";
 
-  const first = tokens[0];
-  if (NON_NAME_OPENERS.has(first)) return "";
-  if (BLOCKED_NAME_WORDS.has(titleCaseName(first))) return "";
-  // A single token followed by nothing useful is not an observation.
-  if (first.length < 2) return "";
-  return titleCaseName(first);
+  for (let i = 0; i < Math.min(tokens.length, 12); i += 1) {
+    const token = tokens[i];
+    if (token.length < 2) continue;
+    if (/\d/.test(token)) continue;
+    if (COMMON_WORDS.has(token)) continue;
+    if (BLOCKED_NAME_WORDS.has(titleCaseName(token))) continue;
+
+    // Must read as the subject of the sentence: a verb follows, optionally
+    // after one adverb, or an age does ("keiller 15 mnths").
+    const next = tokens[i + 1];
+    if (!next) continue;
+    const afterNext = tokens[i + 2];
+    const verbFollows =
+      FOLLOWING_VERBS.has(next) ||
+      (INTERVENING_ADVERBS.has(next) && afterNext !== undefined && FOLLOWING_VERBS.has(afterNext));
+    const ageFollows = /^\d/.test(next);
+    if (!verbFollows && !ageFollows) continue;
+
+    return titleCaseName(token);
+  }
+  return "";
 }
 
 export function inferPrimaryChildName(observations: string) {
@@ -201,7 +269,7 @@ export function inferPrimaryChildName(observations: string) {
   // Strongest signal: a name paired with an age, e.g. "Ruby (3)",
   // "Noah (3yo)", or the common educator shorthand "Ariana, aged 3".
   const ageMatch = text.match(
-    /\b([A-Z][a-z][A-Za-z'-]*)\s*(?:\(\s*\d{1,2}\s*(?:yo|years?)?\s*\)|,?\s+aged\s+\d{1,2}\b|,?\s+age\s+\d{1,2}\b|,?\s+is\s+\d{1,2}\s+years?\s+old\b)/i
+    /\b([A-Z][a-z][A-Za-z'-]*(?:\s+[A-Z][a-z][A-Za-z'-]*)?)\s*(?:\(\s*\d{1,2}\s*(?:yo|years?|months?|mths?|mnths?)?\s*\)|,?\s+aged\s+\d{1,2}\b|,?\s+age\s+\d{1,2}\b|,?\s+is\s+\d{1,2}\s+years?\s+old\b)/
   );
   const ageName = ageMatch ? cleanNameCandidate(ageMatch[1] ?? "") : "";
   if (ageName) return ageName;

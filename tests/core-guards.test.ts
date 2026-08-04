@@ -909,3 +909,35 @@ test("a lower-case name in the note is still the child's name", () => {
     assert.equal(inferPrimaryChildName(note), "", `must not invent a name from: ${note}`);
   }
 });
+
+test("a name is found mid-sentence, and a two-word name is not cut in half", () => {
+  // "so today at mat time jonah joined in" lost the name entirely because only
+  // the first token was checked, and the story called him "the child".
+  assert.equal(
+    inferPrimaryChildName("so today at mat time jonah actually joined in for the whole song"),
+    "Jonah"
+  );
+  // "Te Ao (9 months)" was truncated to "Te", which renames a child.
+  assert.equal(
+    inferPrimaryChildName("Te Ao (9 months) cried when her mum left. I held her by the window."),
+    "Te Ao"
+  );
+  assert.equal(inferPrimaryChildName("at kai time ari bit tama on the shoulder"), "Ari");
+  assert.equal(inferPrimaryChildName("keiller 15 mnths buiding towr stacks as hi as he can"), "Keiller");
+
+  // An unfamiliar word is only a name when it sits in subject position. Without
+  // that check, "the child stacked cups" yielded a child called "Stacked".
+  for (const note of [
+    "the child stacked cups and knocked them over",
+    "kids played outside and had fun today",
+    "today we went to the park with everyone",
+    "children were exploring the sandpit",
+    "we took the whole group out shopping",
+    "during outdoor play the group built a hut",
+    "at mat time the children sang a song",
+    "everyone helped tidy up the room",
+    "the whole room got interested in the puddle",
+  ]) {
+    assert.equal(inferPrimaryChildName(note), "", `must not invent a name from: ${note}`);
+  }
+});
