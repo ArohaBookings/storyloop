@@ -226,6 +226,7 @@ export function buildPhysicalSafetyFallbackStory(
     "What learning we noticed",
     `${child} is still learning how to manage a hard moment in play, how to communicate when something feels wrong, and how to return to a safe relationship after conflict. We can name this honestly while keeping the wording respectful and proportionate.`,
     `The learning here is not the unsafe action itself. It is the supported process of noticing impact, communicating a boundary, accepting help, and finding a safer way to be with others.`,
+    `Moments like this are how children learn where their body ends and someone else's begins. A strong feeling arrived faster than the words for it, and the physical response came out first. That is developmentally ordinary and still not okay, and both of those things can be true at once. What matters for ${child} now is having an adult close enough to help before the feeling turns into hands, and enough calm afterwards to rejoin the play without carrying shame from it.`,
     "",
     curriculumHeading,
     ...framework.curriculumLinks,

@@ -158,8 +158,12 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Signup error:", error);
+    // Signup is public and on the conversion path. Internal messages are
+    // meaningless to a visitor and expose our stack, so they stay in the logs.
+    // Expected problems (email taken, weak password) are returned earlier with
+    // their own specific messages and never reach here.
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to create account" },
+      { error: "We could not create your account just then. Please try again." },
       { status: 500 }
     );
   }

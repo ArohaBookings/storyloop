@@ -25,19 +25,19 @@ export default function Navbar() {
           </div>
         </Link>
 
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden lg:flex items-center gap-8">
           {[["Today Loop", "/#today-loop"], ["Features", "/#features"], ["How It Works", "/#how-it-works"], ["Guides", "/blog"], ["Pricing", "/pricing"]].map(([label, href]) => (
             <Link key={label} href={href} className="text-sm text-ink-600 hover:text-ink-900 transition-colors font-medium">{label}</Link>
           ))}
         </div>
 
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-2">
           <Link href="/login" className="text-sm font-medium text-ink-600 hover:text-ink-900 px-4 py-2 transition-colors">Sign in</Link>
           <Link href="/signup" className="btn-primary text-sm">Start free</Link>
         </div>
 
         <button
-          className="md:hidden text-ink-700"
+          className="lg:hidden text-ink-700"
           onClick={() => setOpen(!open)}
           aria-label={open ? "Close navigation menu" : "Open navigation menu"}
           aria-expanded={open}
@@ -47,7 +47,7 @@ export default function Navbar() {
       </div>
 
       {open && (
-        <div className="md:hidden bg-paper border-t border-clay-100 px-4 py-4 space-y-2">
+        <div className="lg:hidden bg-paper border-t border-clay-100 px-4 py-4 space-y-2">
           {[["Today Loop", "/#today-loop"], ["Features", "/#features"], ["How It Works", "/#how-it-works"], ["Resources", "/resources"], ["Examples", "/examples"], ["Pricing", "/pricing"], ["FAQ", "/faq"]].map(([label, href]) => (
             <Link key={label} href={href} className="block text-sm text-ink-600 py-2" onClick={() => setOpen(false)}>{label}</Link>
           ))}

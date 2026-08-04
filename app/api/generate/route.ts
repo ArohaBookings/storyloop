@@ -437,8 +437,13 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Generate error:", error);
+    // Never hand an internal message to the caller. A visitor on the landing
+    // demo was being shown backend configuration errors verbatim
+    // ("Supabase admin environment is not configured."), which is both
+    // meaningless to them and tells an attacker about our stack. The real
+    // error is in the server logs above.
     return NextResponse.json({
-      error: error instanceof Error ? error.message : "Failed to generate story. Please try again.",
+      error: "We could not finish that story. Please try again in a moment.",
     }, { status: 500 });
   }
 }

@@ -328,7 +328,7 @@ function learningLens(domain: StoryDomain) {
       };
     default:
       return {
-        summary: "choice-making, purposeful communication, sustained attention, and connection",
+        summary: "focus, choice, and follow-through in the moment",
         dispositions: ["agency", "communication", "curiosity", "confidence"],
         social: ["belonging", "shared attention", "participation"],
       };
@@ -397,19 +397,19 @@ function extensionParagraph(domain: StoryDomain, child: string, names?: string[]
 function reflectionParagraph(domain: StoryDomain, child: string, evidence: string) {
   switch (domain) {
     case "construction":
-      return `What stands out is ${child}'s persistence. ${child} met a real problem, stayed close to it, and kept adjusting the approach instead of giving up. The learning is visible in the process: ${evidence}.`;
+      return `What stands out is ${child}'s persistence. ${child} met a real problem, stayed close to it, and kept adjusting the approach instead of giving up.`;
     case "pretend":
-      return `What stands out is the way ${child} held the pretend story together. ${child} used objects as symbols, created a sequence, added sound, and brought another person into the play. The learning is visible in the process: ${evidence}.`;
+      return `What stands out is the way ${child} held the pretend story together. ${child} used objects as symbols, created a sequence, added sound, and brought another person into the play.`;
     case "sensory":
-      return `What stands out is ${child}'s communication through the whole body. ${child} used reaching, movement, laughter, repetition, or attention to keep the interaction going. The learning is visible in the process: ${evidence}.`;
+      return `What stands out is ${child}'s communication through the whole body. ${child} used reaching, movement, laughter, repetition, or attention to keep the interaction going.`;
     case "working_theory":
-      return `What stands out is ${child}'s inquiry. ${child} was not waiting for an answer; ${child} was testing one through materials, movement, language, and another person's participation. The learning is visible in the process: ${evidence}.`;
+      return `What stands out is ${child}'s inquiry. ${child} was not waiting for an answer; ${child} was testing one through materials, movement, language, and another person's participation.`;
     case "self_regulation":
-      return `What stands out is ${child}'s growing awareness of what felt hard and what helped. ${child} used movement, distance, watching, gesture, or language to manage the moment. The learning is visible in the process: ${evidence}.`;
+      return `What stands out is ${child}'s growing awareness of what felt hard and what helped. ${child} used movement, distance, watching, gesture, or language to manage the moment.`;
     case "creative":
-      return `What stands out is ${child}'s expression and decision-making. ${child} used the materials to show an idea, adjust it, and communicate meaning. The learning is visible in the process: ${evidence}.`;
+      return `What stands out is ${child}'s expression and decision-making. ${child} used the materials to show an idea, adjust it, and communicate meaning.`;
     default:
-      return `What stands out is ${child}'s purposeful involvement. ${child} made a choice, stayed with the experience, and showed us what mattered through action or communication. The learning is visible in the process: ${evidence}.`;
+      return `What stands out is what ${child} chose to do and how ${child} stayed with it. The value of the moment is in the action itself, not in a broad activity label.`;
   }
 }
 

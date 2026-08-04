@@ -22,8 +22,11 @@ import { buildUserMessage, LEARNING_STORY_PROMPT } from "../lib/ai/prompts";
 import {
   enforceFrameworkForResult,
   type FrameworkGuardStoryResult,
+  childQuotePreserved,
   getMetaCommentaryIssues,
   getMinimumStoryWords,
+  getReadabilityFlags,
+  getToneTells,
   getUnsupportedStoryDetails,
   humaniseQualityNote,
 } from "../lib/ai/quality-guards";
@@ -676,6 +679,161 @@ test("every marketing template is covered by the weekly frequency cap", () => {
   }
 });
 
+// Every string below is a real sentence pulled from a shipped story in the
+// production database. 23% of stories referred to "the note" because the prompt
+// literally instructed it to. These lock that door.
+test("meta-commentary guard catches every real defect sentence from production", () => {
+  const shipped = [
+    "The note says that Sam pushed Josh, and Josh got mad.",
+    "Because the note is brief, we are careful not to add extra details.",
+    "The exact way Josh showed this needs to be checked before sharing.",
+    "The note tells us James returned to the display and asked sensible questions.",
+    "The note suggests she moved freely and confidently, with the people who matter to her close by.",
+    "The note describes Shae and Ella greeting each other often, holding hands.",
+    "The note does not tell us how long Mia worked on the bridge or what support was nearby.",
+    "The notes do not give us one clear action from Lilah, so we have kept this story focused.",
+    "In the note we have, he built a house to keep the shark in.",
+    "The note also names Aunty and Sissy, so the educator can decide whether that name should remain.",
+    "The main learning we can see from the note is the process of testing an idea.",
+    "What we can say is that Tane's position shifted within one play session.",
+    "From this brief note, the clearest learning is her growing confidence.",
+    "The note is brief, so we have kept the interpretation close to what was seen.",
+    "The observation does not tell us what happened next.",
+  ];
+
+  for (const sentence of shipped) {
+    const issues = getMetaCommentaryIssues(sentence);
+    assert.ok(issues.length > 0, `guard missed a real shipped defect: ${sentence}`);
+  }
+});
+
+test("meta-commentary guard does not fire on clean educator writing", () => {
+  const clean = [
+    "Sam pushed Josh, and Josh got mad.",
+    "Josh may have been telling us that he did not like what happened to his body.",
+    "Keiller stacked the blocks as high as he could reach, placing them carefully.",
+    "Tiana picks up a pan and places corn and a block inside it.",
+    "She played the notes on the xylophone one after the other.",
+    "We noticed Harry adjusting his legs until the swing kept moving.",
+    "Erica noticed how carefully he balanced the blocks before choosing the moment.",
+    "James used a three-word phrase to ask for help, then asked for another nail.",
+    "We can share this story with whanau at pick-up time.",
+    "Aria filled a bucket in the sandpit and tipped it out, around twenty times over.",
+    "We will continue to notice how Alani shows belonging during centre events.",
+    "Mia moved the wider blocks underneath and said, \"I need strong ones at the bottom.\"",
+  ];
+
+  for (const sentence of clean) {
+    const issues = getMetaCommentaryIssues(sentence);
+    assert.equal(issues.length, 0, `guard false-positived on clean writing: ${sentence} -> ${issues.join("; ")}`);
+  }
+});
+
+test("the story prompt no longer instructs the model to say 'the note suggests'", () => {
+  // The phrase itself still appears in the prompt's banned-phrase list, which is
+  // correct. What must never come back is the instruction to USE it.
+  assert.ok(
+    !/Use careful phrasing such as/i.test(LEARNING_STORY_PROMPT),
+    "prompt must not instruct the model to hedge by referring to the note"
+  );
+  assert.ok(
+    /NEVER REFER TO THE NOTE/i.test(LEARNING_STORY_PROMPT),
+    "prompt must carry the explicit ban"
+  );
+});
+
+test("tone grading catches AI tells but not ordinary educator writing", () => {
+  const bad = [
+    "This was a beautiful moment for Harry.",
+    "Mia demonstrated her understanding of balance.",
+    "The story showcases holistic development.",
+    "Ari spent time exploring the water table.",
+    "Josh was engaged in meaningful play.",
+    "It was remarkable to watch.",
+  ];
+  for (const s of bad) assert.ok(getToneTells(s).length > 0, `missed tone tell: ${s}`);
+
+  const good = [
+    "Harry kept adjusting his legs until the swing held its movement.",
+    "Mia moved the wider blocks underneath and tried the car again.",
+    "Ari pressed wet sand against the gap and watched what happened.",
+    "Josh got mad when Sam pushed him.",
+    "Keiller waited until his cousin had finished before knocking it down.",
+  ];
+  for (const s of good) assert.equal(getToneTells(s).length, 0, `false positive: ${s} -> ${getToneTells(s).join(";")}`);
+});
+
+test("readability splits sentences correctly around quoted speech", () => {
+  // A period inside a closing quote still ends the sentence. Missing this made
+  // stories that preserve a child's words look like they ran on.
+  const quoted =
+    'We can use simple words, such as, "You have some blocks, and Leo has some too." ' +
+    'We can offer clear choices when more than one child wants the same thing. ' +
+    'We will keep noticing how Tane responds when that happens.';
+  assert.equal(getReadabilityFlags(quoted).length, 0, `false positive: ${getReadabilityFlags(quoted).join(";")}`);
+
+  const runOn = `Harry ${"kept going and ".repeat(30)}stopped.`;
+  assert.ok(getReadabilityFlags(runOn).length > 0, "should flag a genuine run-on sentence");
+});
+
+test("child quote preservation is graded only when the educator recorded one", () => {
+  const obs = 'Kahu said "its to much watta" when it spilled.';
+  assert.equal(childQuotePreserved('Kahu said, "its to much watta", then tipped some out.', obs), true);
+  // Polishing the child's spelling loses the evidence.
+  assert.equal(childQuotePreserved('Kahu said it was too much water.', obs), false);
+  // No quote recorded means there is nothing to keep.
+  assert.equal(childQuotePreserved("Harry swung.", "harry played on the swing"), null);
+});
+
+test("pushing a child is a safety incident, pushing an object is not", () => {
+  // "pushed" only counted as a safety incident when a context word happened to
+  // appear, and the context list had "angry" but not "mad", so a real push
+  // incident was written up as an exploration story with a cheerful title.
+  const incidents = [
+    "josh played with sam on the playground, sam pushed of josh, josh got mad",
+    "sam pushed off josh",
+    "Sam pushed Josh",
+    "During the outdoor transition, Luca pushed Ava near the gate.",
+    "He pushed another child at the gate",
+    "she shoved her friend",
+  ];
+  for (const note of incidents) {
+    assert.equal(hasPhysicalSafetyIncident(note), true, `should be a safety incident: ${note}`);
+  }
+
+  const ordinaryPlay = [
+    "Leni pushed the trolley around the yard and kept going",
+    "Harry pushed the door open with both hands",
+    "Mia pushed the blocks together to make a bridge",
+    "Aria pushed the swing to make it move",
+    "She pushed off the wall in the pool",
+    "he pushed off his shoes at the mat",
+    "Ari pushed off from the edge",
+    "Nikau was a bit unsure at mat time but joined in after a bit of encouragement",
+  ];
+  for (const note of ordinaryPlay) {
+    assert.equal(hasPhysicalSafetyIncident(note), false, `should read as play: ${note}`);
+  }
+});
+
+test("the offline fallback never pastes the raw note or uses banned generic phrases", () => {
+  const note = "mila stacked the cups and knocked them over then did it again";
+  const result = buildEvidenceLedStory({}, {
+    observations: note,
+    childName: "Mila",
+    framework: "NZ",
+    depth: "balanced",
+    tone: "natural",
+  });
+  assert.equal(result.story.includes(note), false, "must not paste the note back verbatim");
+  assert.equal(
+    /agency, communication, curiosity, and connection|clear thread to follow|not included in the brief note/i.test(result.story),
+    false,
+    "must not use the generic catch-alls the prompt forbids"
+  );
+  assert.equal(getMetaCommentaryIssues(result.story).length, 0, "fallback must not talk about the note");
+});
+
 test("story bodies never narrate the educator's note", () => {
   const shippedDefects = [
     "The note says that Sam pushed Josh.",
@@ -689,5 +847,10 @@ test("story bodies never narrate the educator's note", () => {
     assert.ok(getMetaCommentaryIssues(sentence).length > 0, `guard missed: ${sentence}`);
   }
   assert.equal(getMetaCommentaryIssues("Mila played the musical notes twice.").length, 0);
-  assert.ok(LEARNING_STORY_PROMPT.includes("Never refer to the note in the story field."));
+  // Assert the rule exists, not one exact sentence, so rewording the prompt for
+  // emphasis does not fail a test that is really about the rule being present.
+  assert.ok(
+    /never refer to the note/i.test(LEARNING_STORY_PROMPT),
+    "the prompt must forbid referring to the note in the story field"
+  );
 });

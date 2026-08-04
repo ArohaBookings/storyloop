@@ -6,6 +6,7 @@ import { buildPhysicalSafetyFallbackStory as buildSharedPhysicalSafetyFallbackSt
 import {
   countWords,
   enforceFrameworkForResult,
+  childQuotePreserved,
   getMetaCommentaryIssues,
   getMinimumStoryWords,
   getUnsupportedStoryDetails,
@@ -345,7 +346,8 @@ function computeStoryQuality(
     requiredSectionsPresent: 6,
     noMetaCommentary: 5,
     noAiDashPunctuation: 4,
-    focusChildMaintained: 5,
+    focusChildMaintained: 4,
+    childVoicePreserved: 6,
   };
   const rawScore = (Object.keys(checks) as Array<keyof typeof checks>)
     .reduce((score, key) => score + (checks[key] ? weights[key] : 0), 0);
@@ -354,13 +356,19 @@ function computeStoryQuality(
   const passes = remaining.length === 0 && Object.values(checks).every(Boolean);
   const actualWords = countWords(result.story);
 
+  // Strengths name what actually held up, so an educator can see at a glance
+  // why the draft is trustworthy rather than reading a bare number.
   const strengths: string[] = [];
-  if (passes) {
-    strengths.push("Evidence stays close to the educator's observation.");
-    strengths.push("Written in a natural educator voice, ready to review and share.");
-    if (actualWords >= getMinimumStoryWords(params.depth)) {
-      strengths.push("Developed to the depth you selected.");
-    }
+  if (checks.noInventedDetails && checks.noMetaCommentary) {
+    strengths.push("Every claim stays anchored to what you actually recorded.");
+  }
+  if (checks.naturalEducatorTone) strengths.push("Reads like an educator wrote it, not a template.");
+  if (checks.childVoicePreserved && /["“']/.test(params.observations)) {
+    strengths.push("The child's own words are kept exactly as you wrote them.");
+  }
+  if (checks.familyReadable) strengths.push("Plain enough for families to read easily.");
+  if (actualWords >= getMinimumStoryWords(params.depth)) {
+    strengths.push("Developed to the depth you selected.");
   }
 
   return {

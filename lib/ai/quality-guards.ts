@@ -113,12 +113,19 @@ function keepsFocusChild(story: string, childName?: string) {
   return (story.match(new RegExp(`\\b${escaped}\\b`, "gi")) ?? []).length >= 2;
 }
 
+/**
+ * Meta-commentary found in the story body. Empty means clean.
+ *
+ * Checks the union of both pattern lists: a story that talks about the note
+ * instead of the child is the one defect a family notices immediately.
+ */
 export function getMetaCommentaryIssues(story: string) {
   const issues: string[] = [];
-  for (const { pattern, label } of NOTE_META_COMMENTARY_PATTERNS) {
+  for (const { pattern, label } of [...NOTE_META_COMMENTARY_PATTERNS, ...META_COMMENTARY_PATTERNS]) {
     const match = story.match(pattern);
     if (match) {
-      issues.push(`Story ${label}: "${match[0].trim()}". Write about the child, not about the note.`);
+      const issue = `Story ${label}: "${match[0].trim()}". Write about the child, not about the note.`;
+      if (!issues.includes(issue)) issues.push(issue);
     }
   }
   return issues;
@@ -163,6 +170,9 @@ export function inspectStoryQuality(
       getMetaCommentaryIssues(result.story).length === 0,
     noAiDashPunctuation: !AI_DASH_PUNCTUATION_PATTERN.test(outputText),
     focusChildMaintained: keepsFocusChild(result.story, params.childName),
+    // If the educator recorded the child's exact words, losing them (or
+    // polishing the spelling) throws away the best evidence in the note.
+    childVoicePreserved: childQuotePreserved(result.story, params.observations) !== false,
   };
 }
 
@@ -280,6 +290,124 @@ export function getUnsupportedStoryDetails(result: FrameworkGuardStoryResult, ob
   return Array.from(new Set(issues)).slice(0, 12);
 }
 
+/**
+ * A learning story is written about a child, never about the piece of paper the
+ * educator jotted down. Sentences like "The note says Sam pushed Josh" or
+ * "Because the note is brief, we are careful not to add extra details" show a
+ * family the machinery instead of their child, and they leak educator-facing QA
+ * language into the one field families actually read.
+ *
+ * These patterns are deliberately narrow. They require the note to be acting as
+ * a narrator ("the note says/does not/also names") rather than matching the bare
+ * word, so a child playing musical notes never trips the guard.
+ *
+ * Only ever run this on the story body. Assumptions and educatorChecks are
+ * educator-facing, and naming an evidence gap there is exactly right.
+ */
+const META_COMMENTARY_PATTERNS: Array<{ pattern: RegExp; label: string }> = [
+  {
+    pattern:
+      /\b(?:the|this|your)\s+notes?\s+(?:says?|said|tells?|told|suggests?|describes?|records?|mentions?|indicates?|shows?|gives?|is\s+brief|does\s*n[o']t|do\s*n[o']t|also\s+names)\b/i,
+    label: 'refers to "the note" as the narrator',
+  },
+  {
+    pattern: /\bfrom\s+(?:the|this)\s+(?:brief\s+|short\s+)?(?:note|observation)\b/i,
+    label: 'opens with "from this brief note"',
+  },
+  { pattern: /\bin\s+the\s+notes?\s+we\s+have\b/i, label: 'says "in the note we have"' },
+  { pattern: /\bbecause\s+the\s+notes?\b/i, label: 'explains itself with "because the note"' },
+  {
+    pattern: /\bthe\s+notes?\s+(?:is|are)\s+(?:brief|short|thin|sparse|limited)\b/i,
+    label: "comments on how brief the note is",
+  },
+  {
+    pattern: /\bthe\s+observation\s+(?:says?|tells?|suggests?|does\s*n[o']t)\b/i,
+    label: 'refers to "the observation" as the narrator',
+  },
+  { pattern: /\bwhat\s+we\s+can\s+say\s+is\b/i, label: 'hedges with "what we can say is"' },
+  { pattern: /\bwe\s+are\s+careful\s+not\s+to\b/i, label: "narrates its own caution" },
+  {
+    pattern: /\bbefore\s+(?:this\s+is\s+|it\s+is\s+|being\s+)?shar(?:ed|ing)\b/i,
+    label: "puts a before-sharing caveat in the story body",
+  },
+  { pattern: /\bneeds?\s+to\s+be\s+(?:checked|confirmed)\b/i, label: "puts a QA flag in the story body" },
+];
+
+/**
+ * Phrases that make a draft read as machine-written or as filler. These are the
+ * ones the prompt already forbids. They are graded, not rejected: their presence
+ * lowers the tone score rather than triggering a rewrite, because a single
+ * borderline word in an otherwise strong story is not worth another model call.
+ */
+const TONE_TELL_PATTERNS: Array<{ pattern: RegExp; label: string }> = [
+  { pattern: /\b(beautiful|magical|precious|heartwarming) (moment|experience)\b/i, label: "gushing language" },
+  { pattern: /\b(remarkable|wonderful|delightful|incredible)\b/i, label: "inflated adjective" },
+  { pattern: /\b(demonstrated|illustrates|showcas(?:es|ing)|exemplifies)\b/i, label: "academic verb" },
+  { pattern: /\bholistic development\b/i, label: "policy-speak" },
+  { pattern: /\b(significant learning|important part of|critical thinking skills)\b/i, label: "vague significance" },
+  { pattern: /\b(deepening sense|fascination continued|journey of discovery)\b/i, label: "stock phrase" },
+  { pattern: /\b(fostering|nurturing) (a |an )?\w+ (environment|atmosphere)\b/i, label: "brochure language" },
+  { pattern: /\b(spent time|participated well|was engaged in|enjoyed exploring)\b/i, label: "filler description" },
+];
+
+/** Tone problems in the story body. Empty means it reads like an educator. */
+export function getToneTells(story: string) {
+  const found: string[] = [];
+  for (const { pattern, label } of TONE_TELL_PATTERNS) {
+    const match = story.match(pattern);
+    if (match) found.push(`${label}: "${match[0].trim()}"`);
+  }
+  return found;
+}
+
+/**
+ * Readability for a family audience. Long sentences are the main thing that
+ * makes documentation hard to read at the end of a shift, so we flag a draft
+ * whose sentences run long on average or that contains a runaway sentence.
+ */
+export function getReadabilityFlags(story: string) {
+  const flags: string[] = [];
+  // Skip headings; grade the prose.
+  const prose = story
+    .split("\n")
+    .filter((line) => line.trim().length > 0 && /[.!?]/.test(line))
+    .join(" ");
+  // Split after terminal punctuation, including when it sits inside a closing
+  // quote ("...too." We can...). Missing that case merged quoted sentences
+  // together and made the best stories, the ones that keep a child's words,
+  // look like they ran on.
+  const sentences = prose
+    .split(/(?<=[.!?]["”'’]?)\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+  if (sentences.length === 0) return flags;
+
+  const lengths = sentences.map((s) => s.split(/\s+/).filter(Boolean).length);
+  const average = lengths.reduce((sum, n) => sum + n, 0) / lengths.length;
+  const longest = Math.max(...lengths);
+
+  if (average > 26) flags.push(`Sentences average ${Math.round(average)} words, which reads long for families.`);
+  if (longest > 48) flags.push(`One sentence runs to ${longest} words.`);
+  return flags;
+}
+
+/**
+ * Whether a child's quoted words survived into the story exactly as recorded.
+ * Returns null when the educator recorded no quote, so there is nothing to keep.
+ * The child's real voice, misspellings included, is the evidence, and losing it
+ * is a genuine quality failure rather than a stylistic preference.
+ */
+export function childQuotePreserved(story: string, observations: string): boolean | null {
+  const quotes = [...observations.matchAll(/["“']([^"”']{4,120})["”']/g)]
+    .map((m) => m[1].trim())
+    .filter((q) => q.split(/\s+/).filter(Boolean).length >= 2);
+  if (quotes.length === 0) return null;
+
+  const normalise = (value: string) => value.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+  const storyText = normalise(story);
+  return quotes.some((quote) => storyText.includes(normalise(quote)));
+}
+
 const QUALITY_NOTE_LABELS: Record<string, string> = {
   naturalEducatorTone: "The draft uses a natural educator tone.",
   childVoiceSupported: "Child voice is only used when the observation supports it.",
@@ -291,6 +419,8 @@ const QUALITY_NOTE_LABELS: Record<string, string> = {
   notPoetic: "The tone avoids poetic or sentimental language.",
   notAISounding: "The draft does not read like generic AI copy.",
   noMetaCommentary: "The story avoids draft-review commentary.",
+  noNoteReferences: "The story is written about the child, not about the note.",
+  childVoicePreserved: "The child's quoted words are kept exactly as recorded.",
   noAiDashPunctuation: "The story avoids AI-style dash punctuation.",
   requiredSectionsPresent: "The story includes the educator-ready review sections.",
   focusChildMaintained: "The story stays centred on the selected child.",
