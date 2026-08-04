@@ -23,6 +23,7 @@ import {
   enforceFrameworkForResult,
   type FrameworkGuardStoryResult,
   childQuotePreserved,
+  getBannedFillerPhrases,
   getMetaCommentaryIssues,
   getMinimumStoryWords,
   getReadabilityFlags,
@@ -853,4 +854,58 @@ test("story bodies never narrate the educator's note", () => {
     /never refer to the note/i.test(LEARNING_STORY_PROMPT),
     "the prompt must forbid referring to the note in the story field"
   );
+});
+
+test("filler the prompt forbids outright earns a rewrite, not a quiet deduction", () => {
+  // A "never" in the prompt should be binding. One story in 58 still opened
+  // "Sylvie spent time at the magnet board", which delays the verb and says
+  // nothing, so these now trigger the rescue path.
+  for (const bad of [
+    "Sylvie spent time at the magnet board looking through the letters.",
+    "Josh was engaged in meaningful play.",
+    "Mia participated well during group time.",
+    "Ari enjoyed exploring the water table.",
+    "Harry kept trying until it worked.",
+  ]) {
+    assert.ok(getBannedFillerPhrases(bad).length > 0, `should be flagged: ${bad}`);
+  }
+
+  for (const good of [
+    "Sylvie looked through the letters on the magnet board and found the S and the E.",
+    "Josh built the tower higher each time it fell.",
+    "Ari poured water into the channel and watched where it ran.",
+    "Harry adjusted his legs until the swing kept moving.",
+  ]) {
+    assert.equal(getBannedFillerPhrases(good).length, 0, `false positive: ${good}`);
+  }
+});
+
+test("a lower-case name in the note is still the child's name", () => {
+  // Educators type notes in a hurry: "bob played with his socks". Name
+  // inference only matched capitalised words, so every one of those stories
+  // called the child "the child", which is the first thing a family notices.
+  const found: Array<[string, string]> = [
+    ["bob played with his socks, then bob went shopping we took the whole group out", "Bob"],
+    ["josh played with sam on the playground, sam pushed of josh, josh got mad", "Josh"],
+    ["mila stacked the cups and knocked them over then did it again", "Mila"],
+    ["keiller 15 mnths buiding towr stacks as hi as he can reeach", "Keiller"],
+    ["ruby did puzzles", "Ruby"],
+    ["harry played on the swing", "Harry"],
+  ];
+  for (const [note, expected] of found) {
+    assert.equal(inferPrimaryChildName(note), expected, `should infer ${expected} from: ${note}`);
+  }
+
+  // Ordinary words that open a note must never become a child's name.
+  const none = [
+    "the child stacked cups and knocked them over",
+    "kids played outside and had fun today",
+    "today we went to the park with everyone",
+    "children were exploring the sandpit",
+    "we took the whole group out shopping",
+    "during outdoor play the group built a hut",
+  ];
+  for (const note of none) {
+    assert.equal(inferPrimaryChildName(note), "", `must not invent a name from: ${note}`);
+  }
 });

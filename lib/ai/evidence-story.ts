@@ -394,7 +394,7 @@ function extensionParagraph(domain: StoryDomain, child: string, names?: string[]
   }
 }
 
-function reflectionParagraph(domain: StoryDomain, child: string, evidence: string) {
+function reflectionParagraph(domain: StoryDomain, child: string) {
   switch (domain) {
     case "construction":
       return `What stands out is ${child}'s persistence. ${child} met a real problem, stayed close to it, and kept adjusting the approach instead of giving up.`;
@@ -472,7 +472,6 @@ export function buildEvidenceLedStory(
   const peerCheck = otherChildren.length > 0
     ? `Another child (${otherChildren.join(" and ")}) is named in the observation. Decide whether that name should stay in the family-facing version.`
     : "";
-  const evidenceLine = fragments.slice(0, 3).map((item) => item.replace(/[.!?]*$/, "")).join(". ");
   const voice = educatorVoice(params.educatorNames);
   const curriculumHeading = params.framework === "NZ" ? "Te Whāriki links" : "EYLF links";
   const familyHeading = params.framework === "NZ" ? "Whānau link" : "Family link";
@@ -482,7 +481,7 @@ export function buildEvidenceLedStory(
     firstParagraph(child, fragments, quote, domain, params.educatorNames),
     "",
     "What learning we noticed",
-    reflectionParagraph(domain, child, evidenceLine || observation),
+    reflectionParagraph(domain, child),
     `${child} was showing ${lens.summary}. We can see this through the recorded action rather than through a broad activity label.`,
     "",
     curriculumHeading,
