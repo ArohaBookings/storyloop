@@ -49,6 +49,14 @@ export default function Pricing() {
                   {plan.displayPrice > 0 && <span className={`mb-2 text-sm ${plan.popular ? "text-ink-400" : "text-ink-500"}`}>{currency}/month</span>}
                 </div>
                 {plan.priceNote && <p className={`-mt-1 mb-2 text-[11px] ${plan.popular ? "text-ink-400" : "text-ink-500"}`}>{plan.priceNote}</p>}
+                {/* The arithmetic that was always true and never stated: a
+                    centre plan divided by its seats costs about half the
+                    individual price per educator. */}
+                {plan.seats && plan.displayPrice > 0 && (
+                  <p className="mb-2 inline-flex w-fit rounded-full border border-sage-200 bg-sage-50 px-2.5 py-1 text-[11px] font-bold text-sage-800">
+                    ${(plan.displayPrice / plan.seats).toFixed(2)} per educator
+                  </p>
+                )}
                 <p className={`text-sm ${plan.popular ? "text-cream-300" : "text-clay-700"}`}>{plan.stories}</p>
                 <p className={`mt-2 text-xs leading-relaxed ${plan.popular ? "text-ink-300" : "text-ink-500"}`}>{plan.description}</p>
               </div>
@@ -89,8 +97,14 @@ export default function Pricing() {
           </p>
           <p className="mt-1.5 text-sm leading-relaxed text-ink-600">
             Centre plans cover unlimited children. Enrol twenty more tamariki and the price does not move.
-            And you keep the platform your centre already runs on, because StoryLoop exports straight into
-            Storypark, Educa, Kinderloop and Brightwheel rather than replacing them.
+            Per educator they work out at about half the individual plan, and you keep the platform your
+            centre already runs on, because StoryLoop exports straight into Storypark, Educa, Kinderloop
+            and Brightwheel rather than replacing them.
+          </p>
+          <p className="mt-3 border-t border-sage-200 pt-3 text-sm leading-relaxed text-ink-600">
+            <strong className="font-semibold text-ink-900">Your educators keep their drafts.</strong>{" "}
+            A centre plan shows leadership who is writing and when, never what they wrote, unless that
+            educator turns sharing on themselves. Buying the seats does not buy the diary.
           </p>
         </div>
 

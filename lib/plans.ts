@@ -36,6 +36,13 @@ export type PlanDefinition = {
   description: string;
   price: Record<CurrencyCode, number>;
   priceNote?: string;
+  /**
+   * Educator seats included. Real now that centre_members exists and the seat
+   * limit is enforced when an invite is accepted. Its other job is arithmetic:
+   * a centre plan divided by its seats costs roughly half the individual price,
+   * which was always true and was never said anywhere.
+   */
+  seats?: number;
   stories: string;
   cta: string;
   popular?: boolean;
@@ -135,12 +142,15 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
     description: "For small centres that want a consistent, visible documentation rhythm.",
     price: { AUD: 99, NZD: 109 },
     priceNote: "per centre/month · unlimited children",
-    stories: "Centre rollout tools",
+    seats: 10,
+    stories: "10 educator seats",
     cta: "Start centre trial",
     buyer: "Directors and room leaders rolling StoryLoop into a small team.",
     features: [
-      "Everything in Educator Pro",
+      "Everything in Educator Pro, for all 10 educators",
       "Unlimited children, no per-child fee",
+      "Invite your team and manage seats",
+      "Educators keep their drafts private unless they choose to share",
       "Centre Quality Calibration",
       "Shared centre voice guidance",
       "Planning Board from stories",
@@ -160,11 +170,12 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
     description: "For larger or scaling services that need director-level visibility and ROI proof.",
     price: { AUD: 199, NZD: 219 },
     priceNote: "per centre/month · unlimited children",
-    stories: "Growth analytics + centre rollout",
+    seats: 25,
+    stories: "25 educator seats",
     cta: "Start growth trial",
     buyer: "Owners, directors, and larger services needing rollout visibility.",
     features: [
-      "Everything in Centre Starter",
+      "Everything in Centre Starter, for all 25 educators",
       "Unlimited children, no per-child fee",
       "Director ROI Dashboard",
       "Rollout health signals",
