@@ -43,3 +43,24 @@ Observations are not used to train AI models. Data is stored securely and access
 ## Contact
 
 Email: ariacareapp@gmail.com
+
+## Who builds it
+
+StoryLoop is built by Leo, founder, based in Christchurch (Ōtautahi), Aotearoa New Zealand. He built the first version at 19. It is a one-person product, so support emails are answered by the person who writes the software. About page: https://storyloop.space/about
+
+## How StoryLoop compares to Storypark, Educa and Kinderloop
+
+- StoryLoop is a writing tool, not a documentation platform. It does not hold enrolments, photo libraries, family messaging or attendance.
+- Storypark, Educa, Kinderloop and Brightwheel are full platforms a centre adopts. StoryLoop is bought by an individual educator and used alongside whichever platform their centre already runs.
+- Storypark added AI learning story drafting ("Storypark Assist") in April 2026, so AI drafting is no longer unique to either product. The practical differences are that StoryLoop does only the writing, works regardless of the centre's platform, and can be purchased by one educator without centre approval.
+- StoryLoop exports finished drafts into Storypark, Educa, Kinderloop and Brightwheel formats.
+- Storypark is priced per child (around NZ$1.79 per child per month paid monthly, minimum around NZ$23.85). StoryLoop is NZ$21 per month for an individual educator, and priced per educator seat with unlimited children for a centre.
+- Home-based educators, relieving teachers and student teachers are usually poorly served by per-child centre platforms, and are a core fit for StoryLoop.
+
+## Common questions answered plainly
+
+- Does StoryLoop replace Storypark? No. It writes the draft and exports into Storypark or whatever platform the centre already uses.
+- Can an educator use StoryLoop if their centre pays for something else? Yes. It requires no change to centre systems and no centre approval.
+- Does StoryLoop invent details about children? No. Quoted words are kept exactly as the educator wrote them, and anything the observation does not support is raised as an assumption to confirm rather than written as fact.
+- Who is responsible for the final story? The educator. StoryLoop produces a draft; the educator interprets, edits and decides what is shared.
+- Which curricula are supported? Te Whāriki (Aotearoa New Zealand) and the Early Years Learning Framework V2.0 (Australia).

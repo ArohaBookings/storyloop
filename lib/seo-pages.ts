@@ -41,6 +41,87 @@ const sharedFaqs = [
 ];
 
 export const SEO_PAGES: Record<string, SeoPage> = {
+  // Highest-intent query in the market and we had nothing for it. Written to
+  // be fair: Storypark is a good product and this page does not pretend
+  // otherwise. The honest position is that a centre does not have to choose,
+  // which is also the only position we can defend now that Storypark ships its
+  // own AI. Answers are kept short and self-contained so an answer engine can
+  // lift one cleanly.
+  "storypark-alternative": {
+    slug: "storypark-alternative",
+    title: "Storypark Alternative for Learning Stories | StoryLoop",
+    description:
+      "Comparing StoryLoop and Storypark for learning story writing in New Zealand and Australia: what each one does, what they cost, and why most educators end up using both.",
+    kicker: "Honest comparison",
+    heading: "Looking for a Storypark alternative? You may not need one.",
+    intro:
+      "Storypark is a full documentation platform: photos, families, enrolments, records. StoryLoop is a writing tool. If the part you actually dread is the writing, you can keep Storypark and add StoryLoop alongside it, then export the finished draft straight back in.",
+    sections: [
+      {
+        title: "They solve different problems",
+        body:
+          "Storypark holds your children, photos, family messaging and records in one place, and a centre that already runs on it has years of history there. StoryLoop does one job: turn a rough note or a voice memo into an editable learning story draft. It holds no enrolments and sends nothing to families.",
+      },
+      {
+        title: "You can use both, and most educators do",
+        body:
+          "StoryLoop exports into Storypark, Educa, Kinderloop and Brightwheel. Write the draft in StoryLoop while the moment is fresh, edit it in your own words, then paste it into whatever your centre already mandates. Nothing migrates and nothing is replaced.",
+      },
+      {
+        title: "Who buys which",
+        body:
+          "A centre buys Storypark, because it is a whole-service system and the centre decides. An individual educator can buy StoryLoop with their own money without asking anyone, which matters for home-based educators, relievers and student teachers whose centre uses something else, or nothing at all.",
+      },
+      {
+        title: "What each one costs",
+        body:
+          "Storypark is priced per child, around NZ$1.79 per child per month paid monthly with a minimum around NZ$23.85, so a 60-child centre pays roughly NZ$107 a month. StoryLoop is NZ$21 a month for an individual educator, or priced per educator seat with unlimited children for a centre. Check both against your own roll before deciding.",
+      },
+      {
+        title: "Both write with AI now",
+        body:
+          "Storypark added AI drafting through Storypark Assist in April 2026, so AI story writing is no longer unique to either product. The difference is that StoryLoop does only that, works regardless of which platform your centre uses, and can be bought by one person.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Is StoryLoop a replacement for Storypark?",
+        answer:
+          "No. Storypark is a full documentation platform covering photos, families, enrolments and records. StoryLoop only writes learning story drafts and exports them into Storypark, Educa, Kinderloop or Brightwheel. Most educators who use StoryLoop keep their centre platform.",
+      },
+      {
+        question: "Can I use StoryLoop if my centre already pays for Storypark?",
+        answer:
+          "Yes. StoryLoop is bought by the individual educator and needs no change to your centre's systems. You write the draft in StoryLoop, edit it, then paste or export it into Storypark as usual.",
+      },
+      {
+        question: "Does Storypark have AI learning stories?",
+        answer:
+          "Yes. Storypark released Storypark Assist in April 2026, which drafts and reviews learning stories inside the platform. AI drafting is available in both products, so the practical difference is price, whether you need a full platform, and who is allowed to buy it.",
+      },
+      {
+        question: "Which is cheaper, StoryLoop or Storypark?",
+        answer:
+          "It depends on your roll, because Storypark charges per child and StoryLoop charges per educator. A 60-child centre with nine educators pays roughly NZ$107 a month for Storypark. Work both out against your own numbers rather than assuming.",
+      },
+      {
+        question: "What is the best Storypark alternative for a home-based educator?",
+        answer:
+          "Home-based educators are usually poorly served by centre platforms priced per child with service minimums. A writing-only tool bought individually, such as StoryLoop at NZ$21 a month, fits that situation better because there is no centre account and no migration.",
+      },
+      {
+        question: "Will my learning stories still meet Te Whāriki or EYLF requirements?",
+        answer:
+          "The curriculum links come from your observation either way. StoryLoop maps drafts to Te Whāriki strands or EYLF V2.0 outcomes and names why each link fits, and the educator confirms or changes it before anything is shared.",
+      },
+    ],
+    reviewedAt: "2026-09-16",
+    sources: [
+      { label: "Storypark pricing", url: "https://main.storypark.com/pricing" },
+      { label: "AI at Storypark", url: "https://www.storypark.com/lp/ai-at-storypark" },
+    ],
+  },
+
   "nz-learning-stories": {
     slug: "nz-learning-stories",
     title: "NZ Learning Stories with Te Whāriki Links",

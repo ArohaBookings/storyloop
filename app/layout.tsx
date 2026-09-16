@@ -75,6 +75,50 @@ const structuredData = {
       "url": "https://storyloop.space/",
       "email": "ariacareapp@gmail.com",
       "logo": "https://storyloop.space/logo.svg",
+      "founder": { "@id": "https://storyloop.space/#leo" },
+      "foundingDate": "2026",
+      "foundingLocation": {
+        "@type": "Place",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Christchurch",
+          "addressCountry": "NZ",
+        },
+      },
+      "areaServed": [
+        { "@type": "Country", "name": "New Zealand" },
+        { "@type": "Country", "name": "Australia" },
+      ],
+      "knowsAbout": [
+        "Te Whāriki early childhood curriculum",
+        "Early Years Learning Framework (EYLF)",
+        "Learning stories and ECE documentation",
+        "Early childhood assessment for learning",
+      ],
+    },
+    // A named, locatable human behind the product. Answer engines weight
+    // author and entity identity heavily when deciding what to cite, and a
+    // one-person product can state this plainly where a platform cannot.
+    {
+      "@type": "Person",
+      "@id": "https://storyloop.space/#leo",
+      "name": "Leo",
+      "givenName": "Leo",
+      "jobTitle": "Founder",
+      "description":
+        "Founder of StoryLoop, building learning story drafting tools for early childhood educators from Christchurch, Aotearoa New Zealand.",
+      "url": "https://storyloop.space/about",
+      "image": "https://storyloop.space/images/leo.jpg",
+      "homeLocation": {
+        "@type": "Place",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Christchurch",
+          "addressRegion": "Canterbury",
+          "addressCountry": "NZ",
+        },
+      },
+      "worksFor": { "@id": "https://storyloop.space/#organization" },
     },
     {
       "@type": "WebSite",
