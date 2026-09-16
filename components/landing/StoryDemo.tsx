@@ -27,10 +27,30 @@ const SAMPLE = `Noah (3yo) filled a bucket with damp sand, turned it over carefu
 const EXAMPLE_OUTPUT = `Making the tower stronger
 
 Learning Story
-Tama built a tower with the blocks. When the tower fell over, he did not stop there. He looked for a way to make it work better and made the bottom wider before trying again. This time, the tower stayed up.
+Tama built a tower with the blocks, stacking them one at a time until it stood taller than his knees. When it tipped and fell, he did not walk away. He crouched down, looked at the pieces spread on the mat, and started again with a wider base. This time the tower held. He sat back on his heels and looked at it for a while before adding one more block to the top.
 
 What learning we noticed
-Tama was working through a real building problem. He noticed that his first tower was not stable, changed his plan, and tested a new idea. Making the bottom wider showed early thinking about balance, size and support.`;
+Tama was working through a real building problem. He noticed his first tower was not stable, changed his plan, and tested a new idea rather than repeating the one that failed. Making the base wider shows early thinking about balance and support. Staying with the problem after it collapsed shows he is comfortable sitting in the difficult part of a task.
+
+Curriculum links
+Exploration, Mana Aotūroa. Tama used trial and error on a problem he set for himself, which is the kind of working theory this strand describes.
+Communication, Mana Reo. He tested an idea with his hands and his body before he had words for it.
+
+Where to next
+We can leave the blocks out tomorrow with some heavier pieces added, so there is something new to balance. We will watch whether Tama goes to the wide base straight away, and name what he is doing out loud so other children hear the thinking.
+
+Whānau link
+Tama is enjoying building things that stand up on their own. If you have boxes or containers at home, he might like stacking them to see how tall he can get before they tip.`;
+
+/** Real fields the generator returns alongside the story. Listed, never faked. */
+const ALSO_GENERATED = [
+  "Evidence anchors",
+  "Assumptions flagged",
+  "Educator checks",
+  "Privacy check",
+  "Child voice",
+  "Dispositions",
+];
 
 type Clarify = { reason: string; questions: string[] };
 
@@ -197,12 +217,32 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
               <PenLine className="h-3 w-3 text-clay-600" />
               <span className="text-[10px] font-bold uppercase tracking-wider text-clay-700">From a different note</span>
             </div>
-            <div className="story-safe prose prose-sm min-w-0 max-w-full flex-1 whitespace-pre-wrap break-words font-display font-normal italic leading-relaxed text-ink-500">
+            {/* Capped in the hero so a full-length draft cannot push the button
+                below the fold on a phone. The scroll is the point: it shows
+                there is more story than fits, which a short excerpt cannot. */}
+            <div
+              className={`story-safe prose prose-sm min-w-0 max-w-full flex-1 overflow-y-auto whitespace-pre-wrap break-words font-display font-normal italic leading-relaxed text-ink-500 ${compact ? "max-h-[15rem]" : ""}`}
+            >
               {EXAMPLE_OUTPUT}
             </div>
-            <p className="mt-3 border-t border-clay-100 pt-3 text-[11px] leading-relaxed text-ink-400">
-              Press the button and yours appears here in under a minute.
-            </p>
+            <div className="mt-3 border-t border-clay-100 pt-3">
+              <p className="mb-2 text-[11px] leading-relaxed text-ink-400">
+                Every draft also comes with:
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {ALSO_GENERATED.map((item) => (
+                  <span
+                    key={item}
+                    className="rounded-full border border-clay-100 bg-cream-50 px-2 py-0.5 text-[10px] font-semibold text-ink-500"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+              <p className="mt-2.5 text-[11px] leading-relaxed text-ink-400">
+                Press the button and yours appears here in under a minute.
+              </p>
+            </div>
           </div>
         )}
       </div>
