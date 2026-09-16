@@ -17,7 +17,17 @@ import { normalizePlanKey, getPlanByKey } from "@/lib/plans";
  * them.
  */
 
+/**
+ * Seats follow the plan. An individual plan gets a centre of one, which is
+ * deliberate rather than a refusal: they can set the centre up, see exactly
+ * what it does, and hit a wall that says "upgrade to invite your team" at the
+ * moment they actually want to. Defaulting everyone to 10 would hand a free
+ * account nine seats.
+ */
 const SEATS_FOR_PLAN: Record<string, number> = {
+  free: 1,
+  educator: 1,
+  educator_pro: 1,
   centre_starter: 10,
   centre_growth: 25,
 };

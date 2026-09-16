@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       invite: { id: invite.id, email: invite.email, role: invite.role, expiresAt: invite.expires_at },
       emailSent: mail.sent,
-      shareUrl: `/centre/join?token=${encodeURIComponent(token)}`,
+      shareUrl: `/join?token=${encodeURIComponent(token)}`,
     });
   } catch (error) {
     console.error("Invite create error:", error);

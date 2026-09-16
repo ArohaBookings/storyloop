@@ -33,7 +33,7 @@ export async function sendCentreInviteEmail(opts: {
   const apiKey = await getRuntimeSecret("RESEND_API_KEY", "resend_api_key");
   if (!apiKey) return { sent: false, reason: "unconfigured" };
 
-  const url = `${SITE_URL}/centre/join?token=${encodeURIComponent(opts.token)}`;
+  const url = `${SITE_URL}/join?token=${encodeURIComponent(opts.token)}`;
   const inviter = opts.inviterName?.trim() || "A colleague";
   const centre = opts.centreName.trim() || "their centre";
 

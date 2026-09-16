@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, Mail, AlertTriangle, Brain, Users, ClipboardList, MessageSquareText, BarChart3, SlidersHorizontal, Lock, Sunrise } from "lucide-react";
+import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, Mail, AlertTriangle, Brain, Users, ClipboardList, MessageSquareText, BarChart3, SlidersHorizontal, Lock, Sunrise, Building2 } from "lucide-react";
 import AnimatedLogo from "@/components/brand/AnimatedLogo";
 import { createClient } from "@/lib/supabase/client";
 import { getMonthlyStoryLimit, getStoryAllowanceLabel } from "@/lib/story-limits";
@@ -28,6 +28,10 @@ const NAV: NavItem[] = [
   { href: "/history", icon: History, label: "Story history" },
   { href: "/insights", icon: Brain, label: "Learning threads", feature: "learningThreads" },
   { href: "/planning", icon: ClipboardList, label: "Planning brief", feature: "planningBoard" },
+  // Ungated on purpose. An educator on an individual plan gets a centre of
+  // one, which is the upgrade prompt: they see what a team would look like and
+  // hit "upgrade to invite" exactly when they want to add someone.
+  { href: "/centre", icon: Building2, label: "My centre" },
   { href: "/centre-tools", icon: SlidersHorizontal, label: "Centre tools", feature: "adminOversight" },
   { href: "/roi", icon: BarChart3, label: "ROI dashboard", feature: "directorRoiDashboard" },
   { href: "/feedback", icon: MessageSquareText, label: "Feedback" },
