@@ -136,10 +136,11 @@ export default function AboutPage() {
                     to pretend otherwise and educators can smell it a mile off.
                   </p>
                   <p>
-                    What I kept hearing from people who do this work is that the job they trained for is with the
-                    children, and the job that actually eats their life is writing about the children afterwards.
-                    Unpaid, at night, long after the details have gone fuzzy. It is the complaint nobody in the
-                    sector seems surprised by anymore, and that is exactly what made it worth looking at.
+                    I started StoryLoop because I kept seeing kaiako still writing learning stories after the
+                    children had gone home. The job they trained for is with the tamariki. The job that actually
+                    eats their evening is writing about the tamariki afterwards, unpaid, long after the details
+                    have gone fuzzy. Nobody in the sector seems surprised by that anymore, and that is exactly
+                    what made it worth doing something about.
                   </p>
                   <p>
                     So I built something, put it in front of educators, and asked them to tell me what was wrong
