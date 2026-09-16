@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sparkles, Loader2, Copy, Check, HelpCircle, PenLine } from "lucide-react";
 import Link from "next/link";
 import GeneratingIndicator from "@/components/app/GeneratingIndicator";
@@ -108,6 +108,44 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
 
   const rows = compact ? 5 : 8;
   const showingExample = !output && !loading && !clarify;
+
+  /**
+   * Write the example draft on when it scrolls into view.
+   *
+   * 604 of 649 visitors never touched the demo, and the simulation says
+   * stacking more things to click barely moves that: clicking is a fixed
+   * budget. What reaches the people who will never press anything is showing
+   * the draft appearing without asking them to act. No model call is involved,
+   * so this costs nothing per visitor however much traffic arrives.
+   *
+   * Fails safe in every direction: the lines are visible by default in CSS,
+   * so if the observer never fires, JS is off, or the visitor asked for
+   * reduced motion, the whole draft is simply there.
+   */
+  const exampleRef = useRef<HTMLDivElement | null>(null);
+  const hasWritten = useRef(false);
+  const [writing, setWriting] = useState(false);
+
+  useEffect(() => {
+    if (!showingExample || hasWritten.current) return;
+    const node = exampleRef.current;
+    if (!node || typeof IntersectionObserver === "undefined") return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        hasWritten.current = true;
+        setWriting(true);
+        observer.disconnect();
+      },
+      { threshold: 0.25 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [showingExample]);
+
+  const exampleLines = EXAMPLE_OUTPUT.split("\n");
 
   return (
     <div className={compact ? "grid min-w-0 gap-4" : "grid min-w-0 gap-5 lg:grid-cols-2"}>
@@ -221,9 +259,18 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
                 below the fold on a phone. The scroll is the point: it shows
                 there is more story than fits, which a short excerpt cannot. */}
             <div
-              className={`story-safe prose prose-sm min-w-0 max-w-full flex-1 overflow-y-auto whitespace-pre-wrap break-words font-display font-normal italic leading-relaxed text-ink-500 ${compact ? "max-h-[15rem]" : ""}`}
+              ref={exampleRef}
+              className={`story-safe prose prose-sm min-w-0 max-w-full flex-1 overflow-y-auto whitespace-pre-wrap break-words font-display font-normal italic leading-relaxed text-ink-500 ${compact ? "max-h-[15rem]" : ""} ${writing ? "is-writing" : ""}`}
             >
-              {EXAMPLE_OUTPUT}
+              {exampleLines.map((line, index) => (
+                <span
+                  key={`${index}-${line.slice(0, 12)}`}
+                  className="demo-line block"
+                  style={writing ? { animationDelay: `${Math.min(index * 70, 1400)}ms` } : undefined}
+                >
+                  {line || " "}
+                </span>
+              ))}
             </div>
             <div className="mt-3 border-t border-clay-100 pt-3">
               <p className="mb-2 text-[11px] leading-relaxed text-ink-400">

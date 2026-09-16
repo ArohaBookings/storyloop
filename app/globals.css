@@ -134,6 +134,14 @@
   .animate-fade-up-4 { animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.4s both; }
   .animate-fade-up-5 { animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.5s both; }
 
+  /* The example draft writing itself on, for the visitors who will never press
+     a button. Lines are fully visible by DEFAULT and the animation only runs
+     once JS adds .is-writing, so a failed IntersectionObserver, a crawler, or
+     a reduced-motion preference all leave the complete draft on screen rather
+     than a blank box. Opacity and transform only, so nothing reflows. */
+  .demo-line { opacity: 1; }
+  .is-writing .demo-line { animation: demoWrite 0.45s cubic-bezier(0.22,1,0.36,1) both; }
+
   /* Motion is applied to the real educator photograph and trust labels, not a
      decorative fake UI. Transform-only animation keeps the hero smooth, and
      the reduced-motion rule below disables it for visitors who request that. */
@@ -168,6 +176,11 @@
 @keyframes heroPhotoBreathe {
   from { transform: scale(1.01) translate3d(0, 0, 0); }
   to { transform: scale(1.055) translate3d(-0.4%, -0.6%, 0); }
+}
+
+@keyframes demoWrite {
+  from { opacity: 0; transform: translate3d(0, 5px, 0); }
+  to { opacity: 1; transform: none; }
 }
 
 @keyframes heroProofFloat {
