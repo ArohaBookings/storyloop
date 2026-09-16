@@ -79,6 +79,21 @@ export default function Pricing() {
           ))}
         </div>
 
+        {/* The one structural difference from every incumbent, stated about
+            ourselves only. Naming a competitor's per-child rate would date
+            fast and a stale comparative price claim is a Fair Trading Act
+            problem, so the contrast is left implicit. */}
+        <div className="mx-auto mt-10 max-w-2xl rounded-2xl border border-sage-200 bg-sage-50/70 p-5 text-center">
+          <p className="font-display text-lg font-bold text-ink-900">
+            StoryLoop does not charge per child.
+          </p>
+          <p className="mt-1.5 text-sm leading-relaxed text-ink-600">
+            Centre plans cover unlimited children. Enrol twenty more tamariki and the price does not move.
+            And you keep the platform your centre already runs on, because StoryLoop exports straight into
+            Storypark, Educa, Kinderloop and Brightwheel rather than replacing them.
+          </p>
+        </div>
+
         <p className="text-center text-sm text-ink-500 mt-8">All prices GST inclusive · Cancel anytime · Own your data</p>
       </div>
     </section>
