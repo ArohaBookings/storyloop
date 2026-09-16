@@ -62,7 +62,24 @@ export const metadata: Metadata = {
     images: ["/images/hero.jpg"],
   },
   icons: { icon: "/favicon.svg" },
-  robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
+  // A page can only appear in Google's AI Overviews or AI Mode if it is
+  // eligible to be shown WITH A SNIPPET. Leaving snippet length to the default
+  // is a silent cap; "max-snippet: -1" removes it. Binary payoff, so it is set
+  // explicitly at both levels rather than inherited.
+  robots: {
+    index: true,
+    follow: true,
+    "max-snippet": -1,
+    "max-image-preview": "large",
+    "max-video-preview": -1,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-snippet": -1,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+    },
+  },
 };
 
 const structuredData = {

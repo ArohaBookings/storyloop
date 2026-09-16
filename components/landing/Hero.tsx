@@ -68,6 +68,27 @@ export default function Hero() {
 
           {/* --------------------------- proof and actions (mobile: 3rd) */}
           <div className="min-w-0 text-center lg:col-start-1 lg:row-start-2 lg:text-left">
+            {/* The only independent, peer-reviewed number on this page. It
+                states the problem in someone else's voice, which is the one
+                thing our own copy can never do. n=570, not vendor research. */}
+            <div className="animate-fade-up-3 mx-auto mb-4 max-w-xl rounded-2xl border border-clay-200 bg-cream-100/70 p-4 text-left lg:mx-0">
+              <p className="text-sm leading-relaxed text-ink-700">
+                <span className="font-bold text-ink-900">
+                  More than three-quarters of Australian early childhood educators work about nine unpaid
+                  hours a week.
+                </span>{" "}
+                Two-thirds say the workload is hurting the care they can give.
+              </p>
+              <a
+                href="https://link.springer.com/article/10.1007/s13384-025-00847-z"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1.5 inline-block text-[11px] font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900"
+              >
+                Harper, Wilson &amp; McGrath-Champ (2025), The Australian Educational Researcher
+              </a>
+            </div>
+
             {/* The 2026 objection, answered before it is asked: Storypark
                 shipped its own AI in April, so "replace your platform" is a
                 fight we do not need to have. */}

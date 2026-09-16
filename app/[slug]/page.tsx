@@ -67,7 +67,7 @@ export default async function SeoPage({ params }: PageProps) {
         headline: page.title,
         description: page.description,
         dateModified: page.reviewedAt,
-        author: { "@type": "Organization", name: "StoryLoop educator practice team" },
+        author: { "@type": "Person", "@id": `${SITE_URL}/#leo`, name: "Leo" },
         publisher: { "@type": "Organization", name: "StoryLoop", url: SITE_URL },
         mainEntityOfPage: `${SITE_URL}/${page.slug}`,
         inLanguage: "en-AU",
@@ -121,7 +121,7 @@ export default async function SeoPage({ params }: PageProps) {
                   month: "long",
                   year: "numeric",
                 })}{" "}
-                · StoryLoop educator practice team
+                · Written by Leo, who builds StoryLoop, in Ōtautahi Christchurch
               </p>
             )}
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
