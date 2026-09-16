@@ -165,8 +165,6 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
     features: [
       "Everything in Centre Starter",
       "Director ROI Dashboard",
-      "Multi-room planning analytics",
-      "Advanced export settings",
       "Rollout health signals",
       "Onboarding support",
       "Priority roadmap feedback",

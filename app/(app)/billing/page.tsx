@@ -236,7 +236,7 @@ export default function BillingPage() {
                     ? "Educator Pro adds family replies, translation/readability help, advanced quality details, and stronger continuity across stories."
                     : currentPlan === "educator_pro"
                       ? "Centre Starter adds Planning Board, Documentation Radar, centre calibration, rollout support, and admin oversight."
-                      : "Centre Growth adds ROI reporting, multi-room analytics, rollout health, and advanced export settings."}
+                      : "Centre Growth adds director-level ROI reporting and rollout health signals."}
               </p>
             </div>
             <button onClick={() => handlePlanUpgrade(nextPlanDetails.key)} disabled={upgradeLoading} className="btn-primary flex-shrink-0">
