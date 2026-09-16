@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, Sparkles } from "lucide-react";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
@@ -99,6 +100,66 @@ export default function AboutPage() {
                 complete enough to edit rather than something to start from nothing. The judgement stays with the
                 person who was actually standing there.
               </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Who actually builds this. A one-person product can put a face and a
+            name on the page; the incumbent platforms cannot, and for a sector
+            that runs on trust that is worth more than another feature. */}
+        <section className="border-y border-clay-100 bg-cream-50 py-16 md:py-24">
+          <div className="wide-shell">
+            <div className="mx-auto max-w-4xl">
+              <div className="grid items-start gap-8 md:grid-cols-[auto_1fr] md:gap-12">
+                <div className="mx-auto w-full max-w-[220px] md:mx-0 md:w-[220px]">
+                  <Image
+                    src="/images/leo.jpg"
+                    alt="Leo, the founder of StoryLoop, in Christchurch"
+                    width={440}
+                    height={586}
+                    className="w-full rounded-2xl object-cover shadow-warm"
+                    sizes="(max-width: 768px) 220px, 220px"
+                  />
+                  <p className="mt-3 text-center text-xs leading-relaxed text-ink-500 md:text-left">
+                    Leo, 20<br />
+                    <span className="text-ink-400">Ōtautahi Christchurch, Aotearoa</span>
+                  </p>
+                </div>
+
+                <div className="min-w-0 space-y-5 text-[17px] leading-relaxed text-ink-700">
+                  <p className="section-title">The person behind it</p>
+                  <h2 className="font-display text-3xl font-bold leading-tight text-ink-900 md:text-4xl">
+                    Hi, I&apos;m Leo. I built the first version of this when I was 19.
+                  </h2>
+                  <p>
+                    I am not an early childhood teacher. I want to be upfront about that, because it would be easy
+                    to pretend otherwise and educators can smell it a mile off.
+                  </p>
+                  <p>
+                    What I kept hearing from people who do this work is that the job they trained for is with the
+                    children, and the job that actually eats their life is writing about the children afterwards.
+                    Unpaid, at night, long after the details have gone fuzzy. It is the complaint nobody in the
+                    sector seems surprised by anymore, and that is exactly what made it worth looking at.
+                  </p>
+                  <p>
+                    So I built something, put it in front of educators, and asked them to tell me what was wrong
+                    with it. They did, at length. Early drafts were too flowery, invented things nobody had seen,
+                    and tidied children&apos;s words into proper sentences, which turned out to be the worst thing
+                    it could possibly do. Most of what StoryLoop is now exists because an educator told me a
+                    version of it was not good enough.
+                  </p>
+                  <p>
+                    I still build every part of it myself, from Christchurch. That means it moves slower than a
+                    company with a team behind it. It also means that when you email StoryLoop, I am the one who
+                    reads it, and if you tell me a story came out wrong I can usually do something about it that
+                    week.
+                  </p>
+                  <p className="font-display text-xl leading-snug text-ink-900">
+                    I am 20, building this for a sector I did not grow up in. What keeps it honest is that the
+                    people using it tell me, straight, when I get it wrong.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </section>

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
-import LiveDemo from "@/components/landing/LiveDemo";
 import Features from "@/components/landing/Features";
 import HowItWorks from "@/components/landing/HowItWorks";
 import Examples from "@/components/landing/Examples";
@@ -51,7 +50,6 @@ export default function LandingPage() {
       <Navbar />
       <main>
         <Hero />
-        <LiveDemo />
         <TodayLoop />
         <FeatureBands />
         <Features />
