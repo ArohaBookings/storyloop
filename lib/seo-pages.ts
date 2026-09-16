@@ -207,6 +207,80 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     ],
   },
 
+  // Aimed at the person who signs off, not the person who writes. Pricing
+  // questions are high intent, and explicit visible pricing is one of the four
+  // citation gatekeepers SIGIR 2026 measured, so this page answers with numbers.
+  "learning-story-software-cost-for-centres": {
+    slug: "learning-story-software-cost-for-centres",
+    title: "What Does Learning Story Software Cost a Centre?",
+    description:
+      "What early childhood documentation tools cost a centre, why per-child and per-educator pricing pull in opposite directions, and what to check before signing anything.",
+    kicker: "For directors and owners",
+    heading: "What does learning story software cost a centre?",
+    intro:
+      "Most early childhood platforms bill per child, per month, so the price rises every time you enrol someone. Drafting tools tend to bill per educator or as a flat centre fee, which does not. StoryLoop is the second kind: NZ$109 a month covers ten educators and unlimited children, which works out at about NZ$10.90 per educator.",
+    sections: [
+      {
+        title: "Per child and per educator pull in opposite directions",
+        body:
+          "A per-child platform costs more as your roll grows, which is the opposite of how the work behaves: forty children do not create four times the documentation of ten if the same six educators are writing it. A per-educator or flat fee tracks the people actually doing the writing. Neither is dishonest, but they reward different services, and a growing centre should know which side of that line a quote sits on before signing.",
+      },
+      {
+        title: "Ask what happens when you enrol twenty more children",
+        body:
+          "This is the single most useful question at a demo, and the answer is rarely on the pricing page. Ask for the monthly figure at your current roll and at the roll you expect in two years. On StoryLoop centre plans both numbers are the same, because children are unlimited and you are paying for educator seats.",
+      },
+      {
+        title: "A drafting tool is usually additional, not a replacement",
+        body:
+          "If your centre already runs on Storypark, Educa, Kinderloop or Brightwheel, a drafting tool normally sits alongside it rather than replacing it, so budget for both. StoryLoop is built that way deliberately: it writes the draft and exports into whatever your service already uses. Nothing migrates, nothing is replaced, and nobody has to learn a new platform to benefit.",
+      },
+      {
+        title: "Compare against relief cover, not against other software",
+        body:
+          "The honest comparison for an additional tool is what else that money would buy. At NZ$109 a month a centre is weighing roughly three hours of relief cover against every educator getting drafting help all month. That is a decision a manager can usually make alone, which matters more than the number itself: it is the difference between a quick yes and a board paper.",
+      },
+      {
+        title: "Check what the centre can see",
+        body:
+          "Worth asking of any tool: does buying it give management the right to read everything staff write? On StoryLoop centre plans, leadership sees that an educator is documenting and when, and sees the writing itself only for educators who turn sharing on. Documentation is professional work about real children, and a purchase order is not consent.",
+      },
+    ],
+    faqs: [
+      {
+        question: "What does learning story software cost a centre?",
+        answer:
+          "Most platforms charge per child per month, so the figure depends on your roll. StoryLoop charges a flat centre fee: NZ$109 a month for ten educator seats and unlimited children, or NZ$219 for twenty-five seats.",
+      },
+      {
+        question: "Is it cheaper to buy a centre plan or individual educator plans?",
+        answer:
+          "A centre plan, once you have about six educators. StoryLoop's Centre Starter works out at roughly NZ$10.90 per educator against NZ$21 for an individual plan, so it is around half the price per head.",
+      },
+      {
+        question: "Does the price go up when we enrol more children?",
+        answer:
+          "Not on a flat centre plan. StoryLoop centre plans cover unlimited children, so the monthly figure does not change with your roll. Platforms that bill per child do increase as you enrol.",
+      },
+      {
+        question: "Do we have to replace Storypark or Educa to use a drafting tool?",
+        answer:
+          "No. StoryLoop exports into Storypark, Educa, Kinderloop and Brightwheel, so it sits alongside whatever your centre already runs on. Budget for it as an addition rather than a replacement.",
+      },
+      {
+        question: "Can management read what educators write?",
+        answer:
+          "On StoryLoop, only if the educator turns sharing on. Centre leadership always sees activity, meaning how much someone is writing and when, and sees the content only with that educator's consent, which they can withdraw at any time.",
+      },
+      {
+        question: "Is there a free way to try it before committing a centre budget?",
+        answer:
+          "Yes. The free plan includes three stories a month with no credit card, so an educator can test the output on a real observation before anyone signs anything.",
+      },
+    ],
+    reviewedAt: "2026-09-17",
+  },
+
   "nz-learning-stories": {
     slug: "nz-learning-stories",
     title: "NZ Learning Stories with Te Whāriki Links",
