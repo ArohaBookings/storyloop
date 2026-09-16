@@ -14,10 +14,10 @@ export const WHATS_NEW_VERSION = "2026-07";
  * is the funnel step we are trying to fix, so nothing goes in front of it.
  *
  * Kept as a single switch rather than unmounting the modal: the referral intro
- * shares that component, and re-enabling for a real release is a one-line
- * change back to `!seenVersion`.
+ * shares that component. To re-enable for a real release, take the stored
+ * version back as an argument and return `!seenVersion`.
  */
-export function shouldShowWhatsNew(_seenVersion: string | null | undefined) {
+export function shouldShowWhatsNew() {
   return false;
 }
 

@@ -18,7 +18,7 @@ export async function GET() {
     .eq("id", user.id)
     .maybeSingle();
 
-  const showWhatsNew = shouldShowWhatsNew(profile?.whats_new_seen_version);
+  const showWhatsNew = shouldShowWhatsNew();
 
   // Never ask a new educator to refer people before they have written anything.
   // Signup -> first story is the step we are protecting, so the referral intro
