@@ -6,8 +6,19 @@
  */
 export const WHATS_NEW_VERSION = "2026-07";
 
-export function shouldShowWhatsNew(seenVersion: string | null | undefined) {
-  return !seenVersion;
+/**
+ * Disabled from 2026-09-16.
+ *
+ * The card fired for every user who had never dismissed it, which meant a new
+ * educator met a modal before they had written anything. Signup -> first story
+ * is the funnel step we are trying to fix, so nothing goes in front of it.
+ *
+ * Kept as a single switch rather than unmounting the modal: the referral intro
+ * shares that component, and re-enabling for a real release is a one-line
+ * change back to `!seenVersion`.
+ */
+export function shouldShowWhatsNew(_seenVersion: string | null | undefined) {
+  return false;
 }
 
 export type WhatsNewItem = {

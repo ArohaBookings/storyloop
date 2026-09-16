@@ -19,7 +19,18 @@ export async function GET() {
     .maybeSingle();
 
   const showWhatsNew = shouldShowWhatsNew(profile?.whats_new_seen_version);
-  const showReferralIntro = !profile?.referral_modal_seen_at;
+
+  // Never ask a new educator to refer people before they have written anything.
+  // Signup -> first story is the step we are protecting, so the referral intro
+  // waits until there is at least one story for them to have been pleased by.
+  let showReferralIntro = false;
+  if (!profile?.referral_modal_seen_at) {
+    const { count: written } = await admin
+      .from("stories")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+    showReferralIntro = (written ?? 0) >= 1;
+  }
 
   // Only pay the cost of creating a code when the card will actually be shown.
   let code: string | null = null;
