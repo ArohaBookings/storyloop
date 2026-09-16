@@ -122,6 +122,91 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     ],
   },
 
+  // Question-shaped rather than comparison-shaped on purpose. A low-authority
+  // domain does not win head terms, but it can be the best passage-level answer
+  // to a specific question, which is what answer engines retrieve. Every FAQ
+  // below leads with a directly quotable sentence for that reason.
+  "how-long-should-a-learning-story-take": {
+    slug: "how-long-should-a-learning-story-take",
+    title: "How Long Should a Learning Story Take to Write?",
+    description:
+      "How long a learning story actually takes, why the blank page costs more than the writing, and what the research says about unpaid documentation hours in New Zealand and Australia.",
+    kicker: "A straight answer",
+    heading: "How long should a learning story take to write?",
+    intro:
+      "Most educators spend 20 to 40 minutes on a single learning story once they sit down with a blank page. Very little of that is writing. It goes on remembering the detail, deciding what the learning was, and finding curriculum wording that fits. Written straight after the moment, from a note taken at the time, the same story is usually a 5 to 10 minute job.",
+    sections: [
+      {
+        title: "The blank page is the expensive part",
+        body:
+          "Educators know exactly what they saw and why it mattered. What costs time is starting from nothing, hours later, when the specifics have blurred. The moment a child changed their mind, tried a different approach, or said something in their own phrasing is what makes a story worth keeping, and it is the first thing memory loses. A rough note captured at the time removes most of the cost, because the recall work is already done.",
+      },
+      {
+        title: "Length is not prescribed, and shorter is usually better",
+        body:
+          "Neither Te Whāriki nor the EYLF prescribes a format, a length, or a frequency for documentation. A learning story that names what a child did, what it showed about their thinking, and what you will do next can be three short paragraphs. Longer does not mean stronger. A story padded to look thorough is harder for whānau to read and harder for you to write.",
+      },
+      {
+        title: "What the research says about the time cost",
+        body:
+          "A national survey of 570 Australian early childhood educators, published in The Australian Educational Researcher in 2025, found more than three-quarters worked an average of nine unpaid hours a week, and two-thirds said workload demands were reducing the quality of care they could give. The study measures total workload rather than documentation alone, so it does not attribute all nine hours to learning stories. It does establish that the unpaid administrative load is real, widespread and measured.",
+      },
+      {
+        title: "A realistic target",
+        body:
+          "If you capture a two-line note in the moment, 5 to 10 minutes per story is a fair target, including your own editing. If you are writing from memory at 9pm with nothing written down, 20 to 40 minutes is normal and no tool changes that honestly. The fix is not writing faster. It is shortening the gap between the moment and the note.",
+      },
+      {
+        title: "Where StoryLoop fits",
+        body:
+          "StoryLoop turns a rough note or a voice memo into an editable draft with curriculum links already mapped, so the blank page is gone and the specifics are still sharp. You review and edit every word, and the draft exports into Storypark, Educa, Kinderloop or Brightwheel rather than replacing whatever your centre already runs on. The free plan includes three stories a month with no credit card.",
+      },
+    ],
+    faqs: [
+      {
+        question: "How long should a learning story take to write?",
+        answer:
+          "Five to ten minutes if you are working from a note taken at the time, and twenty to forty minutes if you are starting from a blank page hours later. The difference is recall, not typing speed.",
+      },
+      {
+        question: "How long should a learning story be?",
+        answer:
+          "Three short paragraphs is enough for most moments: what the child did, what it showed about their thinking, and what you will do next. Neither Te Whāriki nor the EYLF prescribes a length.",
+      },
+      {
+        question: "How many learning stories should I write per child?",
+        answer:
+          "There is no regulated number. Neither Te Whāriki nor the EYLF sets a quota per child, per week or per term. Quotas are usually a service-level decision, not a regulatory requirement, and are worth questioning if they are driving unpaid hours.",
+      },
+      {
+        question: "Do educators write learning stories in their own time?",
+        answer:
+          "Frequently, yes. A 2025 national survey of 570 Australian early childhood educators found more than three-quarters worked an average of nine unpaid hours a week. The survey covers total workload rather than documentation alone.",
+      },
+      {
+        question: "Can AI write a learning story for me?",
+        answer:
+          "It can write a draft from your observation, but it cannot observe the child or decide what the learning was. StoryLoop drafts from what you actually recorded, flags anything it had to assume, and leaves every judgement and the final edit with you.",
+      },
+      {
+        question: "What is the fastest way to write learning stories?",
+        answer:
+          "Capture a two-line note or a voice memo in the moment rather than reconstructing it later, then draft from that. The gap between the moment and the note is what costs the time.",
+      },
+    ],
+    reviewedAt: "2026-09-16",
+    sources: [
+      {
+        label: "Harper, Wilson & McGrath-Champ (2025), The Australian Educational Researcher",
+        url: "https://link.springer.com/article/10.1007/s13384-025-00847-z",
+      },
+      {
+        label: "University of Sydney, July 2025",
+        url: "https://www.sydney.edu.au/news-opinion/news/2025/07/16/childcare-educators-spend-less-than-30-percent-of-time-in-focused-interaction-with-children-research.html",
+      },
+    ],
+  },
+
   "nz-learning-stories": {
     slug: "nz-learning-stories",
     title: "NZ Learning Stories with Te Whāriki Links",
