@@ -146,6 +146,7 @@ function layout({
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#fffdf8" class="sl-card" style="max-width:640px;background:#fffdf8;border:1px solid #eadbcc;border-radius:28px;overflow:hidden;box-shadow:0 18px 45px rgba(64,43,31,.08);">
             <tr>
               <td class="sl-header sl-pad" style="padding:28px 28px 18px;border-bottom:1px solid #efe3d7;background:linear-gradient(135deg,#fffaf1,#f4eadf);">
+                <img src="${SITE_URL}/images/logo-email.png" width="40" height="40" alt="StoryLoop" style="display:block;width:40px;height:40px;border:0;outline:none;text-decoration:none;margin:0 0 12px;border-radius:9px;" />
                 <p class="sl-eyebrow" style="margin:0 0 6px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:#9a6b46;">StoryLoop</p>
                 <h1 class="sl-title" style="margin:0;font-family:Georgia,serif;font-size:30px;line-height:1.1;color:#1f1b18;">${esc(title)}</h1>
               </td>

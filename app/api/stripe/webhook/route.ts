@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { normalizePlanKey } from "@/lib/plans";
 import { grantReferralCreditForPayment } from "@/lib/referrals";
+import { sendBillingEmail } from "@/lib/email/billing";
 
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -152,18 +153,38 @@ async function grantReferralRewardIfEarned(
 }
 
 async function handleInvoicePaid(admin: ReturnType<typeof createAdminSupabase>, invoice: Stripe.Invoice) {
+  const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
   const subscriptionId = invoiceSubscriptionId(invoice);
+
   if (subscriptionId) {
     const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
-    await updateProfileForSubscription(admin, subscription, {
-      customerId: typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id,
-    });
+    await updateProfileForSubscription(admin, subscription, { customerId });
     await grantReferralRewardIfEarned(admin, invoice);
+    // Receipt last: the subscription record is what matters, and sendBillingEmail
+    // never throws, so this cannot cost us a state update.
+    await sendBillingEmail({
+      admin,
+      type: "payment_succeeded",
+      billingKey: invoice.id ?? `sub_${subscriptionId}_${invoice.period_end ?? 0}`,
+      userId: subscription.metadata?.user_id,
+      customerId,
+      amountInCents: invoice.amount_paid,
+      currency: invoice.currency,
+      renewsAtSeconds: subscriptionPeriodEnd(subscription),
+    });
     return;
   }
 
   await updateProfileByInvoiceCustomer(admin, invoice, { subscription_status: "active" });
   await grantReferralRewardIfEarned(admin, invoice);
+  await sendBillingEmail({
+    admin,
+    type: "payment_succeeded",
+    billingKey: invoice.id ?? `inv_${customerId}_${invoice.period_end ?? 0}`,
+    customerId,
+    amountInCents: invoice.amount_paid,
+    currency: invoice.currency,
+  });
 }
 
 async function handlePaymentFailed(admin: ReturnType<typeof createAdminSupabase>, invoice: Stripe.Invoice) {
@@ -182,6 +203,19 @@ async function handlePaymentFailed(admin: ReturnType<typeof createAdminSupabase>
   };
 
   await admin.from("profiles").update(update).eq("stripe_customer_id", customerId);
+
+  // One notice per invoice, not per retry attempt. Stripe retries a failed card
+  // several times and fires this event each time; keying on the invoice means
+  // the educator gets a single clear "update your card", not four.
+  await sendBillingEmail({
+    admin,
+    type: "payment_failed",
+    billingKey: invoice.id ?? `failed_${customerId}_${invoice.period_end ?? 0}`,
+    userId: subscription?.metadata?.user_id,
+    customerId,
+    amountInCents: invoice.amount_due,
+    currency: invoice.currency,
+  });
 }
 
 async function processStripeEvent(admin: ReturnType<typeof createAdminSupabase>, event: Stripe.Event) {
@@ -225,6 +259,17 @@ async function processStripeEvent(admin: ReturnType<typeof createAdminSupabase>,
       };
       if (userId) await admin.from("profiles").update(update).eq("id", userId);
       else if (customerId) await admin.from("profiles").update(update).eq("stripe_customer_id", customerId);
+
+      // Confirm the cancellation and offer pause. Educator demand is seasonal:
+      // most people who leave are caught up or heading into the holidays, not
+      // unhappy, and pause fits that better than a discount.
+      await sendBillingEmail({
+        admin,
+        type: "subscription_cancelled",
+        billingKey: subscription.id,
+        userId,
+        customerId,
+      });
       return;
     }
 
