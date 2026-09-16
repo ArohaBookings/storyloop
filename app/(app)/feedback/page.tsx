@@ -62,7 +62,7 @@ export default function FeedbackPage() {
           <p className="section-title mb-3">Feedback loop</p>
           <h1 className="font-display text-4xl font-bold text-ink-900">Tell us exactly what would make StoryLoop worth keeping.</h1>
           <p className="mt-3 text-sm text-ink-600 md:text-base">
-            Every message is read by our team, word for word. It goes straight into what we build next.
+            Every message is read by Leo, who builds StoryLoop, word for word. It goes straight into what gets built next.
           </p>
         </div>
       </div>

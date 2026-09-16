@@ -196,28 +196,33 @@ export default function AboutPage() {
             <div className="mx-auto max-w-3xl space-y-6 text-[17px] leading-relaxed text-ink-700">
               <p className="section-title">Who builds it</p>
               <h2 className="font-display text-3xl font-bold leading-snug text-ink-900 md:text-4xl">
-                A small team in Aotearoa New Zealand, building for the sector we came from.
+                One person in Ōtautahi builds this, and that is on purpose.
               </h2>
               <p>
-                StoryLoop is made by Aria Care, a small New Zealand software company. We are not a large
-                international platform with a childcare product somewhere in the portfolio. Early childhood
-                documentation is the thing we work on, and Te Whāriki and the EYLF are the frameworks we build
-                around rather than adapt to afterwards.
+                StoryLoop trades as Aria Care, a New Zealand company, but there is no team standing behind that
+                name. It is me. I write the code, I answer the support email, and I decide what gets built next.
+                Early childhood documentation is the only thing I work on, and Te Whāriki and the EYLF are what
+                StoryLoop is built around rather than adapted to afterwards.
               </p>
               <p>
-                Being small is the reason the product changes quickly. When an educator emails to say a particular
-                kind of story comes out wrong, or that something is confusing on a phone, it goes into the next
-                build rather than a roadmap review in six months. Several things in StoryLoop right now exist
-                because one kaiako took the time to tell us they were missing.
+                Being one person is the reason it changes quickly. When an educator emails to say a particular
+                kind of story comes out wrong, or that something is confusing on a phone, it usually goes into
+                that week&apos;s build rather than a roadmap review in six months. A good part of StoryLoop exists
+                because one kaiako took the time to tell me it was missing.
               </p>
               <p>
-                It is also why we would rather say plainly what the product does not do. We have no interest in
+                It is also why I would rather say plainly what the product does not do. I have no interest in
                 selling anyone the idea that documentation can be fully automated. It cannot be, and anyone
                 claiming otherwise has not sat with a child long enough to know why.
               </p>
               <p>
-                If you use StoryLoop and something about it is wrong, tell us. Every message is read by the people
-                who build it, and it genuinely shapes what gets made next.
+                The honest trade-off: one person ships big features slower than a company with thirty engineers,
+                and if it is the middle of the night in New Zealand your email waits until morning. What you get
+                back is that the person who built the thing is the person who reads your message.
+              </p>
+              <p>
+                If you use StoryLoop and something about it is wrong, tell me. It genuinely shapes what gets made
+                next.
               </p>
             </div>
           </div>
