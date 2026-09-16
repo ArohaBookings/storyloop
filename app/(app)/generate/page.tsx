@@ -99,6 +99,12 @@ export default function GeneratePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [observations, setObservations] = useState("");
+  // Mirrors `observations` so the first-run prefill can check emptiness without
+  // depending on the state at the time the account fetch resolves.
+  const observationsRef = useRef("");
+  useEffect(() => {
+    observationsRef.current = observations;
+  }, [observations]);
   const [inputMethod, setInputMethod] = useState<InputMethod>("typed");
   const [showFirstStoryWizard, setShowFirstStoryWizard] = useState(false);
   const [showCentreVoice, setShowCentreVoice] = useState(false);
@@ -242,11 +248,27 @@ export default function GeneratePage() {
         if (Array.isArray(preferences?.avoidedPhrases)) {
           setAvoidedPhrases(preferences.avoidedPhrases.join(", "));
         }
-        if ((accountData?.profile?.total_stories ?? 0) === 0 && typeof window !== "undefined") {
+        // Require a profile we actually loaded. If /api/me failed, accountData
+        // is null and total_stories would read as 0 through the nullish
+        // default, which would drop a sample observation onto the page of an
+        // educator with hundreds of stories.
+        const loadedProfile = accountData?.profile;
+        if (loadedProfile && (loadedProfile.total_stories ?? 0) === 0 && typeof window !== "undefined") {
           // Arriving straight from signup (?welcome=1) always gets the guided
           // first-story wizard, even if it was dismissed in a past session.
           const justSignedUp = searchParams.get("welcome") === "1";
           setShowFirstStoryWizard(justSignedUp || window.sessionStorage.getItem("storyloop-first-story-wizard") !== "dismissed");
+
+          // Put the sample IN the box rather than behind a button. 61% of
+          // signups never write a first story, and the landing page showed the
+          // same thing: asking someone to click before they have seen anything
+          // loses most of them, while the identical content sitting there
+          // already does not. Only ever for an account with zero stories, and
+          // never over text the educator has started typing.
+          if (!observationsRef.current.trim()) {
+            setObservations(SAMPLE_OBSERVATION);
+            setInputMethod("sample");
+          }
         }
         const loadedChildren = Array.isArray(childData?.children) ? childData.children : [];
         setChildren(loadedChildren);
@@ -1106,6 +1128,28 @@ export default function GeneratePage() {
               className="sr-only"
               onChange={handleAudioFileChange}
             />
+            {/* The box is pre-filled on a first run, so say plainly that this
+                is an example. Lily is not a child in their room, and a story
+                written about her must never be mistaken for real documentation. */}
+            {inputMethod === "sample" && observations.trim() === SAMPLE_OBSERVATION.trim() && (
+              <div className="mb-2 flex flex-col gap-2 rounded-2xl border border-amber-200 bg-amber-50/70 p-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs leading-relaxed text-ink-700">
+                  <strong className="font-semibold text-ink-900">This is an example, not one of your children.</strong>{" "}
+                  Write it to see what StoryLoop does, then clear it and paste a real observation.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setObservations("");
+                    setInputMethod("typed");
+                    resetClarification();
+                  }}
+                  className="btn-secondary flex-shrink-0 px-3 py-1.5 text-xs"
+                >
+                  Clear and write my own
+                </button>
+              </div>
+            )}
             <textarea
               value={observations}
               onChange={(e) => {
