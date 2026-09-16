@@ -689,7 +689,9 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     description:
       "Simple StoryLoop pricing for early childhood educators: free monthly stories, unlimited educator plans, and centre rollout support.",
     kicker: "Pricing",
-    heading: "Start free, then upgrade when the documentation backlog needs more support.",
+    // Short on purpose. The old heading ran six lines on a 375px phone and ate
+    // the entire first screen of the one page people open to see a number.
+    heading: "Start free. Upgrade when it is worth it.",
     intro:
       "The free plan includes 3 stories per month. Paid plans are designed for educators and centres that want unlimited drafting, voice notes, saved history, and Stripe-managed billing.",
     sections: [

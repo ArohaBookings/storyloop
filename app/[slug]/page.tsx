@@ -135,6 +135,13 @@ export default async function SeoPage({ params }: PageProps) {
           </div>
         </section>
 
+        {/* On /pricing the prices come FIRST. Measured on a 375px phone, the
+            table previously began 2.03 screens down: someone who deliberately
+            clicked "Pricing" had to scroll past two full screens of prose
+            before seeing a number. The explanation is still below, for anyone
+            who wants it after they know the price. */}
+        {page.slug === "pricing" && <Pricing />}
+
         <section className="py-16">
           <div className="wide-shell grid md:grid-cols-3 gap-5">
             {page.sections.map((section) => (
@@ -164,8 +171,6 @@ export default async function SeoPage({ params }: PageProps) {
             </div>
           </section>
         ) : null}
-
-        {page.slug === "pricing" && <Pricing />}
 
         {page.sources?.length ? (
           <section className="pb-16">
