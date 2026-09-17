@@ -15,6 +15,11 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [accessCode, setAccessCode] = useState("");
+  // Collapsed by default. An always-visible optional code box makes the 99% of
+  // visitors without one wonder whether they are missing a deal, and on a phone
+  // it pushed "Create free account" below the fold. It opens automatically when
+  // a code arrives in the link, so nobody holding a real code loses the path.
+  const [showAccessCode, setShowAccessCode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [plan, setPlan] = useState<PlanKey>("free");
@@ -29,7 +34,10 @@ export default function SignupPage() {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     setPlan(selectedPlan);
     setCurrency(selectedCurrency ? normaliseCurrency(selectedCurrency) : tz?.includes("Auckland") ? "NZD" : "AUD");
-    if (code) setAccessCode(code);
+    if (code) {
+      setAccessCode(code);
+      setShowAccessCode(true);
+    }
     // Referral links look like /signup?ref=ABC1234. Remembered in state so the
     // referrer still gets credit even if the visitor edits the form first.
     const ref = params.get("ref") ?? window.localStorage.getItem("storyloop_ref");
@@ -121,7 +129,7 @@ export default function SignupPage() {
           <p className="text-sm text-ink-500 mb-4">
             {isPaidPlan
               ? "Create your account first, then you’ll go straight to secure Stripe checkout to start the 7-day trial."
-              : "3 free stories, no credit card. Have a complimentary code? Add it below."}
+              : "3 free stories, no credit card."}
           </p>
 
           <div className="mb-6 rounded-2xl border border-clay-200 bg-cream-50 p-4">
@@ -164,21 +172,31 @@ export default function SignupPage() {
           </div>
 
           <form onSubmit={handleSignup} className="space-y-4">
-            <div><label className="label">Your name</label><input value={name} onChange={e => setName(e.target.value)} required autoComplete="name" className="input" placeholder="Jane Smith" /></div>
-            <div><label className="label">Email</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" className="input" placeholder="you@centre.com.au" /></div>
-            <div><label className="label">Password</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} required autoComplete="new-password" minLength={8} className="input" placeholder="At least 8 characters" /></div>
-            {!isPaidPlan && (
+            <div><label htmlFor="signup-name" className="label">Your name</label><input id="signup-name" value={name} onChange={e => setName(e.target.value)} required autoComplete="name" className="input" placeholder="Jane Smith" /></div>
+            <div><label htmlFor="signup-email" className="label">Email</label><input id="signup-email" type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" className="input" placeholder={currency === "NZD" ? "you@centre.co.nz" : "you@centre.com.au"} /></div>
+            <div><label htmlFor="signup-password" className="label">Password</label><input id="signup-password" type="password" value={password} onChange={e => setPassword(e.target.value)} required autoComplete="new-password" minLength={8} className="input" placeholder="At least 8 characters" /></div>
+            {!isPaidPlan && (showAccessCode || accessCode ? (
               <div>
-                <label className="label">Special access code</label>
+                <label htmlFor="signup-access-code" className="label">Access code</label>
                 <input
+                  id="signup-access-code"
                   value={accessCode}
                   onChange={e => setAccessCode(e.target.value)}
                   autoComplete="off"
+                  autoFocus={showAccessCode && !accessCode}
                   className="input"
-                  placeholder="Optional"
+                  placeholder="Enter your code"
                 />
               </div>
-            )}
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowAccessCode(true)}
+                className="text-xs font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900"
+              >
+                Have an access code?
+              </button>
+            ))}
             {error && <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{error}</div>}
             <button type="submit" disabled={loading} className="btn-primary w-full py-3">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : isPaidPlan ? "Create account and start trial" : "Create free account"}
