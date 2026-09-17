@@ -3,6 +3,8 @@ import { getMonthlyStoryLimit } from "@/lib/story-limits";
 import { sendLifecycleEmail } from "./send";
 import { getOrCreateReferralCode } from "@/lib/referrals";
 import type { LifecycleEmailType } from "./templates";
+import { getPlanByKey, normalizePlanKey } from "@/lib/plans";
+import { formatDate } from "./billing";
 
 type ProfileEmailRow = {
   id: string;
@@ -19,6 +21,7 @@ type ProfileEmailRow = {
   last_story_at?: string | null;
   marketing_unsubscribed_at?: string | null;
   is_internal?: boolean | null;
+  trial_ends_at?: string | null;
 };
 
 const ACTIVE_PAID_STATUSES = new Set(["active", "trialing", "admin_override"]);
@@ -53,7 +56,12 @@ async function sentRecently(userId: string, emailType: LifecycleEmailType, since
   return Boolean(data);
 }
 
-async function sendIfNeeded(row: ProfileEmailRow, type: LifecycleEmailType, since?: string) {
+async function sendIfNeeded(
+  row: ProfileEmailRow,
+  type: LifecycleEmailType,
+  since?: string,
+  context?: Parameters<typeof sendLifecycleEmail>[0]["context"],
+) {
   if (!row.email) return { type, status: "missing_email" };
   // Founder/staff/comp accounts are real accounts, but lifecycle nudges aimed at
   // customers should not go to them.
@@ -65,7 +73,26 @@ async function sendIfNeeded(row: ProfileEmailRow, type: LifecycleEmailType, sinc
     recipient: row.email,
     name: row.full_name,
     metadata: { automation: true },
+    context,
   });
+}
+
+/**
+ * Which trialing accounts get the "your trial ends" notice, and what it says.
+ *
+ * Keyed on the trial end Stripe recorded, not on when the profile was created:
+ * someone who signed up months ago and starts a trial today must not be told on
+ * day one that their trial ends in two days.
+ */
+export const TRIAL_NOTICE_HOURS = 72;
+
+export function trialEndingContext(row: Pick<ProfileEmailRow, "plan" | "trial_ends_at">) {
+  const endsAt = row.trial_ends_at ? Date.parse(row.trial_ends_at) : Number.NaN;
+  const plan = normalizePlanKey(row.plan);
+  return {
+    trialEndsOn: Number.isFinite(endsAt) ? (formatDate(Math.floor(endsAt / 1000)) ?? undefined) : undefined,
+    planLabel: plan === "free" ? undefined : getPlanByKey(plan).name,
+  };
 }
 
 export async function sendStoryMilestoneEmails({
@@ -218,18 +245,20 @@ export async function runLifecycleAutomation() {
   // once. Each one targets a specific moment where a customer is quietly lost.
 
   // 1. Trial ending. Nobody should be charged without warning. Stripe trials
-  //    are 7 days, so this catches people on day 5-6.
+  //    are 7 days; this catches the last three, using the trial end Stripe
+  //    recorded on the profile.
   const { data: trialEndingUsers, error: trialEndingError } = await sb
     .from("profiles")
-    .select(baseSelect)
+    .select(`${baseSelect}, trial_ends_at`)
     .eq("subscription_status", "trialing")
-    .lte("created_at", daysAgo(5))
+    .gte("trial_ends_at", new Date().toISOString())
+    .lte("trial_ends_at", new Date(Date.now() + TRIAL_NOTICE_HOURS * 60 * 60 * 1000).toISOString())
     .limit(75);
 
   if (trialEndingError) errors.push(trialEndingError.message);
   for (const row of (trialEndingUsers ?? []) as ProfileEmailRow[]) {
     // Transactional: sent even to people unsubscribed from product tips.
-    sent.push(await sendIfNeeded(row, "trial_ending", daysAgo(14)));
+    sent.push(await sendIfNeeded(row, "trial_ending", daysAgo(14), trialEndingContext(row)));
   }
 
   // 2. Went quiet. A paying customer who was clearly getting value (3+ stories)

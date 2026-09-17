@@ -201,3 +201,19 @@ test("the win-back email offers only the discount checkout really applies", asyn
   assert.equal(email.marketing, true, "a win-back is marketing and must respect unsubscribes");
   for (const bad of junk) assert.ok(!email.html.includes(bad) && !email.text.includes(bad), `leaked ${bad}`);
 });
+
+test("the trial notice uses the trial end Stripe recorded, never a guess", async () => {
+  const { trialEndingContext } = await import("../lib/email/automation");
+  const context = trialEndingContext({ plan: "educator_pro", trial_ends_at: "2026-09-24T03:00:00.000Z" });
+  assert.equal(context.planLabel, "Educator Pro");
+  assert.match(context.trialEndsOn ?? "", /September 2026/);
+
+  const email = renderLifecycleEmail({ type: "trial_ending", userId: "u", recipient: "a@example.com", name: "Sam", context });
+  assert.match(email.subject, /^Your StoryLoop trial ends on \d{1,2} September 2026$/);
+  assert.doesNotMatch(email.subject + email.text, /in 2 days/);
+
+  // Without a date it says "soon" rather than inventing one.
+  const undated = renderLifecycleEmail({ type: "trial_ending", userId: "u", recipient: "a@example.com", name: "Sam", context: trialEndingContext({ plan: "educator", trial_ends_at: null }) });
+  assert.equal(undated.subject, "Your StoryLoop trial ends soon");
+  for (const bad of junk) assert.ok(!undated.html.includes(bad) && !undated.text.includes(bad), `leaked ${bad}`);
+});

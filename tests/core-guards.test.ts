@@ -663,8 +663,8 @@ test("every marketing template is covered by the weekly frequency cap", () => {
   ] as const;
   const TRANSACTIONAL_TYPES = [
     "welcome", "first_story_created", "paid_no_usage_checkin", "story_quality_upgrade",
-    "trial_ending", "payment_succeeded", "payment_failed", "subscription_cancelled",
-    "referral_earned",
+    "trial_ending", "payment_succeeded", "payment_failed", "payment_failed_final",
+    "cancellation_scheduled", "subscription_cancelled", "referral_earned",
   ] as const;
 
   for (const type of MARKETING_TYPES) {

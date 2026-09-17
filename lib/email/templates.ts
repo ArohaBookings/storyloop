@@ -506,7 +506,8 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
       const ctaUrl = url("/billing", "trial_ending");
       const plan = ctx.planLabel ?? "your plan";
       const amount = ctx.amountLabel ?? "your plan price";
-      const when = ctx.trialEndsOn ?? "in 2 days";
+      // The real date when we have it; never a guessed "in 2 days".
+      const when = ctx.trialEndsOn ? `on ${ctx.trialEndsOn}` : "soon";
       const subject = `Your StoryLoop trial ends ${when}`;
       const lines = [
         `Hi ${name}, a quick heads-up so nothing is a surprise.`,
