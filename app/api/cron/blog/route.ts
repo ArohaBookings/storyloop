@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { writeNextGuide } from "@/lib/ai/blog-writer";
 import { createAdminSupabase } from "@/lib/supabase/admin";
+import { submitToIndexNow } from "@/lib/indexnow";
 
 // Up to two model calls per run (a rejected draft lets the next topic try).
 export const maxDuration = 300;
@@ -52,7 +53,9 @@ async function publishNext() {
     return NextResponse.json({ published: false, reason: result.reason }, { status: 200 });
   }
 
-  return NextResponse.json({ published: true, slug: result.slug, title: result.title, words: result.words });
+  // Tell Bing and the other IndexNow engines straight away instead of waiting for a recrawl.
+  const indexNow = await submitToIndexNow([`/blog/${result.slug}`, "/blog"]);
+  return NextResponse.json({ published: true, slug: result.slug, title: result.title, words: result.words, indexNow });
 }
 
 export async function GET(request: NextRequest) {
