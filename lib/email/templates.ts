@@ -689,14 +689,20 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
 
     // Sent a while AFTER cancelling, when the next term's documentation load is
     // starting to bite. A discount only works once the need has come back.
+    //
+    // The offer is the one checkout really applies: the first-month activation
+    // coupon, which /api/stripe/checkout adds for ?offer=activation on a free
+    // account (a cancelled subscription is back on Free). This email previously
+    // promised "20% off your next month" with no coupon behind it, so anyone who
+    // came back paid full price.
     winback_offer: () => {
-      const ctaUrl = url("/billing", "winback_offer");
-      const code = ctx.offerCode;
-      const subject = `${name}, come back for 20% off`;
+      const ctaUrl = url("/billing?offer=activation", "winback_offer");
+      const offer = ACTIVATION_OFFER_LABEL;
+      const subject = `${name}, come back to StoryLoop with ${offer}`;
       const lines = [
-        `Hi ${name}, StoryLoop has moved on a lot since you left.`,
+        `Hi ${name}, StoryLoop has moved on since you left.`,
         "Stories are sharper, they keep the child's own words, and there is now an assistant that rewrites any line you highlight.",
-        code ? `If you want another go, ${code} takes 20% off your next month.` : "If you want another go, there is 20% off your next month waiting.",
+        `If the documentation is piling up again, restart from Billing and you get ${offer}. Your old stories are all still there.`,
         "No pressure either way.",
       ];
       return {
@@ -705,17 +711,15 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
         marketing: true,
         ctaUrl,
         html: layout({
-          title: "Come back for 20% off",
-          preview: "StoryLoop has changed a lot since you left.",
-          cta: "Restart with 20% off",
+          title: "Come back when you are ready",
+          preview: `StoryLoop has changed since you left. Restart with ${offer}.`,
+          cta: "Restart StoryLoop",
           ctaUrl,
           unsubscribe,
-          secondary: code
-            ? `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Use code <strong>${esc(code)}</strong> at checkout.</p>`
-            : undefined,
-          body: `<p>Hi ${esc(name)}, StoryLoop has moved on a lot since you left.</p><p>Stories are <strong>sharper and more specific</strong>, they keep <strong>the child's own words</strong> exactly as you wrote them, and there is now an assistant that rewrites any line you highlight without touching the rest.</p><p>If the documentation is piling up again, there is <strong>20% off your next month</strong> waiting. Your old stories are all still there.</p><p>No pressure either way — and thank you for having given it a go.</p>`,
+          secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">The discount is applied at checkout when you restart from this email. No code needed.</p>`,
+          body: `<p>Hi ${esc(name)}, StoryLoop has moved on since you left.</p><p>Stories are <strong>sharper and more specific</strong>, they keep <strong>the child's own words</strong> exactly as you wrote them, and there is now an assistant that rewrites any line you highlight without touching the rest.</p><p>If the documentation is piling up again, restart from Billing and you get <strong>${esc(offer)}</strong>. Your old stories are all still there.</p><p>No pressure either way, and thank you for having given it a go.</p>`,
         }),
-        text: plain({ title: subject, lines, cta: "Restart with 20% off", ctaUrl, unsubscribe }),
+        text: plain({ title: subject, lines, cta: "Restart StoryLoop", ctaUrl, unsubscribe }),
       };
     },
 

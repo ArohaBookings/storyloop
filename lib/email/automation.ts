@@ -23,6 +23,13 @@ type ProfileEmailRow = {
 
 const ACTIVE_PAID_STATUSES = new Set(["active", "trialing", "admin_override"]);
 
+// Plan keys as stored on profiles. These rules used to filter on
+// ["educator", "centre"], the plan names before Educator Pro and the two centre
+// tiers existed, so every Educator Pro and centre customer was silently skipped.
+// "centre" stays for any profile still holding the old value.
+export const PAID_PLAN_KEYS = ["educator", "educator_pro", "centre_starter", "centre_growth", "centre"];
+export const CENTRE_PLAN_KEYS = ["centre_starter", "centre_growth", "centre"];
+
 function hoursAgo(hours: number) {
   return new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
 }
@@ -140,7 +147,7 @@ export async function runLifecycleAutomation() {
   const { data: paidNoUsageUsers, error: paidNoUsageError } = await sb
     .from("profiles")
     .select(baseSelect)
-    .in("plan", ["educator", "centre"])
+    .in("plan", PAID_PLAN_KEYS)
     .in("subscription_status", Array.from(ACTIVE_PAID_STATUSES))
     .lte("upgraded_at", hoursAgo(48))
     .eq("total_stories", 0)
@@ -180,7 +187,7 @@ export async function runLifecycleAutomation() {
   const { data: familyPackUsers, error: familyPackError } = await sb
     .from("profiles")
     .select(baseSelect)
-    .in("plan", ["educator", "centre"])
+    .in("plan", PAID_PLAN_KEYS)
     .in("subscription_status", Array.from(ACTIVE_PAID_STATUSES))
     .gte("total_stories", 2)
     .is("marketing_unsubscribed_at", null)
@@ -194,7 +201,7 @@ export async function runLifecycleAutomation() {
   const { data: centrePlanningUsers, error: centrePlanningError } = await sb
     .from("profiles")
     .select(baseSelect)
-    .eq("plan", "centre")
+    .in("plan", CENTRE_PLAN_KEYS)
     .in("subscription_status", Array.from(ACTIVE_PAID_STATUSES))
     .gte("total_stories", 3)
     .is("marketing_unsubscribed_at", null)

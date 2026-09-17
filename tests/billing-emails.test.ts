@@ -183,3 +183,21 @@ test("the ended email no longer offers a pause that does not exist", () => {
   assert.match(email.text, /3 new stories a month/);
   for (const bad of junk) assert.ok(!email.html.includes(bad), `leaked ${bad}`);
 });
+
+test("the win-back email offers only the discount checkout really applies", async () => {
+  const { ACTIVATION_OFFER_LABEL } = await import("../lib/email/config");
+  const email = renderLifecycleEmail({
+    type: "winback_offer",
+    userId: "00000000-0000-0000-0000-000000000001",
+    recipient: "kaiako@example.com",
+    name: "Aroha Smith",
+  });
+  // /api/stripe/checkout applies the activation coupon only for ?offer=activation.
+  assert.match(email.ctaUrl, /\/billing\?offer=activation/);
+  assert.ok(email.text.includes(ACTIVATION_OFFER_LABEL));
+  assert.ok(email.subject.includes(ACTIVATION_OFFER_LABEL));
+  // There has never been a 20% StoryLoop win-back coupon.
+  assert.doesNotMatch(email.subject + email.html + email.text, /20%/);
+  assert.equal(email.marketing, true, "a win-back is marketing and must respect unsubscribes");
+  for (const bad of junk) assert.ok(!email.html.includes(bad) && !email.text.includes(bad), `leaked ${bad}`);
+});
