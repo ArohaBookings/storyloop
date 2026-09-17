@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { formatAmount, formatDate, paymentFailureNotice } from "../lib/email/billing";
+import { formatAmount, formatDate, newlyScheduledCancellation, paymentFailureNotice } from "../lib/email/billing";
 import { renderLifecycleEmail } from "../lib/email/templates";
 
 /**
@@ -87,4 +87,99 @@ test("the final notice is transactional, branded, and states the real consequenc
   assert.match(email.text, /still open, read and edit every story/);
   assert.match(email.ctaUrl, /\/billing\?/);
   for (const junk of ["undefined", "NaN", "null", "${"]) assert.ok(!email.html.includes(junk), `leaked ${junk}`);
+});
+
+const PERIOD_END = 1791244800; // 2026-10-14
+
+test("cancelling in the portal is detected whichever field Stripe uses", () => {
+  const atPeriodEnd = newlyScheduledCancellation(
+    { id: "sub_1", status: "active", cancel_at_period_end: true, cancel_at: null },
+    { cancel_at_period_end: false, canceled_at: null },
+    PERIOD_END,
+  );
+  assert.deepEqual(atPeriodEnd, { billingKey: `sub_1:cancel_scheduled:${PERIOD_END}`, endsAtSeconds: PERIOD_END });
+
+  const withCancelAt = newlyScheduledCancellation(
+    { id: "sub_1", status: "active", cancel_at_period_end: false, cancel_at: PERIOD_END },
+    { cancel_at: null },
+    null,
+  );
+  assert.deepEqual(withCancelAt, { billingKey: `sub_1:cancel_scheduled:${PERIOD_END}`, endsAtSeconds: PERIOD_END });
+
+  // Both at once, as newer API versions send it.
+  const both = newlyScheduledCancellation(
+    { id: "sub_1", status: "trialing", cancel_at_period_end: true, cancel_at: PERIOD_END },
+    { cancel_at_period_end: false, cancel_at: null },
+    PERIOD_END,
+  );
+  assert.equal(both?.endsAtSeconds, PERIOD_END);
+});
+
+test("updates that are not a new cancellation send nothing", () => {
+  const scheduled = { id: "sub_1", status: "active", cancel_at_period_end: true, cancel_at: PERIOD_END };
+  // A renewal or plan change that does not touch cancellation.
+  assert.equal(newlyScheduledCancellation(scheduled, { items: {} }, PERIOD_END), null);
+  // No previous attributes at all (subscription.created, resumed).
+  assert.equal(newlyScheduledCancellation(scheduled, undefined, PERIOD_END), null);
+  // Already scheduled; only the date moved.
+  assert.equal(newlyScheduledCancellation(scheduled, { cancel_at: PERIOD_END - 86400 }, PERIOD_END), null);
+  // They undid the cancellation: keeping the plan is not a cancellation.
+  assert.equal(
+    newlyScheduledCancellation({ id: "sub_1", status: "active", cancel_at_period_end: false, cancel_at: null }, { cancel_at_period_end: true, cancel_at: PERIOD_END }, PERIOD_END),
+    null,
+  );
+  // Already ended: subscription_cancelled handles that.
+  assert.equal(
+    newlyScheduledCancellation({ ...scheduled, status: "canceled" }, { cancel_at_period_end: false, cancel_at: null }, PERIOD_END),
+    null,
+  );
+});
+
+test("cancel, undo and cancel again in the same period shares one key", () => {
+  const first = newlyScheduledCancellation({ id: "sub_1", status: "active", cancel_at_period_end: true, cancel_at: null }, { cancel_at_period_end: false }, PERIOD_END);
+  const again = newlyScheduledCancellation({ id: "sub_1", status: "active", cancel_at_period_end: true, cancel_at: null }, { cancel_at_period_end: false }, PERIOD_END);
+  assert.equal(first?.billingKey, again?.billingKey);
+  const nextPeriod = newlyScheduledCancellation({ id: "sub_1", status: "active", cancel_at_period_end: true, cancel_at: null }, { cancel_at_period_end: false }, PERIOD_END + 30 * 86400);
+  assert.notEqual(first?.billingKey, nextPeriod?.billingKey);
+});
+
+const junk = ["undefined", "NaN", "null", "${"];
+
+test("the cancellation save email states the real consequence and promises nothing we do not offer", () => {
+  const email = renderLifecycleEmail({
+    type: "cancellation_scheduled",
+    userId: "00000000-0000-0000-0000-000000000001",
+    recipient: "kaiako@example.com",
+    name: "Aroha Smith",
+    context: { planLabel: "Educator Pro", endsOn: "14 October 2026" },
+  });
+  assert.equal(email.marketing, false, "a reply to their own action must reach them");
+  assert.equal(email.subject, "Your StoryLoop plan ends on 14 October 2026");
+  assert.match(email.html, /images\/logo-email\.png/);
+  assert.match(email.text, /everything keeps working until 14 October 2026/);
+  // Matches lib/story-limits.ts and lib/billing-access.ts after the plan ends.
+  assert.match(email.text, /free plan/);
+  assert.match(email.text, /3 new stories a month/);
+  assert.match(email.ctaUrl, /\/billing\?/);
+  assert.doesNotMatch(email.html + email.text, /pause|discount|% off/i);
+  for (const bad of junk) assert.ok(!email.html.includes(bad) && !email.text.includes(bad), `leaked ${bad}`);
+
+  const undated = renderLifecycleEmail({ type: "cancellation_scheduled", userId: "u", recipient: "a@example.com", name: null });
+  assert.equal(undated.subject, "Your StoryLoop plan is set to end");
+  assert.match(undated.text, /until the end of your billing period/);
+  for (const bad of junk) assert.ok(!undated.html.includes(bad) && !undated.text.includes(bad), `leaked ${bad}`);
+});
+
+test("the ended email no longer offers a pause that does not exist", () => {
+  const email = renderLifecycleEmail({
+    type: "subscription_cancelled",
+    userId: "00000000-0000-0000-0000-000000000001",
+    recipient: "kaiako@example.com",
+    name: "Aroha Smith",
+  });
+  assert.equal(email.marketing, false);
+  assert.doesNotMatch(email.html + email.text, /pause/i);
+  assert.match(email.text, /free plan/);
+  assert.match(email.text, /3 new stories a month/);
+  for (const bad of junk) assert.ok(!email.html.includes(bad), `leaked ${bad}`);
 });

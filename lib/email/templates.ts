@@ -22,6 +22,9 @@ export type LifecycleEmailType =
   // Stripe's FINAL retry failed. Keyed separately from payment_failed, which
   // is keyed on the invoice and would otherwise swallow this second notice.
   | "payment_failed_final"
+  // They clicked cancel in the billing portal. Access runs to the end of the
+  // period, so this is the one moment a change of heart costs them nothing.
+  | "cancellation_scheduled"
   | "subscription_cancelled"
   | "winback_offer"
   | "went_quiet"
@@ -39,6 +42,8 @@ type TemplateInput = {
     amountLabel?: string;
     planLabel?: string;
     renewsOn?: string;
+    /** When a scheduled cancellation takes effect. */
+    endsOn?: string;
     trialEndsOn?: string;
     storiesThisMonth?: number;
     hoursSaved?: number;
@@ -619,16 +624,50 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
       };
     },
 
-    // Cancellation confirmation that offers PAUSE rather than begging. Educator
-    // demand is seasonal: holidays and cleared backlogs are the real reason
-    // people leave, and pausing fits that far better than a discount.
-    subscription_cancelled: () => {
-      const ctaUrl = url("/billing", "subscription_cancelled");
-      const subject = "Your StoryLoop subscription is cancelled";
+    // Sent the moment someone cancels in the billing portal. Their plan keeps
+    // working until the period ends, so undoing it costs nothing, and this is
+    // the only point where a save is honest rather than a chase. It states the
+    // real consequence exactly (lib/story-limits.ts, lib/billing-access.ts):
+    // the account moves to Free, which keeps every saved story and allows three
+    // new ones a month. No discount, no guilt, no pause we do not offer.
+    cancellation_scheduled: () => {
+      const ctaUrl = url("/billing", "cancellation_scheduled");
+      const plan = ctx.planLabel ?? "your StoryLoop plan";
+      const endsOn = ctx.endsOn;
+      const until = endsOn ? `until ${endsOn}` : "until the end of your billing period";
+      const subject = endsOn ? `Your StoryLoop plan ends on ${endsOn}` : "Your StoryLoop plan is set to end";
       const lines = [
-        `Hi ${name}, your StoryLoop subscription is now cancelled and you will not be charged again.`,
-        "Everything you have written is still in your account, and it stays there.",
-        "If you were stopping because it is the holidays or your documentation is caught up, you can pause instead of cancelling and pick it back up next term.",
+        `Hi ${name}, you have cancelled ${plan}. You will not be charged again, and everything keeps working ${until}.`,
+        "After that your account moves to the free plan. Every story you have written stays yours to open, edit and export, and you can still write 3 new stories a month.",
+        `Changed your mind? You can keep your plan from Billing any time ${until}, and nothing changes.`,
+        "If something about StoryLoop got in your way, reply and tell us. We read every one.",
+      ];
+      return {
+        emailType: "cancellation_scheduled",
+        subject,
+        marketing: false,
+        ctaUrl,
+        html: layout({
+          title: endsOn ? `Your plan ends on ${endsOn}` : "Your plan is set to end",
+          preview: `Everything keeps working ${until}. Your stories stay yours.`,
+          cta: "Keep my plan",
+          ctaUrl,
+          secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Meant to cancel? You do not need to do anything. Thank you for giving StoryLoop a go.</p>`,
+          body: `<p>Hi ${esc(name)}, you have cancelled ${esc(plan)}. You will not be charged again, and <strong>everything keeps working ${esc(until)}</strong>.</p><p>After that your account moves to the free plan. <strong>Every story you have written stays yours</strong> to open, edit and export, and you can still write 3 new stories a month.</p><p>Changed your mind? You can keep your plan from Billing any time ${esc(until)}, and nothing changes.</p><p>If something about StoryLoop got in your way, reply to this email and tell us. We read every single one.</p>`,
+        }),
+        text: plain({ title: subject, lines, cta: "Keep my plan", ctaUrl }),
+      };
+    },
+
+    // Sent when the subscription has actually ended. It confirms, states what
+    // the free plan keeps, and leaves the door open without pushing.
+    subscription_cancelled: () => {
+      const ctaUrl = url("/dashboard", "subscription_cancelled");
+      const subject = "Your StoryLoop subscription has ended";
+      const lines = [
+        `Hi ${name}, your StoryLoop subscription has ended and you will not be charged again.`,
+        "Your account is now on the free plan. Every story you have written stays yours to open, edit and export, and you can write 3 new stories a month.",
+        "If you come back, your children's profiles and history will be right where you left them.",
         "If something about StoryLoop got in your way, just reply and tell us. We read every one.",
       ];
       return {
@@ -637,14 +676,14 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
         marketing: false,
         ctaUrl,
         html: layout({
-          title: "Your subscription is cancelled",
-          preview: "Your stories stay yours. Pause is an option if you are coming back.",
-          cta: "Pause instead of cancelling",
+          title: "Your subscription has ended",
+          preview: "Your stories stay yours, and the free plan keeps working.",
+          cta: "Open StoryLoop",
           ctaUrl,
           secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Not coming back? No hard feelings at all. Thank you for giving StoryLoop a go.</p>`,
-          body: `<p>Hi ${esc(name)}, your StoryLoop subscription is cancelled and you will not be charged again.</p><p><strong>Everything you have written is still in your account</strong>, and it stays there.</p><p>One thing worth knowing: most educators who leave are not unhappy, they are just caught up or heading into the holidays. If that is you, you can <strong>pause instead</strong> and pick it back up next term without losing anything.</p><p>And if something genuinely got in your way, reply to this email and tell us. We read every single one.</p>`,
+          body: `<p>Hi ${esc(name)}, your StoryLoop subscription has ended and you will not be charged again.</p><p>Your account is now on the free plan. <strong>Every story you have written stays yours</strong> to open, edit and export, and you can write 3 new stories a month.</p><p>If you come back, your children's profiles and history will be right where you left them.</p><p>And if something genuinely got in your way, reply to this email and tell us. We read every single one.</p>`,
         }),
-        text: plain({ title: subject, lines, cta: "Pause instead of cancelling", ctaUrl }),
+        text: plain({ title: subject, lines, cta: "Open StoryLoop", ctaUrl }),
       };
     },
 

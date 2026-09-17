@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { normalizePlanKey } from "@/lib/plans";
 import { grantReferralCreditForPayment } from "@/lib/referrals";
-import { paymentFailureNotice, sendBillingEmail } from "@/lib/email/billing";
+import { newlyScheduledCancellation, paymentFailureNotice, sendBillingEmail } from "@/lib/email/billing";
 
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -245,6 +245,24 @@ async function processStripeEvent(admin: ReturnType<typeof createAdminSupabase>,
     case "customer.subscription.resumed": {
       const subscription = event.data.object as Stripe.Subscription;
       await updateProfileForSubscription(admin, subscription);
+
+      // They just cancelled in the portal. Access runs to the period end, so
+      // tell them exactly that while keeping the plan still costs nothing.
+      // After the state write, and sendBillingEmail never throws.
+      if (event.type === "customer.subscription.updated") {
+        const previous = (event.data as { previous_attributes?: Record<string, unknown> }).previous_attributes;
+        const scheduled = newlyScheduledCancellation(subscription, previous, subscriptionPeriodEnd(subscription));
+        if (scheduled) {
+          await sendBillingEmail({
+            admin,
+            type: "cancellation_scheduled",
+            billingKey: scheduled.billingKey,
+            userId: subscription.metadata?.user_id,
+            customerId: typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id,
+            endsAtSeconds: scheduled.endsAtSeconds,
+          });
+        }
+      }
       return;
     }
 
@@ -267,9 +285,7 @@ async function processStripeEvent(admin: ReturnType<typeof createAdminSupabase>,
       if (userId) await admin.from("profiles").update(update).eq("id", userId);
       else if (customerId) await admin.from("profiles").update(update).eq("stripe_customer_id", customerId);
 
-      // Confirm the cancellation and offer pause. Educator demand is seasonal:
-      // most people who leave are caught up or heading into the holidays, not
-      // unhappy, and pause fits that better than a discount.
+      // Confirm it has ended and what the free plan keeps.
       await sendBillingEmail({
         admin,
         type: "subscription_cancelled",

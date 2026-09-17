@@ -29,7 +29,7 @@ import type { LifecycleEmailType } from "./templates";
 
 type BillingEmailType = Extract<
   LifecycleEmailType,
-  "payment_succeeded" | "payment_failed" | "payment_failed_final" | "subscription_cancelled"
+  "payment_succeeded" | "payment_failed" | "payment_failed_final" | "cancellation_scheduled" | "subscription_cancelled"
 >;
 
 type Recipient = { userId: string; email: string; name: string | null; plan: string | null };
@@ -133,6 +133,55 @@ export function paymentFailureNotice(
     : { type: "payment_failed_final", billingKey: `${invoiceKey}:final` };
 }
 
+type CancellationFields = {
+  id: string;
+  status?: string | null;
+  cancel_at_period_end?: boolean | null;
+  cancel_at?: number | null;
+};
+
+function isScheduledToCancel(fields: { cancel_at_period_end?: unknown; cancel_at?: unknown }) {
+  return fields.cancel_at_period_end === true || typeof fields.cancel_at === "number";
+}
+
+/**
+ * Did this subscription update just schedule a cancellation?
+ *
+ * The billing portal cancels at the end of the period, which arrives as
+ * customer.subscription.updated. Depending on API version Stripe marks it with
+ * cancel_at_period_end, cancel_at, or both, so either counts. The previous
+ * attributes decide whether it is NEW: an update that only moves the renewal
+ * date, or touches an already-scheduled cancellation, sends nothing.
+ *
+ * Keyed on the subscription and the end date, so cancelling, undoing and
+ * cancelling again in the same period sends one email, not three.
+ */
+export function newlyScheduledCancellation(
+  current: CancellationFields,
+  previous: Record<string, unknown> | null | undefined,
+  periodEndSeconds: number | null | undefined,
+): { billingKey: string; endsAtSeconds: number | null } | null {
+  if (!previous || typeof previous !== "object") return null;
+  if (current.status === "canceled" || current.status === "incomplete_expired") return null;
+  if (!isScheduledToCancel(current)) return null;
+
+  const touched = "cancel_at_period_end" in previous || "cancel_at" in previous;
+  if (!touched) return null;
+  const before = {
+    cancel_at_period_end: "cancel_at_period_end" in previous ? previous.cancel_at_period_end : current.cancel_at_period_end,
+    cancel_at: "cancel_at" in previous ? previous.cancel_at : current.cancel_at,
+  };
+  if (isScheduledToCancel(before)) return null;
+
+  const endsAtSeconds =
+    typeof current.cancel_at === "number"
+      ? current.cancel_at
+      : typeof periodEndSeconds === "number" && Number.isFinite(periodEndSeconds)
+        ? periodEndSeconds
+        : null;
+  return { billingKey: `${current.id}:cancel_scheduled:${endsAtSeconds ?? "unknown"}`, endsAtSeconds };
+}
+
 export type BillingEmailResult =
   | { status: "sent" | "skipped_duplicate" | "skipped_no_recipient" | "skipped_zero_amount" | "failed" }
   | { status: "skipped_other"; reason: string };
@@ -148,6 +197,8 @@ export async function sendBillingEmail(params: {
   currency?: string | null;
   /** Unix seconds for the next renewal, where Stripe gave us one. */
   renewsAtSeconds?: number | null;
+  /** Unix seconds when a scheduled cancellation takes effect. */
+  endsAtSeconds?: number | null;
 }): Promise<BillingEmailResult> {
   try {
     const recipient = await resolveRecipient(params.admin, {
@@ -180,6 +231,7 @@ export async function sendBillingEmail(params: {
         amountLabel: formatAmount(params.amountInCents, params.currency) ?? undefined,
         planLabel: planKey === "free" ? undefined : getPlanByKey(planKey).name,
         renewsOn: formatDate(params.renewsAtSeconds) ?? undefined,
+        endsOn: formatDate(params.endsAtSeconds) ?? undefined,
       },
     });
 
