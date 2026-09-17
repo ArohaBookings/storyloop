@@ -7,6 +7,47 @@
  */
 
 export const SEO_DEEP_DIVES: Record<string, Array<{ heading: string; paragraphs: string[] }>> = {
+  "nqs-standard-1-3-assessment-and-planning": [
+    {
+      heading: "What the three elements are really asking",
+      paragraphs: [
+        "Standard 1.3 is about intention. ACECQA describes educators collecting information on each child, analysing what it says about how to support their learning, documenting, planning experiences, putting the program into practice and then reflecting on what was learned. Documentation happens at every stage, not only at the end.",
+        "Element 1.3.1 asks whether that cycle is actually happening for each child. Element 1.3.2 asks whether critical reflection, on individual children and on the group, drives what gets planned. Element 1.3.3 asks whether families are kept informed about the program and their child's progress in ways that are useful to them.",
+        "None of that prescribes a format. ACECQA's guidance says plainly that there is no one way to meet documentation requirements, and that services should choose methods that fit their children, families and community. A service with fewer, better-connected records is in a stronger position than one with a folder of disconnected stories.",
+      ],
+    },
+    {
+      heading: "What assessors may look for",
+      paragraphs: [
+        "For 1.3.1, the guidance says assessors may sight information showing educators understand each child's learning, dispositions, culture and interests over time; evidence that families were encouraged to contribute and children's views were sought; documented analysis of each child's learning using the learning outcomes as reference points; and clear information for families about what the program offered. They may also discuss how educational leaders help educators understand every step of the cycle.",
+        "For 1.3.2, they may sight reflection journals, diaries or jottings covering all kinds of practice, from arrivals and transitions to intentional teaching and the environment, and ask how reflection has led to changes. The guidance values short notes made in the moment and quick conversations between educators during the day, not only formal written reflections.",
+        "For 1.3.3, they may look for a communication approach families were consulted on, a range of ways information is shared, point-in-time summaries of each child's progress, the educational program displayed where families can see it, and transition statements for children moving to school.",
+      ],
+    },
+    {
+      heading: "Where the thread usually breaks",
+      paragraphs: [
+        "In most services the observation and the story are there. What goes missing is everything after it. A next step is written at the bottom of a story and never mentioned again. A reflection is recorded but nobody can say what changed because of it. A family comment arrives and stays in a messaging app instead of shaping the next plan.",
+        "The fix is not more writing. It is closing loops: noting whether a planned next step was tried, what happened, and whether it is worth continuing; linking a reflection to the change it produced; and carrying what families say into the next observation. Those small links are what let an educator explain the cycle for a child in two minutes, which is exactly the conversation an assessor may want to have.",
+        "Coverage is the other quiet gap. Confident, talkative children fill the files. The child who never causes a fuss can go weeks without a single recorded moment, and nobody notices until someone looks for their documentation.",
+      ],
+    },
+    {
+      heading: "A note on devices",
+      paragraphs: [
+        "ACECQA's guidance now states that in centre-based services, images or recordings of children may only be captured, stored or transmitted on a service-supplied device, and that personal devices must not be used for images of children. Family day care services may use service-supplied or service-authorised devices.",
+        "That matters for any documentation app, including this one. Check your service's device policy first. If you use voice notes, record your own quick summary of what you saw rather than recording the children themselves.",
+      ],
+    },
+    {
+      heading: "Where StoryLoop fits",
+      paragraphs: [
+        "StoryLoop helps with the parts of the cycle that usually break. An educator turns a quick note into a learning story draft with suggested EYLF links and the evidence visible, then edits and signs it off. Each story carries its next steps, and the educator marks them as planned, tried or worth continuing, so the respond and reflect steps are recorded rather than remembered.",
+        "On Educator Pro, family replies are kept with the story and carried into the next one, a quiet child radar shows which children have no recorded moments lately (skipping school holidays), and a printable term report describes how each child's learning dispositions showed up, with no scores or comparisons. Centre plans add a planning board built from recent stories and documentation oversight across the team.",
+        "It is a writing and planning aid, not an assessment of your service. Your educators still observe, analyse, reflect and decide, and your approach to Standard 1.3 remains your own professional judgement.",
+      ],
+    },
+  ],
   "transition-to-school-statement": [
     {
       heading: "What each place actually asks for",

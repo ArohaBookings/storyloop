@@ -991,6 +991,78 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       },
     ],
   },
+  // Directors and educational leaders preparing for assessment and rating are
+  // the people who buy centre plans. Every statement about what assessors look
+  // for paraphrases ACECQA's Guide to the NQF, Standard 1.3 (read 2026-09-17).
+  "nqs-standard-1-3-assessment-and-planning": {
+    slug: "nqs-standard-1-3-assessment-and-planning",
+    title: "NQS Standard 1.3: Assessment, Planning and Documentation",
+    description:
+      "What ACECQA's guidance says assessors look for in elements 1.3.1, 1.3.2 and 1.3.3, and how to document the planning cycle, critical reflection and family information without drowning in paperwork.",
+    kicker: "Director guide · Australia",
+    heading: "Show the whole planning cycle, not a pile of stories.",
+    intro:
+      "Standard 1.3 asks whether educators take a planned and reflective approach to each child's program. Most services have plenty of documentation. What is often missing is the thread from an observation to what was planned, what happened next and what educators thought about it. This guide sets out what ACECQA's guidance says and how to make that thread visible.",
+    reviewedAt: "2026-09-17",
+    sections: [
+      {
+        title: "1.3.1 Assessment and planning cycle",
+        body:
+          "Each child's learning is assessed as part of an ongoing cycle of observing, analysing, documenting, planning, implementing and reflecting. ACECQA is clear that there is no one way to document it. Assessors look for the cycle, not a format.",
+      },
+      {
+        title: "1.3.2 Critical reflection",
+        body:
+          "Critical reflection on children's learning, individually and in groups, should drive planning. Assessors may sight reflection journals or jottings and ask how reflection has actually changed the program.",
+      },
+      {
+        title: "1.3.3 Information for families",
+        body:
+          "Families are informed about the program and their child's progress in ways that suit them. Assessors may look for a communication approach agreed with families, point-in-time progress summaries and transition statements for children starting school.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Is there a required format for documentation under the NQS?",
+        answer:
+          "No. ACECQA's guidance says there is no one way to meet documentation requirements under the NQF. Services choose methods that suit their children, families and community, using professional judgement. What matters is that the assessment and planning cycle is visible.",
+      },
+      {
+        question: "What might an assessor ask to see for element 1.3.1?",
+        answer:
+          "ACECQA's guidance lists things like information showing educators understand each child over time, evidence that families contributed and children's views were sought, documented analysis of each child's learning using the learning outcomes as reference points, and clear information for families about what the program offered.",
+      },
+      {
+        question: "Does critical reflection have to be written down?",
+        answer:
+          "Assessors may sight documentation of reflection, such as journals, diaries or brief jottings, and may discuss how reflection informs planning. Short, honest notes that led to a change in practice are more useful than long reflections that change nothing.",
+      },
+      {
+        question: "Can educators use their own phones to record observations?",
+        answer:
+          "ACECQA's guidance says images or recordings of children may only be captured, stored or transmitted on a service-supplied device in centre-based services, or a service-supplied or service-authorised device in family day care. A personal device must not be used for images of children. Check your service's device policy before using any app, and if you use voice notes, record your own summary rather than the children.",
+      },
+      ...sharedFaqs,
+    ],
+    sources: [
+      {
+        label: "ACECQA Guide to the NQF: Standard 1.3 Assessment and planning",
+        url: "https://www.acecqa.gov.au/national-quality-framework/guide-nqf/section-3-national-quality-standard-and-assessment-and-rating/quality-area-1-educational-program-and-practice/standard-13-assessment-and-planning",
+      },
+      {
+        label: "ACECQA: Element 1.3.1 Assessment and planning cycle",
+        url: "https://www.acecqa.gov.au/national-quality-framework/guide-nqf/section-3-national-quality-standard-and-assessment-and-rating/quality-area-1-educational-program-and-practice/standard-13-assessment-and-planning/element-131-assessment-and-planning-cycle",
+      },
+      {
+        label: "ACECQA: Element 1.3.2 Critical reflection",
+        url: "https://www.acecqa.gov.au/national-quality-framework/guide-nqf/section-3-national-quality-standard-and-assessment-and-rating/quality-area-1-educational-program-and-practice/standard-13-assessment-and-planning/element-132-critical-reflection",
+      },
+      {
+        label: "ACECQA: Element 1.3.3 Information for families",
+        url: "https://www.acecqa.gov.au/national-quality-framework/guide-nqf/section-3-national-quality-standard-and-assessment-and-rating/quality-area-1-educational-program-and-practice/standard-13-assessment-and-planning/element-133-information-families",
+      },
+    ],
+  },
   "te-whariki-learning-outcomes-guide": {
     slug: "te-whariki-learning-outcomes-guide",
     title: "Te Whāriki Learning Outcomes: A Practical Guide",

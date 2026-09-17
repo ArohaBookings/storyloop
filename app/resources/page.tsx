@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BookOpen, Clock, FileCheck, School, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, FileCheck, School, ShieldCheck, Sparkles } from "lucide-react";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 
@@ -20,18 +20,18 @@ const GUIDES = [
     icon: School,
   },
   {
+    href: "/nqs-standard-1-3-assessment-and-planning",
+    kicker: "Directors · Australia",
+    title: "NQS Standard 1.3 documentation",
+    description: "What ACECQA's guidance says assessors look for in the planning cycle, critical reflection and information for families.",
+    icon: BookOpen,
+  },
+  {
     href: "/ai-policy",
     kicker: "Free tool",
     title: "AI policy for your service",
     description: "Answer a few questions and get a responsible AI in documentation policy your service can adopt. No signup.",
     icon: FileCheck,
-  },
-  {
-    href: "/how-long-should-a-learning-story-take",
-    kicker: "Workload",
-    title: "How long should a learning story take?",
-    description: "Where the time really goes in documentation, and what shortens it without thinning the evidence.",
-    icon: Clock,
   },
   {
     href: "/eylf-planning-cycle",
