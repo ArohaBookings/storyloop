@@ -19,8 +19,25 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id),
   email text,
   full_name text,
+  plan text default 'free',
+  subscription_status text default 'free',
+  stripe_customer_id text unique,
+  stripe_subscription_id text,
+  trial_ends_at timestamptz,
+  current_period_end timestamptz,
+  upgraded_at timestamptz,
+  stories_this_month int default 0,
   total_stories int default 0,
-  last_story_at timestamptz
+  monthly_story_limit_override int,
+  applied_access_code text,
+  story_preferences jsonb not null default '{}'::jsonb,
+  is_active boolean default true,
+  is_internal boolean not null default false,
+  referral_code text,
+  referred_by uuid,
+  last_seen_at timestamptz,
+  last_story_at timestamptz,
+  first_story_created_at timestamptz
 );
 
 create table if not exists public.stories (
@@ -37,3 +54,10 @@ create table if not exists private.stripe_webhook_events (
   processed_at timestamptz default now(),
   error text
 );
+
+-- Supabase's default privileges: tables in public are granted to the client
+-- roles, and only row level security stands between them and the data. The
+-- tests rely on this being true, exactly as it is in production.
+grant usage on schema public to anon, authenticated;
+alter default privileges in schema public grant all on tables to anon, authenticated;
+grant all on all tables in schema public to anon, authenticated;

@@ -21,10 +21,11 @@
 --   2. MEMBERSHIP IS EXPLICIT. There is no implicit membership by email domain
 --      or by shared billing. You are in a centre because a row says so.
 --
--- Note for whoever runs this: the database has no RLS anywhere (every table is
--- reached through the service-role client), so these constraints are the only
--- structural protection. The authorisation logic lives in lib/centres.ts and is
--- deny-by-default. Do not bypass it with ad-hoc queries.
+-- Note for whoever runs this: these tables are reached only through the service
+-- role, which bypasses row level security, so the authorisation that matters is
+-- the deny-by-default logic in lib/centres.ts. Do not bypass it with ad-hoc
+-- queries. RLS is still enabled on all three below, with no policies, so no
+-- client holding the public anon key can reach them directly.
 
 create extension if not exists pgcrypto;
 
@@ -153,3 +154,20 @@ drop trigger if exists centres_touch_updated_at on public.centres;
 create trigger centres_touch_updated_at
   before update on public.centres
   for each row execute function public.touch_centres_updated_at();
+
+-- ------------------------------------------------------------ lock it down
+-- Supabase grants tables in the public schema to the anon and authenticated
+-- roles by default. Without row level security, anyone holding the public anon
+-- key could read every invite token through the REST API, or insert themselves
+-- into centre_members as an owner. These tables are only ever used through the
+-- service role on the server, so RLS is enabled with NO policies: the server
+-- still reads and writes (the service role bypasses RLS) and no client can.
+-- The explicit revokes are defence in depth in case a policy is ever added.
+
+alter table public.centres enable row level security;
+alter table public.centre_members enable row level security;
+alter table public.centre_invites enable row level security;
+
+revoke all on table public.centres from anon, authenticated;
+revoke all on table public.centre_members from anon, authenticated;
+revoke all on table public.centre_invites from anon, authenticated;

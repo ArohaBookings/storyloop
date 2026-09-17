@@ -35,10 +35,13 @@ MIGRATIONS=(
   "supabase/migrations/20260917_centre_team_model.sql"
   "supabase/migrations/20260917_admin_system_health.sql"
   "supabase/migrations/20260917_webhook_stale_lock_recovery.sql"
+  "supabase/migrations/20260917_term_settings.sql"
+  "supabase/migrations/20260917_protect_profile_billing_fields.sql"
 )
 TESTS=(
   "supabase/tests/centre_team_model.test.sql"
   "supabase/tests/webhook_recovery.test.sql"
+  "supabase/tests/profile_billing_guard.test.sql"
 )
 
 # A free port, checked rather than assumed: another project's database may be

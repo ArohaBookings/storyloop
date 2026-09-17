@@ -5,6 +5,7 @@ import {
   guardStoryLimitOverride,
   hasLiveStripeSubscription,
   isChargedWhileComped,
+  isUnexplainedPaidAccess,
   sanitizeAdminSearch,
 } from "../lib/admin-guards";
 
@@ -108,4 +109,19 @@ test("nonsense override values are refused", () => {
     assert.equal(guardStoryLimitOverride({ plan: "free" }, value).allowed, false, String(value));
   }
   assert.equal(guardStoryLimitOverride(null, 5).allowed, false);
+});
+
+test("paid access with no subscription behind it is flagged: the self-upgrade exploit's fingerprint", () => {
+  assert.equal(isUnexplainedPaidAccess({ plan: "centre_growth", subscription_status: "active", stripe_subscription_id: null }), true);
+  assert.equal(isUnexplainedPaidAccess({ plan: "educator", subscription_status: "trialing", stripe_subscription_id: "" }), true);
+  assert.equal(isUnexplainedPaidAccess({ plan: "free", subscription_status: "free", monthly_story_limit_override: 1000 }), true);
+});
+
+test("genuine customers, comps and access codes are never flagged", () => {
+  assert.equal(isUnexplainedPaidAccess({ plan: "educator", subscription_status: "active", stripe_subscription_id: "sub_1" }), false);
+  assert.equal(isUnexplainedPaidAccess({ plan: "educator", subscription_status: "admin_override", stripe_subscription_id: null }), false);
+  assert.equal(isUnexplainedPaidAccess({ plan: "educator", subscription_status: "active", applied_access_code: "nikky" }), false);
+  assert.equal(isUnexplainedPaidAccess({ plan: "free", subscription_status: "free", monthly_story_limit_override: 10, applied_access_code: "nikky" }), false);
+  assert.equal(isUnexplainedPaidAccess({ plan: "free", subscription_status: "free" }), false);
+  assert.equal(isUnexplainedPaidAccess({ plan: "educator", subscription_status: "past_due", stripe_subscription_id: null }), false);
 });

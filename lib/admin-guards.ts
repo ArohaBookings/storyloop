@@ -96,6 +96,32 @@ export function isChargedWhileComped(profile: GuardProfile): boolean {
 }
 
 /**
+ * Paid access with nothing paying for it: a paid plan marked active or trialing,
+ * no Stripe subscription, and not a deliberate comp (admin_override) or an
+ * access code.
+ *
+ * Until the protect_profile_billing_fields migration is applied, any signed-in
+ * user could set exactly this on their own row through the public API. This is
+ * the check that shows whether anyone did, and it stays useful afterwards as a
+ * guard against a webhook that failed to record a real subscription.
+ */
+export function isUnexplainedPaidAccess(profile: GuardProfile & {
+  applied_access_code?: string | null;
+  monthly_story_limit_override?: number | null;
+}): boolean {
+  const plan = (profile.plan ?? "free").trim().toLowerCase();
+  const status = (profile.subscription_status ?? "").trim().toLowerCase();
+  const hasSubscription = Boolean(profile.stripe_subscription_id?.trim());
+  const viaAccessCode = Boolean(profile.applied_access_code?.trim());
+
+  const paidWithoutPayment = plan !== "free" && (status === "active" || status === "trialing") && !hasSubscription;
+  const overrideWithoutReason =
+    typeof profile.monthly_story_limit_override === "number" && profile.monthly_story_limit_override > 0 && !viaAccessCode;
+
+  return (paidWithoutPayment && !viaAccessCode) || overrideWithoutReason;
+}
+
+/**
  * Make an admin search string safe to embed in a PostgREST `or` filter.
  *
  * The filter syntax treats commas and parentheses as structure, and double

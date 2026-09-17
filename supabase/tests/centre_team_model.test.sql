@@ -1,6 +1,5 @@
--- Centre team model: what the schema must refuse, and what the activity RPC
--- must never reveal. There is no row level security in this database, so these
--- constraints are the only structural protection behind lib/centres.ts.
+-- Centre team model: what the schema must refuse, what the activity RPC must
+-- never reveal, and that no client role can reach the tables directly.
 
 do $$
 declare
@@ -88,5 +87,14 @@ begin
   assert not has_function_privilege('authenticated', 'public.centre_activity(uuid)', 'execute'), '15 FAIL: authenticated can call centre_activity';
   assert has_function_privilege('service_role', 'public.centre_activity(uuid)', 'execute'), '16 service_role cannot call centre_activity';
 
-  raise notice 'centre_team_model: all 16 checks passed';
+  -- Row level security with no policies: the client roles see nothing and
+  -- cannot write, even though Supabase grants public tables to them by default.
+  assert (select relrowsecurity from pg_class where oid = 'public.centre_invites'::regclass), '17 RLS not enabled on centre_invites';
+  assert (select relrowsecurity from pg_class where oid = 'public.centre_members'::regclass), '18 RLS not enabled on centre_members';
+  assert (select relrowsecurity from pg_class where oid = 'public.centres'::regclass), '19 RLS not enabled on centres';
+  assert not has_table_privilege('authenticated', 'public.centre_invites', 'select'), 'FAIL 20: authenticated can read invite tokens';
+  assert not has_table_privilege('anon', 'public.centre_members', 'insert'), 'FAIL 21: anon can insert into centre_members';
+  assert not has_table_privilege('authenticated', 'public.centre_members', 'update'), 'FAIL 22: authenticated can edit memberships';
+
+  raise notice 'centre_team_model: all 22 checks passed';
 end $$;

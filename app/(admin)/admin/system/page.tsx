@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Activity, ArrowLeft } from "lucide-react";
 import { verifyAdmin } from "@/lib/admin-auth";
 import { createAdminSupabase } from "@/lib/supabase/admin";
-import { isChargedWhileComped } from "@/lib/admin-guards";
+import { isChargedWhileComped, isUnexplainedPaidAccess } from "@/lib/admin-guards";
 import {
   demoReliability,
   emailTone,
@@ -73,7 +73,7 @@ export default async function SystemHealthPage() {
   const countEvents = (type: string) =>
     sb.from("page_events").select("id", { count: "exact", head: true }).eq("event_type", type).gte("created_at", since);
 
-  const [healthRes, emailsRes, startedRes, completedRes, errorsRes, subsRes] = await Promise.all([
+  const [healthRes, emailsRes, startedRes, completedRes, errorsRes, subsRes, paidRes] = await Promise.all([
     sb.rpc("admin_system_health", { p_days: DAYS }),
     sb.from("email_events").select("email_type, delivery_status").gte("sent_at", since).limit(20000),
     countEvents("demo_started"),
@@ -84,13 +84,21 @@ export default async function SystemHealthPage() {
       .select("id, email, plan, subscription_status, stripe_subscription_id, is_internal")
       .not("stripe_subscription_id", "is", null)
       .limit(5000),
+    sb
+      .from("profiles")
+      .select("id, email, plan, subscription_status, stripe_subscription_id, applied_access_code, monthly_story_limit_override, is_internal")
+      .or("plan.neq.free,monthly_story_limit_override.gt.0")
+      .limit(5000),
   ]);
 
   // ------------------------------------------------------------- billing
   const subscribed = subsRes.data ?? [];
   const chargedWhileComped = subscribed.filter((p) => isChargedWhileComped(p));
   const pastDue = subscribed.filter((p) => ["past_due", "payment_required"].includes(p.subscription_status ?? ""));
-  const billingTone: Tone = chargedWhileComped.length ? "critical" : pastDue.length ? "warn" : "ok";
+  // Paid access nobody is paying for. Before the billing-guard migration any
+  // signed-in user could grant themselves this through the public API.
+  const unexplainedPaid = (paidRes.data ?? []).filter((p) => !p.is_internal && isUnexplainedPaidAccess(p));
+  const billingTone: Tone = chargedWhileComped.length || unexplainedPaid.length ? "critical" : pastDue.length ? "warn" : "ok";
 
   // -------------------------------------------------------------- webhooks
   const rpcMissing = Boolean(healthRes.error);
@@ -135,11 +143,30 @@ export default async function SystemHealthPage() {
             tone={billingTone}
             note="Accounts with a live Stripe subscription that the app treats as comped or free may be charged for access they do not have."
           >
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <Figure label="Subscribed" value={subscribed.length} />
               <Figure label="Charged while comped" value={chargedWhileComped.length} />
+              <Figure label="Paid, unpaid for" value={unexplainedPaid.length} />
               <Figure label="Past due" value={pastDue.length} />
             </div>
+            {unexplainedPaid.length > 0 && (
+              <div className="mt-3">
+                <p className="text-xs leading-relaxed text-red-200">
+                  Paid access with no Stripe subscription, comp or access code behind it. A story limit you granted from
+                  the admin tool also appears here; the account&apos;s admin history shows whether it was you.
+                </p>
+                <ul className="mt-1 space-y-1 text-sm">
+                  {unexplainedPaid.slice(0, 10).map((p) => (
+                    <li key={p.id}>
+                      <Link href={`/admin/users/${p.id}`} className="text-red-200 underline underline-offset-2 hover:text-white">
+                        {p.email ?? p.id}
+                      </Link>{" "}
+                      <span className="text-xs text-ink-400">{p.plan}, {p.subscription_status}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {chargedWhileComped.length > 0 && (
               <ul className="mt-3 space-y-1 text-sm">
                 {chargedWhileComped.slice(0, 10).map((p) => (
