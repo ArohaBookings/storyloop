@@ -7,6 +7,40 @@
  */
 
 export const SEO_DEEP_DIVES: Record<string, Array<{ heading: string; paragraphs: string[] }>> = {
+  "transition-to-school-statement": [
+    {
+      heading: "What each place actually asks for",
+      paragraphs: [
+        "Victoria. Every child moving from a funded kindergarten program to school needs a Transition Learning and Development Statement. It is completed in the Online TLDS tool on the Insight Assessment Platform, which opens mid-year. Educators complete Section 1, which covers learning and development against the VEYLDF outcomes and the teaching strategies that have worked, plus extra information for children with diverse learning needs. The child contributes Section 2 with an adult's support, and the family completes Section 3. The family receives the completed statement and can opt out of it being shared with the school.",
+        "New South Wales. If your service receives Start Strong funding, a Transition to School Statement must be completed for children in the year before Kindergarten and shared with families and the new school before the school year starts. Other services are encouraged to complete one. Department preschools, community preschools and long day care centres can use the Transition to School Digital Statement; other service types use the PDF statement for now. It captures a child's strengths, interests and preferred ways of learning, and the strategies that have helped.",
+        "Queensland. Approved and funded kindergarten providers complete a written transition statement for each child in November of the kindergarten year and give it to families. It summarises learning across the five learning and development areas of the Queensland kindergarten learning guideline, from a strengths-based perspective, and parents, carers and children contribute to it. With consent it is created in the Kindergarten Transition Statement application in the QCAA Portal; otherwise the QCAA template is used.",
+        "South Australia, Western Australia, Tasmania, the ACT and the Northern Territory each handle this in their own way, and requirements change. Check your education department's current guidance rather than relying on another state's form.",
+        "Aotearoa New Zealand. There is no national written statement. Most children start school around their fifth birthday, so a kindergarten farewells children all year rather than in one December wave. Te Whāriki treats the pathway to school and kura as part of the curriculum, and the practical handover is usually a child's portfolio of learning stories, shared with whānau and, with their agreement, with the new teacher.",
+      ],
+    },
+    {
+      heading: "The statement is only as good as the year behind it",
+      paragraphs: [
+        "Every one of these formats asks the same underlying question: who is this child as a learner, and what helps them? You can only answer that well if you noticed them across the year. The statements that help a new teacher are specific. Not \"confident and social\", but the morning she talked a new child through the bike shed routine, in her own words.",
+        "The common failure is not bad writing. It is thin evidence. By November a room of twenty-two children has blurred together, the child who never makes a fuss has almost nothing on file, and the statement fills with safe, general phrases that could describe anyone. Gathering a few dated moments per child each term, and checking who has been missed, prevents that far better than any template.",
+        "Two habits make the biggest difference. First, keep the child's actual words when you hear something telling, because a new teacher learns more from one real sentence than from a paragraph of description. Second, write down what you did that helped, not only what the child did. The next teacher needs your strategies as much as your observations.",
+      ],
+    },
+    {
+      heading: "What to leave out",
+      paragraphs: [
+        "A transition statement follows a child into a new place, so write it for a reader who has never met them and may keep it. Leave out diagnoses or developmental labels you are not qualified to give. Leave out comparisons with other children, and other children's names. Describe a difficulty through what helps, rather than as a trait the child is. If you could not point to a moment in your documentation that shows something, it does not belong in the statement.",
+        "Family information deserves particular care. Include what the family has chosen to share for this purpose, in their words where you can, and nothing they told you in confidence.",
+      ],
+    },
+    {
+      heading: "Where StoryLoop fits",
+      paragraphs: [
+        "StoryLoop does not fill in your state's official form, and it does not write a transition statement for you. What it does is make sure the evidence is there when you need it. Through the year it turns quick notes into learning stories you edit and own, and on Educator Pro a quiet child radar shows who has not been noticed lately, skipping school holidays, so the child who never makes a fuss is not the one with an empty file in November.",
+        "When the time comes, the transition pack on the Educator plan puts up to six moments you choose onto one printable page, next to the child's voice from those stories, what they love, languages at home, the family's own words and the next steps still open. Nothing on it is generated or rewritten. Use it as your source while you complete the official statement, or with the family's agreement, give it to the new teacher alongside it.",
+      ],
+    },
+  ],
   "te-whariki-learning-stories": [
     {
       heading: "What a Te Whāriki learning story is actually for",

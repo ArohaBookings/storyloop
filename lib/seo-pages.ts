@@ -913,6 +913,84 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       },
     ],
   },
+  // Term 4 is transition statement season in Australia, and educators search
+  // for help while they write. Every obligation below is quoted or closely
+  // paraphrased from the state's own page (reviewed 2026-09-17). States we did
+  // not verify are not described, only pointed back to their department.
+  "transition-to-school-statement": {
+    slug: "transition-to-school-statement",
+    title: "Transition to School Statements: An Educator's Guide",
+    description:
+      "What Victoria, NSW and Queensland require in a transition to school statement, how New Zealand differs, and how to gather the evidence through the year instead of in a November rush.",
+    kicker: "Educator guide · Term 4",
+    heading: "Write a transition statement from a year of noticing, not a week of remembering.",
+    intro:
+      "A transition statement is the one document a new teacher is most likely to read before a child walks in. The hard part is rarely the form. It is finding, in November, the real moments that show who this child is. This guide covers what each state asks for and how to have that evidence ready.",
+    reviewedAt: "2026-09-17",
+    sections: [
+      {
+        title: "Know what your state asks for",
+        body:
+          "Victoria's TLDS is a kindergarten funding requirement. NSW services with Start Strong funding must complete a Transition to School Statement. Queensland's approved kindergartens complete one in November. New Zealand has no national statement. Details for each are below.",
+      },
+      {
+        title: "Write from strengths and evidence",
+        body:
+          "Describe what the child does, how they learn best and what helps them, using moments you actually saw. Leave out labels you are not qualified to give, comparisons with other children and anything you could not point to in your documentation.",
+      },
+      {
+        title: "Bring the family and child in",
+        body:
+          "Families know things no service does, and several states build their voice into the statement itself. Victoria's TLDS includes a section for the child and one for the family, and families must be able to opt out of it being shared with the school.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Is a transition to school statement compulsory?",
+        answer:
+          "It depends where you are and how your service is funded. In Victoria a TLDS is a kindergarten funding requirement for every child moving to school. In NSW it is required for services receiving Start Strong funding and recommended for others. In Queensland approved and funded kindergarten providers are expected to complete one. New Zealand has no national requirement. For other states and territories, check your education department's current guidance.",
+      },
+      {
+        question: "Do families have to agree before the statement goes to the school?",
+        answer:
+          "Follow your state's process and your service's privacy policy. Victoria requires that families receive the completed TLDS and are given the chance to opt out of it being shared with the school. Queensland's online Kindergarten Transition Statement application is used with parent or carer consent, with a template available where consent is not given.",
+      },
+      {
+        question: "When should I start gathering evidence?",
+        answer:
+          "From the start of the year. Victoria's online TLDS tool opens around July, and Queensland statements are completed in November, but the statement is only as good as the observations behind it. A few specific, dated moments across the year say far more than a summary written from memory.",
+      },
+      {
+        question: "Can I use AI to write a transition statement?",
+        answer:
+          "The statement is a professional judgement about a real child, so an educator has to write and stand behind it. Do not put identifying information about a child into a general AI tool. StoryLoop's transition pack does not write anything: it gathers the stories, the child's voice and the family's words you have already recorded onto one page, for you to draw on when you complete the official statement.",
+      },
+      {
+        question: "What about New Zealand?",
+        answer:
+          "There is no national transition statement in Aotearoa, and because most children start school around their fifth birthday, transitions happen all year rather than in one end-of-year rush. Te Whāriki treats pathways to school and kura as part of the curriculum, and many services share a child's learning stories with whānau and, with their agreement, with the new school.",
+      },
+      ...sharedFaqs,
+    ],
+    sources: [
+      {
+        label: "Victorian Government: Transition Learning and Development Statements",
+        url: "https://www.vic.gov.au/transition-learning-and-development-statements",
+      },
+      {
+        label: "NSW Department of Education: Transition to school",
+        url: "https://education.nsw.gov.au/early-childhood-education/ecec-resource-library/transition-to-school",
+      },
+      {
+        label: "Queensland Government: Transition statements",
+        url: "https://earlychildhood.qld.gov.au/early-years/transitions/moving-to-school/transition-statements",
+      },
+      {
+        label: "QCAA: Kindergarten transition statements",
+        url: "https://www.qcaa.qld.edu.au/kindergarten/transition-statements",
+      },
+    ],
+  },
   "te-whariki-learning-outcomes-guide": {
     slug: "te-whariki-learning-outcomes-guide",
     title: "Te Whāriki Learning Outcomes: A Practical Guide",
