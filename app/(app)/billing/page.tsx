@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { AlertTriangle, Check, Loader2, CreditCard, ExternalLink, LifeBuoy, ShieldCheck } from "lucide-react";
 import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
+import { ACTIVATION_OFFER_LABEL } from "@/lib/email/config";
 import { getNextPlan, getPlanByKey, getPlanDefinitions, hasFeatureAccess, normalizePlanKey, requiredPlanForFeature, resolveFeatureParam, type CurrencyCode, type FeatureKey, type PlanKey } from "@/lib/plans";
 
 // Appealing, benefit-led copy for a feature a user clicked while locked.
@@ -167,9 +168,9 @@ export default function BillingPage() {
       {searchParams.get("offer") === "activation" && currentPlan === "free" && (
         <div className="mb-8 rounded-3xl border border-clay-200 bg-gradient-to-br from-cream-100 via-white to-sage-50 p-5 shadow-warm">
           <p className="section-title mb-2">Activation offer</p>
-          <h2 className="font-display text-2xl font-bold text-ink-900">A small first-month thank-you is ready at checkout.</h2>
+          <h2 className="font-display text-2xl font-bold text-ink-900">{ACTIVATION_OFFER_LABEL.charAt(0).toUpperCase() + ACTIVATION_OFFER_LABEL.slice(1)}, ready at checkout.</h2>
           <p className="mt-1 text-sm text-ink-600">
-            If StoryLoop is already helping, this link applies the current first-month activation discount automatically when it is configured in Stripe.
+            Choose a plan below and the discount is applied automatically. No code needed.
           </p>
         </div>
       )}

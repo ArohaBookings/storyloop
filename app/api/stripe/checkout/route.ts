@@ -5,6 +5,7 @@ import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { getPlanByKey, normalizePlanKey, type CurrencyCode, type PlanKey } from "@/lib/plans";
 import { getRuntimeSecret } from "@/lib/runtime-secrets";
 import { getOrCreateReferralCoupon } from "@/lib/referrals";
+import { resolveActivationCoupon } from "@/lib/activation-offer";
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-05-27.dahlia" });
@@ -79,7 +80,10 @@ export async function POST(request: NextRequest) {
 
     const activationCoupon =
       activationOffer === true && profile.plan === "free"
-        ? await getRuntimeSecret("STRIPE_FIRST_MONTH_COUPON_ID", "stripe_first_month_coupon_id")
+        ? await resolveActivationCoupon(
+            stripe.coupons,
+            await getRuntimeSecret("STRIPE_FIRST_MONTH_COUPON_ID", "stripe_first_month_coupon_id"),
+          )
         : undefined;
 
     // Someone who signed up through a referral link gets 10% off their first
