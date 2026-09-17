@@ -26,9 +26,11 @@ import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getMonthlyStoryLimit } from "@/lib/story-limits";
 import { isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
 import { OUTREACH_REPLY_TEMPLATES } from "@/lib/email/outreach";
-import { normalizePlanKey, type PlanKey } from "@/lib/plans";
+import { getPlanByKey, normalizePlanKey, type PlanKey } from "@/lib/plans";
 import { calculateArr, calculateMrr, isActiveRevenue, isPayingCustomer, isRevenueAccount } from "@/lib/revenue";
 import { summarizeCancellations, type CancellationEventRow } from "@/lib/churn-reasons";
+import { computeMrr, goalProgress, mrrMovement, stripeCancellationRows } from "@/lib/mrr";
+import { audToNzdRate, loadStripeSubscriptions } from "@/lib/stripe-mrr";
 
 export const metadata = { title: "Admin · StoryLoop" };
 
@@ -169,7 +171,44 @@ export default async function AdminPage() {
   const storyRows = (storiesForChart ?? []) as StoryMetric[];
   const emailRows = (emailEventsForChart ?? []) as EmailMetric[];
   const feedbackRows = (feedbackRowsForDashboard ?? []) as FeedbackMetric[];
-  const churn = summarizeCancellations((cancellationRowsForDashboard ?? []) as CancellationEventRow[]);
+
+  // ---- Real MRR from Stripe, toward the NZ$10k goal -----------------------
+  // The account is shared with other products, so only subscriptions whose
+  // metadata names an existing StoryLoop user count (see lib/mrr.ts).
+  const stripeData = await loadStripeSubscriptions();
+  const rate = audToNzdRate();
+  const metadataUserIds = [
+    ...new Set(
+      stripeData.subscriptions
+        .map((subscription) => subscription.metadata?.user_id)
+        .filter((id): id is string => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id)),
+    ),
+  ];
+  const storyLoopUserIds = new Set<string>();
+  for (let index = 0; index < metadataUserIds.length; index += 200) {
+    const { data: rows } = await sb.from("profiles").select("id, is_internal").in("id", metadataUserIds.slice(index, index + 200));
+    // Internal accounts never count as revenue, even with a real subscription.
+    for (const row of rows ?? []) if (!row.is_internal) storyLoopUserIds.add(row.id);
+  }
+  const stripeReady = !stripeData.error;
+  const realMrr = computeMrr(stripeData.subscriptions, { storyLoopUserIds, audToNzd: rate });
+  const goal = goalProgress(realMrr.activeNzd);
+  const movement = mrrMovement(stripeData.subscriptions, {
+    storyLoopUserIds,
+    sinceSeconds: Math.floor(Date.now() / 1000) - 30 * 86_400,
+    audToNzd: rate,
+  });
+  const nzd = (value: number) => `NZ$${value.toLocaleString("en-NZ", { maximumFractionDigits: 0 })}`;
+
+  // Why people cancel: reasons kept by the webhook, plus the ones Stripe
+  // already held from before. Each subscription counts once.
+  const churn = summarizeCancellations([
+    ...((cancellationRowsForDashboard ?? []) as CancellationEventRow[]),
+    ...stripeCancellationRows(stripeData.subscriptions, {
+      storyLoopUserIds,
+      sinceSeconds: Math.floor(Date.now() / 1000) - CHURN_DAYS * 86_400,
+    }),
+  ]);
   const maxChurnReason = Math.max(1, ...churn.reasons.map((reason) => reason.count));
   // Founder/staff/comp accounts are real accounts sitting on real plans, but
   // they pay nothing. Every commercial number below is derived from
@@ -315,7 +354,9 @@ export default async function AdminPage() {
           {[
             { label: "Total users", value: totalUsers ?? 0, icon: Users, color: "text-blue-400", sub: `${paidProfiles.length} on paid plans` },
             { label: "Active paid", value: activePaidProfiles.length, icon: TrendingUp, color: "text-sage-400", sub: `${billingRiskProfiles.length} billing risks` },
-            { label: "MRR estimate", value: `$${mrr}`, icon: DollarSign, color: "text-amber-400", sub: `$${arr} ARR · base pricing` },
+            stripeReady
+              ? { label: "MRR (Stripe, trials excluded)", value: nzd(realMrr.activeNzd), icon: DollarSign, color: "text-amber-400", sub: `${nzd(realMrr.activeNzd * 12)} ARR · ${goal.percent}% of NZ$10k` }
+              : { label: "MRR estimate", value: `$${mrr}`, icon: DollarSign, color: "text-amber-400", sub: `$${arr} ARR · base pricing, Stripe unavailable` },
             { label: "Stories generated", value: totalStories ?? 0, icon: BookOpen, color: "text-clay-400", sub: `${storyRows.length} in last 14 days` },
           ].map(({ label, value, icon: Icon, color, sub }, index) => (
             <div key={label} className={`bg-ink-900 border border-ink-800 rounded-2xl p-5 shadow-2xl animate-fade-up-${Math.min(index + 1, 4)}`}>
@@ -325,6 +366,63 @@ export default async function AdminPage() {
               <p className="text-[10px] text-ink-500 mt-1 font-mono">{sub}</p>
             </div>
           ))}
+        </div>
+
+        <div className="rounded-2xl border border-ink-800 bg-ink-900 p-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-clay-400">Road to NZ$10k MRR</p>
+              <h2 className="mt-1 font-display text-3xl font-bold text-paper tabular-nums">
+                {stripeReady ? nzd(realMrr.activeNzd) : "Stripe unavailable"}
+                <span className="ml-2 text-base font-normal text-ink-400">of {nzd(goal.goalNzd)}</span>
+              </h2>
+            </div>
+            {stripeReady && (
+              <p className={`text-sm font-semibold tabular-nums ${movement.netNzd >= 0 ? "text-sage-400" : "text-red-400"}`}>
+                Last 30 days: +{nzd(movement.wonNzd)} won ({movement.won}), −{nzd(movement.lostNzd)} lost ({movement.lost})
+              </p>
+            )}
+          </div>
+
+          {stripeReady ? (
+            <>
+              <div className="mt-4 h-3 overflow-hidden rounded-full bg-ink-800" role="progressbar" aria-valuenow={goal.percent} aria-valuemin={0} aria-valuemax={100} aria-label="Progress to NZ$10k MRR">
+                <div className="h-full rounded-full bg-gradient-to-r from-clay-500 to-amber-400" style={{ width: `${Math.max(goal.percent, realMrr.activeNzd > 0 ? 1 : 0)}%` }} />
+              </div>
+              <div className="mt-4 grid gap-4 text-sm md:grid-cols-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-500">Billed</p>
+                  <p className="mt-1 text-ink-200 tabular-nums">
+                    NZ${realMrr.active.NZD.toFixed(2)} + A${realMrr.active.AUD.toFixed(2)} from {realMrr.activeCustomers} paying
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-ink-500">AUD at 1 AUD = {rate} NZD (set AUD_TO_NZD_RATE)</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-500">In trial now</p>
+                  <p className="mt-1 text-ink-200 tabular-nums">
+                    {realMrr.trialingCustomers} {realMrr.trialingCustomers === 1 ? "trial" : "trials"} worth {nzd(realMrr.trialingNzd)} if they convert
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-500">The gap closes with any one of</p>
+                  <p className="mt-1 text-ink-200 tabular-nums">
+                    {goal.gapNzd === 0
+                      ? "Goal reached."
+                      : goal.customersNeeded.map((option) => `${option.customers} ${getPlanByKey(option.plan).name}`).join(" · ")}
+                  </p>
+                </div>
+              </div>
+              {realMrr.byPlan.length > 0 && (
+                <p className="mt-3 text-[11px] text-ink-500 tabular-nums">
+                  {realMrr.byPlan.map((row) => `${getPlanByKey(row.plan).name}: ${row.customers} (${nzd(row.nzd)})`).join(" · ")}
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="mt-3 text-sm text-ink-400">
+              Stripe could not be read ({stripeData.error}). The MRR card shows the list-price estimate instead.
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-9 gap-3">
@@ -549,8 +647,7 @@ export default async function AdminPage() {
           </div>
           {churn.cancellations === 0 ? (
             <p className="text-sm text-ink-500">
-              No cancellations recorded yet. Reasons come from the Stripe billing portal and start collecting once this
-              version is deployed.
+              No StoryLoop cancellations in this period. Reasons come from the Stripe billing portal.
             </p>
           ) : (
             <div className="grid gap-6 lg:grid-cols-2">
