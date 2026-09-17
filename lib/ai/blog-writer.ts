@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { createAdminSupabase } from "@/lib/supabase/admin";
-import { GUIDE_TOPICS, unwrittenTopics, type GuideTopic } from "@/lib/blog-topics";
+import { GUIDE_TOPICS, autoWritableTopics, unsupportedCitations, unwrittenTopics, type GuideTopic } from "@/lib/blog-topics";
 import { slugify } from "@/lib/blog";
 
 const MODEL = process.env.OPENAI_BLOG_MODEL ?? "gpt-5.4-mini";
@@ -25,6 +25,7 @@ NEVER DO THIS
 - Do not end with a summary paragraph that repeats what you just said.
 - Do not mention StoryLoop more than once, and only if it is genuinely relevant. This is a guide, not an advert.
 - Do not invent statistics, percentages, studies, or quotes from named people. If you want to make a numeric point, phrase it as observation ("most educators we talk to") rather than fake data.
+- Do not state any law, regulation, licensing criterion, funding rule or official requirement, and do not cite an Act, section, regulation, standard or element by name or number, unless it appears in VERIFIED FACTS. Where a rule matters and none is given, tell the reader to check their regulator's current guidance.
 
 STRUCTURE
 - Open with a concrete situation the reader recognises, in one or two sentences.
@@ -72,12 +73,30 @@ export async function writeNextGuide(options: { dryRun?: boolean } = {}): Promis
   const admin = createAdminSupabase();
   const { data: existing } = await admin.from("blog_posts").select("slug");
   const published = (existing ?? []).map((row) => row.slug);
-  const remaining = unwrittenTopics(published);
+  // Topics that need verified official facts, or that a hand-written page
+  // already covers, are never taken by the scheduled writer.
+  const remaining = autoWritableTopics(published);
 
   if (remaining.length === 0) return { ok: false, reason: "no_topics_left" };
 
-  const topic: GuideTopic = remaining[0];
+  // A draft that fails a quality gate must not jam the queue: the next topic
+  // gets a turn. Bounded so one run costs at most a couple of model calls.
+  const reasons: string[] = [];
+  for (const topic of remaining.slice(0, MAX_TOPICS_PER_RUN)) {
+    const result = await writeTopic(admin, topic, options);
+    if (result.ok) return result;
+    reasons.push(`${topic.slug}: ${result.reason}`);
+  }
+  return { ok: false, reason: reasons.join(" | ") };
+}
 
+const MAX_TOPICS_PER_RUN = 2;
+
+async function writeTopic(
+  admin: ReturnType<typeof createAdminSupabase>,
+  topic: GuideTopic,
+  options: { dryRun?: boolean },
+): Promise<WriteResult> {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const completion = await openai.chat.completions.create({
     model: MODEL,
@@ -91,6 +110,7 @@ Working title: ${topic.title}
 Angle: ${topic.angle}
 Region: ${topic.region === "both" ? "New Zealand and Australia, so cover Te Whāriki and EYLF where relevant" : topic.region === "NZ" ? "New Zealand only, use Te Whāriki and te reo Māori naturally where it fits" : "Australia only, use EYLF wording and do not use te reo Māori"}
 Search phrases readers use: ${topic.keywords.join(", ")}
+VERIFIED FACTS: ${topic.facts?.length ? `\n- ${topic.facts.join("\n- ")}` : "none. State no rules or requirements."}
 
 Remember: no em dashes anywhere, no invented statistics, and at most one mention of StoryLoop.`,
       },
@@ -115,6 +135,8 @@ Remember: no em dashes anywhere, no invented statistics, and at most one mention
   // worse than no post, because it dilutes the rest of the site.
   if (words < 450) return { ok: false, reason: `too_short_${words}_words` };
   if (/[—–]/.test(body) || /[—–]/.test(title)) return { ok: false, reason: "em_dash_survived_scrub" };
+  const citations = unsupportedCitations(`${title}\n${body}`, topic.facts);
+  if (citations.length) return { ok: false, reason: `unsupported_citations: ${citations.slice(0, 3).join("; ")}` };
 
   if (options.dryRun) {
     return { ok: true, slug: topic.slug, title, words };
@@ -140,5 +162,9 @@ Remember: no em dashes anywhere, no invented statistics, and at most one mention
 }
 
 export function topicBacklogSize(publishedSlugs: string[]) {
-  return { total: GUIDE_TOPICS.length, remaining: unwrittenTopics(publishedSlugs).length };
+  return {
+    total: GUIDE_TOPICS.length,
+    remaining: unwrittenTopics(publishedSlugs).length,
+    autoWritable: autoWritableTopics(publishedSlugs).length,
+  };
 }

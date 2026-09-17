@@ -2,17 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { writeNextGuide } from "@/lib/ai/blog-writer";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 
-export const maxDuration = 120;
+// Up to two model calls per run (a rejected draft lets the next topic try).
+export const maxDuration = 300;
 
 /**
- * Publishes the next guide from the backlog.
+ * Publishes the next guide from the backlog. Scheduled weekly in vercel.json.
  *
- * Intended to run on a schedule roughly every fortnight. It writes ONE guide
- * per invocation and refuses to publish if something has already gone out
- * recently, so a misconfigured schedule or a double delivery cannot flood the
- * blog with same-day posts.
+ * Vercel Cron calls this with GET, so GET is the publishing path; add
+ * ?dryRun=1 to check the backlog and gates without publishing. It writes ONE
+ * guide per run and refuses if something went out recently, so a double
+ * delivery or a manual trigger cannot flood the blog with same-week posts.
+ *
+ * Quality gates live in the writer: minimum length, no em dashes, topics that
+ * need verified official facts are skipped, and a draft citing a law or
+ * regulation its verified facts do not support is never published.
  */
-const MINIMUM_DAYS_BETWEEN_POSTS = 10;
+const MINIMUM_DAYS_BETWEEN_POSTS = 6;
 
 function authorised(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
@@ -21,11 +26,7 @@ function authorised(request: NextRequest) {
   return header === `Bearer ${secret}`;
 }
 
-export async function POST(request: NextRequest) {
-  if (!authorised(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+async function publishNext() {
   const admin = createAdminSupabase();
   const { data: latest } = await admin
     .from("blog_posts")
@@ -54,9 +55,16 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ published: true, slug: result.slug, title: result.title, words: result.words });
 }
 
-/** Lets the admin see the backlog state without writing anything. */
 export async function GET(request: NextRequest) {
   if (!authorised(request)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const dry = await writeNextGuide({ dryRun: true });
-  return NextResponse.json({ dryRun: dry });
+  if (request.nextUrl.searchParams.get("dryRun") === "1") {
+    const dry = await writeNextGuide({ dryRun: true });
+    return NextResponse.json({ dryRun: dry });
+  }
+  return publishNext();
+}
+
+export async function POST(request: NextRequest) {
+  if (!authorised(request)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  return publishNext();
 }

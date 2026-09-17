@@ -18,6 +18,18 @@ export type GuideTopic = {
   region: "NZ" | "AU" | "both";
   category: "guide" | "article" | "template";
   keywords: string[];
+  /**
+   * Verified facts the writer may state, with where they came from. The writer
+   * is told it may state no rule, regulation or official requirement that is
+   * not listed here, and a post citing one anyway is rejected.
+   */
+  facts?: string[];
+  /**
+   * Set when the scheduled writer must leave this topic alone: it needs
+   * official facts nobody has verified yet, or a hand-written page already
+   * covers it (a second page on the same query competes with the first).
+   */
+  manualOnly?: string;
 };
 
 export const GUIDE_TOPICS: GuideTopic[] = [
@@ -93,6 +105,7 @@ export const GUIDE_TOPICS: GuideTopic[] = [
     angle: "Newer framework, growing search, almost no plain-English explanation exists. Strong chance to own the term early.",
     intent: "informational", region: "NZ", category: "guide",
     keywords: ["kowhiti whakapae", "kowhiti whakapae examples"],
+    manualOnly: "Describes a specific Ministry of Education resource; needs its content verified first.",
   },
 
   // --- Observation craft ---
@@ -123,6 +136,11 @@ export const GUIDE_TOPICS: GuideTopic[] = [
     angle: "Practical privacy guidance including other children in frame. High anxiety topic, so high trust payoff.",
     intent: "informational", region: "both", category: "guide",
     keywords: ["photo consent early childhood", "photos learning stories privacy"],
+    facts: [
+      "Australia (ACECQA Guide to the NQF, Element 1.3.1, read 2026-09-17): in centre-based services, images or recordings of children may only be captured, stored or transmitted on a service-supplied device. In family day care, service-supplied or service-authorised devices. A personal device must not be used to capture, store or transmit images of children.",
+      "Australia (same source, Element 1.3.3): assessors may discuss how educators share information safely and respectfully, including the child and family's right to confidentiality.",
+      "New Zealand: follow the service's own privacy and photo policy and the family's consent. Do not cite any specific New Zealand law, section or licensing criterion.",
+    ],
   },
 
   // --- Assessment and compliance: director-level, highest value reader ---
@@ -132,6 +150,7 @@ export const GUIDE_TOPICS: GuideTopic[] = [
     angle: "Coverage, responsiveness and the link from assessment to planning. Read by directors, who buy centre plans.",
     intent: "problem", region: "NZ", category: "guide",
     keywords: ["ero documentation requirements", "ero evidence learning stories"],
+    manualOnly: "States what ERO looks for; needs ERO's current framework verified first.",
   },
   {
     slug: "acecqa-documentation-requirements",
@@ -139,6 +158,7 @@ export const GUIDE_TOPICS: GuideTopic[] = [
     angle: "Australian equivalent. Separates genuine requirement from things centres do because they always have.",
     intent: "problem", region: "AU", category: "guide",
     keywords: ["acecqa documentation requirements", "nqs documentation"],
+    manualOnly: "Regulatory. Written by hand from ACECQA's Guide to the NQF instead.",
   },
   {
     slug: "assessment-for-learning-cycle",
@@ -153,6 +173,7 @@ export const GUIDE_TOPICS: GuideTopic[] = [
     angle: "Dreaded end-of-year task, seasonal search spike, and only doable well if the stories exist. Strong tie to longitudinal features.",
     intent: "problem", region: "both", category: "guide",
     keywords: ["transition to school report", "school transition summary ece"],
+    manualOnly: "Covered by the hand-written /transition-to-school-statement page.",
   },
 
   // --- Commercial: people already comparing ---
@@ -169,6 +190,7 @@ export const GUIDE_TOPICS: GuideTopic[] = [
     angle: "A genuinely fair comparison including where each competitor is stronger. Fairness is what makes it rank and what makes it trusted.",
     intent: "commercial", region: "both", category: "article",
     keywords: ["storypark alternative", "educa vs storypark", "kinderloop comparison"],
+    manualOnly: "Covered by the hand-written /storypark-alternative page, and competitor prices must never be guessed.",
   },
 ];
 
@@ -176,4 +198,33 @@ export const GUIDE_TOPICS: GuideTopic[] = [
 export function unwrittenTopics(publishedSlugs: string[]) {
   const taken = new Set(publishedSlugs);
   return GUIDE_TOPICS.filter((topic) => !taken.has(topic.slug));
+}
+
+/** Topics the scheduled writer may take, in backlog order. */
+export function autoWritableTopics(publishedSlugs: string[]) {
+  return unwrittenTopics(publishedSlugs).filter((topic) => !topic.manualOnly);
+}
+
+/**
+ * Specific legal or regulatory citations in a draft that its verified facts do
+ * not support. A guide that invents "Regulation 168" or "the Privacy Act
+ * section 22" reads as authoritative and is wrong, which is worse than saying
+ * nothing, so any such citation blocks publication.
+ */
+export function unsupportedCitations(body: string, facts: string[] = []): string[] {
+  const allowed = facts.join(" ").toLowerCase();
+  const patterns = [
+    /\b(?:regulations?|reg\.|sections?|s\.|clauses?|criteri(?:on|a)|element|standard|quality area)\s+\d+(?:\.\d+)*[a-z]?\b/gi,
+    // A named Act. The lookahead keeps a sentence-opening word ("The", "Under")
+    // out of the name, so "The Privacy Act 2020" is reported as "Privacy Act 2020".
+    /\b(?!(?:The|Under|This|That|Our|Your|In|A|An|By|See)\s)(?:[A-Z][A-Za-z]+\s){1,5}Act(?:\s\d{4})?\b/g,
+  ];
+  const found = new Set<string>();
+  for (const pattern of patterns) {
+    for (const match of body.matchAll(pattern)) {
+      const citation = match[0].trim();
+      if (!allowed.includes(citation.toLowerCase())) found.add(citation);
+    }
+  }
+  return [...found];
 }
