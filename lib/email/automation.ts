@@ -5,6 +5,8 @@ import { getOrCreateReferralCode } from "@/lib/referrals";
 import type { LifecycleEmailType } from "./templates";
 import { getPlanByKey, normalizePlanKey } from "@/lib/plans";
 import { formatDate } from "./billing";
+import Stripe from "stripe";
+import { abandonedCheckoutCandidates, stillAbandoned } from "@/lib/abandoned-checkout";
 
 type ProfileEmailRow = {
   id: string;
@@ -336,6 +338,48 @@ export async function runLifecycleAutomation() {
         context: code ? { referralCode: code, referralsEarned: earned ?? 0 } : undefined,
       })
     );
+  }
+
+  // 5. Abandoned checkout. Someone chose a plan, reached Stripe Checkout and
+  //    left. Checkout sessions expire after 24 hours, so this finds them a day
+  //    or so later. Once per person ever. It skips the weekly marketing cap
+  //    (it answers something they just did) but still respects unsubscribes.
+  try {
+    const stripeKey = process.env.STRIPE_SECRET_KEY;
+    if (stripeKey) {
+      const stripe = new Stripe(stripeKey, { apiVersion: "2026-05-27.dahlia" });
+      const sinceSeconds = Math.floor(Date.now() / 1000) - 3 * 24 * 60 * 60;
+      const sessions = [];
+      for await (const session of stripe.checkout.sessions.list({ status: "expired", created: { gte: sinceSeconds }, limit: 100 })) {
+        sessions.push({ id: session.id, status: session.status, created: session.created, metadata: session.metadata });
+        if (sessions.length >= 500) break;
+      }
+      for (const candidate of abandonedCheckoutCandidates(sessions, sinceSeconds).slice(0, 50)) {
+        const { data: row } = await sb.from("profiles").select(baseSelect).eq("id", candidate.userId).maybeSingle();
+        const profile = row as ProfileEmailRow | null;
+        if (!profile || !stillAbandoned(profile)) {
+          sent.push({ type: "checkout_abandoned" as const, status: "skipped_not_abandoned" });
+          continue;
+        }
+        if (await sentRecently(profile.id, "checkout_abandoned")) {
+          sent.push({ type: "checkout_abandoned" as const, status: "already_sent" });
+          continue;
+        }
+        sent.push(
+          await sendLifecycleEmail({
+            type: "checkout_abandoned",
+            userId: profile.id,
+            recipient: profile.email as string,
+            name: profile.full_name,
+            force: true,
+            metadata: { automation: true, checkout_session: candidate.sessionId, plan: candidate.plan },
+            context: { planLabel: getPlanByKey(candidate.plan).name },
+          })
+        );
+      }
+    }
+  } catch (error) {
+    errors.push(`abandoned checkout: ${error instanceof Error ? error.message : "failed"}`);
   }
 
   return { success: errors.length === 0, sent, errors };

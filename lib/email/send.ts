@@ -23,6 +23,7 @@ const NUDGE_EMAIL_TYPES: LifecycleEmailType[] = [
   "went_quiet",
   "winback_offer",
   "referral_invite",
+  "checkout_abandoned",
   "two_free_stories_used",
   "free_limit_reached",
 ];

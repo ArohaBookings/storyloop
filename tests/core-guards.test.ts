@@ -659,7 +659,7 @@ test("every marketing template is covered by the weekly frequency cap", () => {
   const MARKETING_TYPES = [
     "no_first_story", "weekly_value", "feedback_request", "family_pack_prompt",
     "centre_planning_prompt", "went_quiet", "winback_offer", "referral_invite",
-    "two_free_stories_used", "free_limit_reached",
+    "two_free_stories_used", "free_limit_reached", "checkout_abandoned",
   ] as const;
   const TRANSACTIONAL_TYPES = [
     "welcome", "first_story_created", "paid_no_usage_checkin", "story_quality_upgrade",

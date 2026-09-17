@@ -25,6 +25,8 @@ export type LifecycleEmailType =
   // They clicked cancel in the billing portal. Access runs to the end of the
   // period, so this is the one moment a change of heart costs them nothing.
   | "cancellation_scheduled"
+  // Opened Stripe Checkout, left without starting the trial.
+  | "checkout_abandoned"
   | "subscription_cancelled"
   | "winback_offer"
   | "went_quiet"
@@ -721,6 +723,37 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
           body: `<p>Hi ${esc(name)}, StoryLoop has moved on since you left.</p><p>Stories are <strong>sharper and more specific</strong>, they keep <strong>the child's own words</strong> exactly as you wrote them, and there is now an assistant that rewrites any line you highlight without touching the rest.</p><p>If the documentation is piling up again, restart from Billing and you get <strong>${esc(offer)}</strong>. Your old stories are all still there.</p><p>No pressure either way, and thank you for having given it a go.</p>`,
         }),
         text: plain({ title: subject, lines, cta: "Restart StoryLoop", ctaUrl, unsubscribe }),
+      };
+    },
+
+    // They chose a plan and left checkout before the trial started. Sent once,
+    // about a day later. It restates the real terms (a 7-day trial, nothing
+    // charged until it ends, cancel from Billing before then) and asks what
+    // stopped them. No discount: rewarding abandonment teaches people to abandon.
+    checkout_abandoned: () => {
+      const ctaUrl = url("/billing", "checkout_abandoned");
+      const plan = ctx.planLabel ?? "a StoryLoop plan";
+      const subject = "Your StoryLoop trial has not started yet";
+      const lines = [
+        `Hi ${name}, you picked ${plan} but checkout was not finished, so nothing was charged and your trial has not started.`,
+        "It is a 7-day free trial. Nothing is charged until it ends, and you can cancel from Billing before then.",
+        "If something stopped you, like the price, a card problem or a question about how it works, reply and tell us. We read every one.",
+      ];
+      return {
+        emailType: "checkout_abandoned",
+        subject,
+        marketing: true,
+        ctaUrl,
+        html: layout({
+          title: "Your trial has not started yet",
+          preview: "Nothing was charged. The 7-day free trial is still there when you want it.",
+          cta: "Start my free trial",
+          ctaUrl,
+          unsubscribe,
+          secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Changed your mind? No need to do anything. Your free plan and your stories stay as they are.</p>`,
+          body: `<p>Hi ${esc(name)}, you picked <strong>${esc(plan)}</strong> but checkout was not finished, so nothing was charged and your trial has not started.</p><p>It is a <strong>7-day free trial</strong>. Nothing is charged until it ends, and you can cancel from Billing before then.</p><p>If something stopped you, like the price, a card problem or a question about how it works, reply to this email and tell us. We read every one.</p>`,
+        }),
+        text: plain({ title: subject, lines, cta: "Start my free trial", ctaUrl, unsubscribe }),
       };
     },
 
