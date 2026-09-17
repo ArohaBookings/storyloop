@@ -130,6 +130,7 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
       "Parent-friendly translation and readability",
       "Advanced quality score details",
       "Child continuity profiles",
+      "Quiet child radar that knows school holidays",
       "Whānau voice carried into future stories",
       "Priority educator support",
     ],
