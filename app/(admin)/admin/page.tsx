@@ -18,6 +18,7 @@ import {
   ShieldAlert,
   Sparkles,
   TrendingUp,
+  UserMinus,
   Users,
 } from "lucide-react";
 import { verifyAdmin } from "@/lib/admin-auth";
@@ -27,6 +28,7 @@ import { isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
 import { OUTREACH_REPLY_TEMPLATES } from "@/lib/email/outreach";
 import { normalizePlanKey, type PlanKey } from "@/lib/plans";
 import { calculateArr, calculateMrr, isActiveRevenue, isPayingCustomer, isRevenueAccount } from "@/lib/revenue";
+import { summarizeCancellations, type CancellationEventRow } from "@/lib/churn-reasons";
 
 export const metadata = { title: "Admin · StoryLoop" };
 
@@ -129,6 +131,9 @@ export default async function AdminPage() {
   const sb = createAdminSupabase();
   const days = getLast14Days();
   const since = `${days[0].key}T00:00:00.000Z`;
+  // Cancellations are rare, so look back far enough for a pattern to show.
+  const CHURN_DAYS = 180;
+  const churnSince = new Date(Date.now() - CHURN_DAYS * 86_400_000).toISOString();
   const [
     { count: totalUsers },
     { count: totalStories },
@@ -139,6 +144,7 @@ export default async function AdminPage() {
     { data: storiesForChart },
     { data: emailEventsForChart },
     { data: feedbackRowsForDashboard },
+    { data: cancellationRowsForDashboard },
   ] = await Promise.all([
     sb.from("profiles").select("*", { count: "exact", head: true }),
     sb.from("stories").select("*", { count: "exact", head: true }),
@@ -152,12 +158,19 @@ export default async function AdminPage() {
     sb.from("stories").select("created_at, location, metadata").gte("created_at", since).limit(2000),
     sb.from("email_events").select("email_type, delivery_status, sent_at, opened_at, clicked_at").gte("sent_at", since).limit(2000),
     sb.from("feedback_submissions").select("id, email, category, message, status, created_at, metadata").order("created_at", { ascending: false }).limit(12),
+    sb.from("email_events")
+      .select("email_type, sent_at, metadata")
+      .in("email_type", ["cancellation_scheduled", "subscription_cancelled"])
+      .gte("sent_at", churnSince)
+      .limit(2000),
   ]);
 
   const profiles = (profilesForCharts ?? []) as ProfileMetric[];
   const storyRows = (storiesForChart ?? []) as StoryMetric[];
   const emailRows = (emailEventsForChart ?? []) as EmailMetric[];
   const feedbackRows = (feedbackRowsForDashboard ?? []) as FeedbackMetric[];
+  const churn = summarizeCancellations((cancellationRowsForDashboard ?? []) as CancellationEventRow[]);
+  const maxChurnReason = Math.max(1, ...churn.reasons.map((reason) => reason.count));
   // Founder/staff/comp accounts are real accounts sitting on real plans, but
   // they pay nothing. Every commercial number below is derived from
   // `revenueProfiles` so an internal account can never inflate MRR, ARR, the
@@ -524,6 +537,61 @@ export default async function AdminPage() {
               Opens/clicks fill when provider webhook support is connected. Sent/skipped already verifies automation health.
             </p>
           </div>
+        </div>
+
+        <div className="bg-ink-900 border border-ink-800 rounded-2xl p-5">
+          <div className="mb-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-clay-400">Churn · last {CHURN_DAYS} days</p>
+              <h2 className="font-display text-2xl font-bold mt-1">Why people cancel</h2>
+            </div>
+            <UserMinus className="w-5 h-5 text-ink-500" />
+          </div>
+          {churn.cancellations === 0 ? (
+            <p className="text-sm text-ink-500">
+              No cancellations recorded yet. Reasons come from the Stripe billing portal and start collecting once this
+              version is deployed.
+            </p>
+          ) : (
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className="space-y-3">
+                <p className="text-xs text-ink-400">
+                  {churn.cancellations} {churn.cancellations === 1 ? "cancellation" : "cancellations"}, {churn.withReason} with a reason
+                </p>
+                {churn.reasons.map((reason) => (
+                  <div key={reason.key}>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-ink-300">{reason.label}</span>
+                      <span className="font-bold text-paper tabular-nums">{reason.count}</span>
+                    </div>
+                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-ink-800">
+                      <div
+                        className={`h-full rounded-full ${reason.key === "not_given" ? "bg-ink-600" : "bg-clay-500"}`}
+                        style={{ width: `${Math.max((reason.count / maxChurnReason) * 100, 8)}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <p className="mb-2 text-xs text-ink-400">In their words</p>
+                {churn.comments.length === 0 ? (
+                  <p className="text-sm text-ink-500">Nobody has left a comment yet.</p>
+                ) : (
+                  <ul className="space-y-3">
+                    {churn.comments.slice(0, 6).map((entry, index) => (
+                      <li key={`${entry.date}-${index}`} className="rounded-xl border border-ink-800 bg-ink-950 p-3">
+                        <p className="text-sm leading-relaxed text-ink-200">{entry.comment}</p>
+                        <p className="mt-1.5 text-[10px] uppercase tracking-wider text-ink-500">
+                          {entry.date}{entry.label ? ` · ${entry.label}` : ""}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-[1.3fr_0.7fr] gap-5">

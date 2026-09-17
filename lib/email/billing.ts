@@ -199,6 +199,8 @@ export async function sendBillingEmail(params: {
   renewsAtSeconds?: number | null;
   /** Unix seconds when a scheduled cancellation takes effect. */
   endsAtSeconds?: number | null;
+  /** Extra facts to keep on the email event, such as why they cancelled. */
+  extraMetadata?: Record<string, string>;
 }): Promise<BillingEmailResult> {
   try {
     const recipient = await resolveRecipient(params.admin, {
@@ -226,7 +228,7 @@ export async function sendBillingEmail(params: {
       // The type-level dedupe below us is wrong for recurring billing; our own
       // per-invoice key above is the guard that matters.
       force: true,
-      metadata: { billing_key: params.billingKey, source: "stripe_webhook" },
+      metadata: { ...params.extraMetadata, billing_key: params.billingKey, source: "stripe_webhook" },
       context: {
         amountLabel: formatAmount(params.amountInCents, params.currency) ?? undefined,
         planLabel: planKey === "free" ? undefined : getPlanByKey(planKey).name,

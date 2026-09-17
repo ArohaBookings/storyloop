@@ -4,6 +4,7 @@ import { createAdminSupabase } from "@/lib/supabase/admin";
 import { normalizePlanKey } from "@/lib/plans";
 import { grantReferralCreditForPayment } from "@/lib/referrals";
 import { newlyScheduledCancellation, paymentFailureNotice, sendBillingEmail } from "@/lib/email/billing";
+import { cancellationFeedbackMetadata } from "@/lib/churn-reasons";
 
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -260,6 +261,8 @@ async function processStripeEvent(admin: ReturnType<typeof createAdminSupabase>,
             userId: subscription.metadata?.user_id,
             customerId: typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id,
             endsAtSeconds: scheduled.endsAtSeconds,
+            // The reason they picked in the portal, for the admin dashboard.
+            extraMetadata: cancellationFeedbackMetadata(subscription.cancellation_details),
           });
         }
       }
@@ -292,6 +295,7 @@ async function processStripeEvent(admin: ReturnType<typeof createAdminSupabase>,
         billingKey: subscription.id,
         userId,
         customerId,
+        extraMetadata: cancellationFeedbackMetadata(subscription.cancellation_details),
       });
       return;
     }
