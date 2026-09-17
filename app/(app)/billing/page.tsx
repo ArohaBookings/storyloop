@@ -6,7 +6,8 @@ import { AlertTriangle, Check, Loader2, CreditCard, ExternalLink, LifeBuoy, Shie
 import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
 import { ACTIVATION_OFFER_LABEL } from "@/lib/email/config";
-import { getNextPlan, getPlanByKey, getPlanDefinitions, hasFeatureAccess, normalizePlanKey, requiredPlanForFeature, resolveFeatureParam, type CurrencyCode, type FeatureKey, type PlanKey } from "@/lib/plans";
+import { canOfferInAppSwitch } from "@/lib/plan-change";
+import { getNextPlan, getPlanByKey, getPlanDefinitions, hasFeatureAccess, normalizePlanKey, planRank, requiredPlanForFeature, resolveFeatureParam, type CurrencyCode, type FeatureKey, type PlanKey } from "@/lib/plans";
 
 // Appealing, benefit-led copy for a feature a user clicked while locked.
 const FEATURE_UPSELL: Partial<Record<FeatureKey, { title: string; blurb: string }>> = {
@@ -69,11 +70,17 @@ export default function BillingPage() {
   const [currency, setCurrency] = useState<CurrencyCode>("AUD");
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState<string>("");
+  // In-app plan switching for paying customers (the Stripe portal cannot).
+  const [switchPreview, setSwitchPreview] = useState<{ plan: PlanKey; title: string; detail: string } | null>(null);
+  const [switchNotice, setSwitchNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
+
+  const loadProfile = () =>
+    fetch("/api/me").then(r => r.json()).then(data => setProfile(data.profile));
 
   useEffect(() => {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (tz?.includes("Auckland")) setCurrency("NZD");
-    fetch("/api/me").then(r => r.json()).then(data => setProfile(data.profile));
+    void loadProfile();
   }, []);
 
   const handleCheckout = async (plan: string) => {
@@ -95,18 +102,65 @@ export default function BillingPage() {
     else { setLoading(""); alert(data.error); }
   };
 
+  const previewSwitch = async (plan: PlanKey) => {
+    setLoading(plan);
+    setSwitchNotice(null);
+    try {
+      const res = await fetch(`/api/stripe/change-plan?plan=${encodeURIComponent(plan)}`);
+      const data = await res.json();
+      if (data.ok) setSwitchPreview({ plan, title: data.title, detail: data.detail });
+      else setSwitchNotice({ tone: "error", text: data.message ?? "That plan change is not available." });
+    } catch {
+      setSwitchNotice({ tone: "error", text: "Could not check that plan change. Please try again." });
+    } finally {
+      setLoading("");
+    }
+  };
+
+  const confirmSwitch = async () => {
+    if (!switchPreview) return;
+    const target = switchPreview.plan;
+    setLoading("switch");
+    try {
+      const res = await fetch("/api/stripe/change-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: target }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setSwitchNotice({ tone: "ok", text: `You are now on ${getPlanByKey(target).name}.` });
+        await loadProfile();
+      } else {
+        setSwitchNotice({ tone: "error", text: data.message ?? "Your plan was not changed." });
+      }
+    } catch {
+      setSwitchNotice({ tone: "error", text: "Your plan was not changed. Please try again." });
+    } finally {
+      setSwitchPreview(null);
+      setLoading("");
+    }
+  };
+
   const handlePlanUpgrade = async (plan: PlanKey) => {
-    if (currentPlan !== "free") {
-      await handlePortal();
+    if (currentPlan === "free") {
+      await handleCheckout(plan);
       return;
     }
-    await handleCheckout(plan);
+    // Paying customers switch here. Accounts that cannot (comped, payment
+    // trouble, no Stripe subscription) keep the portal, which fixes payments.
+    if (canSwitchInApp) {
+      await previewSwitch(plan);
+      return;
+    }
+    await handlePortal();
   };
 
   const plans = getPlanDefinitions(currency);
   const currentPlan = normalizePlanKey(profile?.plan);
   const nextPlan = getNextPlan(currentPlan);
   const nextPlanDetails = nextPlan ? plans.find(plan => plan.key === nextPlan) : null;
+  const canSwitchInApp = canOfferInAppSwitch(profile ?? {});
   const limit = getMonthlyStoryLimit(profile ?? {});
   const remaining = getRemainingStories(profile ?? {});
   const allowanceLabel = getStoryAllowanceLabel(profile ?? {});
@@ -133,6 +187,39 @@ export default function BillingPage() {
         <h1 className="font-display text-3xl font-bold text-ink-900">Billing & plan</h1>
         <p className="text-ink-600 text-sm mt-1">Upgrade, downgrade, or cancel anytime.</p>
       </div>
+
+      {switchNotice && (
+        <div
+          role="status"
+          className={`mb-6 rounded-2xl border px-4 py-3 text-sm ${switchNotice.tone === "ok" ? "border-sage-200 bg-sage-50 text-sage-800" : "border-red-100 bg-red-50 text-red-700"}`}
+        >
+          {switchNotice.text}
+        </div>
+      )}
+
+      {switchPreview && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink-950/40 p-4 sm:items-center" onClick={() => loading !== "switch" && setSwitchPreview(null)}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="switch-plan-title"
+            className="w-full max-w-md rounded-3xl bg-white p-6 shadow-warm"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h2 id="switch-plan-title" className="font-display text-2xl font-bold text-ink-900">{switchPreview.title}</h2>
+            <p className="mt-2 text-sm leading-relaxed text-ink-600">{switchPreview.detail}</p>
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button type="button" onClick={() => setSwitchPreview(null)} disabled={loading === "switch"} className="btn-secondary">
+                Keep my current plan
+              </button>
+              <button type="button" onClick={confirmSwitch} disabled={loading === "switch"} className="btn-primary">
+                {loading === "switch" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                Confirm switch
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {featureUpsell && featureLocked && featurePlan && (
         <div className="mb-8 overflow-hidden rounded-3xl border border-clay-200 bg-gradient-to-br from-clay-50 via-white to-sage-50 shadow-warm">
@@ -231,7 +318,7 @@ export default function BillingPage() {
             {nextPlanDetails && (
               <button onClick={() => handlePlanUpgrade(nextPlanDetails.key)} disabled={upgradeLoading} className="btn-primary">
                 {upgradeLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
-                {currentPlan === "free" ? `Start ${nextPlanDetails.name}` : `Upgrade in Stripe`}
+                {currentPlan === "free" ? `Start ${nextPlanDetails.name}` : canSwitchInApp ? `Upgrade to ${nextPlanDetails.name}` : `Upgrade in Stripe`}
               </button>
             )}
             {currentPlan !== "free" && (
@@ -270,7 +357,7 @@ export default function BillingPage() {
             </div>
             <button onClick={() => handlePlanUpgrade(nextPlanDetails.key)} disabled={upgradeLoading} className="btn-primary flex-shrink-0">
               {upgradeLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
-              {currentPlan === "free" ? `Upgrade to ${nextPlanDetails.name}` : "Open Stripe portal"}
+              {currentPlan === "free" || canSwitchInApp ? `Upgrade to ${nextPlanDetails.name}` : "Open Stripe portal"}
             </button>
           </div>
         </div>
@@ -335,6 +422,7 @@ export default function BillingPage() {
                 {planLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> :
                   isCurrent ? "Current plan" :
                   plan.key === "free" ? "Included" :
+                  currentPlan !== "free" && canSwitchInApp ? (planRank(plan.key) > planRank(currentPlan) ? `Upgrade to ${plan.name}` : `Switch to ${plan.name}`) :
                   currentPlan !== "free" ? "Manage in Stripe" :
                   `Upgrade to ${plan.name}`}
               </button>

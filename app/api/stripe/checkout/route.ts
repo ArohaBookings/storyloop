@@ -6,6 +6,7 @@ import { getPlanByKey, normalizePlanKey, type CurrencyCode, type PlanKey } from 
 import { getRuntimeSecret } from "@/lib/runtime-secrets";
 import { getOrCreateReferralCoupon } from "@/lib/referrals";
 import { resolveActivationCoupon } from "@/lib/activation-offer";
+import { configuredPriceId } from "@/lib/stripe-prices";
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-05-27.dahlia" });
@@ -16,18 +17,7 @@ function normaliseCurrency(value: unknown): CurrencyCode {
 }
 
 function getPriceId(plan: PlanKey, currency: CurrencyCode) {
-  if (currency === "NZD") {
-    if (plan === "educator") return process.env.STRIPE_PRICE_EDUCATOR_NZD;
-    if (plan === "educator_pro") return process.env.STRIPE_PRICE_EDUCATOR_PRO_NZD;
-    if (plan === "centre_starter") return process.env.STRIPE_PRICE_CENTRE_STARTER_NZD ?? process.env.STRIPE_PRICE_CENTRE_NZD;
-    if (plan === "centre_growth") return process.env.STRIPE_PRICE_CENTRE_GROWTH_NZD;
-  } else {
-    if (plan === "educator") return process.env.STRIPE_PRICE_EDUCATOR_AUD;
-    if (plan === "educator_pro") return process.env.STRIPE_PRICE_EDUCATOR_PRO_AUD;
-    if (plan === "centre_starter") return process.env.STRIPE_PRICE_CENTRE_STARTER_AUD ?? process.env.STRIPE_PRICE_CENTRE_AUD;
-    if (plan === "centre_growth") return process.env.STRIPE_PRICE_CENTRE_GROWTH_AUD;
-  }
-  return null;
+  return configuredPriceId(plan, currency);
 }
 
 function buildLineItem(plan: PlanKey, currency: CurrencyCode): Stripe.Checkout.SessionCreateParams.LineItem {
