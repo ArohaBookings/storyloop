@@ -103,7 +103,9 @@ export default function AdminUsersPage() {
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-full bg-clay-700 text-paper flex items-center justify-center text-xs font-bold">{(u.full_name ?? u.email ?? "?")[0].toUpperCase()}</div>
                         <div>
-                          <p className="text-sm font-medium">{u.full_name ?? "—"}</p>
+                          <Link href={`/admin/users/${u.id}`} className="text-sm font-medium hover:text-clay-300 hover:underline underline-offset-2">
+                            {u.full_name ?? "—"}
+                          </Link>
                           <p className="text-xs text-ink-500">{u.email}</p>
                           {u.applied_access_code && <p className="text-[10px] text-clay-400 mt-0.5">{u.applied_access_code.toUpperCase()} access</p>}
                         </div>

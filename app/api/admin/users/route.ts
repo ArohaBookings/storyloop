@@ -5,6 +5,13 @@ import { sendManualLifecycleEmail } from "@/lib/email/automation";
 import { sendPasswordResetEmail } from "@/lib/email/password-reset";
 import type { LifecycleEmailType } from "@/lib/email/templates";
 import { PLAN_ORDER, normalizePlanKey } from "@/lib/plans";
+import {
+  guardAdminAction,
+  guardStoryLimitOverride,
+  hasLiveStripeSubscription,
+  isChargedWhileComped,
+  sanitizeAdminSearch,
+} from "@/lib/admin-guards";
 
 const MANUAL_EMAIL_TYPES = new Set<LifecycleEmailType>([
   "welcome",
@@ -23,9 +30,55 @@ export async function GET(request: NextRequest) {
   const session = await verifyAdmin();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const search = request.nextUrl.searchParams.get("search") ?? "";
   const sb = createAdminSupabase();
+  const id = request.nextUrl.searchParams.get("id");
 
+  // ------------------------------------------------ one user, everything an
+  // operator needs to debug an account. Counts and dates only for stories:
+  // titles and text are about children and are not needed to fix an account.
+  if (id) {
+    const [profileRes, emailsRes, auditRes, storiesRes, lastStoriesRes, membershipRes] = await Promise.all([
+      sb.from("profiles").select("*").eq("id", id).maybeSingle(),
+      sb
+        .from("email_events")
+        .select("email_type, delivery_status, subject, sent_at, metadata")
+        .eq("user_id", id)
+        .order("sent_at", { ascending: false })
+        .limit(50),
+      sb
+        .from("admin_audit_log")
+        .select("action, details, created_at")
+        .eq("target_id", id)
+        .order("created_at", { ascending: false })
+        .limit(30),
+      sb.from("stories").select("id", { count: "exact", head: true }).eq("user_id", id),
+      sb.from("stories").select("created_at").eq("user_id", id).order("created_at", { ascending: false }).limit(200),
+      sb.from("centre_members").select("centre_id, role, status, shares_stories, joined_at").eq("user_id", id).maybeSingle(),
+    ]);
+
+    if (profileRes.error) return NextResponse.json({ error: profileRes.error.message }, { status: 500 });
+    if (!profileRes.data) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+    return NextResponse.json({
+      profile: profileRes.data,
+      billing: {
+        liveStripeSubscription: hasLiveStripeSubscription(profileRes.data),
+        chargedWhileComped: isChargedWhileComped(profileRes.data),
+      },
+      emails: emailsRes.data ?? [],
+      audit: auditRes.data ?? [],
+      storyCount: storiesRes.count ?? 0,
+      storyDates: (lastStoriesRes.data ?? []).map((row) => row.created_at),
+      // The centre tables may not exist yet; a missing relation is just "none".
+      membership: membershipRes.error ? null : membershipRes.data ?? null,
+    });
+  }
+
+  // ------------------------------------------------------------------ list
+  // The search term goes into a PostgREST `or` filter, where commas and
+  // parentheses are structure. Unsanitised, a search could append its own
+  // conditions to the query.
+  const search = sanitizeAdminSearch(request.nextUrl.searchParams.get("search"));
   let query = sb.from("profiles").select("*").order("created_at", { ascending: false }).limit(200);
   if (search) query = query.or(`email.ilike.%${search}%,full_name.ilike.%${search}%`);
 
@@ -39,10 +92,48 @@ export async function POST(request: NextRequest) {
     const session = await verifyAdmin();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { action, userId, email, plan, emailType } = await request.json();
+    const { action, userId, email, plan, emailType, value } = await request.json();
     const sb = createAdminSupabase();
 
+    // Anything that changes access is checked against Stripe state first. On a
+    // live subscription these would leave the card charged for access the
+    // customer no longer has, so they are refused with the fix spelled out.
+    if (typeof userId === "string" && userId) {
+      const { data: target } = await sb
+        .from("profiles")
+        .select("plan, subscription_status, stripe_subscription_id, is_internal")
+        .eq("id", userId)
+        .maybeSingle();
+      const verdict = guardAdminAction(String(action), target ?? null);
+      if (!verdict.allowed) {
+        await logAdminAction(`blocked_${String(action)}`, "user", userId, { email, reason: verdict.reason });
+        return NextResponse.json({ error: verdict.reason, blocked: true }, { status: 409 });
+      }
+    }
+
     switch (action) {
+      case "set_internal": {
+        // Excludes founder, staff and comp accounts from every revenue figure.
+        if (typeof value !== "boolean") return NextResponse.json({ error: "value must be true or false" }, { status: 400 });
+        await sb.from("profiles").update({ is_internal: value }).eq("id", userId);
+        await logAdminAction("set_internal", "user", userId, { email, value });
+        return NextResponse.json({ message: value ? `${email} excluded from metrics` : `${email} counted in metrics again` });
+      }
+      case "set_story_limit_override": {
+        // Support tool for FREE accounts only. The override wins over the plan,
+        // so on a paid plan it would cap an unlimited customer; the guard
+        // refuses that. Clearing is always allowed.
+        const { data: target } = await sb.from("profiles").select("plan").eq("id", userId).maybeSingle();
+        const verdict = guardStoryLimitOverride(target ?? null, value);
+        if (!verdict.allowed) {
+          await logAdminAction("blocked_set_story_limit_override", "user", userId, { email, value, reason: verdict.reason });
+          return NextResponse.json({ error: verdict.reason, blocked: true }, { status: 409 });
+        }
+        const stored = value === 0 ? null : value;
+        await sb.from("profiles").update({ monthly_story_limit_override: stored }).eq("id", userId);
+        await logAdminAction("set_story_limit_override", "user", userId, { email, value: stored });
+        return NextResponse.json({ message: stored === null ? "Story limit override cleared" : `Story limit set to ${stored} this month` });
+      }
       case "reset_password": {
         const result = await sendPasswordResetEmail(email);
         await logAdminAction("reset_password", "user", userId, { email, status: result.status });
