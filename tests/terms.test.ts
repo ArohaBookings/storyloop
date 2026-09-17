@@ -9,6 +9,7 @@ import {
   latestStartedTerm,
   localDate,
   termCoverageGaps,
+  termYear,
   termOn,
   workingDaysBetween,
   type Jurisdiction,
@@ -68,7 +69,7 @@ test("today in Christchurch is Term 3, and the first week of October is a holida
 
 test("a year with no calendar is unknown, never assumed to be a holiday", () => {
   assert.equal(isSchoolHoliday("2028-03-01", "NZ"), null);
-  assert.equal(isSchoolHoliday("2027-03-01", "QLD"), null);
+  assert.equal(isSchoolHoliday("2028-03-01", "QLD"), null);
   assert.equal(termOn("2028-03-01", "NZ"), null);
 });
 
@@ -117,8 +118,10 @@ test("the next term is found across New Year", () => {
 });
 
 test("coverage gaps name exactly the states missing next year's dates, once it matters", () => {
-  const september = termCoverageGaps("2026-09-17").map((g) => `${g.jurisdiction}${g.year}`).sort();
-  assert.deepEqual(september, ["ACT2027", "NT2027", "QLD2027", "SA2027", "TAS2027", "WA2027"]);
+  // Every jurisdiction has 2026 and 2027 as of 2026-09-17.
+  assert.deepEqual(termCoverageGaps("2026-09-17"), []);
+  const nextSeptember = termCoverageGaps("2027-09-17").map((g) => `${g.jurisdiction}${g.year}`).sort();
+  assert.deepEqual(nextSeptember, ["ACT2028", "NSW2028", "NT2028", "NZ2028", "QLD2028", "SA2028", "TAS2028", "VIC2028", "WA2028"]);
   assert.deepEqual(termCoverageGaps("2026-05-01"), [], "next year is not yet urgent in May");
 });
 
@@ -126,4 +129,18 @@ test("date arithmetic is calendar arithmetic, safe across months and leap years"
   assert.equal(addDays("2028-02-28", 1), "2028-02-29");
   assert.equal(addDays("2026-12-31", 1), "2027-01-01");
   assert.equal(dayOfWeek("2026-09-17"), 4, "17 September 2026 is a Thursday");
+});
+
+test("2027 Australian dates match each department's published calendar", () => {
+  // Spot checks against the official pages read on 2026-09-17.
+  assert.equal(isSchoolHoliday("2027-03-26", "QLD"), true, "QLD Term 1 ends Thu 25 March");
+  assert.equal(isSchoolHoliday("2027-04-09", "SA"), false, "SA Term 1 ends Fri 9 April");
+  assert.equal(isSchoolHoliday("2027-12-17", "WA"), true, "WA Term 4 ends Thu 16 December");
+  assert.equal(isSchoolHoliday("2027-02-03", "TAS"), true, "TAS Term 1 starts Thu 4 February");
+  assert.equal(isSchoolHoliday("2027-04-27", "ACT"), true, "ACT students return Wed 28 April");
+  assert.equal(isSchoolHoliday("2027-06-21", "NT"), true, "NT Term 2 ends Fri 18 June");
+  for (const jurisdiction of ["QLD", "SA", "WA", "TAS", "ACT", "NT"] as const) {
+    assert.equal(termYear(jurisdiction, 2027)?.source, "official", jurisdiction);
+    assert.equal(termYear(jurisdiction, 2026)?.source, "official", jurisdiction);
+  }
 });

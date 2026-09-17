@@ -10,7 +10,8 @@
  * Tasman.
  *
  * PROVENANCE, recorded per year so nobody mistakes a date for more certain than
- * it is. Verified 2026-09-17:
+ * it is. Verified 2026-09-17, every year for every jurisdiction read from the
+ * department's own page except NSW 2026 (no longer listed by NSW):
  *
  *   official    read from the education department's own page
  *   aggregator  read from a term-date aggregator. Cross-checked by comparing the
@@ -50,6 +51,13 @@ const NZ_MOE = "https://www.education.govt.nz/school-terms-and-holidays-dates";
 const CORAISE_2026 = "https://www.coraise.com.au/blog/australian-school-term-dates-2026";
 const NSW_OFFICIAL = "https://education.nsw.gov.au/schooling/calendars/future-and-past-nsw-term-and-vacation-dates";
 const VIC_OFFICIAL = "https://www.vic.gov.au/school-term-dates-and-holidays-victoria";
+const QLD_OFFICIAL_2026 = "https://education.qld.gov.au/about-us/calendar/term-dates";
+const QLD_OFFICIAL_FUTURE = "https://education.qld.gov.au/about-us/calendar/future-dates";
+const SA_OFFICIAL = "https://www.education.sa.gov.au/students/term-dates-south-australian-state-schools";
+const WA_OFFICIAL = "https://www.education.wa.edu.au/future-term-dates";
+const TAS_OFFICIAL = "https://www.decyp.tas.gov.au/learning/term-dates/";
+const ACT_OFFICIAL = "https://www.act.gov.au/__data/assets/pdf_file/0005/2827589/ACT-school-term-dates-2026-30-web-print-friendly.pdf";
+const NT_OFFICIAL = "https://nt.gov.au/learning/primary-and-secondary-students/school-term-dates-in-nt";
 
 const t = (term: 1 | 2 | 3 | 4, start: string, end: string): Term => ({ term, start, end });
 
@@ -88,40 +96,71 @@ export const TERM_CALENDARS: Record<Jurisdiction, TermYear[]> = {
       terms: [t(1, "2027-01-27", "2027-03-25"), t(2, "2027-04-12", "2027-06-25"), t(3, "2027-07-12", "2027-09-17"), t(4, "2027-10-04", "2027-12-17")],
     },
   ],
+  // The 2026 dates below were first taken from an aggregator and then checked
+  // against each department's page on 2026-09-17: all identical.
   QLD: [
     {
-      year: 2026, source: "aggregator", sourceUrl: CORAISE_2026,
+      year: 2026, source: "official", sourceUrl: QLD_OFFICIAL_2026,
       terms: [t(1, "2026-01-27", "2026-04-02"), t(2, "2026-04-20", "2026-06-26"), t(3, "2026-07-13", "2026-09-18"), t(4, "2026-10-06", "2026-12-11")],
+    },
+    {
+      year: 2027, source: "official", sourceUrl: QLD_OFFICIAL_FUTURE,
+      terms: [t(1, "2027-01-27", "2027-03-25"), t(2, "2027-04-12", "2027-06-25"), t(3, "2027-07-12", "2027-09-17"), t(4, "2027-10-05", "2027-12-10")],
     },
   ],
   SA: [
     {
-      year: 2026, source: "aggregator", sourceUrl: CORAISE_2026,
+      year: 2026, source: "official", sourceUrl: SA_OFFICIAL,
       terms: [t(1, "2026-01-27", "2026-04-10"), t(2, "2026-04-27", "2026-07-03"), t(3, "2026-07-20", "2026-09-25"), t(4, "2026-10-12", "2026-12-11")],
+    },
+    {
+      year: 2027, source: "official", sourceUrl: SA_OFFICIAL,
+      terms: [t(1, "2027-01-27", "2027-04-09"), t(2, "2027-04-26", "2027-07-02"), t(3, "2027-07-19", "2027-09-24"), t(4, "2027-10-11", "2027-12-10")],
     },
   ],
   WA: [
     {
-      year: 2026, source: "aggregator", sourceUrl: CORAISE_2026,
+      year: 2026, source: "official", sourceUrl: WA_OFFICIAL,
       terms: [t(1, "2026-02-02", "2026-04-02"), t(2, "2026-04-20", "2026-07-03"), t(3, "2026-07-20", "2026-09-25"), t(4, "2026-10-12", "2026-12-17")],
+    },
+    {
+      year: 2027, source: "official", sourceUrl: WA_OFFICIAL,
+      // Term 2 officially starts Monday 26 April, which WA expects to be a
+      // public holiday in lieu of Anzac Day. Stored as published.
+      terms: [t(1, "2027-02-01", "2027-04-09"), t(2, "2027-04-26", "2027-07-02"), t(3, "2027-07-19", "2027-09-24"), t(4, "2027-10-11", "2027-12-16")],
     },
   ],
   TAS: [
     {
-      year: 2026, source: "aggregator", sourceUrl: CORAISE_2026,
+      year: 2026, source: "official", sourceUrl: TAS_OFFICIAL,
       terms: [t(1, "2026-02-05", "2026-04-17"), t(2, "2026-05-04", "2026-07-10"), t(3, "2026-07-27", "2026-10-02"), t(4, "2026-10-19", "2026-12-18")],
+    },
+    {
+      year: 2027, source: "official", sourceUrl: TAS_OFFICIAL,
+      terms: [t(1, "2027-02-04", "2027-04-09"), t(2, "2027-04-26", "2027-07-02"), t(3, "2027-07-19", "2027-09-24"), t(4, "2027-10-11", "2027-12-16")],
     },
   ],
   ACT: [
     {
-      year: 2026, source: "aggregator", sourceUrl: CORAISE_2026,
+      year: 2026, source: "official", sourceUrl: ACT_OFFICIAL,
+      // Student start days. Teachers begin a student-free day earlier, and
+      // continuing students return a day after new students in Term 1.
       terms: [t(1, "2026-01-30", "2026-04-02"), t(2, "2026-04-21", "2026-07-03"), t(3, "2026-07-21", "2026-09-25"), t(4, "2026-10-13", "2026-12-18")],
+    },
+    {
+      year: 2027, source: "official", sourceUrl: ACT_OFFICIAL,
+      terms: [t(1, "2027-02-01", "2027-04-09"), t(2, "2027-04-28", "2027-07-02"), t(3, "2027-07-20", "2027-09-24"), t(4, "2027-10-12", "2027-12-17")],
     },
   ],
   NT: [
     {
-      year: 2026, source: "aggregator", sourceUrl: CORAISE_2026,
+      year: 2026, source: "official", sourceUrl: NT_OFFICIAL,
+      // Student start and finish days; teachers start and finish a day apart.
       terms: [t(1, "2026-01-29", "2026-04-02"), t(2, "2026-04-14", "2026-06-19"), t(3, "2026-07-14", "2026-09-18"), t(4, "2026-10-06", "2026-12-10")],
+    },
+    {
+      year: 2027, source: "official", sourceUrl: NT_OFFICIAL,
+      terms: [t(1, "2027-01-27", "2027-04-02"), t(2, "2027-04-13", "2027-06-18"), t(3, "2027-07-13", "2027-09-17"), t(4, "2027-10-05", "2027-12-09")],
     },
   ],
 };
