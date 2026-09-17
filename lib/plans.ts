@@ -28,7 +28,10 @@ export type FeatureKey =
   | "directorRoiDashboard"
   | "multiRoomAnalytics"
   | "advancedExportSettings"
-  | "storyAssistant";
+  | "storyAssistant"
+  // Term-aware features, built on lib/terms.ts. New keys only: no existing
+  // feature changed tier, so nobody loses anything they already have.
+  | "quietChildRadar";
 
 export type PlanDefinition = {
   key: PlanKey;
@@ -220,6 +223,9 @@ const FEATURE_REQUIREMENTS: Record<FeatureKey, PlanKey> = {
   // Quill (inline refine): Educator gets a monthly taste, Educator Pro
   // unlimited (the monthly cap for Educator is enforced in the API).
   storyAssistant: "educator",
+  // Continuity across a whole group of children belongs with child continuity
+  // profiles on Educator Pro, and gives an Educator a concrete reason to move up.
+  quietChildRadar: "educator_pro",
 };
 
 export function normalizePlanKey(plan: unknown): PlanKey {
