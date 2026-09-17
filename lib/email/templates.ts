@@ -19,6 +19,9 @@ export type LifecycleEmailType =
   | "trial_ending"
   | "payment_succeeded"
   | "payment_failed"
+  // Stripe's FINAL retry failed. Keyed separately from payment_failed, which
+  // is keyed on the invoice and would otherwise swallow this second notice.
+  | "payment_failed_final"
   | "subscription_cancelled"
   | "winback_offer"
   | "went_quiet"
@@ -581,6 +584,36 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
           ctaUrl,
           secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Your stories are safe. Nothing has been deleted and nothing will be.</p>`,
           body: `<p>Hi ${esc(name)}, your latest StoryLoop payment could not be processed.</p><p>This is almost always an <strong>expired card or a bank block</strong>, not a problem with your account. Updating your card takes about thirty seconds and everything carries on as normal.</p><p>If you would rather stop instead, that is completely fine — no need to reply, it will simply lapse.</p>`,
+        }),
+        text: plain({ title: subject, lines, cta: "Update payment method", ctaUrl }),
+      };
+    },
+
+    // The last notice, sent only when Stripe has no retries left. It states
+    // the real consequence from lib/billing-access.ts exactly: new stories stop,
+    // everything already written stays viewable and editable. No guilt, no
+    // countdown theatre, one button.
+    payment_failed_final: () => {
+      const ctaUrl = url("/billing", "payment_failed_final");
+      const subject = "Your StoryLoop plan is paused until your card is updated";
+      const lines = [
+        `Hi ${name}, we tried your card a few times and it still did not go through, so your plan is paused.`,
+        "You can still open, read and edit every story you have written.",
+        "Creating new stories will start working again as soon as your card is updated.",
+        "If you meant to stop, you do not need to do anything.",
+      ];
+      return {
+        emailType: "payment_failed_final",
+        subject,
+        marketing: false,
+        ctaUrl,
+        html: layout({
+          title: "Your plan is paused",
+          preview: "Your stories are all still there. Update your card to keep writing.",
+          cta: "Update payment method",
+          ctaUrl,
+          secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">If you meant to stop, you do not need to do anything, and your stories stay in your account.</p>`,
+          body: `<p>Hi ${esc(name)}, we tried your card a few times and it still did not go through, so your StoryLoop plan is <strong>paused</strong>.</p><p><strong>Nothing is lost.</strong> You can still open, read and edit every story you have written.</p><p>Creating new stories starts working again the moment your card is updated. It is usually an expired card, and it takes about thirty seconds.</p>`,
         }),
         text: plain({ title: subject, lines, cta: "Update payment method", ctaUrl }),
       };

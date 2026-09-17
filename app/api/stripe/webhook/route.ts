@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { normalizePlanKey } from "@/lib/plans";
 import { grantReferralCreditForPayment } from "@/lib/referrals";
-import { sendBillingEmail } from "@/lib/email/billing";
+import { paymentFailureNotice, sendBillingEmail } from "@/lib/email/billing";
 
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -204,13 +204,20 @@ async function handlePaymentFailed(admin: ReturnType<typeof createAdminSupabase>
 
   await admin.from("profiles").update(update).eq("stripe_customer_id", customerId);
 
-  // One notice per invoice, not per retry attempt. Stripe retries a failed card
-  // several times and fires this event each time; keying on the invoice means
-  // the educator gets a single clear "update your card", not four.
+  // At most two notices per invoice, never one per retry. Stripe fires this
+  // event on every attempt. While retries remain, the first failure gets one
+  // "update your card" email and later attempts are deduped by the invoice key.
+  // When no retry is left, access to NEW stories actually stops, so that moment
+  // gets its own notice under a separate key; the invoice key alone would
+  // swallow it as a duplicate of the first.
+  const notice = paymentFailureNotice(
+    invoice.id ?? `failed_${customerId}_${invoice.period_end ?? 0}`,
+    nextAttemptAt,
+  );
   await sendBillingEmail({
     admin,
-    type: "payment_failed",
-    billingKey: invoice.id ?? `failed_${customerId}_${invoice.period_end ?? 0}`,
+    type: notice.type,
+    billingKey: notice.billingKey,
     userId: subscription?.metadata?.user_id,
     customerId,
     amountInCents: invoice.amount_due,

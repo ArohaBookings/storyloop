@@ -29,7 +29,7 @@ import type { LifecycleEmailType } from "./templates";
 
 type BillingEmailType = Extract<
   LifecycleEmailType,
-  "payment_succeeded" | "payment_failed" | "subscription_cancelled"
+  "payment_succeeded" | "payment_failed" | "payment_failed_final" | "subscription_cancelled"
 >;
 
 type Recipient = { userId: string; email: string; name: string | null; plan: string | null };
@@ -111,6 +111,26 @@ async function alreadySent(
     console.warn("Billing email: idempotency check threw, sending anyway:", error);
     return false;
   }
+}
+
+/**
+ * Which notice a failed payment gets, and under which idempotency key.
+ *
+ * Stripe fires invoice.payment_failed on every attempt. While retries remain,
+ * the first failure gets "payment_failed" keyed on the invoice, and later
+ * attempts on the same invoice dedupe against it. When Stripe has no retry left,
+ * new stories actually stop, so that moment gets "payment_failed_final" under a
+ * DIFFERENT key; reusing the invoice key would swallow it as a duplicate of the
+ * first notice. At most two emails per invoice, never one per attempt.
+ */
+export function paymentFailureNotice(
+  invoiceKey: string,
+  nextAttemptAt: string | number | null | undefined,
+): { type: "payment_failed" | "payment_failed_final"; billingKey: string } {
+  const hasRetryLeft = nextAttemptAt !== null && nextAttemptAt !== undefined && nextAttemptAt !== "";
+  return hasRetryLeft
+    ? { type: "payment_failed", billingKey: invoiceKey }
+    : { type: "payment_failed_final", billingKey: `${invoiceKey}:final` };
 }
 
 export type BillingEmailResult =

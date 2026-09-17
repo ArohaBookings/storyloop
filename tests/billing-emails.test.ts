@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { formatAmount, formatDate } from "../lib/email/billing";
+import { formatAmount, formatDate, paymentFailureNotice } from "../lib/email/billing";
+import { renderLifecycleEmail } from "../lib/email/templates";
 
 /**
  * These two functions produce the only numbers a customer reads in a receipt.
@@ -56,4 +57,34 @@ test("missing or invalid dates return null rather than 'Invalid Date'", () => {
   assert.equal(formatDate(null), null);
   assert.equal(formatDate(undefined), null);
   assert.equal(formatDate(Number.NaN), null);
+});
+
+test("a failed payment with a retry left gets the first notice, keyed on the invoice", () => {
+  assert.deepEqual(paymentFailureNotice("in_123", "2026-09-20T00:00:00.000Z"), { type: "payment_failed", billingKey: "in_123" });
+  assert.deepEqual(paymentFailureNotice("in_123", 1790000000), { type: "payment_failed", billingKey: "in_123" });
+});
+
+test("the final failed attempt gets its own notice under a different key, so it is never deduped away", () => {
+  const final = paymentFailureNotice("in_123", null);
+  assert.equal(final.type, "payment_failed_final");
+  assert.equal(final.billingKey, "in_123:final");
+  assert.notEqual(final.billingKey, paymentFailureNotice("in_123", "2026-09-20").billingKey);
+  assert.equal(paymentFailureNotice("in_123", undefined).type, "payment_failed_final");
+  assert.equal(paymentFailureNotice("in_123", "").type, "payment_failed_final");
+});
+
+test("the final notice is transactional, branded, and states the real consequence", () => {
+  const email = renderLifecycleEmail({
+    type: "payment_failed_final",
+    userId: "00000000-0000-0000-0000-000000000001",
+    recipient: "kaiako@example.com",
+    name: "Aroha Smith",
+  });
+  assert.equal(email.marketing, false, "must reach people who unsubscribed from tips");
+  assert.match(email.html, /images\/logo-email\.png/);
+  assert.match(email.html, /Hi Aroha,/);
+  // Matches lib/billing-access.ts: new stories stop, saved stories stay usable.
+  assert.match(email.text, /still open, read and edit every story/);
+  assert.match(email.ctaUrl, /\/billing\?/);
+  for (const junk of ["undefined", "NaN", "null", "${"]) assert.ok(!email.html.includes(junk), `leaked ${junk}`);
 });
