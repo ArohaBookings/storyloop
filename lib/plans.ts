@@ -256,6 +256,25 @@ export function hasFeatureAccess(plan: unknown, feature: FeatureKey) {
   return planRank(plan) >= planRank(FEATURE_REQUIREMENTS[feature]);
 }
 
+// Upgrade links around the app name features both ways ("storyAssistant" and
+// "family-reply-loop"). Some also use a shorter name than the key.
+const FEATURE_PARAM_ALIASES: Record<string, FeatureKey> = {
+  "child-continuity": "childContinuityProfiles",
+  "term-report": "termWeather",
+};
+
+/** The feature an upgrade link is asking about, or null if it names none. */
+export function resolveFeatureParam(value: string | null | undefined): FeatureKey | null {
+  if (typeof value !== "string") return null;
+  const raw = value.trim();
+  if (!raw) return null;
+  const has = (key: string) => Object.prototype.hasOwnProperty.call(FEATURE_REQUIREMENTS, key);
+  if (has(raw)) return raw as FeatureKey;
+  if (Object.prototype.hasOwnProperty.call(FEATURE_PARAM_ALIASES, raw)) return FEATURE_PARAM_ALIASES[raw];
+  const camel = raw.toLowerCase().replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase());
+  return has(camel) ? (camel as FeatureKey) : null;
+}
+
 export function requiredPlanForFeature(feature: FeatureKey) {
   return FEATURE_REQUIREMENTS[feature];
 }

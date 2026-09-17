@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { AlertTriangle, Check, Loader2, CreditCard, ExternalLink, LifeBuoy, ShieldCheck } from "lucide-react";
 import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
-import { getNextPlan, getPlanByKey, getPlanDefinitions, hasFeatureAccess, normalizePlanKey, requiredPlanForFeature, type CurrencyCode, type FeatureKey, type PlanKey } from "@/lib/plans";
+import { getNextPlan, getPlanByKey, getPlanDefinitions, hasFeatureAccess, normalizePlanKey, requiredPlanForFeature, resolveFeatureParam, type CurrencyCode, type FeatureKey, type PlanKey } from "@/lib/plans";
 
 // Appealing, benefit-led copy for a feature a user clicked while locked.
 const FEATURE_UPSELL: Partial<Record<FeatureKey, { title: string; blurb: string }>> = {
@@ -28,6 +28,34 @@ const FEATURE_UPSELL: Partial<Record<FeatureKey, { title: string; blurb: string 
   adminOversight: {
     title: "Centre tools",
     blurb: "Shared centre voice, a documentation radar, and light admin oversight so every room stays consistent without surveillance.",
+  },
+  observationCoach: {
+    title: "Observation Coach",
+    blurb: "Prompts for the details a rough note is missing, such as what the child said or who was involved, so the draft is specific to what you saw.",
+  },
+  familyReplyLoop: {
+    title: "Family Reply Loop",
+    blurb: "Record what whānau said back about a story and carry it into the next one, so families see their words shaping their child's learning.",
+  },
+  childContinuityProfiles: {
+    title: "Child continuity profiles",
+    blurb: "Each child's interests, languages, family aspirations and recent learning feed into their next story, so it builds on the last one instead of starting cold.",
+  },
+  quietChildRadar: {
+    title: "Quiet child radar",
+    blurb: "See which children have had no captured moments lately, counted in working days and skipping school holidays, so nobody quietly slips through a term.",
+  },
+  termWeather: {
+    title: "Term reports",
+    blurb: "One printable page per child showing how learning dispositions showed up across the term, built only from the stories you saved. No scores and no comparisons.",
+  },
+  transitionPack: {
+    title: "Transition packs",
+    blurb: "Choose up to six moments and get one printable page for the next teacher or the family, with the child's voice, what they love and the next steps still open. Nothing is generated.",
+  },
+  centreQualityCalibration: {
+    title: "Centre Quality Calibration",
+    blurb: "Set your centre's philosophy, preferred and avoided phrases, an approved example story and privacy rules once, so every educator's drafts start from the same standard.",
   },
   directorRoiDashboard: {
     title: "Director ROI dashboard",
@@ -93,9 +121,9 @@ export default function BillingPage() {
         ? "bg-sage-100 text-sage-700"
         : "bg-ink-100 text-ink-600";
 
-  const requestedFeature = searchParams.get("feature") as FeatureKey | null;
+  const requestedFeature = resolveFeatureParam(searchParams.get("feature"));
   const featureUpsell = requestedFeature ? FEATURE_UPSELL[requestedFeature] : null;
-  const featureLocked = Boolean(requestedFeature) && !hasFeatureAccess(currentPlan, requestedFeature as FeatureKey);
+  const featureLocked = requestedFeature !== null && !hasFeatureAccess(currentPlan, requestedFeature);
   const featurePlan = requestedFeature ? getPlanByKey(requiredPlanForFeature(requestedFeature)) : null;
 
   return (
