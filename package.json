@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit --incremental false",
     "test": "node --import tsx --test tests/*.test.ts",
-    "verify": "npm run test && npm run typecheck && npm run lint && npm run build"
+    "verify": "npm run test && npm run typecheck && npm run lint && npm run build",
+    "verify:migrations": "bash scripts/verify-migrations.sh"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
