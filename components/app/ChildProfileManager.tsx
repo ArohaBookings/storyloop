@@ -235,6 +235,9 @@ export default function ChildProfileManager({ initialChildren }: { initialChildr
                 <Link href={`/generate?child=${encodeURIComponent(child.id)}`} className="btn-primary px-4 py-2 text-xs">
                   New story <ArrowRight className="h-3 w-3" />
                 </Link>
+                <Link href={`/children/${encodeURIComponent(child.id)}/term`} className="btn-secondary px-4 py-2 text-xs">
+                  Term report
+                </Link>
                 <Link href={`/insights?child=${encodeURIComponent(child.id)}`} className="btn-secondary px-4 py-2 text-xs">
                   View learning thread
                 </Link>

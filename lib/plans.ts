@@ -31,7 +31,8 @@ export type FeatureKey =
   | "storyAssistant"
   // Term-aware features, built on lib/terms.ts. New keys only: no existing
   // feature changed tier, so nobody loses anything they already have.
-  | "quietChildRadar";
+  | "quietChildRadar"
+  | "termWeather";
 
 export type PlanDefinition = {
   key: PlanKey;
@@ -131,6 +132,7 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
       "Advanced quality score details",
       "Child continuity profiles",
       "Quiet child radar that knows school holidays",
+      "Printable term report for each child, no scores",
       "Whānau voice carried into future stories",
       "Priority educator support",
     ],
@@ -227,6 +229,9 @@ const FEATURE_REQUIREMENTS: Record<FeatureKey, PlanKey> = {
   // Continuity across a whole group of children belongs with child continuity
   // profiles on Educator Pro, and gives an Educator a concrete reason to move up.
   quietChildRadar: "educator_pro",
+  // A per-child narrative of dispositions across a term, printable for team
+  // meetings and review. Same continuity family as the radar.
+  termWeather: "educator_pro",
 };
 
 export function normalizePlanKey(plan: unknown): PlanKey {
