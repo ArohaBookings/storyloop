@@ -32,7 +32,8 @@ export type FeatureKey =
   // Term-aware features, built on lib/terms.ts. New keys only: no existing
   // feature changed tier, so nobody loses anything they already have.
   | "quietChildRadar"
-  | "termWeather";
+  | "termWeather"
+  | "transitionPack";
 
 export type PlanDefinition = {
   key: PlanKey;
@@ -109,6 +110,7 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
       "Learning threads",
       "Basic privacy guard",
       "Personal centre voice memory",
+      "Transition pack for children starting school",
     ],
     painSolved: [
       "Clear a documentation backlog without writing every note from scratch",
@@ -232,6 +234,10 @@ const FEATURE_REQUIREMENTS: Record<FeatureKey, PlanKey> = {
   // A per-child narrative of dispositions across a term, printable for team
   // meetings and review. Same continuity family as the radar.
   termWeather: "educator_pro",
+  // A printable handover for a child moving on to school or a new service. It
+  // sits on the entry paid plan on purpose: it is needed by a date (end of the
+  // year), which is exactly when a free educator decides to pay.
+  transitionPack: "educator",
 };
 
 export function normalizePlanKey(plan: unknown): PlanKey {
