@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { createStripe } from "@/lib/stripe-client";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { getPlanByKey, normalizePlanKey, type CurrencyCode, type PlanKey } from "@/lib/plans";
@@ -9,7 +10,7 @@ import { resolveActivationCoupon } from "@/lib/activation-offer";
 import { configuredPriceId } from "@/lib/stripe-prices";
 
 function getStripe() {
-  return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-05-27.dahlia" });
+  return createStripe();
 }
 
 function normaliseCurrency(value: unknown): CurrencyCode {

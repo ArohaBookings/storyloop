@@ -5,7 +5,7 @@ import { getOrCreateReferralCode } from "@/lib/referrals";
 import type { LifecycleEmailType } from "./templates";
 import { getPlanByKey, normalizePlanKey } from "@/lib/plans";
 import { formatDate } from "./billing";
-import Stripe from "stripe";
+import { createStripe } from "@/lib/stripe-client";
 import { abandonedCheckoutCandidates, stillAbandoned } from "@/lib/abandoned-checkout";
 
 type ProfileEmailRow = {
@@ -347,7 +347,7 @@ export async function runLifecycleAutomation() {
   try {
     const stripeKey = process.env.STRIPE_SECRET_KEY;
     if (stripeKey) {
-      const stripe = new Stripe(stripeKey, { apiVersion: "2026-05-27.dahlia" });
+      const stripe = createStripe(stripeKey);
       const sinceSeconds = Math.floor(Date.now() / 1000) - 3 * 24 * 60 * 60;
       const sessions = [];
       for await (const session of stripe.checkout.sessions.list({ status: "expired", created: { gte: sinceSeconds }, limit: 100 })) {

@@ -1,4 +1,4 @@
-import Stripe from "stripe";
+import { createStripe } from "@/lib/stripe-client";
 import { unstable_cache } from "next/cache";
 import { DEFAULT_AUD_TO_NZD, toSubscriptionLike, type SubscriptionLike } from "@/lib/mrr";
 
@@ -18,7 +18,7 @@ async function fetchSubscriptions(): Promise<{ subscriptions: SubscriptionLike[]
   if (!key) return { subscriptions: [], error: "STRIPE_SECRET_KEY is not configured", fetchedAt: new Date().toISOString() };
 
   try {
-    const stripe = new Stripe(key, { apiVersion: "2026-05-27.dahlia" });
+    const stripe = createStripe(key);
     const nowSeconds = Math.floor(Date.now() / 1000);
     const subscriptions: SubscriptionLike[] = [];
     for (const status of STATUSES) {

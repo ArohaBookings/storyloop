@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { createStripe } from "@/lib/stripe-client";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
@@ -13,9 +14,7 @@ import { configuredPriceId } from "@/lib/stripe-prices";
  */
 
 function getStripe() {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) throw new Error("STRIPE_SECRET_KEY is not configured");
-  return new Stripe(key, { apiVersion: "2026-05-27.dahlia" });
+  return createStripe();
 }
 
 function facts(subscription: Stripe.Subscription): SubscriptionFacts {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { createStripe } from "@/lib/stripe-client";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { normalizePlanKey } from "@/lib/plans";
 import { grantReferralCreditForPayment } from "@/lib/referrals";
@@ -7,9 +8,7 @@ import { newlyScheduledCancellation, paymentFailureNotice, sendBillingEmail } fr
 import { cancellationFeedbackMetadata } from "@/lib/churn-reasons";
 
 function getStripe() {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) throw new Error("STRIPE_SECRET_KEY is not configured");
-  return new Stripe(key, { apiVersion: "2026-05-27.dahlia" });
+  return createStripe();
 }
 
 function stripeDate(value: number | null | undefined) {
