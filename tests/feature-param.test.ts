@@ -12,6 +12,7 @@ test("upgrade links resolve whether they use the key or a hyphenated name", () =
   assert.equal(resolveFeatureParam("observation-coach"), "observationCoach");
   assert.equal(resolveFeatureParam("quiet-child-radar"), "quietChildRadar");
   assert.equal(resolveFeatureParam("transition-pack"), "transitionPack");
+  assert.equal(resolveFeatureParam("reliever-brief"), "relieverBrief");
   // Short names that differ from the key.
   assert.equal(resolveFeatureParam("child-continuity"), "childContinuityProfiles");
   assert.equal(resolveFeatureParam("term-report"), "termWeather");

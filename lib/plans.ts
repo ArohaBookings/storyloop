@@ -33,7 +33,9 @@ export type FeatureKey =
   // feature changed tier, so nobody loses anything they already have.
   | "quietChildRadar"
   | "termWeather"
-  | "transitionPack";
+  | "transitionPack"
+  // A one-page brief so a reliever walking in cold can still see the children.
+  | "relieverBrief";
 
 export type PlanDefinition = {
   key: PlanKey;
@@ -164,6 +166,7 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
       "Planning Board from stories",
       "Documentation Radar",
       "Admin oversight signals",
+      "Reliever brief: your room on one page for a relief teacher",
       "Priority support",
     ],
     painSolved: [
@@ -238,6 +241,9 @@ const FEATURE_REQUIREMENTS: Record<FeatureKey, PlanKey> = {
   // sits on the entry paid plan on purpose: it is needed by a date (end of the
   // year), which is exactly when a free educator decides to pay.
   transitionPack: "educator",
+  // Relievers are a centre problem: the centre pays for them and the centre
+  // feels the documentation gap they leave behind.
+  relieverBrief: "centre_starter",
 };
 
 export function normalizePlanKey(plan: unknown): PlanKey {
@@ -261,6 +267,7 @@ export function hasFeatureAccess(plan: unknown, feature: FeatureKey) {
 const FEATURE_PARAM_ALIASES: Record<string, FeatureKey> = {
   "child-continuity": "childContinuityProfiles",
   "term-report": "termWeather",
+  "reliever-brief": "relieverBrief",
 };
 
 /** The feature an upgrade link is asking about, or null if it names none. */

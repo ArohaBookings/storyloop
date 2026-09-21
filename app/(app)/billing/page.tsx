@@ -55,6 +55,10 @@ const FEATURE_UPSELL: Partial<Record<FeatureKey, { title: string; blurb: string 
     title: "Transition pack",
     blurb: "Choose up to six moments and get one printable page for the next teacher or the family, with the child's voice, what they love and the next steps still open. Nothing is generated.",
   },
+  relieverBrief: {
+    title: "Reliever brief",
+    blurb: "One page a relief teacher can read before the children arrive: who to notice today, what each child is into, languages at home and the next steps your team already planned.",
+  },
   centreQualityCalibration: {
     title: "Centre Quality Calibration",
     blurb: "Set your centre's philosophy, preferred and avoided phrases, an approved example story and privacy rules once, so every educator's drafts start from the same standard.",

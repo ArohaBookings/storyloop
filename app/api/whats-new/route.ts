@@ -5,6 +5,9 @@ import { getOrCreateReferralCode, MAX_REFERRAL_CREDITS, REFERRED_DISCOUNT_PERCEN
 import { shouldShowWhatsNew, WHATS_NEW_VERSION } from "@/lib/whats-new";
 import { SITE_URL } from "@/lib/email/config";
 
+/** Stories an educator must have written before we ask them to refer anyone. */
+const REFERRAL_INTRO_MIN_STORIES = 3;
+
 /** What the welcome card should show this user, if anything. */
 export async function GET() {
   const supabase = await createClient();
@@ -22,14 +25,15 @@ export async function GET() {
 
   // Never ask a new educator to refer people before they have written anything.
   // Signup -> first story is the step we are protecting, so the referral intro
-  // waits until there is at least one story for them to have been pleased by.
+  // waits until the tool has actually earned the ask. One story is not enough
+  // to be pleased by: it takes a few before someone would put their name to it.
   let showReferralIntro = false;
   if (!profile?.referral_modal_seen_at) {
     const { count: written } = await admin
       .from("stories")
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id);
-    showReferralIntro = (written ?? 0) >= 1;
+    showReferralIntro = (written ?? 0) >= REFERRAL_INTRO_MIN_STORIES;
   }
 
   // Only pay the cost of creating a code when the card will actually be shown.
