@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     default: "StoryLoop — Learning Stories Drafted Faster, Without Losing Educator Voice",
     template: "%s | StoryLoop",
   },
-  description: "Turn real observations, voice notes, or bullet points into editable early childhood learning story drafts with Te Whāriki or EYLF links, dispositions, child voice, and practical next steps.",
+  description: "Turn a rough note or voice memo into an editable learning story draft, with Te Whāriki or EYLF links, child voice and next steps. You edit and sign off.",
   keywords: [
     "learning story generator",
     "ECE documentation tool",

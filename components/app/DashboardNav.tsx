@@ -257,8 +257,14 @@ export default function DashboardNav({
               <span className={`inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full ${planInfo.colour} mt-0.5`}>{planInfo.label}</span>
               {appliedAccessCode && <p className="text-[10px] text-clay-700 mt-1">{appliedAccessCode.toUpperCase()} access</p>}
             </div>
-            <button onClick={handleLogout} title="Sign out" className="text-ink-400 hover:text-ink-700 transition-colors p-1">
-              <LogOut className="w-3.5 h-3.5" />
+            <button
+              onClick={handleLogout}
+              title="Sign out"
+              aria-label="Sign out"
+              className="flex items-center gap-1.5 rounded-lg p-2 text-xs font-medium text-ink-500 transition-colors hover:bg-cream-100 hover:text-ink-800"
+            >
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+              <span>Sign out</span>
             </button>
           </div>
         </div>

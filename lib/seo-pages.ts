@@ -51,7 +51,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     slug: "storypark-alternative",
     title: "Storypark Alternative for Learning Stories | StoryLoop",
     description:
-      "Comparing StoryLoop and Storypark for learning story writing in New Zealand and Australia: what each one does, what they cost, and why most educators end up using both.",
+      "StoryLoop and Storypark compared for learning stories in New Zealand and Australia: what each does, what they cost, and why most educators use both.",
     kicker: "Honest comparison",
     heading: "Looking for a Storypark alternative? You may not need one.",
     intro:
@@ -130,7 +130,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     slug: "how-long-should-a-learning-story-take",
     title: "How Long Should a Learning Story Take to Write?",
     description:
-      "How long a learning story actually takes, why the blank page costs more than the writing, and what the research says about unpaid documentation hours in New Zealand and Australia.",
+      "How long a learning story really takes, why the blank page costs more than the writing, and what that means for unpaid documentation hours.",
     kicker: "A straight answer",
     heading: "How long should a learning story take to write?",
     intro:
@@ -214,7 +214,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     slug: "learning-story-software-cost-for-centres",
     title: "What Does Learning Story Software Cost a Centre?",
     description:
-      "What early childhood documentation tools cost a centre, why per-child and per-educator pricing pull in opposite directions, and what to check before signing anything.",
+      "What early childhood documentation tools cost a centre, why per-child and per-educator pricing pull apart, and what to check before signing.",
     kicker: "For directors and owners",
     heading: "What does learning story software cost a centre?",
     intro:
@@ -651,7 +651,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
   "storypark-educa-export-packs": {
     slug: "storypark-educa-export-packs",
-    title: "Learning Story Export Packs for Storypark, Educa, Kinderloop, and Brightwheel",
+    title: "Export Learning Stories to Storypark or Educa",
     description:
       "Turn one educator-reviewed learning story into copy-ready formats for Storypark, Educa, Kinderloop, and Brightwheel.",
     kicker: "Export packs",
@@ -921,7 +921,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     slug: "transition-to-school-statement",
     title: "Transition to School Statements: An Educator's Guide",
     description:
-      "What Victoria, NSW and Queensland require in a transition to school statement, how New Zealand differs, and how to gather the evidence through the year instead of in a November rush.",
+      "What Victoria, NSW and Queensland require in a transition to school statement, how New Zealand differs, and how to have the evidence ready.",
     kicker: "Educator guide · Term 4",
     heading: "Write a transition statement from a year of noticing, not a week of remembering.",
     intro:
@@ -996,9 +996,9 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   // for paraphrases ACECQA's Guide to the NQF, Standard 1.3 (read 2026-09-17).
   "nqs-standard-1-3-assessment-and-planning": {
     slug: "nqs-standard-1-3-assessment-and-planning",
-    title: "NQS Standard 1.3: Assessment, Planning and Documentation",
+    title: "NQS Standard 1.3: Assessment and Planning",
     description:
-      "What ACECQA's guidance says assessors look for in elements 1.3.1, 1.3.2 and 1.3.3, and how to document the planning cycle, critical reflection and family information without drowning in paperwork.",
+      "What ACECQA's guidance says assessors look for in elements 1.3.1, 1.3.2 and 1.3.3, and how to show the planning cycle without more paperwork.",
     kicker: "Director guide · Australia",
     heading: "Show the whole planning cycle, not a pile of stories.",
     intro:
@@ -1160,7 +1160,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
   "room-planning-brief-early-childhood": {
     slug: "room-planning-brief-early-childhood",
-    title: "Room Planning Briefs from Early Childhood Learning Stories",
+    title: "Room Planning Briefs from Learning Stories",
     description:
       "Use recent learning stories to create emerging-interest summaries, environment ideas, intentional teaching moves, and team reflection prompts.",
     kicker: "Centre planning",

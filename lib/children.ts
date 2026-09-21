@@ -2,11 +2,11 @@ export type ChildProfile = {
   id: string;
   name: string;
   age_group: string | null;
-  interests: string[];
+  interests: string[] | null;
   developmental_focus: string | null;
   notes: string | null;
   whanau_aspirations: string | null;
-  home_languages: string[];
+  home_languages: string[] | null;
   created_at: string;
   updated_at: string;
 };

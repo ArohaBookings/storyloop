@@ -31,10 +31,10 @@ function profileToForm(child: ChildProfile): FormState {
     id: child.id,
     name: child.name,
     ageGroup: child.age_group ?? "",
-    interests: child.interests.join(", "),
+    interests: (child.interests ?? []).join(", "),
     developmentalFocus: child.developmental_focus ?? "",
     whanauAspirations: child.whanau_aspirations ?? "",
-    homeLanguages: child.home_languages.join(", "),
+    homeLanguages: (child.home_languages ?? []).join(", "),
     notes: child.notes ?? "",
   };
 }
@@ -217,9 +217,9 @@ export default function ChildProfileManager({ initialChildren }: { initialChildr
                   </button>
                 </div>
               </div>
-              {child.interests.length > 0 && (
+              {(child.interests ?? []).length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-1.5">
-                  {child.interests.map((interest) => (
+                  {(child.interests ?? []).map((interest) => (
                     <span key={interest} className="rounded-full bg-cream-100 px-2 py-1 text-[10px] font-semibold text-clay-700">
                       {interest}
                     </span>

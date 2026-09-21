@@ -48,11 +48,11 @@ const FEATURE_UPSELL: Partial<Record<FeatureKey, { title: string; blurb: string 
     blurb: "See which children have had no captured moments lately, counted in working days and skipping school holidays, so nobody quietly slips through a term.",
   },
   termWeather: {
-    title: "Term reports",
+    title: "Term report",
     blurb: "One printable page per child showing how learning dispositions showed up across the term, built only from the stories you saved. No scores and no comparisons.",
   },
   transitionPack: {
-    title: "Transition packs",
+    title: "Transition pack",
     blurb: "Choose up to six moments and get one printable page for the next teacher or the family, with the child's voice, what they love and the next steps still open. Nothing is generated.",
   },
   centreQualityCalibration: {

@@ -7,9 +7,9 @@ import Footer from "@/components/landing/Footer";
 import PageTracker from "@/components/analytics/PageTracker";
 
 export const metadata: Metadata = {
-  title: "About StoryLoop | Built in Aotearoa for early childhood educators",
+  title: "About StoryLoop",
   description:
-    "Why StoryLoop exists, what we believe about AI and documentation, and the promises we make to educators about their words, their children, and their professional judgement.",
+    "Why StoryLoop exists, what we believe about AI in documentation, and the promises we make educators about their words and their professional judgement.",
   alternates: { canonical: "https://storyloop.space/about" },
   openGraph: {
     title: "About StoryLoop",
