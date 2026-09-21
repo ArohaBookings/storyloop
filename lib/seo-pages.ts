@@ -1063,6 +1063,91 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       },
     ],
   },
+  // Highest-intent director query we had nothing for. The hook is a fact from
+  // ACECQA's own process page, verified 2026-09-22: a regulatory authority
+  // generally gives ONE TO FIVE DAYS' notice of a site visit. Every director
+  // who has been through it knows that number and it reframes the whole
+  // problem, because a term of evidence cannot be rebuilt in five days.
+  "assessment-and-rating-evidence": {
+    slug: "assessment-and-rating-evidence",
+    title: "Assessment and Rating: the evidence to have ready",
+    description:
+      "Regulatory authorities generally give 1-5 days' notice of a visit. What Standard 1.3 evidence to have ready, and the gaps that surface under pressure.",
+    kicker: "Director guide · Australia and Aotearoa",
+    heading: "You get a few days' notice, not a few weeks.",
+    intro:
+      "ACECQA's process page says regulatory authorities generally provide one to five days' notice that a site visit will occur, and an assessment that starts in response to compliance issues may start with no notice at all. That is the real constraint. Nobody rebuilds a term of documentation in five days, so the evidence either exists by then or it does not. This page sets out what to have ready and where the gaps usually are.",
+    reviewedAt: "2026-09-22",
+    sections: [
+      {
+        title: "What the notice period actually is",
+        body:
+          "One to five days for a site visit, or for a conversation in place of a visit where a partial assessment does not need one. A draft report follows three to five weeks after the visit, and the provider can respond to factual inaccuracies with evidence. So there is a second window, but only for correcting the record, not for creating documentation that should already have existed.",
+      },
+      {
+        title: "Standard 1.3 is where documentation gets tested",
+        body:
+          "Element 1.3.1 asks whether the assessment and planning cycle is happening for each child. 1.3.2 asks whether critical reflection drives planning. 1.3.3 asks whether families are informed about the program and their child's progress. ACECQA is explicit that there is no required format. Assessors look for the cycle, not a template.",
+      },
+      {
+        title: "The four gaps that show up under time pressure",
+        body:
+          "Coverage: the quiet children have far less recorded than the confident ones, and a roll call of documentation makes it obvious. Unclosed loops: next steps written at the bottom of a story and never mentioned again. Unrecorded reflection: the thinking happened in a conversation and was never written down. Family input living in a messaging app instead of in the child's documentation.",
+      },
+      {
+        title: "A sequence that fits in the notice period",
+        body:
+          "Day one, list every child and when they were last documented, and give the thinnest names to the educators who know them. Day two, walk the open next steps and record what was actually tried. Day three, write the reflections that only exist as conversations. Day four, bring family voice back into the records it belongs in. Day five, read it as an assessor would and prepare to talk through one child's cycle end to end.",
+      },
+      {
+        title: "In Aotearoa, the same evidence, a different visit",
+        body:
+          "ERO reviews early childhood services against Te Whariki and works from the service's own internal evaluation. The documentation questions land in the same place: can you show what you noticed about a child, what you did in response, what happened, and how whanau contributed. A service prepared for one conversation is largely prepared for the other.",
+      },
+    ],
+    faqs: [
+      {
+        question: "How much notice does a service get before an assessment and rating visit?",
+        answer:
+          "ACECQA's process page says regulatory authorities generally provide one to five days' notice that a site visit will occur. Where a partial assessment does not require a visit, the same one to five days' notice may be given for a conversation instead. An assessment that commences in response to compliance issues may commence without notice.",
+      },
+      {
+        question: "What happens after the visit?",
+        answer:
+          "The regulatory authority provides a draft report three to five weeks after the visit. The provider can give feedback on factual inaccuracies and supply evidence supporting that feedback. The final report follows, and ratings are published once the review period ends.",
+      },
+      {
+        question: "Does the Quality Improvement Plan count as the evidence?",
+        answer:
+          "The QIP records your self-assessment: strengths and the areas you have identified for improvement. It is not the documentation evidence for Standard 1.3. An assessor reading a QIP will still ask to see how the planning cycle runs for individual children.",
+      },
+      {
+        question: "Is there a required documentation format?",
+        answer:
+          "No. ACECQA's guidance states there is no one way to meet documentation requirements under the NQF, and services choose methods that suit their children, families and community. What is assessed is whether the cycle is visible, not which template produced it.",
+      },
+      {
+        question: "Can software prove our service is compliant?",
+        answer:
+          "No, and be wary of anything that claims it can. Software can count what your team recorded and show you where the gaps are before someone else finds them. The professional judgement, the practice and the rating remain yours.",
+      },
+      ...sharedFaqs,
+    ],
+    sources: [
+      {
+        label: "ACECQA: Assessment and rating process",
+        url: "https://www.acecqa.gov.au/assessment/assessment-and-rating-process",
+      },
+      {
+        label: "ACECQA Guide to the NQF: Standard 1.3 Assessment and planning",
+        url: "https://www.acecqa.gov.au/national-quality-framework/guide-nqf/section-3-national-quality-standard-and-assessment-and-rating/quality-area-1-educational-program-and-practice/standard-13-assessment-and-planning",
+      },
+      {
+        label: "Education Review Office: how ERO reviews early childhood services",
+        url: "https://www.ero.govt.nz/how-ero-reviews/how-ero-reviews-early-childhood-services",
+      },
+    ],
+  },
   // The page a director lands on. Every claim here is either a plan fact from
   // lib/plans.ts or a feature that exists; the consent rule is the one thing no
   // competitor can say, so it leads.
@@ -1081,6 +1166,11 @@ export const SEO_PAGES: Record<string, SeoPage> = {
         title: "One price, unlimited children",
         body:
           "Centre Starter is NZ$109 or A$99 a month for up to 10 educators, Centre Growth NZ$219 or A$199 for up to 25. Enrol twenty more tamariki and the price does not move. Per educator that is roughly half the individual plan.",
+      },
+      {
+        title: "The evidence, without the fortnight before the visit",
+        body:
+          "Regulatory authorities generally give one to five days' notice of a site visit. The evidence pack counts what your team already saved: every child's coverage and when they were last documented, how often a next step was written and then actually revisited, where reflection and family voice are recorded, and the gaps, named first. It summarises your own records. It is not a compliance judgement and does not claim to be one.",
       },
       {
         title: "The reliever problem, solved on one page",
@@ -1102,7 +1192,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       {
         question: "What does a centre plan actually include?",
         answer:
-          "Everything on Educator Pro for every educator on the plan, plus the reliever brief, a planning brief built from recent stories, a documentation radar, shared centre voice and quality settings, export packs, and admin oversight that shows activity rather than content.",
+          "Everything on Educator Pro for every educator on the plan, plus the evidence pack, the reliever brief, a planning brief built from recent stories, a documentation radar, shared centre voice and quality settings, export packs, and admin oversight that shows activity rather than content.",
       },
       {
         question: "Is it cheaper than buying individual plans?",

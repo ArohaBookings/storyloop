@@ -48,6 +48,47 @@ export const SEO_DEEP_DIVES: Record<string, Array<{ heading: string; paragraphs:
       ],
     },
   ],
+  "assessment-and-rating-evidence": [
+    {
+      heading: "Why the notice period is the whole problem",
+      paragraphs: [
+        "Ask a director what they remember about their last assessment and rating visit and you will usually hear about the fortnight before it, not the day itself. That fortnight is spent assembling: pulling stories out of folders, chasing educators for the reflection they know happened, checking whether every child has anything recorded at all.",
+        "The uncomfortable part is that the fortnight is often imaginary. ACECQA's process page says regulatory authorities generally provide one to five days' notice that a site visit will occur, and an assessment that begins in response to compliance issues may begin with no notice. Services that felt prepared usually were prepared already; services that planned to prepare found out that five days is not enough time to create a term of evidence, and creating it after the fact is not what anybody should be doing anyway.",
+        "So the useful question is not how to prepare faster. It is what the documentation would show if the call came tomorrow.",
+      ],
+    },
+    {
+      heading: "What an assessor is actually reconstructing",
+      paragraphs: [
+        "A rating conversation about Standard 1.3 tends to come down to one child. An assessor picks a name and asks an educator to walk through it: what did you notice, what did you make of it, what did you plan, what happened when you tried it, what did the family say, and what would you do next.",
+        "Every part of that answer either exists in your records or it does not. The observation almost always does. The analysis usually does. What goes missing is the middle of the cycle, the part where a plan met a real day and either worked or did not, and the part where a family's knowledge changed what an educator did.",
+        "This is why a pile of beautifully written stories can still sit uncomfortably in an assessment. Volume is not the cycle. Twenty stories with no next step revisited say less than six that show the loop closing.",
+      ],
+    },
+    {
+      heading: "The gap nobody plans for: coverage",
+      paragraphs: [
+        "The child who asks for attention gets documented. The child who plays quietly at the edge of the mat, who never causes a fuss and never asks for anything, can go a very long time without a single recorded moment. No educator intends this and every educator recognises it.",
+        "It surfaces badly under assessment, because coverage is the easiest thing in the world for an outsider to check. It is a list of names and a list of dates. If four children in a room have nothing recorded this term, that is visible in about ninety seconds, and it is a hard finding to talk your way around.",
+        "It is also the most fixable gap, and the only one that has to be found before the visit rather than during it. A roll of every child with the date they were last documented, read once a month, prevents the entire category of problem.",
+      ],
+    },
+    {
+      heading: "What to have ready, and what not to bother with",
+      paragraphs: [
+        "Worth having: a list of every child and when they were last documented; a handful of stories where a next step was planned, tried and reflected on, so an educator can walk the full cycle without hunting; reflection written down somewhere, even as short jottings, with a line about what changed because of it; family contributions sitting in the child's documentation rather than in a messaging app; and your QIP honest about the areas you already know need work.",
+        "Not worth doing: rewriting old documentation to sound better, producing a new template in the week of the visit, or generating anything after the fact. Assessors are experienced readers and documentation that appeared last Tuesday reads like documentation that appeared last Tuesday. Self-assessment that names a real weakness is treated far better than a file that claims none.",
+      ],
+    },
+    {
+      heading: "Where StoryLoop fits, and where it does not",
+      paragraphs: [
+        "StoryLoop is where the writing happens: an educator turns a quick note into a draft with the evidence visible, edits it, and signs it off. Each story carries its next steps, and educators mark them as planned, tried or worth continuing, which is the part of the cycle that usually goes unrecorded.",
+        "On a centre plan, the evidence pack assembles what is there into one page: every child's coverage and last documented date, how many next steps were written and how many were revisited, where reflection and family voice are recorded, the curriculum links across the period, and the gaps named before anything else. It prints. It costs nothing to run, calls no model, and cannot invent evidence, which matters more here than anywhere else in the product.",
+        "What it does not do is tell you whether your service meets the standard. It counts your own records and shows you the holes. The practice, the professional judgement and the rating stay exactly where they belong.",
+      ],
+    },
+  ],
   "for-centres": [
     {
       heading: "What a centre is actually buying",
@@ -57,8 +98,9 @@ export const SEO_DEEP_DIVES: Record<string, Array<{ heading: string; paragraphs:
       ],
     },
     {
-      heading: "The three moments a centre feels this",
+      heading: "The moments a centre feels this",
       paragraphs: [
+        "The regulator calls. ACECQA's own process page says a service generally gets one to five days' notice of a site visit, which is not enough time to assemble a term of evidence by hand, and the fortnight of scrambling most directors remember is a fortnight they did not actually have. The evidence pack counts what the team already saved and names the gaps first: children with nothing recorded, next steps nobody came back to, stories with no reflection, periods with no family voice.",
         "A reliever walks in cold. The room's documentation either stops for the day or arrives generic, and the child who never makes a fuss goes unseen again. The reliever brief prints one page of what the team already wrote: who to notice today, what each child is into, languages at home, the next steps already planned. It is deliberately not a full history, because a brief nobody reads before the children arrive is no use.",
         "Planning day arrives and someone reads back through a term of stories. The planning brief pulls recent stories into emerging interests, environment ideas and the response ideas that were planned but never tried, so the conversation starts from evidence rather than memory.",
         "Someone asks what the documentation shows. The documentation radar shows which children have not had a moment recorded lately, and each child's term report describes how dispositions showed up, with no scores and no comparisons between children.",

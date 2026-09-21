@@ -13,6 +13,13 @@ export const metadata: Metadata = {
 
 const GUIDES = [
   {
+    href: "/assessment-and-rating-evidence",
+    kicker: "Directors · A&R visit",
+    title: "The evidence to have ready",
+    description: "Regulatory authorities generally give one to five days' notice. What Standard 1.3 evidence to have ready, and the gaps that surface under time pressure.",
+    icon: FileCheck,
+  },
+  {
     href: "/transition-to-school-statement",
     kicker: "Term 4",
     title: "Transition to school statements",
