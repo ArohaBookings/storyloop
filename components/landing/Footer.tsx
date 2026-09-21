@@ -32,6 +32,7 @@ export default function Footer() {
               <li><Link href="/pricing" className="hover:text-paper transition-colors">Pricing</Link></li>
               <li><Link href="/examples" className="hover:text-paper transition-colors">Examples</Link></li>
               <li><Link href="/resources" className="hover:text-paper transition-colors">Educator resources</Link></li>
+              <li><Link href="/for-centres" className="hover:text-paper transition-colors">For centres</Link></li>
               <li><Link href="/documentation-time-calculator" className="hover:text-paper transition-colors">Time calculator for centres</Link></li>
               <li><Link href="/te-whariki-learning-stories" className="hover:text-paper transition-colors">Te Whāriki</Link></li>
               <li><Link href="/eylf-learning-stories" className="hover:text-paper transition-colors">EYLF</Link></li>

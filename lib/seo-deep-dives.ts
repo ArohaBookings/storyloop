@@ -48,6 +48,38 @@ export const SEO_DEEP_DIVES: Record<string, Array<{ heading: string; paragraphs:
       ],
     },
   ],
+  "for-centres": [
+    {
+      heading: "What a centre is actually buying",
+      paragraphs: [
+        "Not another platform. Your service already has somewhere families see photos and records, and moving that is a project nobody in a centre wants. StoryLoop is the step before it: turning what an educator noticed into a draft worth editing, then exporting it into whatever you already run.",
+        "The flat price is the part that matters to a budget. Per-child pricing punishes you for enrolling children, which is the opposite of how a service earns. Centre Starter covers ten educators and unlimited children for NZ$109 a month, Centre Growth twenty-five educators for NZ$219. Per educator that is about half the individual plan, and it does not move when your roll does.",
+      ],
+    },
+    {
+      heading: "The three moments a centre feels this",
+      paragraphs: [
+        "A reliever walks in cold. The room's documentation either stops for the day or arrives generic, and the child who never makes a fuss goes unseen again. The reliever brief prints one page of what the team already wrote: who to notice today, what each child is into, languages at home, the next steps already planned. It is deliberately not a full history, because a brief nobody reads before the children arrive is no use.",
+        "Planning day arrives and someone reads back through a term of stories. The planning brief pulls recent stories into emerging interests, environment ideas and the response ideas that were planned but never tried, so the conversation starts from evidence rather than memory.",
+        "Someone asks what the documentation shows. The documentation radar shows which children have not had a moment recorded lately, and each child's term report describes how dispositions showed up, with no scores and no comparisons between children.",
+      ],
+    },
+    {
+      heading: "Why educators stop hiding their documentation",
+      paragraphs: [
+        "Most oversight tools fail for a human reason: educators write differently when they think leadership is reading over their shoulder, and what leadership then sees is performance rather than practice.",
+        "So sharing is off by default, and only the educator can turn it on for themselves. There is no path for an owner, an admin or support to flip it. Leadership always sees activity, counts and recency, which is what a director actually needs to support a team, and sees content only where an educator chose to share it.",
+        "This is a deliberate trade. It makes StoryLoop less useful as a surveillance tool, and far more likely that your team writes honestly in it.",
+      ],
+    },
+    {
+      heading: "How to try it without a meeting",
+      paragraphs: [
+        "Start a centre plan, write with it for a fortnight in one room, and look at three things: how long a story takes now, whether the drafts sound like your educators, and whether the planning brief said anything you did not already know.",
+        "If the answer to any of those is no, cancel from Billing in a couple of clicks. There is no contract, no per-child fee and no onboarding project. The documentation time calculator on this site will tell you, with your own numbers, whether the maths works before you start.",
+      ],
+    },
+  ],
   "transition-to-school-statement": [
     {
       heading: "What each place actually asks for",

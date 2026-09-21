@@ -143,13 +143,24 @@ export default function DocumentationTimeCalculator() {
                 : `On your numbers it saves ${result.hoursSaved} hours, which is less than the ${result.breakEvenHours} hours it would take to pay for itself.`
               : "On these numbers a first draft would not save time, so it would not pay for itself."}
           </p>
-          <Link
-            href="/signup"
-            onClick={() => track("cta_click", { cta: "time_calculator_signup", plan: result.recommended.plan })}
-            className="btn-primary mt-4 inline-flex text-sm"
-          >
-            Try it free with your own notes
-          </Link>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              href="/signup"
+              onClick={() => track("cta_click", { cta: "time_calculator_signup", plan: result.recommended.plan })}
+              className="btn-primary inline-flex text-sm"
+            >
+              Try it free with your own notes
+            </Link>
+            {result.recommended.plan.startsWith("centre_") && (
+              <Link
+                href="/for-centres"
+                onClick={() => track("cta_click", { cta: "time_calculator_centres", plan: result.recommended.plan })}
+                className="btn-secondary inline-flex text-sm"
+              >
+                What a centre plan includes
+              </Link>
+            )}
+          </div>
           <p className="mt-2 text-xs text-ink-500">3 free stories a month, no card. Paid plans start with a 7-day free trial.</p>
         </div>
 

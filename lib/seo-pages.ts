@@ -1063,6 +1063,70 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       },
     ],
   },
+  // The page a director lands on. Every claim here is either a plan fact from
+  // lib/plans.ts or a feature that exists; the consent rule is the one thing no
+  // competitor can say, so it leads.
+  "for-centres": {
+    slug: "for-centres",
+    title: "StoryLoop for Centres",
+    description:
+      "Whole-team documentation support for early childhood centres: unlimited children, a reliever brief, planning from real stories, and educators who keep their own drafts.",
+    kicker: "For directors and owners",
+    heading: "Your team's documentation, without buying their diary.",
+    intro:
+      "A centre plan covers every educator and every child for one flat price. Leadership sees who is documenting and when. It never sees what an educator wrote unless that educator turns sharing on, because buying the seats should not buy the diary.",
+    reviewedAt: "2026-09-22",
+    sections: [
+      {
+        title: "One price, unlimited children",
+        body:
+          "Centre Starter is NZ$109 or A$99 a month for up to 10 educators, Centre Growth NZ$219 or A$199 for up to 25. Enrol twenty more tamariki and the price does not move. Per educator that is roughly half the individual plan.",
+      },
+      {
+        title: "The reliever problem, solved on one page",
+        body:
+          "A relief teacher prints one page before the children arrive: who has not been noticed lately, what each child is into, languages spoken at home, and the next steps your team already planned. Built from stories your team already wrote.",
+      },
+      {
+        title: "Educators keep their drafts",
+        body:
+          "Sharing is off by default and only the educator can turn it on. Leadership always sees activity, never content they were not given. That is the difference between support and surveillance, and it is why teams stop hiding their documentation.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Do we have to move off Storypark or Educa?",
+        answer:
+          "No. StoryLoop is where the writing happens; your platform stays where families and records live. Finished drafts export into Storypark, Educa, Kinderloop and Brightwheel, so nothing migrates and nothing is replaced.",
+      },
+      {
+        question: "What does a centre plan actually include?",
+        answer:
+          "Everything on Educator Pro for every educator on the plan, plus the reliever brief, a planning brief built from recent stories, a documentation radar, shared centre voice and quality settings, export packs, and admin oversight that shows activity rather than content.",
+      },
+      {
+        question: "Is it cheaper than buying individual plans?",
+        answer:
+          "From about six educators, yes. Ten individual Educator plans are NZ$210 a month; Centre Starter covers ten educators for NZ$109 with unlimited children. The documentation time calculator on this site does the arithmetic with your own numbers.",
+      },
+      {
+        question: "Who owns what our educators write?",
+        answer:
+          "Your service does. Stories stay in the account, are editable and exportable at any time, and StoryLoop never sends anything to families on your behalf.",
+      },
+      ...sharedFaqs,
+    ],
+    sources: [
+      {
+        label: "ACECQA Guide to the NQF: Standard 1.3 Assessment and planning",
+        url: "https://www.acecqa.gov.au/national-quality-framework/guide-nqf/section-3-national-quality-standard-and-assessment-and-rating/quality-area-1-educational-program-and-practice/standard-13-assessment-and-planning",
+      },
+      {
+        label: "Education Review Office: how ERO reviews early childhood services",
+        url: "https://www.ero.govt.nz/how-ero-reviews/how-ero-reviews-early-childhood-services",
+      },
+    ],
+  },
   "te-whariki-learning-outcomes-guide": {
     slug: "te-whariki-learning-outcomes-guide",
     title: "Te Whāriki Learning Outcomes: A Practical Guide",

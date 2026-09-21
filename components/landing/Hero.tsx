@@ -47,6 +47,33 @@ export default function Hero() {
               Thumb in half a sentence after block play. StoryLoop turns it into an editable draft with
               the curriculum links already mapped. You review every word.
             </p>
+
+            {/* Both ways in, before anything else. A July change moved these
+                below two explanation cards, which on a phone is three screens
+                down: an educator reading at 9pm should never have to scroll to
+                find the way in, whether she wants the free plan or a paid one. */}
+            <div className="animate-fade-up-3 mt-5 flex flex-col items-center gap-3 sm:flex-row lg:justify-start">
+              <Link href="/signup" className="btn-primary group w-full px-7 py-3.5 text-base sm:w-auto">
+                <Sparkles className="h-4 w-4" /> Start free, 3 stories included
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+              <Link href="/pricing" className="btn-secondary w-full px-7 py-3.5 text-base sm:w-auto">
+                Unlimited from NZ$21 / A$19
+              </Link>
+            </div>
+
+            <p className="animate-fade-up-3 mt-3 text-xs leading-relaxed text-ink-500">
+              Free plan needs no credit card. Paid plans start with a 7-day free trial and cancel anytime.
+            </p>
+
+            <div className="animate-fade-up-4 mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-ink-500 lg:justify-start">
+              {["No credit card", "Te Whāriki + EYLF", "Works on your phone"].map((item) => (
+                <span key={item} className="flex items-center gap-1.5">
+                  <Check className="h-4 w-4 text-sage-500" />
+                  {item}
+                </span>
+              ))}
+            </div>
           </div>
 
           {/* ------------------------------------------- demo (mobile: 2nd) */}
@@ -100,25 +127,6 @@ export default function Hero() {
                 StoryLoop does not replace your centre&apos;s system. It writes the draft, then exports
                 straight into whatever you already use.
               </p>
-            </div>
-
-            <div className="animate-fade-up-4 mt-5 flex flex-col items-center gap-3 sm:flex-row lg:justify-start">
-              <Link href="/signup" className="btn-primary group w-full px-7 py-3.5 text-base sm:w-auto">
-                <Sparkles className="h-4 w-4" /> Start free, 3 stories included
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-              <a href="#how-it-works" className="btn-secondary w-full px-7 py-3.5 text-base sm:w-auto">
-                How it works
-              </a>
-            </div>
-
-            <div className="animate-fade-up-5 mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-ink-500 lg:justify-start">
-              {["No credit card", "Te Whāriki + EYLF", "Works on your phone"].map((item) => (
-                <span key={item} className="flex items-center gap-1.5">
-                  <Check className="h-4 w-4 text-sage-500" />
-                  {item}
-                </span>
-              ))}
             </div>
 
             {/* A real person behind it. Storypark cannot put a founder's face
