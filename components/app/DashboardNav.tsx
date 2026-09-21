@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, Mail, AlertTriangle, Brain, Users, ClipboardList, MessageSquareText, BarChart3, SlidersHorizontal, Lock, Sunrise, Building2, UserPlus } from "lucide-react";
+import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, Mail, AlertTriangle, Brain, Users, ClipboardList, MessageSquareText, BarChart3, SlidersHorizontal, Lock, Sunrise, Building2, UserPlus, FileCheck2 } from "lucide-react";
 import AnimatedLogo from "@/components/brand/AnimatedLogo";
 import { createClient } from "@/lib/supabase/client";
 import { getMonthlyStoryLimit, getStoryAllowanceLabel } from "@/lib/story-limits";
@@ -34,6 +34,7 @@ const NAV: NavItem[] = [
   { href: "/centre", icon: Building2, label: "My centre" },
   { href: "/centre-tools", icon: SlidersHorizontal, label: "Centre tools", feature: "adminOversight" },
   { href: "/reliever", icon: UserPlus, label: "Reliever brief", feature: "relieverBrief" },
+  { href: "/evidence", icon: FileCheck2, label: "Evidence pack", feature: "evidencePack" },
   { href: "/roi", icon: BarChart3, label: "ROI dashboard", feature: "directorRoiDashboard" },
   { href: "/feedback", icon: MessageSquareText, label: "Feedback" },
   { href: "/billing", icon: CreditCard, label: "Billing" },

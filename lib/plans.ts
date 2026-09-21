@@ -35,7 +35,9 @@ export type FeatureKey =
   | "termWeather"
   | "transitionPack"
   // A one-page brief so a reliever walking in cold can still see the children.
-  | "relieverBrief";
+  | "relieverBrief"
+  // The documentation a review visit asks for, assembled from saved stories.
+  | "evidencePack";
 
 export type PlanDefinition = {
   key: PlanKey;
@@ -167,6 +169,7 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
       "Documentation Radar",
       "Admin oversight signals",
       "Reliever brief: your room on one page for a relief teacher",
+      "Evidence pack: your own stories assembled the way a review visit asks for them",
       "Priority support",
     ],
     painSolved: [
@@ -244,6 +247,9 @@ const FEATURE_REQUIREMENTS: Record<FeatureKey, PlanKey> = {
   // Relievers are a centre problem: the centre pays for them and the centre
   // feels the documentation gap they leave behind.
   relieverBrief: "centre_starter",
+  // An assessment visit is a centre event, and the person who loses their
+  // weekends to it is the person who signs off the centre plan.
+  evidencePack: "centre_starter",
 };
 
 export function normalizePlanKey(plan: unknown): PlanKey {
@@ -268,6 +274,7 @@ const FEATURE_PARAM_ALIASES: Record<string, FeatureKey> = {
   "child-continuity": "childContinuityProfiles",
   "term-report": "termWeather",
   "reliever-brief": "relieverBrief",
+  "evidence-pack": "evidencePack",
 };
 
 /** The feature an upgrade link is asking about, or null if it names none. */

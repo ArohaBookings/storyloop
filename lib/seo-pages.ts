@@ -1070,7 +1070,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     slug: "for-centres",
     title: "StoryLoop for Centres",
     description:
-      "Whole-team documentation support for early childhood centres: unlimited children, a reliever brief, planning from real stories, and educators who keep their own drafts.",
+      "Documentation support for a whole early childhood team: unlimited children, a reliever brief, an evidence pack, and planning built from real stories.",
     kicker: "For directors and owners",
     heading: "Your team's documentation, without buying their diary.",
     intro:

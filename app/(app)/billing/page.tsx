@@ -59,6 +59,10 @@ const FEATURE_UPSELL: Partial<Record<FeatureKey, { title: string; blurb: string 
     title: "Reliever brief",
     blurb: "One page a relief teacher can read before the children arrive: who to notice today, what each child is into, languages at home and the next steps your team already planned.",
   },
+  evidencePack: {
+    title: "Evidence pack",
+    blurb: "One page showing how every child is covered, where the planning cycle closes, where reflection and family voice are recorded, and which gaps to fix — counted from the stories you already saved.",
+  },
   centreQualityCalibration: {
     title: "Centre Quality Calibration",
     blurb: "Set your centre's philosophy, preferred and avoided phrases, an approved example story and privacy rules once, so every educator's drafts start from the same standard.",
