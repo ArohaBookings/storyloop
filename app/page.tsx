@@ -59,7 +59,7 @@ export default function LandingPage() {
         <Examples />
         <StraightAnswers />
         <Reviews />
-        <Pricing />
+        <Pricing audience="individuals" />
         <FAQ />
         <CTA />
       </main>

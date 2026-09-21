@@ -4,7 +4,12 @@ import { useState, useEffect } from "react";
 import { Check, ShieldCheck } from "lucide-react";
 import { getPlanDefinitions, type CurrencyCode } from "@/lib/plans";
 
-export default function Pricing() {
+/**
+ * `audience="individuals"` shows only the plans one educator chooses between.
+ * Five plan cards on a phone is a decision, not an invitation; centre plans are
+ * one tap away on /pricing, where a director is already comparing properly.
+ */
+export default function Pricing({ audience = "all" }: { audience?: "all" | "individuals" } = {}) {
   const [currency, setCurrency] = useState<CurrencyCode>("AUD");
 
   useEffect(() => {
@@ -13,7 +18,9 @@ export default function Pricing() {
     if (tz?.includes("Auckland") || tz?.includes("Pacific/Auckland")) setCurrency("NZD");
   }, []);
 
-  const plans = getPlanDefinitions(currency);
+  const allPlans = getPlanDefinitions(currency);
+  const plans = audience === "individuals" ? allPlans.filter((plan) => !plan.key.startsWith("centre_")) : allPlans;
+  const centreStarter = allPlans.find((plan) => plan.key === "centre_starter");
 
   return (
     <section id="pricing" className="py-24 bg-cream-50 border-y border-clay-100">
@@ -36,7 +43,7 @@ export default function Pricing() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5">
+        <div className={`grid grid-cols-1 gap-5 md:grid-cols-2 ${audience === "individuals" ? "xl:grid-cols-3" : "xl:grid-cols-5"}`}>
           {plans.map(plan => (
             <div key={plan.name} className={`rounded-2xl p-7 flex flex-col ${plan.popular ? "bg-ink-900 text-paper border-2 border-clay-600 shadow-clay" : "bg-white border border-clay-100 shadow-soft"}`}>
               {plan.popular && (
@@ -86,6 +93,17 @@ export default function Pricing() {
             </div>
           ))}
         </div>
+
+        {audience === "individuals" && centreStarter && (
+          <div className="mx-auto mt-8 max-w-2xl rounded-2xl border border-clay-200 bg-white p-5 text-center shadow-soft">
+            <p className="font-display text-lg font-bold text-ink-900">Running a centre?</p>
+            <p className="mt-1.5 text-sm leading-relaxed text-ink-600">
+              Centre plans cover your whole team and unlimited children from ${centreStarter.displayPrice} {currency} a month,
+              about half the individual price per educator.
+            </p>
+            <Link href="/pricing" className="btn-secondary mt-4 inline-flex text-sm">See centre plans</Link>
+          </div>
+        )}
 
         {/* The one structural difference from every incumbent, stated about
             ourselves only. Naming a competitor's per-child rate would date

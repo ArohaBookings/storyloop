@@ -94,7 +94,9 @@ export async function POST(request: NextRequest) {
       demo,
     } = body;
 
-    if (!observations || observations.trim().length < MIN_STORY_OBSERVATION_CHARACTERS) {
+    // A non-string here (a number, an array) used to throw inside trim() and
+    // come back as a 500. It is a bad request, and it says so.
+    if (typeof observations !== "string" || observations.trim().length < MIN_STORY_OBSERVATION_CHARACTERS) {
       return NextResponse.json({ error: "Please add at least a very short observation" }, { status: 400 });
     }
 

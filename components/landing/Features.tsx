@@ -120,7 +120,10 @@ export default function Features() {
                 </div>
                 <p className="text-sm text-clay-700 leading-relaxed mb-5">{group.promise}</p>
                 <ul className="space-y-3">
-                  {group.items.map((item) => (
+                  {/* Three per pillar on the landing page. Twenty-four feature
+                      bullets is a decision to make, not a reason to sign up;
+                      the full list lives on /pricing. */}
+                  {group.items.slice(0, 3).map((item) => (
                     <li key={item.title} className="flex gap-2.5">
                       <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-clay-400" />
                       <span>
@@ -130,6 +133,9 @@ export default function Features() {
                     </li>
                   ))}
                 </ul>
+                {group.items.length > 3 && (
+                  <p className="mt-3 text-xs text-ink-400">and {group.items.length - 3} more in this pillar</p>
+                )}
               </div>
             );
           })}
