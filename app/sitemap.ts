@@ -7,7 +7,7 @@ const SITE_URL = "https://storyloop.space";
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const staticPages = ["", "about", "resources", "examples", "ai-policy", "documentation-time-calculator", "privacy", "terms", "blog"];
+  const staticPages = ["", "about", "resources", "examples", "ai-policy", "documentation-time-calculator", "review-readiness-check", "privacy", "terms", "blog"];
 
   const base: MetadataRoute.Sitemap = [...staticPages, ...SEO_PAGE_SLUGS].map((slug) => ({
     url: slug ? `${SITE_URL}/${slug}` : `${SITE_URL}/`,

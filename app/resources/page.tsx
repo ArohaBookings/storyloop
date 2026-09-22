@@ -34,6 +34,13 @@ const GUIDES = [
     icon: BookOpen,
   },
   {
+    href: "/review-readiness-check",
+    kicker: "Free tool · 2 minutes",
+    title: "Review visit readiness check",
+    description: "Ten honest questions about your documentation. See the gaps a review conversation would surface, in the order to fix them. Nothing leaves your browser.",
+    icon: FileCheck,
+  },
+  {
     href: "/ai-policy",
     kicker: "Free tool",
     title: "AI policy for your service",
