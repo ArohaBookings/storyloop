@@ -71,6 +71,10 @@ const FEATURE_UPSELL: Partial<Record<FeatureKey, { title: string; blurb: string 
     title: "Learning passport",
     blurb: "One file a family keeps: who their child is as a learner, in their own words and their educators'. It opens on any computer, offline, with no account, and keeps working whatever happens to StoryLoop.",
   },
+  pickupBrief: {
+    title: "Pickup brief",
+    blurb: "Before the door opens, the specific true thing next to each child's name. Not a script, and never invented: where nothing was recorded it says so rather than dressing it up.",
+  },
   evidencePack: {
     title: "Evidence pack",
     blurb: "One page showing how every child is covered, where the planning cycle closes, where reflection and family voice are recorded, and which gaps to fix — counted from the stories you already saved.",
