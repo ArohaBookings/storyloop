@@ -3,10 +3,17 @@
 import { useState } from "react";
 import { Check, Loader2, Star } from "lucide-react";
 
-/** Educators leave a review from Support. It is held for moderation, so the
- *  form is honest about that: it thanks them and says a human will read it. */
-export default function ReviewForm() {
-  const [rating, setRating] = useState(0);
+/** Educators leave a review from Support, or from the dashboard ask
+ *  (ReviewPrompt), which embeds this form once a star is tapped. It is held for
+ *  moderation, so the form is honest about that: it thanks them and says a
+ *  human will read it. Every rating goes to the same place: low ones are not
+ *  routed away from the public review queue. */
+export default function ReviewForm({
+  initialRating = 0,
+  embedded = false,
+  onSent,
+}: { initialRating?: number; embedded?: boolean; onSent?: () => void } = {}) {
+  const [rating, setRating] = useState(initialRating);
   const [hover, setHover] = useState(0);
   const [role, setRole] = useState("");
   const [body, setBody] = useState("");
@@ -27,6 +34,7 @@ export default function ReviewForm() {
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? "Could not send your review."); return; }
       setSent(true);
+      onSent?.();
     } catch {
       setError("Could not send your review.");
     } finally {
@@ -36,7 +44,7 @@ export default function ReviewForm() {
 
   if (sent) {
     return (
-      <section className="card p-6 md:p-7">
+      <section className={embedded ? "" : "card p-6 md:p-7"}>
         <div className="flex items-start gap-3">
           <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sage-600 text-paper">
             <Check className="h-5 w-5" />
@@ -54,24 +62,30 @@ export default function ReviewForm() {
   }
 
   return (
-    <section className="card p-6 md:p-7">
-      <p className="section-title mb-1">Leave a review</p>
-      <h2 className="font-display text-xl font-bold text-ink-900">If StoryLoop has helped, tell other educators.</h2>
-      <p className="mt-1 text-sm text-ink-600">
-        We may share it on our site with your first name and last initial only. Never your email.
-      </p>
+    <section className={embedded ? "" : "card p-6 md:p-7"}>
+      {!embedded && (
+        <>
+          <p className="section-title mb-1">Leave a review</p>
+          <h2 className="font-display text-xl font-bold text-ink-900">If StoryLoop has helped, tell other educators.</h2>
+          <p className="mt-1 text-sm text-ink-600">
+            We may share it on our site with your first name and last initial only. Never your email.
+          </p>
+        </>
+      )}
 
-      <form onSubmit={submit} className="mt-5 space-y-4">
-        <div className="flex items-center gap-1.5" role="radiogroup" aria-label="Star rating">
+      <form onSubmit={submit} className={embedded ? "space-y-4" : "mt-5 space-y-4"}>
+        <div className="flex items-center gap-1" role="radiogroup" aria-label="Star rating">
           {[1, 2, 3, 4, 5].map((n) => (
             <button
               key={n}
               type="button"
+              role="radio"
+              aria-checked={rating === n}
               aria-label={`${n} star${n === 1 ? "" : "s"}`}
               onClick={() => setRating(n)}
               onMouseEnter={() => setHover(n)}
               onMouseLeave={() => setHover(0)}
-              className="p-0.5"
+              className="rounded-lg p-1.5"
             >
               <Star
                 className={`h-7 w-7 transition-colors ${
@@ -105,7 +119,12 @@ export default function ReviewForm() {
           />
         </div>
 
-        {error && <p className="rounded-xl border border-clay-200 bg-clay-50 px-3 py-2 text-xs text-clay-700">{error}</p>}
+        {embedded && (
+          <p className="text-sm text-ink-500">
+            We may share it on our site with your first name and last initial only. Never your email.
+          </p>
+        )}
+        {error && <p className="rounded-xl border border-clay-200 bg-clay-50 px-3 py-2 text-sm text-clay-700">{error}</p>}
 
         <button type="submit" disabled={sending} className="btn-primary disabled:opacity-50">
           {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Star className="h-4 w-4" />}

@@ -5,6 +5,13 @@ import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } fro
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
 import { redirect } from "next/navigation";
 import { PLAN_DEFINITIONS, normalizePlanKey } from "@/lib/plans";
+import { headers } from "next/headers";
+import { createAdminSupabase } from "@/lib/supabase/admin";
+import ReviewPrompt from "@/components/app/ReviewPrompt";
+
+/** Stories, and days since the first, before StoryLoop asks for a review. */
+const REVIEW_ASK_MIN_STORIES = 4;
+const REVIEW_ASK_MIN_DAYS = 3;
 
 export const metadata = { title: "Dashboard" };
 
@@ -38,8 +45,43 @@ export default async function DashboardPage({
   const billingPastDue = isBillingPastDue(profile ?? {});
   const upgraded = params?.upgraded === "true";
 
+  // Whether to ask for a review: a few stories over a few days, never asked
+  // of somebody who has already left one, and never of an internal account.
+  // Best effort: any failure just means no ask today.
+  let askForReview = false;
+  if ((totalStories ?? 0) >= REVIEW_ASK_MIN_STORIES) {
+    try {
+      const admin = createAdminSupabase();
+      const [{ data: firstStory }, { count: reviewCount, error: reviewError }, { data: internal }] = await Promise.all([
+        admin.from("stories").select("created_at").eq("user_id", user.id).order("created_at", { ascending: true }).limit(1).maybeSingle(),
+        admin.from("reviews").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+        admin.from("profiles").select("is_internal").eq("id", user.id).maybeSingle(),
+      ]);
+      const firstAt = firstStory?.created_at ? new Date(firstStory.created_at).getTime() : Date.now();
+      askForReview =
+        !reviewError &&
+        (reviewCount ?? 0) === 0 &&
+        !internal?.is_internal &&
+        Date.now() - firstAt >= REVIEW_ASK_MIN_DAYS * 86_400_000;
+    } catch {
+      askForReview = false;
+    }
+  }
+
+  // The greeting in the educator's own time. This used the server's clock,
+  // which runs on UTC: a kaiako opening StoryLoop at 9am in Auckland was
+  // greeted "Good evening". Vercel sends the visitor's time zone.
+  const requestHeaders = await headers();
+  const timeZone = requestHeaders.get("x-vercel-ip-timezone") || "Pacific/Auckland";
+  const localHour = (() => {
+    try {
+      return Number(new Intl.DateTimeFormat("en-NZ", { hour: "numeric", hourCycle: "h23", timeZone }).format(new Date()));
+    } catch {
+      return Number(new Intl.DateTimeFormat("en-NZ", { hour: "numeric", hourCycle: "h23", timeZone: "Pacific/Auckland" }).format(new Date()));
+    }
+  })();
   const greeting = (() => {
-    const h = new Date().getHours();
+    const h = localHour;
     if (h < 12) return "Good morning";
     if (h < 18) return "Good afternoon";
     return "Good evening";
@@ -227,6 +269,8 @@ export default async function DashboardPage({
           </div>
         </div>
       )}
+
+      {askForReview && <ReviewPrompt />}
 
       <div className="card animate-fade-up-3 overflow-hidden">
         <div className="px-6 py-4 border-b border-clay-100 flex items-center justify-between">
