@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { hasFeatureAccess } from "@/lib/plans";
-import { buildWallCard, generateWallCode, isWallCode, type ScrubReport } from "@/lib/wall-card";
+import { buildWallCard, generateWallCode, isWallCode, type PublicWallCard, type ScrubReport } from "@/lib/wall-card";
+import { translateWallCard } from "@/lib/wall-translate";
 
 /**
  * Creating, publishing and revoking wall cards.
@@ -40,7 +41,7 @@ export async function GET() {
 
   const { data } = await auth.supabase
     .from("wall_cards")
-    .select("id, code, card, scrub_report, status, expires_at, scan_count, created_at")
+    .select("id, code, card, scrub_report, status, expires_at, scan_count, created_at, translations")
     .eq("user_id", auth.user.id)
     .order("created_at", { ascending: false })
     .limit(MAX_CARDS);
@@ -158,9 +159,30 @@ export async function PATCH(request: NextRequest) {
     }
   }
 
+  // Translate at publish, once. A parent at a wall should never wait for a
+  // model, and a public page that called a paid API per scan would be a cost
+  // attack. A failure here drops a language, never the card: the English is
+  // the card itself and is always there underneath.
+  let translations: Record<string, unknown> | null = null;
+  if (action === "publish") {
+    const { data: row } = await auth.supabase
+      .from("wall_cards").select("card, translations").eq("id", id).eq("user_id", auth.user.id).maybeSingle();
+    const card = row?.card as PublicWallCard | undefined;
+    const existing = (row?.translations ?? {}) as Record<string, unknown>;
+    if (card && Object.keys(existing).length === 0) {
+      translations = await translateWallCard({
+        heading: card.heading,
+        body: card.body,
+        dispositions: card.dispositions,
+        curriculum: card.curriculum,
+        tryAtHome: card.tryAtHome,
+      });
+    }
+  }
+
   const patch =
     action === "publish"
-      ? { status: "published" as const, revoked_at: null }
+      ? { status: "published" as const, revoked_at: null, ...(translations ? { translations } : {}) }
       : action === "revoke"
         ? { status: "revoked" as const, revoked_at: new Date().toISOString() }
         : { expires_at: new Date(Date.now() + 100 * 24 * 60 * 60 * 1000).toISOString() };
@@ -170,7 +192,7 @@ export async function PATCH(request: NextRequest) {
     .update(patch)
     .eq("id", id)
     .eq("user_id", auth.user.id)
-    .select("id, code, card, scrub_report, status, expires_at, scan_count")
+    .select("id, code, card, scrub_report, status, expires_at, scan_count, translations")
     .single();
 
   if (error) {

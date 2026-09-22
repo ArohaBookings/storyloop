@@ -41,6 +41,7 @@ MIGRATIONS=(
   "supabase/migrations/20260922_wall_cards.sql"
   "supabase/migrations/20260922_child_voice_notes.sql"
   "supabase/migrations/20260922_learning_index_consent.sql"
+  "supabase/migrations/20260922_wall_card_translations.sql"
 )
 TESTS=(
   "supabase/tests/centre_team_model.test.sql"
