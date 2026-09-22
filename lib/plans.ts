@@ -45,7 +45,9 @@ export type FeatureKey =
   // A portable, family-held record that outlives the service and us.
   | "learningPassport"
   // The specific true thing to say at the door, per child, before pickup.
-  | "pickupBrief";
+  | "pickupBrief"
+  // What an educator came back to and kept: the closed half of the cycle.
+  | "practiceSignals";
 
 export type PlanDefinition = {
   key: PlanKey;
@@ -121,6 +123,7 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
       "Children's own words: a big button a three-year-old can use, kept exactly as they said it",
       "Learning passport: a portable record a family keeps, that works without StoryLoop",
       "Pickup brief: the specific true thing to say about each child before the door opens",
+      "What you came back to: the next steps you revisited and kept, gathered from your own stories",
       "Export packs for Storypark, Educa, Kinderloop, Brightwheel",
       "Backlog Rescue",
       "Learning threads",
@@ -278,6 +281,9 @@ const FEATURE_REQUIREMENTS: Record<FeatureKey, PlanKey> = {
   // the individual plan: it is used every afternoon, and it is seen by adults
   // who do not have an account.
   pickupBrief: "educator",
+  // Reading your own closed loops needs nobody else's data, so it works from
+  // the first week rather than at scale.
+  practiceSignals: "educator",
 };
 
 export function normalizePlanKey(plan: unknown): PlanKey {
@@ -307,6 +313,7 @@ const FEATURE_PARAM_ALIASES: Record<string, FeatureKey> = {
   "child-voice": "childVoice",
   "learning-passport": "learningPassport",
   "pickup-brief": "pickupBrief",
+  "practice-signals": "practiceSignals",
   "passport": "learningPassport",
   "wall-card": "wallCards",
 };

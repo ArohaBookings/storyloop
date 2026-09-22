@@ -75,6 +75,10 @@ const FEATURE_UPSELL: Partial<Record<FeatureKey, { title: string; blurb: string 
     title: "Pickup brief",
     blurb: "Before the door opens, the specific true thing next to each child's name. Not a script, and never invented: where nothing was recorded it says so rather than dressing it up.",
   },
+  practiceSignals: {
+    title: "What you came back to",
+    blurb: "Every platform stores the plan. This is what happened when you went back to it: the next steps you revisited and the ones you decided were worth keeping.",
+  },
   evidencePack: {
     title: "Evidence pack",
     blurb: "One page showing how every child is covered, where the planning cycle closes, where reflection and family voice are recorded, and which gaps to fix — counted from the stories you already saved.",
