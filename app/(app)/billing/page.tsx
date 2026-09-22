@@ -59,6 +59,10 @@ const FEATURE_UPSELL: Partial<Record<FeatureKey, { title: string; blurb: string 
     title: "Reliever brief",
     blurb: "One page a relief teacher can read before the children arrive: who to notice today, what each child is into, languages at home and the next steps your team already planned.",
   },
+  wallCards: {
+    title: "Wall cards",
+    blurb: "Print a small code beside a display. A family scans it at pickup and reads the learning behind what they are looking at, with no app and no login. The page carries no names, no photographs and no dates.",
+  },
   evidencePack: {
     title: "Evidence pack",
     blurb: "One page showing how every child is covered, where the planning cycle closes, where reflection and family voice are recorded, and which gaps to fix — counted from the stories you already saved.",

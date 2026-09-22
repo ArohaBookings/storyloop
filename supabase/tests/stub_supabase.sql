@@ -15,6 +15,17 @@ create schema if not exists private;
 
 create table if not exists auth.users (id uuid primary key default gen_random_uuid());
 
+-- Supabase's own auth.uid(), reproduced faithfully enough to test RLS: it reads
+-- the subject out of the request's JWT claims, which is exactly what PostgREST
+-- sets per connection. Without it, any policy written the normal Supabase way
+-- cannot be executed here at all, which would mean RLS was the one thing the
+-- verifier could not check.
+create or replace function auth.uid() returns uuid
+language sql stable
+as $$
+  select nullif(current_setting('request.jwt.claims', true)::json ->> 'sub', '')::uuid;
+$$;
+
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id),
   email text,
@@ -44,7 +55,21 @@ create table if not exists public.stories (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references public.profiles(id),
   created_at timestamptz default now(),
-  content text
+  content text,
+  -- Nullable on purpose: 20260922_child_interests_never_null exists precisely
+  -- to give these a default, so the stub must start in the broken shape the
+  -- migration is there to fix, or the migration would be tested against a
+  -- database that never had the problem.
+  outcomes text[],
+  next_steps text[]
+);
+
+create table if not exists public.child_profiles (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.profiles(id),
+  name text,
+  interests text[],
+  created_at timestamptz default now()
 );
 
 create table if not exists private.stripe_webhook_events (

@@ -37,7 +37,9 @@ export type FeatureKey =
   // A one-page brief so a reliever walking in cold can still see the children.
   | "relieverBrief"
   // The documentation a review visit asks for, assembled from saved stories.
-  | "evidencePack";
+  | "evidencePack"
+  // A printed code beside a display, so a family can read the learning behind it.
+  | "wallCards";
 
 export type PlanDefinition = {
   key: PlanKey;
@@ -109,6 +111,7 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
       "Voice notes and uploads",
       "Observation Coach prompts",
       "Family Connection Pack",
+      "Wall cards: a code beside your display that shows families the learning behind it",
       "Export packs for Storypark, Educa, Kinderloop, Brightwheel",
       "Backlog Rescue",
       "Learning threads",
@@ -250,6 +253,11 @@ const FEATURE_REQUIREMENTS: Record<FeatureKey, PlanKey> = {
   // An assessment visit is a centre event, and the person who loses their
   // weekends to it is the person who signs off the centre plan.
   evidencePack: "centre_starter",
+  // Deliberately NOT a centre feature, although centres are who it sells. One
+  // educator on an individual plan puts a code beside their own display, and
+  // every family, colleague and director who walks past sees it working. Gate
+  // it to centres and it can only be seen by services that already bought.
+  wallCards: "educator",
 };
 
 export function normalizePlanKey(plan: unknown): PlanKey {
@@ -275,6 +283,8 @@ const FEATURE_PARAM_ALIASES: Record<string, FeatureKey> = {
   "term-report": "termWeather",
   "reliever-brief": "relieverBrief",
   "evidence-pack": "evidencePack",
+  "wall-cards": "wallCards",
+  "wall-card": "wallCards",
 };
 
 /** The feature an upgrade link is asking about, or null if it names none. */
