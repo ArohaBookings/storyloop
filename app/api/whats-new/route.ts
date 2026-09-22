@@ -21,20 +21,20 @@ export async function GET() {
     .eq("id", user.id)
     .maybeSingle();
 
-  const showWhatsNew = shouldShowWhatsNew();
+  // A release note is only worth showing to somebody who has used the product.
+  // The count is needed for the referral intro anyway, so it costs nothing.
+  const { count: storiesWritten } = await admin
+    .from("stories")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+  const showWhatsNew = shouldShowWhatsNew(profile?.whats_new_seen_version, storiesWritten ?? 0);
 
   // Never ask a new educator to refer people before they have written anything.
   // Signup -> first story is the step we are protecting, so the referral intro
   // waits until the tool has actually earned the ask. One story is not enough
   // to be pleased by: it takes a few before someone would put their name to it.
-  let showReferralIntro = false;
-  if (!profile?.referral_modal_seen_at) {
-    const { count: written } = await admin
-      .from("stories")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id);
-    showReferralIntro = (written ?? 0) >= REFERRAL_INTRO_MIN_STORIES;
-  }
+  const showReferralIntro =
+    !profile?.referral_modal_seen_at && (storiesWritten ?? 0) >= REFERRAL_INTRO_MIN_STORIES;
 
   // Only pay the cost of creating a code when the card will actually be shown.
   let code: string | null = null;

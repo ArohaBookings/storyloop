@@ -1,71 +1,110 @@
 /**
  * Release notes shown once per user in the What's New card.
  *
- * The version records which release a user first acknowledged. Once any version
- * has been seen, the card stays dismissed for that user.
+ * The version records which release a user acknowledged. Bumping it shows the
+ * card again, once, to people who have already used StoryLoop.
  */
-export const WHATS_NEW_VERSION = "2026-07";
+export const WHATS_NEW_VERSION = "2026-09";
+
+/** Stories somebody must have written before a release note is worth showing. */
+export const WHATS_NEW_MIN_STORIES = 1;
 
 /**
- * Disabled from 2026-09-16.
+ * Whether to show the card.
  *
- * The card fired for every user who had never dismissed it, which meant a new
- * educator met a modal before they had written anything. Signup -> first story
- * is the funnel step we are trying to fix, so nothing goes in front of it.
+ * It was disabled outright on 2026-09-16 because it fired for everybody who had
+ * never dismissed it, which put a modal in front of a brand-new educator before
+ * they had written anything. Signup to first story is the funnel step worth
+ * protecting above all others, so nothing goes in front of it.
  *
- * Kept as a single switch rather than unmounting the modal: the referral intro
- * shares that component. To re-enable for a real release, take the stored
- * version back as an argument and return `!seenVersion`.
+ * Re-enabled with that lesson kept rather than forgotten: a release note is
+ * only shown to somebody who has actually written a story. A person who has
+ * not used the product yet does not need to hear what changed in it.
  */
-export function shouldShowWhatsNew() {
-  return false;
+export function shouldShowWhatsNew(seenVersion: string | null | undefined, storiesWritten: number) {
+  if (storiesWritten < WHATS_NEW_MIN_STORIES) return false;
+  return seenVersion !== WHATS_NEW_VERSION;
 }
 
 export type WhatsNewItem = {
   icon: "quill" | "shield" | "voice" | "guides" | "refresh" | "today" | "family" | "centre" | "review";
   title: string;
   body: string;
+  /** Where to go and try it. */
+  href?: string;
+  /** Shown as a small tag when the feature is not on every plan. */
+  plan?: string;
 };
 
+/**
+ * The September 2026 release.
+ *
+ * Everything before this was removed rather than archived. A release note that
+ * accumulates is a changelog, and nobody reads a changelog in a modal; what
+ * earns the interruption is the handful of things that are new since they last
+ * looked.
+ */
 export const WHATS_NEW_ITEMS: WhatsNewItem[] = [
   {
-    icon: "today",
-    title: "Today Loop",
-    body: "Capture a real moment in seconds, see up to three useful follow-up prompts, then turn it into a story, hold it for planning, or archive it.",
-  },
-  {
-    icon: "quill",
-    title: "Quill, your writing assistant",
-    body: "Highlight any line and tell Quill what to change in your own words. It rewrites just that line and leaves the rest of your story untouched.",
-  },
-  {
-    icon: "refresh",
-    title: "Improving a story is free",
-    body: "Redrafting a story you already wrote never uses one of your monthly stories, even on the free plan.",
-  },
-  {
-    icon: "shield",
-    title: "Quality, privacy and evidence checks",
-    body: "Every draft shows its evidence anchors, assumptions, curriculum fit, educator checks, quality score, and privacy flags before you share it.",
-  },
-  {
-    icon: "family",
-    title: "Family and continuity loop",
-    body: "Create family-ready packs, translations, home questions, and follow-up stories while carrying whānau aspirations and replies forward.",
+    icon: "voice",
+    title: "Children can tell you themselves",
+    body:
+      "One big button a three-year-old can press to talk about their own work. They hear it back, you write down what they said, and it is kept exactly as they said it. The recording never leaves the browser and is never stored.",
+    href: "/voices",
+    plan: "Educator",
   },
   {
     icon: "centre",
-    title: "Planning and centre visibility",
-    body: "Learning Threads, Documentation Radar, room planning briefs, centre voice controls, export packs, and ROI signals now connect the work after a story.",
+    title: "A code beside your wall display",
+    body:
+      "Print a small code next to a display. A family scans it at pickup and reads the learning behind what they are looking at, on their own phone, in their own language. No app, no sign-in, and no names, photographs or dates on the page.",
+    href: "/wall",
+    plan: "Educator",
+  },
+  {
+    icon: "family",
+    title: "Before the door opens",
+    body:
+      "At pickup, the specific true thing next to each child's name instead of “he had a good day”. Not a script, and never invented: where nothing was recorded it says so rather than dressing it up.",
+    href: "/pickup",
+    plan: "Educator",
+  },
+  {
+    icon: "today",
+    title: "What a child takes with them",
+    body:
+      "One file for a family to keep: who their child is as a learner, in their own words and their educators'. It opens on any computer, offline, with no account, and keeps working whatever happens to StoryLoop.",
+    href: "/children",
+    plan: "Educator",
   },
   {
     icon: "review",
-    title: "Reviews you control",
-    body: "Educators can leave a review from Support. It stays private until an admin publishes it, then appears with only a first name and last initial.",
+    title: "The evidence a review visit asks for",
+    body:
+      "Coverage for every child, where the planning cycle closes, where reflection and family voice are recorded, and the gaps named first. Counted from stories your team already wrote.",
+    href: "/evidence",
+    plan: "Centre",
+  },
+  {
+    icon: "refresh",
+    title: "What you came back to",
+    body:
+      "Every platform stores the plan. This is what happened when you went back to it: the next steps you revisited and the ones you decided were worth keeping.",
+    href: "/practice",
+    plan: "Educator",
+  },
+  {
+    icon: "shield",
+    title: "Get your centre on board",
+    body:
+      "If your centre subscribes using your code, you get three months of your own plan free. On the free plan they are held for you and applied the moment you start one. There is a message on the Support page you can send your manager without writing it yourself.",
+    href: "/support",
   },
   {
     icon: "guides",
-    title: "Guides for educators",
-    body: "Plain-English writing on learning stories, Te Whāriki and EYLF, and cutting documentation time. Free to read, no signup.",
+    title: "A free check for directors",
+    body:
+      "Ten honest questions about your documentation, answered in two minutes, with nothing sent anywhere. It shows the gaps a review conversation would surface, in the order worth fixing them.",
+    href: "/review-readiness-check",
   },
 ];

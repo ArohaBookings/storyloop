@@ -134,8 +134,20 @@ export default function WhatsNewModal() {
                       <Icon className="h-4.5 w-4.5" style={{ width: 18, height: 18 }} />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-ink-900">{item.title}</p>
+                      <p className="flex flex-wrap items-center gap-2 text-sm font-bold text-ink-900">
+                        {item.title}
+                        {item.plan && (
+                          <span className="rounded-full bg-cream-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-clay-700">
+                            {item.plan}
+                          </span>
+                        )}
+                      </p>
                       <p className="mt-0.5 text-[13px] leading-relaxed text-ink-600">{item.body}</p>
+                      {item.href && (
+                        <a href={item.href} className="mt-1 inline-block text-[13px] font-medium text-clay-700 underline underline-offset-2">
+                          Take a look
+                        </a>
+                      )}
                     </div>
                   </div>
                 );
