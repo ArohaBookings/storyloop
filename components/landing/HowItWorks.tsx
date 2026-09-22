@@ -1,46 +1,53 @@
-import { CheckCircle2, Cpu, Download, Mic, RefreshCw } from "lucide-react";
+import { Mic, PenLine, Send } from "lucide-react";
 
+/**
+ * How it works, in the three moves an educator actually makes.
+ *
+ * This used to be five identical boxed cards with 01 to 05 badges and a CPU
+ * icon for the AI step. Five steps is more process than the product has, the
+ * number badges repeat what the order already says, and a chip icon is the
+ * least human picture you can put next to a child's learning. Three verbs, no
+ * boxes, and the line joining them does the work of the numbers.
+ */
 const STEPS = [
-  { num: "01", icon: Mic, title: "Capture the moment", desc: "Voice record what happened after play, or type 3-5 quick bullets. No formal structure needed." },
-  { num: "02", icon: Cpu, title: "StoryLoop shapes it", desc: "StoryLoop turns rough notes into a first draft with curriculum links, dispositions, and practical next steps." },
-  { num: "03", icon: CheckCircle2, title: "Review with a human checkpoint", desc: "Check evidence, curriculum fit, child voice, culture, and privacy before sharing." },
-  { num: "04", icon: RefreshCw, title: "Close the learning loop", desc: "Track which next steps were planned or tried, capture whānau voice, then continue from the earlier story." },
-  { num: "05", icon: Download, title: "Copy, export, or revisit", desc: "Move the edited story into your usual system, or keep building the child's learning thread in StoryLoop." },
+  {
+    icon: Mic,
+    title: "Jot what happened",
+    desc: "A few words after play, typed or spoken. Half a sentence is enough.",
+  },
+  {
+    icon: PenLine,
+    title: "Get a real draft",
+    desc: "A learning story in your voice, with Te Whāriki or EYLF links only where the note supports them.",
+  },
+  {
+    icon: Send,
+    title: "Make it yours",
+    desc: "Edit anything, then copy or export it into Storypark, Educa or wherever you share.",
+  },
 ];
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-24 bg-cream-50 border-y border-clay-100 paper-texture">
+    <section id="how-it-works" className="py-20 md:py-24">
       <div className="wide-shell">
-        <div className="text-center mb-16">
-          <p className="section-title mb-3">How it works</p>
-          <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-900">
-            <span className="block">From observation to editable draft</span>{" "}
-            <span className="block italic text-clay-700">without losing your voice.</span>
-          </h2>
-        </div>
+        <h2 className="mx-auto max-w-2xl text-center font-display text-3xl font-bold leading-tight text-ink-900 text-balance md:text-4xl">
+          From a quick note to a story you would sign.
+        </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 relative">
-          <div className="hidden md:block absolute top-14 left-[10%] right-[10%] h-px bg-clay-200" />
-
-          {STEPS.map(step => {
-            const Icon = step.icon;
-            return (
-              <div key={step.num} className="flex flex-col items-center text-center bg-paper rounded-2xl p-7 border border-clay-100">
-                <div className="relative mb-5">
-                  <div className="w-20 h-20 rounded-2xl bg-clay-700 flex items-center justify-center shadow-warm">
-                    <Icon className="w-9 h-9 text-paper" />
-                  </div>
-                  <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-cream-100 border-2 border-clay-200 flex items-center justify-center">
-                    <span className="text-[10px] font-mono font-bold text-clay-700">{step.num}</span>
-                  </div>
-                </div>
-                <h3 className="font-display text-xl font-bold text-ink-900 mb-2">{step.title}</h3>
-                <p className="text-sm text-ink-600 leading-relaxed">{step.desc}</p>
+        <ol className="relative mx-auto mt-14 grid max-w-5xl gap-10 md:grid-cols-3 md:gap-8">
+          {/* The thread between the steps. Decorative, so hidden from readers. */}
+          <div aria-hidden="true" className="absolute left-[16%] right-[16%] top-7 hidden h-px bg-clay-200 md:block" />
+          {STEPS.map((step) => (
+            <li key={step.title} className="relative flex flex-col items-center text-center">
+              <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-2xl bg-clay-700 text-paper shadow-warm">
+                <step.icon className="h-6 w-6" strokeWidth={1.75} />
               </div>
-            );
-          })}
-        </div>
+              <h3 className="mt-5 font-display text-xl font-bold text-ink-900">{step.title}</h3>
+              <p className="mt-2 max-w-xs text-base leading-relaxed text-ink-600">{step.desc}</p>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );

@@ -860,6 +860,18 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       { question: "Is it suitable for new educators?", answer: "Yes. It supports structure and wording while still requiring educator review." },
       { question: "Is it suitable for experienced educators?", answer: "Yes. Experienced educators can use it to speed up the first draft and then apply their own judgement and local context." },
       { question: "Does it create generic AI stories?", answer: "StoryLoop is designed to avoid generic AI phrasing by grounding every story in the educator's observation and making curriculum links specific." },
+      // Moved here from the homepage in September 2026, when the homepage FAQ was
+      // cut to the seven questions a visitor is actually deciding on.
+      { question: "Do I need to write a learning story every day?", answer: "No. A captured moment can become a story, be held for planning, or be archived. Not every observation needs formal documentation, and StoryLoop is built around that judgement." },
+      { question: "What is Today Loop?", answer: "Today Loop is a daily observation inbox. It surfaces up to three prompts from your own unfinished moments, open next steps and story history, then lets you capture a real moment and decide later whether it needs a story, a planning response, or nothing." },
+      { question: "Do I have to stop using Storypark or Educa?", answer: "No. StoryLoop writes the draft and you copy or export it into Storypark, Educa, Kinderloop, Brightwheel or whatever your centre already uses. It does not replace attendance, incident, consent, billing or regulatory record systems." },
+      { question: "What about children's privacy?", answer: "Your observations are not used to train AI models. Children's voice recordings are never stored. Wall cards shared with families carry no names, photographs or dates. Nothing is shared until you choose to." },
+      { question: "What does a centre plan cost?", answer: "Centre Starter covers up to 10 educators and unlimited children for NZ$109 or A$99 a month. Centre Growth covers up to 25 educators for NZ$219 or A$199. There is no per-child fee, and plans start with a 7-day free trial." },
+      { question: "Will it put words in the child's mouth?", answer: "Never. A child's quoted words are kept exactly as you wrote them, spelling and all, because how a two-year-old actually said it is the evidence. If you did not record a quote, the story does not invent one." },
+      { question: "Will it make things up that I did not see?", answer: "Interpretation is allowed; invention is not. Drafts stay anchored to your observation, and anything the note does not support is raised as an assumption for you to confirm rather than written in as fact." },
+      { question: "What happens with sensitive or difficult moments?", answer: "Every draft is scanned before you see it. Diagnosis language, other children's identifying details, sensitive family information, and physical safety incidents are flagged for your review against your own centre's process." },
+      { question: "Will every story sound the same?", answer: "They are written to read one of a kind. Run the same note twice and you get two genuinely different stories, because a folder of near-identical documentation helps nobody." },
+      { question: "Am I locked in?", answer: "No. Your stories stay yours, editable and exportable into the format your centre already uses. Cancel whenever you like and everything you have written stays in your account." },
     ],
   },
   "eylf-planning-cycle": {

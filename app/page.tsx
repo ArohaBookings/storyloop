@@ -1,21 +1,17 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
-import Features from "@/components/landing/Features";
+import ProofStrip from "@/components/landing/ProofStrip";
 import HowItWorks from "@/components/landing/HowItWorks";
+import Capabilities from "@/components/landing/Capabilities";
 import Examples from "@/components/landing/Examples";
 import Pricing from "@/components/landing/Pricing";
 import FAQ from "@/components/landing/FAQ";
 import CTA from "@/components/landing/CTA";
 import Footer from "@/components/landing/Footer";
 import { LANDING_FAQS } from "@/lib/landing-faqs";
-import StraightAnswers from "@/components/landing/StraightAnswers";
-import FeatureBands from "@/components/landing/FeatureBands";
 import Reviews from "@/components/landing/Reviews";
-import WhoItsFor from "@/components/landing/WhoItsFor";
 import PageTracker from "@/components/analytics/PageTracker";
-import TodayLoop from "@/components/landing/TodayLoop";
-import EceReality from "@/components/landing/EceReality";
 
 // Keep the landing static for speed, but regenerate every 5 minutes so a review
 // published in the admin appears without waiting for a redeploy. Build stays
@@ -49,15 +45,17 @@ export default function LandingPage() {
       <PageTracker />
       <Navbar />
       <main>
+        {/* Nine sections, down from fourteen (3,145 words to about 1,500).
+            What left: the Today Loop band, two overlapping feature grids, the
+            workload-statistics band, the who-it-is-for grid and the straight
+            answers block. Their search value moved to /faq and the guide pages
+            rather than disappearing. Reviews renders nothing until a real
+            review is published. */}
         <Hero />
-        <TodayLoop />
-        <FeatureBands />
-        <Features />
-        <EceReality />
+        <ProofStrip />
         <HowItWorks />
-        <WhoItsFor />
+        <Capabilities />
         <Examples />
-        <StraightAnswers />
         <Reviews />
         <Pricing audience="individuals" />
         <FAQ />

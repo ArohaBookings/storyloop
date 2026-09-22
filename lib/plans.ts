@@ -67,6 +67,13 @@ export type PlanDefinition = {
   popular?: boolean;
   buyer: string;
   features: string[];
+  /**
+   * Five lines for the homepage card, where the full list (seventeen items on
+   * Educator) turned the pricing block into the longest section on the page.
+   * Every line restates something in `features`; it never promises more. The
+   * full list stays on /pricing.
+   */
+  highlights?: string[];
   painSolved: string[];
 };
 
@@ -86,6 +93,13 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
     stories: "3 stories/month",
     cta: "Start free",
     buyer: "Curious educators validating the writing style before changing habits.",
+    highlights: [
+      "3 learning stories a month",
+      "Te Whāriki or EYLF links",
+      "Basic privacy and evidence check",
+      "Edit, save and copy every draft",
+      "No credit card",
+    ],
     features: [
       "3 learning stories per month",
       "Today Loop (10 captured moments/month)",
@@ -112,6 +126,13 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
     cta: "Start 7-day trial",
     popular: true,
     buyer: "Individual educators who need fast drafts, family-ready outputs, and export formats.",
+    highlights: [
+      "Unlimited learning stories",
+      "Voice notes and uploads",
+      "Wall cards, children's own words, learning passport and pickup brief",
+      "Export packs for Storypark, Educa, Kinderloop, Brightwheel",
+      `Quill writing assistant (${EDUCATOR_ASSISTANT_MONTHLY} refines a month)`,
+    ],
     features: [
       "Unlimited learning stories",
       "Today Loop, unlimited captured moments",
@@ -145,6 +166,13 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
     stories: "Unlimited stories + advanced loop tools",
     cta: "Start 7-day trial",
     buyer: "Educators who want stronger family partnership, translation support, and deeper review.",
+    highlights: [
+      "Everything in Educator",
+      "Family Reply Loop",
+      "Parent-friendly translation and readability",
+      "Child continuity profiles",
+      "Quill writing assistant, unlimited",
+    ],
     features: [
       "Everything in Educator",
       "Quill writing assistant, unlimited",

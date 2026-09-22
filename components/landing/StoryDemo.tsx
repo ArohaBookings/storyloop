@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Sparkles, Loader2, Copy, Check, HelpCircle, PenLine } from "lucide-react";
+import { Sparkles, Loader2, Copy, Check, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import GeneratingIndicator from "@/components/app/GeneratingIndicator";
 import { track } from "@/lib/analytics/client";
@@ -20,27 +20,43 @@ const PLACEHOLDER = `• Noah (3yo) filled a bucket with damp sand
 const SAMPLE = `Noah (3yo) filled a bucket with damp sand, turned it over carefully and tapped the sides. He built a tower beside Amelia, then swapped the spade when she asked. He said "I'm making a castle for the dragon". When one side collapsed, he packed more sand around the base and tried again.`;
 
 /**
- * Real StoryLoop output, shown at rest so the promise is proven before anyone
- * lifts a finger. Labelled as an example everywhere it appears: this is a
- * genuine draft from a different note, never passed off as the visitor's own.
+ * The real draft StoryLoop wrote for the note above, exactly as the production
+ * model returned it on 2026-09-23 (quality 100). Shown at rest so the promise is
+ * proven before anyone lifts a finger.
+ *
+ * It used to be a genuine draft from a DIFFERENT note, labelled as such, sitting
+ * beside this one. Honest, but a visitor's first second was spent working out
+ * why the box said Noah and the story said Tama. The note and its draft now
+ * match, so the pairing reads the way it looks: this in, this out.
  */
-const EXAMPLE_OUTPUT = `Making the tower stronger
+const EXAMPLE_OUTPUT = `Building a castle for the dragon
 
 Learning Story
-Tama built a tower with the blocks, stacking them one at a time until it stood taller than his knees. When it tipped and fell, he did not walk away. He crouched down, looked at the pieces spread on the mat, and started again with a wider base. This time the tower held. He sat back on his heels and looked at it for a while before adding one more block to the top.
+Noah filled a bucket with damp sand, turned it over carefully and tapped the sides. He was using the bucket and sand with care, checking how the sand held together as he made his tower.
+
+Noah built his tower beside Amelia. When Amelia asked for the spade, Noah swapped it with her. This showed us Noah was able to keep his play going while also responding to another child’s request.
+
+As he built, Noah told us, "I'm making a castle for the dragon". His sand tower became part of a pretend story, not just a tower. When one side collapsed, Noah did not stop. He packed more sand around the base and tried again.
 
 What learning we noticed
-Tama was working through a real building problem. He noticed his first tower was not stable, changed his plan, and tested a new idea rather than repeating the one that failed. Making the base wider shows early thinking about balance and support. Staying with the problem after it collapsed shows he is comfortable sitting in the difficult part of a task.
+Noah was testing what damp sand can do. He used careful actions, turned the bucket over, tapped the sides, and changed his plan when the sand collapsed. Packing more sand around the base showed early problem solving. He noticed the tower needed more support and tried a new way to fix it.
+
+We also noticed Noah bringing imagination into his building. The castle for the dragon gave his construction a clear purpose. He used words to share his idea, and he worked near Amelia while managing a simple turn with the spade.
 
 Curriculum links
-Exploration, Mana Aotūroa. Tama used trial and error on a problem he set for himself, which is the kind of working theory this strand describes.
-Communication, Mana Reo. He tested an idea with his hands and his body before he had words for it.
+EYLF Outcome 4: Children are confident and involved learners. Noah tested the sand, noticed a problem when one side collapsed, and changed his building method by packing more sand around the base.
 
-Where to next
-We can leave the blocks out tomorrow with some heavier pieces added, so there is something new to balance. We will watch whether Tama goes to the wide base straight away, and name what he is doing out loud so other children hear the thinking.
+EYLF Outcome 5: Children are effective communicators. Noah used spoken language to explain his idea and connect his building to pretend play.
 
-Whānau link
-Tama is enjoying building things that stand up on their own. If you have boxes or containers at home, he might like stacking them to see how tall he can get before they tip.`;
+EYLF Outcome 2: Children are connected with and contribute to their world. Noah responded to Amelia’s request and swapped the spade, supporting shared play in the sand area.
+
+Where to next / Responding
+We can support Noah’s sand building by offering buckets, spades, moulds, and loose parts that let him test shape, strength, and balance. We can use simple language as he builds, such as base, sides, damp, collapse, stronger, and try again.
+
+We will continue to notice how Noah shares his ideas with others, how he solves building problems, and whether his dragon castle story grows into more shared pretend play.
+
+Family link
+At home, Noah might enjoy telling or drawing what could live in his castle, or trying different ways to build with sand, blocks, boxes, or other materials.`;
 
 /** Real fields the generator returns alongside the story. Listed, never faked. */
 const ALSO_GENERATED = [
@@ -195,7 +211,7 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
            style={{ minHeight: compact ? 240 : 300 }}>
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <label className="section-title">
-            {showingExample ? "Example draft" : "Your learning story"}
+            {showingExample ? "The draft" : "Your learning story"}
           </label>
           {output && (
             <button onClick={handleCopy} className="btn-ghost px-3 py-1 text-xs">
@@ -244,17 +260,16 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
               {output}
             </div>
             <div className="mt-4 border-t border-clay-200 pt-4 text-center">
-              <p className="mb-2 text-xs text-ink-600">Want to save, share and personalise with child names?</p>
-              <Link href="/signup" className="btn-primary px-4 py-2 text-xs">Sign up — 3 more free stories</Link>
+              <p className="mb-2 text-xs text-ink-600">Save it, edit it and write your own. Three stories a month are free.</p>
+              <Link href="/signup" className="btn-primary px-4 py-2 text-xs">Start free</Link>
             </div>
           </div>
         ) : (
           /* At rest: show a real draft so the promise is proven before any effort. */
           <div className="story-safe flex min-w-0 flex-1 flex-col">
-            <div className="mb-2 inline-flex w-fit items-center gap-1.5 rounded-full border border-clay-200 bg-cream-50 px-2.5 py-1">
-              <PenLine className="h-3 w-3 text-clay-600" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-clay-700">From a different note</span>
-            </div>
+            <p className="mb-2 text-xs text-ink-500">
+              {touched ? "The draft StoryLoop wrote for the original note." : "What StoryLoop wrote from the note above."}
+            </p>
             {/* Capped in the hero so a full-length draft cannot push the button
                 below the fold on a phone. The scroll is the point: it shows
                 there is more story than fits, which a short excerpt cannot. */}

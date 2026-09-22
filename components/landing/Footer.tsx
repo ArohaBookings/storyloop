@@ -28,7 +28,7 @@ export default function Footer() {
           <div>
             <h4 className="font-display font-bold text-paper mb-4 text-sm">Product</h4>
             <ul className="space-y-2 text-sm text-ink-300">
-              <li><a href="#features" className="hover:text-paper transition-colors">Features</a></li>
+              <li><Link href="/#features" className="hover:text-paper transition-colors">Features</Link></li>
               <li><Link href="/pricing" className="hover:text-paper transition-colors">Pricing</Link></li>
               <li><Link href="/examples" className="hover:text-paper transition-colors">Examples</Link></li>
               <li><Link href="/resources" className="hover:text-paper transition-colors">Educator resources</Link></li>
@@ -37,7 +37,7 @@ export default function Footer() {
               <li><Link href="/review-readiness-check" className="hover:text-paper transition-colors">Review readiness check</Link></li>
               <li><Link href="/te-whariki-learning-stories" className="hover:text-paper transition-colors">Te Whāriki</Link></li>
               <li><Link href="/eylf-learning-stories" className="hover:text-paper transition-colors">EYLF</Link></li>
-              <li><a href="#live-demo" className="hover:text-paper transition-colors">Try free</a></li>
+              <li><Link href="/#live-demo" className="hover:text-paper transition-colors">Try free</Link></li>
             </ul>
           </div>
 

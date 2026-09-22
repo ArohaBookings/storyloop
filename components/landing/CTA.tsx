@@ -1,29 +1,28 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
+/**
+ * The last thing on the homepage: one line of promise, one button.
+ *
+ * It used to repeat the whole offer in a card with an icon badge, a headline
+ * about backlogs, a paragraph, and a strip of three dot-separated reassurances
+ * that had already appeared twice above it. By this point the visitor has read
+ * the offer; what is left is the decision.
+ */
 export default function CTA() {
   return (
-    <section className="py-24">
-      <div className="reading-shell">
-        <div className="card-warm p-14 text-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-warm-mesh pointer-events-none" />
-          <div className="relative z-10">
-            <div className="w-14 h-14 rounded-2xl bg-clay-700 mx-auto mb-6 flex items-center justify-center shadow-warm">
-              <Sparkles className="w-7 h-7 text-paper" />
-            </div>
-            <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-900 mb-4">
-              Keep your learning story backlog under control.
-            </h2>
-            <p className="text-ink-600 text-lg mb-8 max-w-xl mx-auto">
-              Start with a usable first draft, then add your educator judgement before sharing. Try your first 3 stories free.
-            </p>
-            <Link href="/signup" className="btn-primary text-base px-8 py-4 group">
-              Start free
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
-            <p className="text-xs text-ink-500 mt-4">3 free stories · No credit card · Editable drafts</p>
-          </div>
-        </div>
+    <section className="py-20 md:py-28">
+      <div className="reading-shell text-center">
+        <h2 className="font-display text-4xl font-bold leading-tight text-ink-900 text-balance md:text-5xl">
+          Get your evenings back.
+        </h2>
+        <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-ink-600 md:text-lg">
+          Write your next three learning stories free. If the drafts do not sound like you, you have lost ten minutes.
+        </p>
+        <Link href="/signup" className="btn-primary group mt-8 px-8 py-4 text-base">
+          Start free
+          <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+        </Link>
       </div>
     </section>
   );

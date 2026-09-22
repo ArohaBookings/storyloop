@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+
 type Example = {
   input: string;
   age: string;
@@ -10,19 +13,6 @@ type Example = {
 
 const EXAMPLES: Example[] = [
   {
-    input: "Sienna (2yo) watered plants with watering can. Talked about worms. Filled & refilled can 6 times.",
-    age: "2 years",
-    framework: "EYLF",
-    story:
-      "Sienna spent a long time in the garden today, carrying the watering can backwards and forwards to the tap and filling it again and again. She noticed the worms in the damp soil and stopped to look closely before going back to watering. Sienna stayed with this job for a long stretch of time and showed real care for the plants and the space around her.",
-    learningShows:
-      "Sienna is building persistence, curiosity, and a growing sense of responsibility for the environment.",
-    curriculum:
-      "EYLF Outcome 2 — Children are connected with and contribute to their world, particularly showing care for the environment through repeated watering and close noticing.",
-    nextSteps:
-      "Offer magnifying glasses for closer worm observation and invite Sienna to help with planting so she can keep following this interest.",
-  },
-  {
     input: "Marcus (4) building blocks, got frustrated when tower fell. Took deep breath, tried again. Proud when it stood.",
     age: "4 years",
     framework: "EYLF",
@@ -31,7 +21,7 @@ const EXAMPLES: Example[] = [
     learningShows:
       "Marcus is strengthening self-regulation, persistence, and confidence when things do not go to plan.",
     curriculum:
-      "EYLF Outcome 3 — Children have a strong sense of wellbeing, and Outcome 4 — Children are confident and involved learners, as Marcus used a calming strategy and stayed with the challenge.",
+      "EYLF Outcome 3 (children have a strong sense of wellbeing) and Outcome 4 (children are confident and involved learners), as Marcus used a calming strategy and stayed with the challenge.",
     nextSteps:
       "Notice the strategy Marcus used, name it with him, and offer more chances to practise managing frustration in play.",
   },
@@ -53,7 +43,7 @@ const EXAMPLES: Example[] = [
 function OutputDetail({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1">{label}</p>
+      <p className="mb-1 text-sm font-semibold text-clay-700">{label}</p>
       <p className="text-sm text-ink-700 leading-relaxed">{children}</p>
     </div>
   );
@@ -63,31 +53,32 @@ export default function Examples() {
   return (
     <section id="examples" className="py-24">
       <div className="wide-shell">
-        <div className="text-center max-w-2xl mx-auto mb-14">
-          <p className="section-title mb-3">Real examples</p>
-          <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-900 mb-4">
-            Stories educators are actually <span className="italic text-clay-700">proud</span> to publish.
+        <div className="mx-auto mb-12 max-w-2xl text-center">
+          <h2 className="font-display text-3xl font-bold leading-tight text-ink-900 text-balance md:text-4xl">
+            A four-year-old in Australia. A toddler in Aotearoa.
           </h2>
-          <p className="text-ink-600">Real inputs, grounded outputs, and language that feels closer to the floor than a content generator.</p>
+          <p className="mt-4 text-base leading-relaxed text-ink-600 md:text-lg">
+            The educator&apos;s note, then the draft StoryLoop wrote from it.
+          </p>
         </div>
 
         <div className="space-y-6">
           {EXAMPLES.map((ex, i) => (
-            <div key={i} className="grid md:grid-cols-5 gap-5 items-stretch">
-              <div className="md:col-span-2 card p-6 bg-cream-50 flex flex-col">
+            <div key={i} className="grid md:grid-cols-5 gap-5 items-start">
+              <div className="md:col-span-2 card p-6 bg-cream-50 flex flex-col md:sticky md:top-24">
                 <div className="flex items-center justify-between gap-3 mb-3">
-                  <p className="section-title">Educator note</p>
-                  <span className="text-[10px] font-mono bg-clay-100 text-clay-700 px-2 py-0.5 rounded-full whitespace-nowrap">{ex.age}</span>
+                  <p className="text-sm font-semibold text-ink-700">Educator note</p>
+                  <span className="text-xs font-medium bg-clay-100 text-clay-800 px-2.5 py-0.5 rounded-full whitespace-nowrap">{ex.age}</span>
                 </div>
                 <p className="text-sm text-ink-700 font-mono leading-relaxed whitespace-pre-wrap">{ex.input}</p>
-                <div className="mt-auto pt-4">
-                  <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-clay-700">
-                    {ex.framework === "Te Whāriki" ? "🇳🇿 Te Whāriki" : "🇦🇺 EYLF"}
+                <div className="pt-4">
+                  <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-clay-700">
+                    {ex.framework === "Te Whāriki" ? "Te Whāriki, New Zealand" : "EYLF, Australia"}
                   </span>
                 </div>
               </div>
               <div className="md:col-span-3 card p-6 border-l-4 border-clay-500">
-                <p className="section-title mb-3">StoryLoop draft</p>
+                <p className="mb-3 text-sm font-semibold text-ink-700">StoryLoop draft</p>
                 <p className="text-base text-ink-800 leading-relaxed font-display font-normal mb-5">{ex.story}</p>
                 <div className="space-y-3 border-t border-clay-100 pt-4">
                   <OutputDetail label="What this learning shows">{ex.learningShows}</OutputDetail>
@@ -98,6 +89,13 @@ export default function Examples() {
             </div>
           ))}
         </div>
+
+        <p className="mt-10 text-center">
+          <Link href="/examples" className="inline-flex items-center gap-1.5 text-base font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900">
+            More examples, by age and framework
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </p>
       </div>
     </section>
   );
