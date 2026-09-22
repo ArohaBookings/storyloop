@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ReferralCard from "@/components/app/ReferralCard";
+import CentreReferralCard from "@/components/app/CentreReferralCard";
 import ReviewForm from "@/components/app/ReviewForm";
 import { AlertTriangle, ArrowRight, Bug, CreditCard, Lightbulb, Mail, MessageCircle, Sparkles } from "lucide-react";
 
@@ -72,6 +73,7 @@ export default function SupportPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <ReferralCard />
+        <CentreReferralCard />
         <ReviewForm />
       </div>
 

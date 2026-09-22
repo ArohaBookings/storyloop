@@ -8,6 +8,31 @@ export const MAX_REFERRAL_CREDITS = 5;
 /** Discount the referred person gets on their first month. */
 export const REFERRED_DISCOUNT_PERCENT = 10;
 
+/**
+ * Free months an educator earns when a CENTRE subscribes on their code.
+ *
+ * "Get your centre on board." An educator quietly using StoryLoop on their own
+ * NZ$21 plan is the person best placed to put it in front of the one person who
+ * can buy it for everybody, and they are doing that conversation for free today.
+ *
+ * Three months rather than one because the two acts are not comparable: telling
+ * a colleague costs nothing, while getting a director to move a budget line
+ * takes weeks and some professional capital. The arithmetic is also plainly in
+ * StoryLoop's favour, which is how an incentive stays payable: a centre plan is
+ * NZ$109 a month, so three free educator months cost about NZ$63 against
+ * NZ$1,308 of first-year revenue.
+ */
+export const CENTRE_REFERRAL_MONTHS = 3;
+
+/**
+ * How many free months this referral is worth. Pure, so the rule can be read
+ * and tested without a Stripe account.
+ */
+export function referralCreditMonths(referredPlan: unknown): number {
+  const key = normalizePlanKey(referredPlan);
+  return key === "centre_starter" || key === "centre_growth" ? CENTRE_REFERRAL_MONTHS : 1;
+}
+
 /** Stripe coupon id used for that discount. Created on demand, then reused. */
 const REFERRAL_COUPON_ID = "storyloop_referral_10";
 
@@ -131,7 +156,7 @@ export async function getOrCreateReferralCoupon(stripe: Stripe) {
 
 export type ReferralCreditResult =
   | { granted: false; reason: "no_referral" | "already_credited" | "capped" | "no_customer" | "error" }
-  | { granted: true; amountCents: number; currency: string; balanceTransactionId: string; referrerId: string };
+  | { granted: true; amountCents: number; currency: string; balanceTransactionId: string; referrerId: string; months: number };
 
 /**
  * Grant the referrer one free month because `referredUserId` just paid.
@@ -170,6 +195,15 @@ export async function grantReferralCreditForPayment(
     return { granted: false, reason: "capped" };
   }
 
+  // What the referred person actually subscribed to decides the size of the
+  // reward: a centre coming aboard is worth three months, an individual one.
+  const { data: referred } = await admin
+    .from("profiles")
+    .select("plan")
+    .eq("id", referredUserId)
+    .maybeSingle();
+  const months = referralCreditMonths(referred?.plan);
+
   const { data: referrer } = await admin
     .from("profiles")
     .select("id, plan, stripe_customer_id, story_preferences")
@@ -187,7 +221,7 @@ export async function grantReferralCreditForPayment(
   ).toUpperCase() as CurrencyCode;
   const safeCurrency: CurrencyCode = currency === "AUD" ? "AUD" : "NZD";
   const planForCredit = normalizePlanKey(referrer.plan) === "free" ? "educator" : referrer.plan;
-  const amountCents = planMonthlyAmountCents(planForCredit, safeCurrency);
+  const amountCents = planMonthlyAmountCents(planForCredit, safeCurrency) * months;
   if (amountCents <= 0) return { granted: false, reason: "error" };
 
   // Claim the referral FIRST. The unique stripe_invoice_id means a concurrent
@@ -212,8 +246,16 @@ export async function grantReferralCreditForPayment(
     const transaction = await stripe.customers.createBalanceTransaction(referrer.stripe_customer_id, {
       amount: -amountCents, // negative = credit toward future invoices
       currency: safeCurrency.toLowerCase(),
-      description: `StoryLoop referral reward - 1 free month (${alreadyCredited + 1} of ${MAX_REFERRAL_CREDITS})`,
-      metadata: { app: "storyloop", referral_id: referral.id, referred_user_id: referredUserId },
+      description: months > 1
+        ? `StoryLoop centre referral reward - ${months} free months (${alreadyCredited + 1} of ${MAX_REFERRAL_CREDITS})`
+        : `StoryLoop referral reward - 1 free month (${alreadyCredited + 1} of ${MAX_REFERRAL_CREDITS})`,
+      metadata: {
+        app: "storyloop",
+        referral_id: referral.id,
+        referred_user_id: referredUserId,
+        months: String(months),
+        kind: months > 1 ? "centre" : "educator",
+      },
     });
 
     await admin
@@ -227,6 +269,7 @@ export async function grantReferralCreditForPayment(
       currency: safeCurrency,
       balanceTransactionId: transaction.id,
       referrerId: referral.referrer_id,
+      months,
     };
   } catch (error) {
     // Stripe rejected the credit: release the claim so it can be retried later
