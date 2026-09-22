@@ -12,6 +12,10 @@ export type Attribution = {
   utmCampaign?: string;
   referrer?: string;
   landingPath?: string;
+  /** Facebook's click id, when the visit came from a Facebook or Instagram link. */
+  fbclid?: string;
+  /** When that click landed, in ms. Meta needs it to build the click value. */
+  fbclidAt?: number;
 };
 
 function safeStorage(): Storage | null {
@@ -42,30 +46,72 @@ export function getSessionId() {
  * Without persisting it, a visitor who lands from an ad, browses, then signs up
  * later looks like direct traffic and the campaign gets no credit.
  */
+const TRACKING_PARAMS = ["fbclid", "gclid", "gbraid", "wbraid", "msclkid", "mc_cid", "mc_eid"];
+
+/**
+ * Once the campaign has been read, take the tracking parameters out of the
+ * address bar, so a link somebody copies and shares is the clean page and not
+ * a stranger's ad click. Everything else in the query string is left alone.
+ */
+function tidyAddressBar() {
+  try {
+    const url = new URL(window.location.href);
+    let changed = false;
+    for (const key of [...url.searchParams.keys()]) {
+      if (key.startsWith("utm_") || TRACKING_PARAMS.includes(key)) {
+        url.searchParams.delete(key);
+        changed = true;
+      }
+    }
+    if (changed) window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+  } catch {
+    /* cosmetic only */
+  }
+}
+
 export function captureAttribution(): Attribution {
   const store = safeStorage();
   if (typeof window === "undefined") return {};
+  const result = readAttribution(store);
+  tidyAddressBar();
+  return result;
+}
+
+function readAttribution(store: Storage | null): Attribution {
+
+  const params = new URLSearchParams(window.location.search);
+  // The Facebook click id is last-touch, not first-touch: it only means
+  // anything for the click that actually brought someone here. It is only
+  // ever sent anywhere if Meta measurement is switched on (lib/meta-capi.ts).
+  const fbclid = params.get("fbclid");
+  const click = fbclid && /^[A-Za-z0-9_-]{10,500}$/.test(fbclid) ? { fbclid, fbclidAt: Date.now() } : null;
 
   const existingRaw = store?.getItem(ATTRIBUTION_KEY);
   if (existingRaw) {
     try {
-      return JSON.parse(existingRaw) as Attribution;
+      const existing = JSON.parse(existingRaw) as Attribution;
+      if (click && click.fbclid !== existing.fbclid) {
+        const updated = { ...existing, ...click };
+        store?.setItem(ATTRIBUTION_KEY, JSON.stringify(updated));
+        return updated;
+      }
+      return existing;
     } catch {
       /* fall through and re-capture */
     }
   }
 
-  const params = new URLSearchParams(window.location.search);
   const attribution: Attribution = {
     utmSource: params.get("utm_source") ?? undefined,
     utmMedium: params.get("utm_medium") ?? undefined,
     utmCampaign: params.get("utm_campaign") ?? undefined,
     referrer: document.referrer || undefined,
     landingPath: window.location.pathname,
+    ...(click ?? {}),
   };
 
   // Only persist if there is something worth remembering.
-  if (attribution.utmSource || attribution.referrer) {
+  if (attribution.utmSource || attribution.referrer || attribution.fbclid) {
     store?.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
   }
   return attribution;

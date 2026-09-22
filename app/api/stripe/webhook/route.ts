@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import Stripe from "stripe";
 import { createStripe } from "@/lib/stripe-client";
 import { createAdminSupabase } from "@/lib/supabase/admin";
@@ -6,6 +6,8 @@ import { normalizePlanKey } from "@/lib/plans";
 import { creditEarnedReferrals, grantReferralCreditForPayment } from "@/lib/referrals";
 import { newlyScheduledCancellation, paymentFailureNotice, sendBillingEmail } from "@/lib/email/billing";
 import { cancellationFeedbackMetadata } from "@/lib/churn-reasons";
+import { metaConfigured, sendMetaEvent } from "@/lib/meta-capi";
+import { SITE_URL } from "@/lib/email/config";
 
 function getStripe() {
   return createStripe();
@@ -234,6 +236,37 @@ async function handlePaymentFailed(admin: ReturnType<typeof createAdminSupabase>
   });
 }
 
+/**
+ * Tell Meta a trial started, if this person came from a Facebook or Instagram
+ * ad click and Meta measurement is on. Scheduled with after(), so it runs once
+ * the webhook has answered Stripe, and every failure is swallowed.
+ */
+function reportTrialToMeta(admin: ReturnType<typeof createAdminSupabase>, userId: string | undefined, subscriptionId: string) {
+  if (!userId || !metaConfigured()) return;
+  // Even scheduling it is guarded: nothing here may ever throw into billing.
+  try {
+    after(async () => {
+      try {
+        const { data } = await admin.auth.admin.getUserById(userId);
+        const fbc = data.user?.user_metadata?.meta_fbc;
+        await sendMetaEvent({
+          eventName: "StartTrial",
+          eventId: `trial:${subscriptionId}`,
+          userId,
+          fbc,
+          userAgent: null,
+          actionSource: "system_generated",
+          sourceUrl: `${SITE_URL}/billing`,
+        });
+      } catch (error) {
+        console.error("Meta trial report skipped:", error);
+      }
+    });
+  } catch (error) {
+    console.error("Meta trial report not scheduled:", error);
+  }
+}
+
 async function processStripeEvent(admin: ReturnType<typeof createAdminSupabase>, event: Stripe.Event) {
   switch (event.type) {
     case "checkout.session.completed": {
@@ -246,6 +279,9 @@ async function processStripeEvent(admin: ReturnType<typeof createAdminSupabase>,
         plan: session.metadata?.plan,
         customerId: typeof session.customer === "string" ? session.customer : session.customer?.id,
       });
+      // After the billing write, after the response, and a no-op unless Meta
+      // measurement is switched on. It cannot affect the subscription.
+      reportTrialToMeta(admin, session.metadata?.user_id, subscription.id);
       return;
     }
 

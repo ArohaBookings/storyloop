@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getOrCreateReferralCode, recordReferralSignup } from "@/lib/referrals";
 import { createClient } from "@/lib/supabase/server";
@@ -7,6 +7,8 @@ import { incrementAccessCodeRedemption, resolveAccessCode } from "@/lib/access-c
 import { mergeStoryPreferences } from "@/lib/story-options";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { sendLifecycleEmail } from "@/lib/email/send";
+import { fbcFromClick, metaConfigured, sendMetaEvent } from "@/lib/meta-capi";
+import { SITE_URL } from "@/lib/email/config";
 
 const ALLOWED_PLANS = new Set(["free", "educator", "centre"]);
 
@@ -112,6 +114,34 @@ export async function POST(request: NextRequest) {
           })
           .eq("id", createdUser.user.id)
           .then(undefined, (error) => console.error("Signup attribution failed:", error));
+      }
+
+      // Meta measurement, only when it is switched on and only for somebody
+      // who arrived from a Facebook or Instagram link. Nothing is stored or
+      // sent otherwise. Runs after the response, so it can never slow or fail
+      // a sign-up. See lib/meta-capi.ts for exactly what is sent.
+      const fbc = attribution && metaConfigured() ? fbcFromClick(attribution.fbclid, attribution.fbclidAt) : null;
+      if (fbc) {
+        const newUser = createdUser.user;
+        const userAgent = request.headers.get("user-agent");
+        try {
+          after(async () => {
+            // Kept so the trial that may follow can be credited to the same click.
+            await admin.auth.admin
+              .updateUserById(newUser.id, { user_metadata: { ...(newUser.user_metadata ?? {}), meta_fbc: fbc } })
+              .then(undefined, (error) => console.error("Could not keep the ad click:", error));
+            await sendMetaEvent({
+              eventName: "CompleteRegistration",
+              eventId: `signup:${newUser.id}`,
+              userId: newUser.id,
+              fbc,
+              userAgent,
+              sourceUrl: `${SITE_URL}/signup`,
+            });
+          });
+        } catch (metaError) {
+          console.error("Meta sign-up report not scheduled:", metaError);
+        }
       }
     }
 
