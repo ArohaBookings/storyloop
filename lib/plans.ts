@@ -39,7 +39,9 @@ export type FeatureKey =
   // The documentation a review visit asks for, assembled from saved stories.
   | "evidencePack"
   // A printed code beside a display, so a family can read the learning behind it.
-  | "wallCards";
+  | "wallCards"
+  // The child's own words about their own work, kept verbatim.
+  | "childVoice";
 
 export type PlanDefinition = {
   key: PlanKey;
@@ -112,6 +114,7 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
       "Observation Coach prompts",
       "Family Connection Pack",
       "Wall cards: a code beside your display that shows families the learning behind it",
+      "Children's own words: a big button a three-year-old can use, kept exactly as they said it",
       "Export packs for Storypark, Educa, Kinderloop, Brightwheel",
       "Backlog Rescue",
       "Learning threads",
@@ -258,6 +261,10 @@ const FEATURE_REQUIREMENTS: Record<FeatureKey, PlanKey> = {
   // every family, colleague and director who walks past sees it working. Gate
   // it to centres and it can only be seen by services that already bought.
   wallCards: "educator",
+  // On the individual plan because the person who will actually use this is
+  // the educator kneeling next to the child, not the person who signs off the
+  // software budget.
+  childVoice: "educator",
 };
 
 export function normalizePlanKey(plan: unknown): PlanKey {
@@ -284,6 +291,7 @@ const FEATURE_PARAM_ALIASES: Record<string, FeatureKey> = {
   "reliever-brief": "relieverBrief",
   "evidence-pack": "evidencePack",
   "wall-cards": "wallCards",
+  "child-voice": "childVoice",
   "wall-card": "wallCards",
 };
 

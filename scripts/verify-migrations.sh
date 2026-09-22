@@ -39,12 +39,14 @@ MIGRATIONS=(
   "supabase/migrations/20260917_protect_profile_billing_fields.sql"
   "supabase/migrations/20260922_child_interests_never_null.sql"
   "supabase/migrations/20260922_wall_cards.sql"
+  "supabase/migrations/20260922_child_voice_notes.sql"
 )
 TESTS=(
   "supabase/tests/centre_team_model.test.sql"
   "supabase/tests/webhook_recovery.test.sql"
   "supabase/tests/profile_billing_guard.test.sql"
   "supabase/tests/wall_cards.test.sql"
+  "supabase/tests/child_voice_notes.test.sql"
 )
 
 # A free port, checked rather than assumed: another project's database may be

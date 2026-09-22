@@ -188,6 +188,24 @@
   50% { transform: translate3d(0, -6px, 0); }
 }
 
+/* The one control in StoryLoop pressed by somebody who cannot read. It
+   breathes at rest so a child can tell it is waiting for them rather than
+   switched off, and the live one is scaled from their own voice in JS. Both
+   are covered by the reduced-motion block below. */
+@keyframes childMicBreathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+.child-mic {
+  animation: childMicBreathe 3.2s ease-in-out infinite;
+}
+
+.child-mic-live {
+  /* A soft halo so the circle reads as live even at a glance across a room. */
+  box-shadow: 0 0 0 0.5rem rgba(122, 143, 106, 0.18);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

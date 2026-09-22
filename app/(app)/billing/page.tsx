@@ -63,6 +63,10 @@ const FEATURE_UPSELL: Partial<Record<FeatureKey, { title: string; blurb: string 
     title: "Wall cards",
     blurb: "Print a small code beside a display. A family scans it at pickup and reads the learning behind what they are looking at, with no app and no login. The page carries no names, no photographs and no dates.",
   },
+  childVoice: {
+    title: "Children's own words",
+    blurb: "One big button a three-year-old can press to tell you about their own work. Kept exactly as they said it, never tidied into adult grammar. The recording stays in the browser and is never stored.",
+  },
   evidencePack: {
     title: "Evidence pack",
     blurb: "One page showing how every child is covered, where the planning cycle closes, where reflection and family voice are recorded, and which gaps to fix — counted from the stories you already saved.",
