@@ -331,6 +331,12 @@ export default async function AdminPage() {
               <Link href="/admin/growth" className="rounded-xl border border-ink-700 px-3 py-2 text-ink-300 hover:border-clay-500 hover:text-paper">
                 Growth
               </Link>
+              <Link href="/admin/trends" className="rounded-xl border border-ink-700 px-3 py-2 text-ink-300 hover:border-clay-500 hover:text-paper">
+                Trends
+              </Link>
+              <Link href="/admin/learning-index" className="rounded-xl border border-ink-700 px-3 py-2 text-ink-300 hover:border-clay-500 hover:text-paper">
+                Index
+              </Link>
               <Link href="/admin/economics" className="rounded-xl border border-ink-700 px-3 py-2 text-ink-300 hover:border-clay-500 hover:text-paper">
                 Economics
               </Link>

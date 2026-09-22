@@ -206,6 +206,18 @@
   box-shadow: 0 0 0 0.5rem rgba(122, 143, 106, 0.18);
 }
 
+/* Admin bars grow up on load. The one place motion earns its keep on a
+   dashboard: the eye follows the growth and lands on the shape of the trend
+   rather than reading sixty individual heights. */
+@keyframes adminBarRise {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+.admin-bar {
+  animation: adminBarRise 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
