@@ -104,7 +104,7 @@ export default async function DashboardPage({
 
       {/* Quick action — first-run onboarding for new educators, compact CTA for returning */}
       {(totalStories ?? 0) === 0 ? (
-        <div className="card-warm p-8 mb-8 relative overflow-hidden">
+        <div className="card-warm animate-fade-up-1 p-8 mb-8 relative overflow-hidden">
           <div className="absolute inset-0 bg-warm-mesh pointer-events-none" />
           <div className="relative z-10">
             <p className="section-title mb-2">Welcome to StoryLoop</p>
@@ -135,7 +135,7 @@ export default async function DashboardPage({
           </div>
         </div>
       ) : (
-        <div className="card-warm p-8 mb-8 relative overflow-hidden">
+        <div className="card-warm animate-fade-up-1 p-8 mb-8 relative overflow-hidden">
           <div className="absolute inset-0 bg-warm-mesh pointer-events-none" />
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -150,7 +150,7 @@ export default async function DashboardPage({
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <div className="animate-fade-up-2 grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {[
           {
             label: "Stories this month",
@@ -225,7 +225,7 @@ export default async function DashboardPage({
         </div>
       )}
 
-      <div className="card overflow-hidden">
+      <div className="card animate-fade-up-3 overflow-hidden">
         <div className="px-6 py-4 border-b border-clay-100 flex items-center justify-between">
           <h2 className="font-display font-bold text-ink-900">Recent stories</h2>
           <Link href="/history" className="text-sm text-clay-700 hover:text-clay-900 font-semibold">View all →</Link>

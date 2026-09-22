@@ -226,5 +226,12 @@
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+    /* The delay has to go too. Shortening the animation but keeping a 0.4s
+       delay leaves a staged element sitting at opacity 0 for four hundred
+       milliseconds, because these use `both` fill and therefore hold their
+       start state through the delay. Somebody who asked for less motion was
+       being shown a blank hero instead. */
+    animation-delay: 0s !important;
+    transition-delay: 0s !important;
   }
 }
