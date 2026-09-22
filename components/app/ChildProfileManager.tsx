@@ -241,6 +241,9 @@ export default function ChildProfileManager({ initialChildren }: { initialChildr
                 <Link href={`/children/${encodeURIComponent(child.id)}/transition`} className="btn-secondary px-4 py-2 text-xs">
                   Transition pack
                 </Link>
+                <Link href={`/children/${encodeURIComponent(child.id)}/passport`} className="btn-secondary px-4 py-2 text-xs">
+                  Learning passport
+                </Link>
                 <Link href={`/insights?child=${encodeURIComponent(child.id)}`} className="btn-secondary px-4 py-2 text-xs">
                   View learning thread
                 </Link>

@@ -67,6 +67,10 @@ const FEATURE_UPSELL: Partial<Record<FeatureKey, { title: string; blurb: string 
     title: "Children's own words",
     blurb: "One big button a three-year-old can press to tell you about their own work. Kept exactly as they said it, never tidied into adult grammar. The recording stays in the browser and is never stored.",
   },
+  learningPassport: {
+    title: "Learning passport",
+    blurb: "One file a family keeps: who their child is as a learner, in their own words and their educators'. It opens on any computer, offline, with no account, and keeps working whatever happens to StoryLoop.",
+  },
   evidencePack: {
     title: "Evidence pack",
     blurb: "One page showing how every child is covered, where the planning cycle closes, where reflection and family voice are recorded, and which gaps to fix — counted from the stories you already saved.",
