@@ -30,8 +30,8 @@ export default async function ChildVoicesPage() {
           <p className="mt-2 text-sm leading-relaxed text-ink-600">
             Every piece of documentation in this sector is an adult describing a child. Both curricula ask for the
             child&apos;s voice, and in practice it is a quote somebody half-remembered a week later. This is one big
-            button a three-year-old can press to tell you about their own work, kept exactly as they said it. The
-            recording never leaves the browser tab, and nothing is saved for a child whose family has not agreed.
+            button a three-year-old can press to tell you about their own work, kept exactly as they said it.
+            StoryLoop never keeps the recording, and nothing is saved for a child whose family has not agreed.
           </p>
           <Link href="/billing?feature=child-voice" className="btn-primary mt-4 inline-flex text-sm">See plans</Link>
         </div>

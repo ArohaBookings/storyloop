@@ -121,7 +121,7 @@ export default function Capabilities() {
             </h3>
             <ul className="mt-3 space-y-2">
               {[
-                "Children's recordings are never stored",
+                "StoryLoop never keeps children's recordings",
                 "Wall pages carry no names or photos",
                 "Nothing is shared until you say so",
               ].map((line) => (

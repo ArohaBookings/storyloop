@@ -49,7 +49,7 @@ export const WHATS_NEW_ITEMS: WhatsNewItem[] = [
     icon: "voice",
     title: "Children can tell you themselves",
     body:
-      "One big button a three-year-old can press to talk about their own work. They hear it back, you write down what they said, and it is kept exactly as they said it. The recording never leaves the browser and is never stored.",
+      "One big button a three-year-old can press to talk about their own work. They hear it back, you write down what they said, and it is kept exactly as they said it. StoryLoop never keeps the recording.",
     href: "/voices",
     plan: "Educator",
   },

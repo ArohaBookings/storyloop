@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { BarChart3, BookOpen, Check, Copy, Gift, MessageCircleHeart, RefreshCw, ShieldCheck, Sparkles, Star, Sunrise, X } from "lucide-react";
 import { WHATS_NEW_ITEMS, type WhatsNewItem } from "@/lib/whats-new";
-import { PLAN_DEFINITIONS } from "@/lib/plans";
 
 type State = {
   userId: string;
@@ -31,9 +30,26 @@ const ICONS: Record<WhatsNewItem["icon"], typeof Sparkles> = {
 
 /**
  * Two-page welcome card, shown once. Page one is what changed, page two is the
- * referral offer. Closing at any point marks the whole thing seen, so it never
- * reappears; the referral offer lives permanently on the Support page after that.
+ * referral offer.
+ *
+ * Once means once. The account is marked done the moment the card appears, not
+ * when it is closed, so reloading, navigating away or closing the tab does not
+ * bring it back. A browser flag is set at the same moment as a fallback, in case
+ * the network write fails. The referral offer lives permanently on the Support
+ * page after that.
  */
+function markSeen(userId: string) {
+  try {
+    window.localStorage.setItem(`storyloop-whats-new-dismissed:${userId}`, "1");
+  } catch { /* storage can be blocked; the server write is the record */ }
+  void fetch("/api/whats-new", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "seen" }),
+    keepalive: true,
+  }).catch(() => {});
+}
+
 export default function WhatsNewModal() {
   const [state, setState] = useState<State | null>(null);
   const [page, setPage] = useState(0);
@@ -46,15 +62,16 @@ export default function WhatsNewModal() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!active || !data || data.error) return;
-        const dismissalKey = `storyloop-whats-new-dismissed:${data.userId}`;
-        if (window.localStorage.getItem(dismissalKey)) {
+        if (!data.showWhatsNew && !data.showReferralIntro) return;
+        let alreadySeen = false;
+        try {
+          alreadySeen = Boolean(window.localStorage.getItem(`storyloop-whats-new-dismissed:${data.userId}`));
+        } catch { /* treat as not seen */ }
+        // Either way the account is marked now: if it was seen here before and
+        // the server never heard, this repairs that; if not, it is being shown.
+        markSeen(data.userId);
+        if (alreadySeen) {
           setClosed(true);
-          void fetch("/api/whats-new", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "dismiss" }),
-            keepalive: true,
-          }).catch(() => {});
           return;
         }
         setState(data);
@@ -65,18 +82,8 @@ export default function WhatsNewModal() {
 
   const pages = state ? [state.showWhatsNew ? "updates" : null, state.showReferralIntro ? "referral" : null].filter(Boolean) as string[] : [];
 
-  const dismiss = useCallback(() => {
-    setClosed(true);
-    if (state?.userId) {
-      window.localStorage.setItem(`storyloop-whats-new-dismissed:${state.userId}`, "1");
-    }
-    void fetch("/api/whats-new", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "dismiss" }),
-      keepalive: true,
-    }).catch(() => {});
-  }, [state?.userId]);
+  // Already recorded when the card appeared; closing just closes it.
+  const dismiss = useCallback(() => setClosed(true), []);
 
   useEffect(() => {
     if (closed || !pages.length) return;
@@ -114,16 +121,16 @@ export default function WhatsNewModal() {
           type="button"
           onClick={dismiss}
           aria-label="Close"
-          className="absolute right-3 top-3 z-10 rounded-full p-2 text-ink-400 transition-colors hover:bg-cream-50 hover:text-ink-800"
+          className="absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center rounded-full text-ink-500 transition-colors hover:bg-cream-50 hover:text-ink-800"
         >
-          <X className="h-4 w-4" />
+          <X className="h-5 w-5" />
         </button>
 
         {current === "updates" ? (
           <div className="min-h-0 overflow-y-auto px-5 pb-6 pt-10 sm:px-7">
             <h2 className="text-center font-display text-2xl font-bold text-ink-900">What&apos;s new in StoryLoop</h2>
-            <p className="mx-auto mt-2 max-w-lg text-center text-[13px] leading-relaxed text-ink-600">
-              The complete educator workflow is below. This card is shown only once; closing it dismisses it permanently for your account.
+            <p className="mx-auto mt-2 max-w-lg text-center text-sm leading-relaxed text-ink-600">
+              What arrived in September. You will only see this once.
             </p>
             <div className="mt-7 grid gap-5 sm:grid-cols-2">
               {WHATS_NEW_ITEMS.map((item) => {
@@ -134,17 +141,17 @@ export default function WhatsNewModal() {
                       <Icon className="h-4.5 w-4.5" style={{ width: 18, height: 18 }} />
                     </div>
                     <div className="min-w-0">
-                      <p className="flex flex-wrap items-center gap-2 text-sm font-bold text-ink-900">
+                      <p className="flex flex-wrap items-center gap-2 text-base font-bold text-ink-900">
                         {item.title}
                         {item.plan && (
-                          <span className="rounded-full bg-cream-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-clay-700">
+                          <span className="rounded-full bg-cream-100 px-2 py-0.5 text-xs font-semibold text-clay-800">
                             {item.plan}
                           </span>
                         )}
                       </p>
-                      <p className="mt-0.5 text-[13px] leading-relaxed text-ink-600">{item.body}</p>
+                      <p className="mt-0.5 text-sm leading-relaxed text-ink-600">{item.body}</p>
                       {item.href && (
-                        <a href={item.href} className="mt-1 inline-block text-[13px] font-medium text-clay-700 underline underline-offset-2">
+                        <a href={item.href} onClick={dismiss} className="mt-1 inline-block text-sm font-medium text-clay-700 underline underline-offset-2">
                           Take a look
                         </a>
                       )}
@@ -154,35 +161,13 @@ export default function WhatsNewModal() {
               })}
             </div>
 
-            <div className="mt-7 border-t border-clay-100 pt-6">
-              <div className="mb-4">
-                <p className="section-title mb-1">Everything available</p>
-                <h3 className="font-display text-xl font-bold text-ink-900">Every feature, listed by plan.</h3>
-                <p className="mt-1 text-xs leading-relaxed text-ink-500">
-                  Higher plans include the features in the plans before them.
-                </p>
-              </div>
-              <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-                {PLAN_DEFINITIONS.map((plan) => (
-                  <section key={plan.key} className="min-w-0 rounded-2xl border border-clay-100 bg-white p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-bold text-ink-900">{plan.name}</p>
-                      <span className="rounded-full bg-cream-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-clay-700">
-                        {plan.stories}
-                      </span>
-                    </div>
-                    <ul className="mt-3 space-y-1.5">
-                      {plan.features.map((feature) => (
-                        <li key={feature} className="flex items-start gap-2 text-[11px] leading-relaxed text-ink-600">
-                          <Check className="mt-0.5 h-3 w-3 shrink-0 text-sage-600" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                ))}
-              </div>
-            </div>
+            <p className="mt-7 border-t border-clay-100 pt-5 text-center text-sm text-ink-600">
+              Which plan has what:{" "}
+              <Link href="/billing" onClick={dismiss} className="font-medium text-clay-700 underline underline-offset-2">
+                see every feature by plan
+              </Link>
+              .
+            </p>
           </div>
         ) : (
           <div className="px-7 pb-6 pt-10 text-center">
@@ -190,7 +175,7 @@ export default function WhatsNewModal() {
               <Gift className="h-7 w-7" />
             </div>
             <h2 className="font-display text-2xl font-bold text-ink-900">Give {state.discountPercent}% off, get a month free</h2>
-            <p className="mx-auto mt-2 max-w-xs text-[13px] leading-relaxed text-ink-600">
+            <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-ink-600">
               Share StoryLoop with another educator. They get{" "}
               <strong className="text-ink-800">{state.discountPercent}% off their first month</strong>. Once they
               subscribe, you get <strong className="text-ink-800">a whole month free</strong>, up to {state.max}.
@@ -198,7 +183,7 @@ export default function WhatsNewModal() {
 
             {state.shareUrl && (
               <div className="mt-5 flex flex-col gap-2 text-left sm:flex-row">
-                <code className="min-w-0 flex-1 truncate rounded-xl border border-clay-200 bg-cream-50 px-3 py-2.5 font-mono text-[11px] text-ink-700">
+                <code className="min-w-0 flex-1 truncate rounded-xl border border-clay-200 bg-cream-50 px-3 py-2.5 font-mono text-xs text-ink-700">
                   {state.shareUrl}
                 </code>
                 <button type="button" onClick={copy} className="btn-secondary shrink-0 px-3.5 py-2.5 text-xs">
@@ -207,7 +192,7 @@ export default function WhatsNewModal() {
                 </button>
               </div>
             )}
-            <p className="mt-3 text-[11px] text-ink-500">Your link always lives on the Support page.</p>
+            <p className="mt-3 text-sm text-ink-500">Your link always lives on the Support page.</p>
           </div>
         )}
 
@@ -231,7 +216,7 @@ export default function WhatsNewModal() {
               {isLast ? "Continue" : "Next"}
             </button>
             {current === "updates" && (
-              <Link href="/blog" onClick={dismiss} className="text-[11px] text-ink-500 hover:text-ink-800">
+              <Link href="/blog" onClick={dismiss} className="text-sm text-ink-500 hover:text-ink-800">
                 Read the educator guides
               </Link>
             )}

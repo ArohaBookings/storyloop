@@ -61,14 +61,19 @@ export async function GET() {
   });
 }
 
-/** Dismiss both pages at once: closing the card means "do not show me again". */
+/**
+ * Mark the card done for this account. Sent as "seen" the moment the card
+ * appears, not when it is closed: an educator who reloads, navigates away or
+ * shuts the laptop has still seen it, and it is never shown twice. "dismiss"
+ * is kept for clients still running the previous build.
+ */
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Sign in" }, { status: 401 });
 
   const body = await request.json().catch(() => ({}));
-  if (body.action !== "dismiss") return NextResponse.json({ error: "Unknown action" }, { status: 400 });
+  if (body.action !== "dismiss" && body.action !== "seen") return NextResponse.json({ error: "Unknown action" }, { status: 400 });
 
   const { error } = await createAdminSupabase()
     .from("profiles")
