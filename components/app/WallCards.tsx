@@ -155,7 +155,7 @@ export default function WallCards({ appUrl }: { appUrl: string }) {
 
           {/* The card as the public sees it. Same content, same order. */}
           <article className="mt-4 rounded-3xl border border-clay-200 bg-paper p-6 print:border-0 print:p-0">
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-clay-700">The learning behind this</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-clay-700">The learning behind this</p>
             <h3 className="mt-2 font-display text-2xl font-bold leading-tight text-ink-900">{draft.card.heading}</h3>
             {draft.card.body.map((paragraph) => (
               <p key={paragraph} className="mt-3 leading-relaxed text-ink-700">{paragraph}</p>

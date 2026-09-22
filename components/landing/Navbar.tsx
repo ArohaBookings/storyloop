@@ -27,7 +27,7 @@ export default function Navbar() {
 
         <div className="hidden lg:flex items-center gap-8">
           {[["Features", "/#features"], ["Examples", "/examples"], ["For centres", "/for-centres"], ["Guides", "/blog"], ["Pricing", "/pricing"]].map(([label, href]) => (
-            <Link key={label} href={href} className="text-sm text-ink-600 hover:text-ink-900 transition-colors font-medium">{label}</Link>
+            <Link key={label} href={href} className="py-2 text-sm text-ink-600 hover:text-ink-900 transition-colors font-medium">{label}</Link>
           ))}
         </div>
 

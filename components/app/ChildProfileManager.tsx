@@ -146,33 +146,33 @@ export default function ChildProfileManager({ initialChildren }: { initialChildr
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="label">Preferred name or label</label>
-              <input className="input" value={form.name} onChange={(event) => updateField("name", event.target.value)} />
+              <label htmlFor="child-preferred-name-or-label" className="label">Preferred name or label</label>
+              <input id="child-preferred-name-or-label" className="input" value={form.name} onChange={(event) => updateField("name", event.target.value)} />
             </div>
             <div>
-              <label className="label">Age group</label>
-              <input className="input" value={form.ageGroup} onChange={(event) => updateField("ageGroup", event.target.value)} placeholder="3-4 years" />
+              <label htmlFor="child-age-group" className="label">Age group</label>
+              <input id="child-age-group" className="input" value={form.ageGroup} onChange={(event) => updateField("ageGroup", event.target.value)} placeholder="3-4 years" />
             </div>
             <div>
-              <label className="label">Current interests</label>
-              <input className="input" value={form.interests} onChange={(event) => updateField("interests", event.target.value)} placeholder="water, construction, dramatic play" />
+              <label htmlFor="child-current-interests" className="label">Current interests</label>
+              <input id="child-current-interests" className="input" value={form.interests} onChange={(event) => updateField("interests", event.target.value)} placeholder="water, construction, dramatic play" />
             </div>
             <div>
-              <label className="label">Home languages</label>
-              <input className="input" value={form.homeLanguages} onChange={(event) => updateField("homeLanguages", event.target.value)} placeholder="English, te reo Māori" />
+              <label htmlFor="child-home-languages" className="label">Home languages</label>
+              <input id="child-home-languages" className="input" value={form.homeLanguages} onChange={(event) => updateField("homeLanguages", event.target.value)} placeholder="English, te reo Māori" />
             </div>
             <div>
-              <label className="label">Learning focus or working theory</label>
-              <textarea className="input min-h-24 resize-y" value={form.developmentalFocus} onChange={(event) => updateField("developmentalFocus", event.target.value)} />
+              <label htmlFor="child-learning-focus-or-working-theory" className="label">Learning focus or working theory</label>
+              <textarea id="child-learning-focus-or-working-theory" className="input min-h-24 resize-y" value={form.developmentalFocus} onChange={(event) => updateField("developmentalFocus", event.target.value)} />
             </div>
             <div>
-              <label className="label">Family or whānau aspirations</label>
-              <textarea className="input min-h-24 resize-y" value={form.whanauAspirations} onChange={(event) => updateField("whanauAspirations", event.target.value)} />
+              <label htmlFor="child-family-or-wh-nau-aspirations" className="label">Family or whānau aspirations</label>
+              <textarea id="child-family-or-wh-nau-aspirations" className="input min-h-24 resize-y" value={form.whanauAspirations} onChange={(event) => updateField("whanauAspirations", event.target.value)} />
             </div>
           </div>
           <div className="mt-4">
-            <label className="label">Educator context for future drafts</label>
-            <textarea
+            <label htmlFor="child-educator-context-for-future-drafts" className="label">Educator context for future drafts</label>
+            <textarea id="child-educator-context-for-future-drafts"
               className="input min-h-24 resize-y"
               value={form.notes}
               onChange={(event) => updateField("notes", event.target.value)}
@@ -220,7 +220,7 @@ export default function ChildProfileManager({ initialChildren }: { initialChildr
               {(child.interests ?? []).length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-1.5">
                   {(child.interests ?? []).map((interest) => (
-                    <span key={interest} className="rounded-full bg-cream-100 px-2 py-1 text-[10px] font-semibold text-clay-700">
+                    <span key={interest} className="rounded-full bg-cream-100 px-2 py-1 text-xs font-semibold text-clay-700">
                       {interest}
                     </span>
                   ))}

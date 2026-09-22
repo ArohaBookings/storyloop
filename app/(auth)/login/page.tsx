@@ -73,8 +73,8 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="space-y-4">
             {notice && <div className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">{notice}</div>}
-            <div><label className="label">Email</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" className="input" /></div>
-            <div><label className="label">Password</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} required autoComplete="current-password" className="input" /></div>
+            <div><label className="label" htmlFor="login-email">Email</label><input id="login-email" type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" className="input" /></div>
+            <div><label className="label" htmlFor="login-password">Password</label><input id="login-password" type="password" value={password} onChange={e => setPassword(e.target.value)} required autoComplete="current-password" className="input" /></div>
             {error && <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{error}</div>}
             <button type="submit" disabled={loading} className="btn-primary w-full py-3">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sign in"}

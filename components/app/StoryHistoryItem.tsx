@@ -348,7 +348,7 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
           {currentOutcomes.length > 0 && (
             <div className="flex gap-1.5 mt-2 flex-wrap">
               {currentOutcomes.map((outcome) => (
-                <span key={outcome} className="text-[10px] font-mono bg-cream-100 text-clay-700 px-2 py-0.5 rounded-full">
+                <span key={outcome} className="text-xs font-mono bg-cream-100 text-clay-700 px-2 py-0.5 rounded-full">
                   {outcome}
                 </span>
               ))}
@@ -360,7 +360,7 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
 
       <div className="mt-5 pt-5 border-t border-clay-100">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider">Saved story</p>
+          <p className="text-xs font-bold text-clay-600 uppercase tracking-wider">Saved story</p>
           <div className="flex items-center gap-2 flex-wrap">
             {!editing && (
               <button onClick={startEdit} className="btn-ghost px-3 py-1.5 text-xs">
@@ -427,7 +427,7 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
         <div className="mt-5 rounded-2xl border border-clay-100 bg-cream-50 p-4">
           <div className="flex flex-col gap-3">
             <div>
-              <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1">Improve from original observation</p>
+              <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1">Improve from original observation</p>
               <p className="text-xs text-ink-600">Use the latest StoryLoop quality pass when the observation is good but the saved story needs a stronger tone, depth, or curriculum lens.</p>
             </div>
             <div className={`grid gap-2 ${regenerateFramework === "NZ" ? "sm:grid-cols-5" : "sm:grid-cols-4"}`}>
@@ -479,7 +479,7 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
                   {regenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
                   Improve story
                 </button>
-                <span className="text-[11px] text-ink-500">Free, doesn&apos;t use a monthly story.</span>
+                <span className="text-xs text-ink-500">Free, doesn&apos;t use a monthly story.</span>
               </div>
             </div>
           </div>
@@ -497,21 +497,21 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
           <div className="mt-5 space-y-4">
             {learningSummary && (
               <div>
-                <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">What this learning shows</p>
+                <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">What this learning shows</p>
                 <p className="text-sm text-ink-700">{learningSummary}</p>
               </div>
             )}
 
             {childVoice && (
               <div>
-                <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Child&apos;s voice</p>
+                <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">Child&apos;s voice</p>
                 <p className="text-sm text-ink-700">{childVoice}</p>
               </div>
             )}
 
             {curriculumLinks.length > 0 && (
               <div>
-                <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Curriculum links</p>
+                <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">Curriculum links</p>
                 <ul className="space-y-1 text-sm text-ink-700">
                   {curriculumLinks.map((item) => (
                     <li key={item}>• {item}</li>
@@ -522,10 +522,10 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
 
             {learningDispositions.length > 0 && (
               <div>
-                <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Learning dispositions</p>
+                <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">Learning dispositions</p>
                 <div className="flex gap-1.5 flex-wrap">
                   {learningDispositions.map((item) => (
-                    <span key={item} className="text-[10px] font-mono bg-cream-100 text-clay-700 px-2 py-0.5 rounded-full">
+                    <span key={item} className="text-xs font-mono bg-cream-100 text-clay-700 px-2 py-0.5 rounded-full">
                       {item}
                     </span>
                   ))}
@@ -535,10 +535,10 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
 
             {socialEmotionalLinks.length > 0 && (
               <div>
-                <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Social and emotional learning</p>
+                <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">Social and emotional learning</p>
                 <div className="flex gap-1.5 flex-wrap">
                   {socialEmotionalLinks.map((item) => (
-                    <span key={item} className="text-[10px] font-mono bg-sage-50 text-sage-700 px-2 py-0.5 rounded-full border border-sage-100">
+                    <span key={item} className="text-xs font-mono bg-sage-50 text-sage-700 px-2 py-0.5 rounded-full border border-sage-100">
                       {item}
                     </span>
                   ))}
@@ -548,7 +548,7 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
 
             {culturalConnections.length > 0 && (
               <div>
-                <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Cultural and language links</p>
+                <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">Cultural and language links</p>
                 <ul className="space-y-1 text-sm text-ink-700">
                   {culturalConnections.map((item) => (
                     <li key={item}>• {item}</li>
@@ -559,7 +559,7 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
 
             {currentNextSteps.length > 0 && (
               <div>
-                <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Possible next steps</p>
+                <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">Possible next steps</p>
                 <ul className="space-y-1 text-sm text-ink-700">
                   {currentNextSteps.map((item) => (
                     <li key={item}>• {item}</li>
@@ -570,7 +570,7 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
 
             {assumptions.length > 0 && (
               <div>
-                <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Assumptions or gaps</p>
+                <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">Assumptions or gaps</p>
                 <ul className="space-y-1 text-sm text-ink-700">
                   {assumptions.map((item) => (
                     <li key={item}>• {item}</li>
@@ -581,7 +581,7 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
 
             {whanauConnection && (
               <div>
-                <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">{familyLinkLabel}</p>
+                <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">{familyLinkLabel}</p>
                 <p className="text-sm text-ink-700">{whanauConnection}</p>
               </div>
             )}
@@ -633,7 +633,7 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
         <div className="mt-5 rounded-2xl border border-clay-200 bg-white p-4">
           <div className="flex flex-col gap-3">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-clay-600">Educator reflection</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-clay-600">Educator reflection</p>
               <p className="mt-1 text-xs text-ink-600">
                 Add what changed in your thinking, what local context matters, or what you want to revisit.
               </p>
@@ -673,7 +673,7 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
 
         {story.observations && (
           <div className="mt-5 pt-5 border-t border-clay-100">
-            <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Original observation</p>
+            <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">Original observation</p>
             <p className="text-xs text-ink-600 whitespace-pre-wrap font-mono">{story.observations}</p>
           </div>
         )}

@@ -105,7 +105,7 @@ export default async function BlogPostPage({ params }: Params) {
               <Link href="/signup" className="btn-primary mt-5">
                 <Sparkles className="h-4 w-4" /> Try 3 stories free
               </Link>
-              <p className="mt-2 text-[11px] text-ink-500">No credit card required.</p>
+              <p className="mt-2 text-xs text-ink-500">No credit card required.</p>
             </div>
 
             {others.length > 0 && (

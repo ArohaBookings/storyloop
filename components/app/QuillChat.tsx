@@ -102,7 +102,7 @@ export default function QuillChat({
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-clay-700 text-paper"><Feather className="h-4 w-4" /></div>
             <div>
               <p className="font-display text-base font-bold text-ink-900">Quill</p>
-              <p className="-mt-0.5 text-[11px] text-ink-500">Ask for advice or a change</p>
+              <p className="-mt-0.5 text-xs text-ink-500">Ask for advice or a change</p>
             </div>
           </div>
           <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-full text-ink-500 hover:bg-cream-100" aria-label="Close Quill"><X className="h-5 w-5" /></button>
@@ -156,7 +156,7 @@ export default function QuillChat({
               <ArrowUp className="h-4 w-4" />
             </button>
           </div>
-          <p className="mt-1.5 px-1 text-[10px] text-ink-400">Quill can make mistakes. You always review and keep changes yourself.</p>
+          <p className="mt-1.5 px-1 text-xs text-ink-400">Quill can make mistakes. You always review and keep changes yourself.</p>
         </div>
       </div>
     </div>

@@ -329,7 +329,7 @@ export default function BillingPage() {
             <p className="section-title mb-2">Current plan</p>
             <div className="flex items-center gap-2">
               <h2 className="font-display text-2xl font-bold text-ink-900 capitalize">{currentPlan}</h2>
-              <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${statusClass}`}>
+              <span className={`text-xs font-bold px-2 py-1 rounded-full ${statusClass}`}>
                 {statusLabel}
               </span>
             </div>
@@ -412,14 +412,14 @@ export default function BillingPage() {
           const planLoading = loading === plan.key || (currentPlan !== "free" && isNext && loading === "portal");
           return (
             <div key={plan.name} className={`rounded-2xl p-6 flex flex-col relative ${plan.popular ? "bg-ink-900 text-paper border-2 border-clay-600 shadow-clay" : isNext ? "bg-white border-2 border-clay-400 shadow-warm" : "bg-white border border-clay-100"}`}>
-              {plan.popular && <div className="inline-flex items-center bg-clay-500 text-paper text-[10px] font-bold px-2 py-1 rounded-full w-fit mb-2">MOST POPULAR</div>}
-              {!plan.popular && isNext && <div className="inline-flex items-center bg-clay-100 text-clay-700 text-[10px] font-bold px-2 py-1 rounded-full w-fit mb-2">BEST NEXT STEP</div>}
+              {plan.popular && <div className="inline-flex items-center bg-clay-700 text-paper text-xs font-bold px-2 py-1 rounded-full w-fit mb-2">Most popular</div>}
+              {!plan.popular && isNext && <div className="inline-flex items-center bg-clay-100 text-clay-700 text-xs font-bold px-2 py-1 rounded-full w-fit mb-2">BEST NEXT STEP</div>}
               <p className={`font-semibold text-sm ${plan.popular ? "text-cream-300" : "text-clay-700"}`}>{plan.name}</p>
               <div className="flex items-end gap-1 mt-1 mb-2">
                 <span className="font-display text-4xl font-bold">${plan.displayPrice}</span>
-                {plan.displayPrice > 0 && <span className={`mb-1 text-xs ${plan.popular ? "text-ink-400" : "text-ink-500"}`}>{currency}/mo</span>}
+                {plan.displayPrice > 0 && <span className={`mb-1 text-xs ${plan.popular ? "text-ink-300" : "text-ink-500"}`}>{currency}/mo</span>}
               </div>
-              {plan.priceNote && <p className={`-mt-1 mb-2 text-[11px] ${plan.popular ? "text-ink-400" : "text-ink-500"}`}>{plan.priceNote}</p>}
+              {plan.priceNote && <p className={`-mt-1 mb-2 text-xs ${plan.popular ? "text-ink-300" : "text-ink-500"}`}>{plan.priceNote}</p>}
               <p className={`text-xs mb-4 ${plan.popular ? "text-cream-300" : "text-ink-500"}`}>{plan.stories}</p>
               <p className={`mb-4 text-xs leading-relaxed ${plan.popular ? "text-ink-300" : "text-ink-600"}`}>{plan.description}</p>
               <ul className="space-y-2 flex-1 mb-5">
@@ -431,13 +431,13 @@ export default function BillingPage() {
                 ))}
               </ul>
               <div className={`mb-5 rounded-2xl border p-3 ${plan.popular ? "border-ink-700 bg-ink-800/60" : "border-clay-100 bg-cream-50"}`}>
-                <p className={`mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${plan.popular ? "text-cream-300" : "text-clay-700"}`}>
+                <p className={`mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${plan.popular ? "text-cream-300" : "text-clay-700"}`}>
                   <ShieldCheck className="h-3.5 w-3.5" /> Solves
                 </p>
-                <p className={`mb-2 text-[11px] leading-relaxed ${plan.popular ? "text-ink-300" : "text-ink-600"}`}>{plan.buyer}</p>
+                <p className={`mb-2 text-xs leading-relaxed ${plan.popular ? "text-ink-300" : "text-ink-600"}`}>{plan.buyer}</p>
                 <ul className="space-y-1.5">
                   {plan.painSolved.slice(0, 1).map((pain) => (
-                    <li key={pain} className={`text-[11px] leading-relaxed ${plan.popular ? "text-ink-300" : "text-ink-600"}`}>{pain}</li>
+                    <li key={pain} className={`text-xs leading-relaxed ${plan.popular ? "text-ink-300" : "text-ink-600"}`}>{pain}</li>
                   ))}
                 </ul>
               </div>

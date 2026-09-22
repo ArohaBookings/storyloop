@@ -90,11 +90,11 @@ export default async function BlogIndex() {
                     >
                       <div className="mb-3 flex items-center gap-2">
                         <span className="text-2xl" aria-hidden="true">{post.cover_emoji ?? "📝"}</span>
-                        <span className="rounded-full border border-clay-200 bg-cream-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-clay-700">
+                        <span className="rounded-full border border-clay-200 bg-cream-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-clay-700">
                           {label}
                         </span>
                         {post.region !== "both" && (
-                          <span className="rounded-full border border-sage-200 bg-sage-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-sage-700">
+                          <span className="rounded-full border border-sage-200 bg-sage-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-sage-700">
                             {post.region}
                           </span>
                         )}
@@ -103,7 +103,7 @@ export default async function BlogIndex() {
                         {post.title}
                       </h2>
                       {post.excerpt && <p className="mt-2 flex-1 text-sm leading-relaxed text-ink-600">{post.excerpt}</p>}
-                      <p className="mt-4 text-[11px] text-ink-500">
+                      <p className="mt-4 text-xs text-ink-500">
                         {formatDate(post.published_at)} · {readingMinutes(post.body_markdown)} min read
                       </p>
                     </Link>

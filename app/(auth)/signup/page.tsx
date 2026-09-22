@@ -135,22 +135,22 @@ export default function SignupPage() {
           <div className="mb-6 rounded-2xl border border-clay-200 bg-cream-50 p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider">Selected plan</p>
+                <p className="text-xs font-bold text-clay-600 uppercase tracking-wider">Selected plan</p>
                 <p className="font-display text-xl font-bold text-ink-900">{selectedPlan.name}</p>
                 <p className="text-xs text-ink-600 mt-1">{selectedPlan.description}</p>
                 <ul className="mt-3 space-y-1.5">
                   {selectedPlan.features.slice(0, 4).map((feature) => (
-                    <li key={feature} className="flex items-start gap-2 text-[11px] text-ink-700">
+                    <li key={feature} className="flex items-start gap-2 text-xs text-ink-700">
                       <Check className="mt-0.5 h-3 w-3 flex-shrink-0 text-sage-600" />
                       <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
-                {isPaidPlan && <p className="mt-3 text-[11px] text-clay-700">{selectedPlan.buyer}</p>}
+                {isPaidPlan && <p className="mt-3 text-xs text-clay-700">{selectedPlan.buyer}</p>}
               </div>
               <div className="text-right">
                 <p className="font-bold text-ink-900">{selectedPrice}</p>
-                {isPaidPlan && <p className="text-[10px] text-clay-600">after trial</p>}
+                {isPaidPlan && <p className="text-xs text-clay-600">after trial</p>}
               </div>
             </div>
             {isPaidPlan && (
@@ -201,7 +201,7 @@ export default function SignupPage() {
             <button type="submit" disabled={loading} className="btn-primary w-full py-3">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : isPaidPlan ? "Create account and start trial" : "Create free account"}
             </button>
-            <p className="text-xs text-ink-500 text-center">By signing up you agree to our <Link href="/terms" className="text-clay-700 hover:underline">Terms</Link> and <Link href="/privacy" className="text-clay-700 hover:underline">Privacy Policy</Link></p>
+            <p className="text-xs text-ink-500 text-center">By signing up you agree to our <Link href="/terms" className="text-clay-700 underline underline-offset-2">Terms</Link> and <Link href="/privacy" className="text-clay-700 underline underline-offset-2">Privacy Policy</Link></p>
           </form>
         </div>
         <p className="text-center text-sm text-ink-500 mt-5">Already have an account? <Link href="/login" className="text-clay-700 font-semibold hover:underline">Sign in</Link></p>

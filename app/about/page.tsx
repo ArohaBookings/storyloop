@@ -127,7 +127,6 @@ export default function AboutPage() {
                 </div>
 
                 <div className="min-w-0 space-y-5 text-[17px] leading-relaxed text-ink-700">
-                  <p className="section-title">The person behind it</p>
                   <h2 className="font-display text-3xl font-bold leading-tight text-ink-900 md:text-4xl">
                     Hi, I&apos;m Leo. I built the first version of this when I was 19.
                   </h2>
@@ -168,7 +167,6 @@ export default function AboutPage() {
         <section className="border-y border-clay-100 bg-white py-16 md:py-24">
           <div className="wide-shell">
             <div className="mx-auto mb-12 max-w-2xl text-center">
-              <p className="section-title mb-3">What we will not do</p>
               <h2 className="font-display text-3xl font-bold text-ink-900 md:text-4xl">
                 Six promises, and they are the constraints we build inside.
               </h2>
@@ -177,14 +175,14 @@ export default function AboutPage() {
                 you might expect an AI writing tool to do, StoryLoop deliberately refuses to do.
               </p>
             </div>
-            <div className="mx-auto grid max-w-5xl gap-5 md:grid-cols-2">
-              {PRINCIPLES.map((principle, index) => (
-                <div key={principle.title} className="card min-w-0 p-6 md:p-7">
-                  <p className="mb-3 font-mono text-xs font-bold text-clay-600">
-                    {String(index + 1).padStart(2, "0")}
-                  </p>
-                  <h3 className="font-display text-lg font-bold leading-snug text-ink-900">{principle.title}</h3>
-                  <p className="mt-2.5 text-sm leading-relaxed text-ink-600">{principle.body}</p>
+            {/* A list, not six numbered cards: the promises are not a sequence,
+                and the body text was 14px grey on white, hard going for anyone
+                over forty reading on a phone. */}
+            <div className="mx-auto grid max-w-5xl gap-x-12 md:grid-cols-2">
+              {PRINCIPLES.map((principle) => (
+                <div key={principle.title} className="min-w-0 border-t border-clay-100 py-7">
+                  <h3 className="font-display text-xl font-bold leading-snug text-ink-900">{principle.title}</h3>
+                  <p className="mt-2.5 text-base leading-relaxed text-ink-700">{principle.body}</p>
                 </div>
               ))}
             </div>
@@ -194,7 +192,6 @@ export default function AboutPage() {
         <section className="py-16 md:py-24">
           <div className="wide-shell">
             <div className="mx-auto max-w-3xl space-y-6 text-[17px] leading-relaxed text-ink-700">
-              <p className="section-title">Who builds it</p>
               <h2 className="font-display text-3xl font-bold leading-snug text-ink-900 md:text-4xl">
                 One person in Ōtautahi builds this, and that is on purpose.
               </h2>
@@ -205,25 +202,41 @@ export default function AboutPage() {
                 StoryLoop is built around rather than adapted to afterwards.
               </p>
               <p>
-                Being one person is the reason it changes quickly. When an educator emails to say a particular
-                kind of story comes out wrong, or that something is confusing on a phone, it usually goes into
-                that week&apos;s build rather than a roadmap review in six months. A good part of StoryLoop exists
-                because one kaiako took the time to tell me it was missing.
-              </p>
-              <p>
-                It is also why I would rather say plainly what the product does not do. I have no interest in
-                selling anyone the idea that documentation can be fully automated. It cannot be, and anyone
-                claiming otherwise has not sat with a child long enough to know why.
-              </p>
-              <p>
                 The honest trade-off: one person ships big features slower than a company with thirty engineers,
                 and if it is the middle of the night in New Zealand your email waits until morning. What you get
                 back is that the person who built the thing is the person who reads your message.
               </p>
-              <p>
-                If you use StoryLoop and something about it is wrong, tell me. It genuinely shapes what gets made
-                next.
-              </p>
+              {/* The plain facts a director checks before putting a team on
+                  something, in one place instead of scattered through prose. */}
+              <dl className="!mt-10 grid gap-x-8 gap-y-5 border-t border-clay-100 pt-8 text-base sm:grid-cols-2">
+                {[
+                  ["Business", "Aria Care, a New Zealand company, trading as StoryLoop"],
+                  ["Based in", "Ōtautahi Christchurch, Aotearoa New Zealand"],
+                  ["Built for", "Te Whāriki in New Zealand and EYLF V2.0 in Australia"],
+                  ["Your work", "Editable and exportable at any time, on every plan, including after you cancel"],
+                ].map(([term, detail]) => (
+                  <div key={term}>
+                    <dt className="text-sm font-semibold text-ink-500">{term}</dt>
+                    <dd className="mt-1 text-ink-800">{detail}</dd>
+                  </div>
+                ))}
+                <div>
+                  <dt className="text-sm font-semibold text-ink-500">Contact</dt>
+                  <dd className="mt-1">
+                    <a href="mailto:ariacareapp@gmail.com" className="text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900">
+                      ariacareapp@gmail.com
+                    </a>
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-semibold text-ink-500">Privacy</dt>
+                  <dd className="mt-1">
+                    <Link href="/privacy" className="text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900">
+                      What is collected, who handles it, and your rights
+                    </Link>
+                  </dd>
+                </div>
+              </dl>
             </div>
           </div>
         </section>
@@ -240,13 +253,13 @@ export default function AboutPage() {
               </p>
               <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
                 <Link href="/signup" className="btn-primary">
-                  <Sparkles className="h-4 w-4" /> Try 3 stories free
+                  <Sparkles className="h-4 w-4" /> Start free
                 </Link>
                 <Link href="/examples" className="btn-secondary">
                   See real examples <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
-              <p className="mt-3 text-xs text-ink-500">No credit card required.</p>
+              <p className="mt-3 text-sm text-ink-500">Three stories a month free, no card needed.</p>
             </div>
           </div>
         </section>

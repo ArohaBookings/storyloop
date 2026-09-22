@@ -41,7 +41,7 @@ export default function QuietChildRadarPanel({
           </Link>
         </div>
         <div className="mt-4 rounded-2xl border border-dashed border-clay-200 bg-cream-50 p-4" aria-label="Example">
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-clay-700">Example, not your children</p>
+          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-clay-700">Example, not your children</p>
           <ul className="space-y-1.5 text-sm text-ink-700">
             <li><strong className="font-semibold text-ink-900">Mere</strong> · No captured moments in 9 working days.</li>
             <li><strong className="font-semibold text-ink-900">Theo</strong> · No moments captured yet.</li>

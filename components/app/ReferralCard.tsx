@@ -18,7 +18,7 @@ type ReferralState = {
 /** Five small loops that fill in as free months are earned. */
 function Progress({ earned, max }: { earned: number; max: number }) {
   return (
-    <div className="flex items-center gap-1.5" aria-label={`${earned} of ${max} free months earned`}>
+    <div className="flex items-center gap-1.5" role="img" aria-label={`${earned} of ${max} free months earned`}>
       {Array.from({ length: max }).map((_, index) => (
         <span
           key={index}
@@ -122,7 +122,7 @@ export default function ReferralCard({ variant = "inline" }: { variant?: "inline
             <button type="button" onClick={dismiss} className="w-full text-center text-xs text-ink-500 hover:text-ink-800">
               Maybe later
             </button>
-            <p className="text-center text-[11px] text-ink-400">
+            <p className="text-center text-xs text-ink-400">
               You can always find your link on the Support page.
             </p>
           </div>

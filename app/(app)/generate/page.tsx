@@ -1091,7 +1091,7 @@ export default function GeneratePage() {
         <div className="min-w-0 space-y-4">
           <div className="card p-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-2">
-                <label className="label mb-0">Observations</label>
+                <label htmlFor="gen-observations" className="label mb-0">Observations</label>
               <div className="flex flex-wrap items-center gap-2">
                 {recording && (
                   <button
@@ -1150,7 +1150,7 @@ export default function GeneratePage() {
                 </button>
               </div>
             )}
-            <textarea
+            <textarea id="gen-observations"
               value={observations}
               onChange={(e) => {
                 setObservations(e.target.value);
@@ -1202,12 +1202,12 @@ export default function GeneratePage() {
             <p className="section-title">Personalise (optional)</p>
             <div>
               <div className="flex items-center justify-between gap-3">
-                <label className="label">Learning profile</label>
-                <Link href="/children" className="text-[11px] font-bold text-clay-700 hover:text-clay-900">
+                <label htmlFor="gen-learning-profile" className="label">Learning profile</label>
+                <Link href="/children" className="text-xs font-bold text-clay-700 hover:text-clay-900">
                   Manage profiles
                 </Link>
               </div>
-              <select
+              <select id="gen-learning-profile"
                 value={selectedChildId}
                 onChange={(event) => {
                   const childId = event.target.value;
@@ -1227,11 +1227,11 @@ export default function GeneratePage() {
                   </option>
                 ))}
               </select>
-              <p className="mt-1 text-[11px] text-ink-500">
+              <p className="mt-1 text-xs text-ink-500">
                 A saved profile carries interests and {location === "NZ" ? "whānau" : "family"} aspirations into the drafting context without treating them as evidence from today.
               </p>
               {selectedChildId && !hasFeatureAccess(accountPlan, "childContinuityProfiles") && (
-                <p className="mt-2 rounded-xl border border-clay-100 bg-cream-50 px-3 py-2 text-[11px] leading-relaxed text-ink-600">
+                <p className="mt-2 rounded-xl border border-clay-100 bg-cream-50 px-3 py-2 text-xs leading-relaxed text-ink-600">
                   This story will still use the child&apos;s name and age. Educator Pro carries interests, family context, home languages, and recent learning into future stories.
                   <Link href="/billing?feature=child-continuity" className="ml-1 font-bold text-clay-700 hover:text-clay-900">Compare Pro</Link>
                 </p>
@@ -1239,8 +1239,8 @@ export default function GeneratePage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="label">Child&apos;s name</label>
-                <input
+                <label htmlFor="gen-childs-name" className="label">Child&apos;s name</label>
+                <input id="gen-childs-name"
                   value={childName}
                   onChange={(event) => {
                     setChildName(event.target.value);
@@ -1251,8 +1251,8 @@ export default function GeneratePage() {
                 />
               </div>
               <div>
-                <label className="label">Age group</label>
-                <select value={ageGroup} onChange={(e) => setAgeGroup(e.target.value)} className="input">
+                <label htmlFor="gen-age-group" className="label">Age group</label>
+                <select id="gen-age-group" value={ageGroup} onChange={(e) => setAgeGroup(e.target.value)} className="input">
                   <option value="">Choose...</option>
                   <option>0-12 months</option>
                   <option>1-2 years</option>
@@ -1264,14 +1264,14 @@ export default function GeneratePage() {
               </div>
             </div>
             <div>
-              <label className="label">Educator or staff names (optional)</label>
-              <input
+              <label htmlFor="gen-educator-or-staff-names-optional" className="label">Educator or staff names (optional)</label>
+              <input id="gen-educator-or-staff-names-optional"
                 value={educatorNames}
                 onChange={(event) => setEducatorNames(event.target.value)}
                 className="input"
                 placeholder="Optional - e.g. Sarah, Moana"
               />
-              <p className="mt-1 text-[11px] text-ink-500">
+              <p className="mt-1 text-xs text-ink-500">
                 Add one or more names if you want the story to say “Sarah noticed...” instead of only “we noticed...”.
               </p>
             </div>
@@ -1335,8 +1335,8 @@ export default function GeneratePage() {
               </div>
             </div>
             <div>
-              <label className="label">Pedagogy focus</label>
-              <select
+              <label htmlFor="gen-pedagogy-focus" className="label">Pedagogy focus</label>
+              <select id="gen-pedagogy-focus"
                 value={pedagogyFocus}
                 onChange={(event) => setPedagogyFocus(normalizePedagogyFocus(event.target.value))}
                 className="input"
@@ -1347,7 +1347,7 @@ export default function GeneratePage() {
                 <option value="family_partnership">Family partnership</option>
                 <option value="working_theories">Working theories and inquiry</option>
               </select>
-              <p className="mt-1 text-[11px] text-ink-500">
+              <p className="mt-1 text-xs text-ink-500">
                 Shapes the reflection lens without forcing unsupported curriculum claims.
               </p>
             </div>
@@ -1361,7 +1361,7 @@ export default function GeneratePage() {
                   <span className="flex items-center gap-2 text-xs font-bold text-ink-900">
                     <Users className="h-4 w-4 text-clay-700" /> Centre Voice / Philosophy Memory
                   </span>
-                  <span className="mt-1 block text-[11px] leading-relaxed text-ink-500">
+                  <span className="mt-1 block text-xs leading-relaxed text-ink-500">
                     Optional style memory for your centre or room. It shapes tone, not evidence.
                   </span>
                 </span>
@@ -1370,8 +1370,8 @@ export default function GeneratePage() {
               {showCentreVoice && (
                 <div className="mt-4 space-y-3">
                   <div>
-                    <label className="label">Centre philosophy or room voice</label>
-                    <textarea
+                    <label htmlFor="gen-centre-philosophy-or-room-voice" className="label">Centre philosophy or room voice</label>
+                    <textarea id="gen-centre-philosophy-or-room-voice"
                       value={centrePhilosophy}
                       onChange={(event) => setCentrePhilosophy(event.target.value)}
                       rows={4}
@@ -1384,8 +1384,8 @@ export default function GeneratePage() {
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="label">Words or phrases you like</label>
-                      <input
+                      <label htmlFor="gen-words-or-phrases-you-like" className="label">Words or phrases you like</label>
+                      <input id="gen-words-or-phrases-you-like"
                         value={likedPhrases}
                         onChange={(event) => setLikedPhrases(event.target.value)}
                         className="input"
@@ -1393,8 +1393,8 @@ export default function GeneratePage() {
                       />
                     </div>
                     <div>
-                      <label className="label">Words or phrases to avoid</label>
-                      <input
+                      <label htmlFor="gen-words-or-phrases-to-avoid" className="label">Words or phrases to avoid</label>
+                      <input id="gen-words-or-phrases-to-avoid"
                         value={avoidedPhrases}
                         onChange={(event) => setAvoidedPhrases(event.target.value)}
                         className="input"
@@ -1402,7 +1402,7 @@ export default function GeneratePage() {
                       />
                     </div>
                   </div>
-                  <div className="rounded-xl border border-clay-200 bg-white p-3 text-[11px] leading-relaxed text-ink-600">
+                  <div className="rounded-xl border border-clay-200 bg-white p-3 text-xs leading-relaxed text-ink-600">
                     Centre plans make this shared across teams. Free and Educator accounts can still save a personal voice memory here.
                     <Link href="/billing?offer=activation" className="ml-1 font-bold text-clay-700 hover:text-clay-900">
                       See centre options
@@ -1429,7 +1429,7 @@ export default function GeneratePage() {
                     </button>
                   ))}
                 </div>
-                <p className="text-[11px] text-ink-500 mt-1">
+                <p className="text-xs text-ink-500 mt-1">
                   NZ-only wording for Te Whāriki stories. EYLF stories stay in Australian educator language.
                 </p>
               </div>
@@ -1441,7 +1441,7 @@ export default function GeneratePage() {
                     type="checkbox"
                     checked={includeKowhitiWhakapae}
                     onChange={(event) => setIncludeKowhitiWhakapae(event.target.checked)}
-                    className="mt-0.5 accent-clay-700"
+                    className="mt-0.5 h-4 w-4 flex-none accent-clay-700"
                   />
                   <span>
                     <span className="font-bold block text-ink-900">Kōwhiti Whakapae links</span>
@@ -1454,7 +1454,7 @@ export default function GeneratePage() {
                   type="checkbox"
                   checked={includeTapasa}
                   onChange={(event) => setIncludeTapasa(event.target.checked)}
-                  className="mt-0.5 accent-clay-700"
+                  className="mt-0.5 h-4 w-4 flex-none accent-clay-700"
                 />
                   <span>
                     <span className="font-bold block text-ink-900">Tapasā lens</span>
@@ -1509,7 +1509,7 @@ export default function GeneratePage() {
 
           {showBacklogUpgradeNudge && mode === "backlog" && (
             <div className="rounded-2xl border border-clay-200 bg-white p-4 shadow-soft">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-clay-600">Centre-ready workflow</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-clay-600">Centre-ready workflow</p>
               <p className="mt-1 text-sm text-ink-700">
                 Backlog Rescue is built for educators catching up across a week. Centre plans make this easier to roll out across teams.
               </p>
@@ -1537,16 +1537,16 @@ export default function GeneratePage() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
                         <div className="mb-2 flex flex-wrap gap-1.5">
-                          <span className="rounded-full bg-clay-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-clay-700">
+                          <span className="rounded-full bg-clay-100 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-clay-700">
                             {item.priority} priority
                           </span>
-                          <span className="rounded-full bg-sage-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sage-700">
+                          <span className="rounded-full bg-sage-50 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-sage-700">
                             {item.recommendation.replace("_", " ")}
                           </span>
                         </div>
                         <p className="font-display text-base font-bold text-ink-900">{item.suggestedTitle || "Observation"}</p>
                         <p className="mt-1 text-xs leading-relaxed text-ink-600">{item.reason}</p>
-                        {item.frameworkHint && <p className="mt-2 text-[11px] text-clay-700">{item.frameworkHint}</p>}
+                        {item.frameworkHint && <p className="mt-2 text-xs text-clay-700">{item.frameworkHint}</p>}
                       </div>
                       {item.recommendation !== "skip" && (
                         <button onClick={() => selectBacklogItem(item)} className="btn-secondary flex-shrink-0 px-3 py-2 text-xs">
@@ -1564,7 +1564,7 @@ export default function GeneratePage() {
             <div className="rounded-2xl border border-clay-200 bg-cream-50 p-4 shadow-soft">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1">
+                  <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1">
                     {upgradePromptKind === "one_left" ? "1 free story left this month" : "First story created"}
                   </p>
                   <p className="text-sm text-ink-700">
@@ -1666,10 +1666,10 @@ export default function GeneratePage() {
 
               <div className="rounded-2xl border border-amber-100 bg-white p-4 shadow-soft">
                 <div className="mb-3 flex items-center justify-between gap-3">
-                  <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-800">
+                  <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-amber-800">
                     Question {boundedClarificationStep + 1}/{clarificationQuestionCount}
                   </span>
-                  <span className="text-[11px] font-semibold text-ink-500">Skip anything you did not observe.</span>
+                  <span className="text-xs font-semibold text-ink-500">Skip anything you did not observe.</span>
                 </div>
                 <label className="block text-sm font-bold leading-relaxed text-ink-900" htmlFor="clarification-answer">
                   {currentClarificationQuestion}
@@ -1690,7 +1690,7 @@ export default function GeneratePage() {
                   {clarification.questions.map((question, index) => {
                     const answered = Boolean((clarificationAnswers[index] ?? "").trim());
                     const questionButtonClass = [
-                      "rounded-full border px-3 py-1.5 text-[11px] font-bold transition-all",
+                      "rounded-full border px-3 py-1.5 text-xs font-bold transition-all",
                       boundedClarificationStep === index
                         ? "border-amber-600 bg-amber-600 text-white"
                         : answered
@@ -1846,7 +1846,7 @@ export default function GeneratePage() {
                       ["Teacher check", familyPack.teacherCheck],
                     ].filter(([, value]) => value).map(([label, value]) => (
                       <div key={label} className="min-w-0 rounded-2xl border border-clay-100 bg-white p-3">
-                        <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-clay-600">{label}</p>
+                        <p className="mb-1 text-xs font-bold uppercase tracking-wider text-clay-600">{label}</p>
                         <p className="leading-relaxed">{value}</p>
                       </div>
                     ))}
@@ -1886,14 +1886,14 @@ export default function GeneratePage() {
                 <div className="story-safe mt-5 space-y-4 border-t border-clay-200 pt-5">
                   {learningSummary && (
                     <div>
-                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">What this learning shows</p>
+                      <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">What this learning shows</p>
                       <p className="text-sm text-ink-700">{learningSummary}</p>
                     </div>
                   )}
 
                   {outcomes.length > 0 && (
                     <div>
-                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Linked outcomes</p>
+                      <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">Linked outcomes</p>
                       <div className="flex gap-1.5 flex-wrap">
                         {outcomes.map((outcome) => (
                           <span key={outcome} className="max-w-full break-words rounded-md border border-clay-200 bg-white px-2 py-1 font-mono text-xs text-clay-700">
@@ -1906,7 +1906,7 @@ export default function GeneratePage() {
 
                   {curriculumLinks.length > 0 && (
                     <div>
-                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Curriculum link</p>
+                      <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">Curriculum link</p>
                       <ul className="space-y-1 text-sm text-ink-700">
                         {curriculumLinks.map((item) => (
                           <li key={item}>• {item}</li>
@@ -1917,7 +1917,7 @@ export default function GeneratePage() {
 
                   {frameworkEvidence.length > 0 && (
                     <div>
-                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Why these links fit</p>
+                      <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">Why these links fit</p>
                       <ul className="space-y-1 text-sm text-ink-700">
                         {frameworkEvidence.map((item) => (
                           <li key={item}>• {item}</li>
@@ -1928,14 +1928,14 @@ export default function GeneratePage() {
 
                   {childVoice && (
                     <div>
-                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Child&apos;s voice</p>
+                      <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">Child&apos;s voice</p>
                       <p className="text-sm text-ink-700">{childVoice}</p>
                     </div>
                   )}
 
                   {learningDispositions.length > 0 && (
                     <div>
-                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Learning dispositions</p>
+                      <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">Learning dispositions</p>
                       <div className="flex gap-1.5 flex-wrap">
                         {learningDispositions.map((item) => (
                           <span key={item} className="max-w-full break-words rounded-md border border-clay-200 bg-cream-50 px-2 py-1 font-mono text-xs text-clay-700">
@@ -1948,7 +1948,7 @@ export default function GeneratePage() {
 
                   {socialEmotionalLinks.length > 0 && (
                     <div>
-                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Social and emotional learning</p>
+                      <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">Social and emotional learning</p>
                       <div className="flex gap-1.5 flex-wrap">
                         {socialEmotionalLinks.map((item) => (
                           <span key={item} className="max-w-full break-words rounded-md border border-sage-100 bg-sage-50 px-2 py-1 font-mono text-xs text-sage-700">
@@ -1961,7 +1961,7 @@ export default function GeneratePage() {
 
                   {culturalConnections.length > 0 && (
                     <div>
-                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Cultural and language links</p>
+                      <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">Cultural and language links</p>
                       <ul className="space-y-1 text-sm text-ink-700">
                         {culturalConnections.map((item) => (
                           <li key={item}>• {item}</li>
@@ -1972,7 +1972,7 @@ export default function GeneratePage() {
 
                   {nextSteps.length > 0 && (
                     <div>
-                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Possible next steps</p>
+                      <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">Possible next steps</p>
                       <ul className="space-y-1 text-sm text-ink-700">
                         {nextSteps.map((item) => (
                           <li key={item}>• {item}</li>
@@ -1983,7 +1983,7 @@ export default function GeneratePage() {
 
                   {assumptions.length > 0 && (
                     <div>
-                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">Assumptions or gaps</p>
+                      <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">Assumptions or gaps</p>
                       <ul className="space-y-1 text-sm text-ink-700">
                         {assumptions.map((item) => (
                           <li key={item}>• {item}</li>
@@ -1994,7 +1994,7 @@ export default function GeneratePage() {
 
                   {whanauConnection && (
                     <div>
-                      <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-1.5">
+                      <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-1.5">
                         {location === "NZ" ? "Family or whānau link" : "Family link"}
                       </p>
                       <p className="text-sm text-ink-700">{whanauConnection}</p>
@@ -2034,7 +2034,7 @@ export default function GeneratePage() {
           <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-clay-100 p-5">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-[10px] font-bold text-clay-600 uppercase tracking-wider mb-2">Free story limit reached</p>
+                <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-2">Free story limit reached</p>
                 <h2 className="font-display text-2xl font-bold text-ink-900 leading-tight">You&apos;ve used your 3 free stories this month.</h2>
               </div>
               <button

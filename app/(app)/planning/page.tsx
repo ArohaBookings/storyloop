@@ -33,7 +33,7 @@ function ListBlock({ title, items }: { title: string; items: string[] }) {
   if (!items.length) return null;
   return (
     <div className="rounded-2xl border border-clay-100 bg-white p-4">
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-clay-600">{title}</p>
+      <p className="mb-2 text-xs font-bold uppercase tracking-wider text-clay-600">{title}</p>
       <ul className="space-y-1.5 text-sm leading-relaxed text-ink-700">
         {items.map((item) => <li key={item}>• {item}</li>)}
       </ul>
@@ -52,7 +52,7 @@ function SmallSignalList({
 }) {
   return (
     <div className="rounded-2xl border border-clay-100 bg-white p-4">
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-clay-600">{title}</p>
+      <p className="mb-2 text-xs font-bold uppercase tracking-wider text-clay-600">{title}</p>
       {items.length ? (
         <div className="space-y-2">
           {items.map((item) => (

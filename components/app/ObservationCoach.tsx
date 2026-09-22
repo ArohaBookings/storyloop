@@ -29,12 +29,12 @@ export default function ObservationCoach({
             <Lightbulb className="h-4 w-4 text-clay-700" />
             <p className="text-xs font-bold text-ink-800">Basic observation readiness</p>
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-clay-700">
+          <span className="text-xs font-bold uppercase tracking-wider text-clay-700">
             {readiness.label} · {readiness.found}/{readiness.total}
           </span>
         </div>
         {observation.trim().length >= 10 && displayPrompt && (
-          <div className="mt-2 rounded-xl border border-clay-100 bg-white p-3 text-[11px] leading-relaxed text-ink-600">
+          <div className="mt-2 rounded-xl border border-clay-100 bg-white p-3 text-xs leading-relaxed text-ink-600">
             <p className="flex items-center gap-1.5 font-bold text-clay-700">
               <LockKeyhole className="h-3.5 w-3.5" /> Observation Coach
             </p>
@@ -55,7 +55,7 @@ export default function ObservationCoach({
           <Lightbulb className="h-4 w-4 text-clay-700" />
           <p className="text-xs font-bold text-ink-800">Observation coach</p>
         </div>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-clay-700">
+        <span className="text-xs font-bold uppercase tracking-wider text-clay-700">
           {readiness.label} · {readiness.found}/{readiness.total}
         </span>
       </div>
@@ -63,7 +63,7 @@ export default function ObservationCoach({
         {readiness.signals.map((signal) => (
           <div
             key={signal.id}
-            className={`rounded-lg border px-2 py-1.5 text-[10px] font-semibold ${
+            className={`rounded-lg border px-2 py-1.5 text-xs font-semibold ${
               signal.found
                 ? "border-sage-200 bg-sage-50 text-sage-700"
                 : "border-clay-100 bg-white text-ink-500"
@@ -77,7 +77,7 @@ export default function ObservationCoach({
         ))}
       </div>
       {observation.trim().length >= 10 && nextPrompt && (
-        <p className="mt-2 text-[11px] leading-relaxed text-ink-600">
+        <p className="mt-2 text-xs leading-relaxed text-ink-600">
           Optional strengthening prompt: {displayPrompt}
         </p>
       )}

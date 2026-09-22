@@ -307,7 +307,7 @@ export default function DashboardNav({
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-ink-800 truncate">{userName}</p>
               <span className={`inline-block text-xs font-semibold px-1.5 py-0.5 rounded-full ${planInfo.colour} mt-0.5`}>{planInfo.label}</span>
-              {appliedAccessCode && <p className="text-[10px] text-clay-700 mt-1">{appliedAccessCode.toUpperCase()} access</p>}
+              {appliedAccessCode && <p className="text-xs text-clay-700 mt-1">{appliedAccessCode.toUpperCase()} access</p>}
             </div>
             <button
               onClick={handleLogout}

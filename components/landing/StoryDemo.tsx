@@ -172,7 +172,7 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
           <button
             type="button"
             onClick={() => { setInput(SAMPLE); setTouched(false); setError(""); setClarify(null); }}
-            className="text-[11px] font-bold text-clay-700 hover:text-clay-900"
+            className="text-xs font-bold text-clay-700 hover:text-clay-900"
           >
             Reset example
           </button>
@@ -275,7 +275,10 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
                 there is more story than fits, which a short excerpt cannot. */}
             <div
               ref={exampleRef}
-              className={`story-safe prose prose-sm min-w-0 max-w-full flex-1 overflow-y-auto whitespace-pre-wrap break-words font-display font-normal italic leading-relaxed text-ink-500 ${compact ? "max-h-[15rem]" : ""} ${writing ? "is-writing" : ""}`}
+              tabIndex={0}
+              role="region"
+              aria-label="The learning story draft"
+              className={`story-safe prose prose-sm min-w-0 max-w-full flex-1 overflow-y-auto rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-clay-500 whitespace-pre-wrap break-words font-display font-normal italic leading-relaxed text-ink-500 ${compact ? "max-h-[15rem]" : ""} ${writing ? "is-writing" : ""}`}
             >
               {exampleLines.map((line, index) => (
                 <span
@@ -288,20 +291,20 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
               ))}
             </div>
             <div className="mt-3 border-t border-clay-100 pt-3">
-              <p className="mb-2 text-[11px] leading-relaxed text-ink-400">
+              <p className="mb-2 text-xs leading-relaxed text-ink-400">
                 Every draft also comes with:
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {ALSO_GENERATED.map((item) => (
                   <span
                     key={item}
-                    className="rounded-full border border-clay-100 bg-cream-50 px-2 py-0.5 text-[10px] font-semibold text-ink-500"
+                    className="rounded-full border border-clay-100 bg-cream-50 px-2 py-0.5 text-xs font-semibold text-ink-500"
                   >
                     {item}
                   </span>
                 ))}
               </div>
-              <p className="mt-2.5 text-[11px] leading-relaxed text-ink-400">
+              <p className="mt-2.5 text-xs leading-relaxed text-ink-400">
                 Press the button and yours appears here in under a minute.
               </p>
             </div>

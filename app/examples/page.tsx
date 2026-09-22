@@ -65,7 +65,7 @@ export default function ExamplesPage() {
             {STORY_EXAMPLES.map((example, index) => (
               <article key={example.slug} className="scroll-mt-24" id={example.slug}>
                 <div className="mb-6 flex flex-wrap items-center gap-3">
-                  <span className="rounded-full bg-clay-700 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-paper">
+                  <span className="rounded-full bg-clay-700 px-3 py-1 text-xs font-bold uppercase tracking-wider text-paper">
                     Example {index + 1}
                   </span>
                   <span className="text-sm text-ink-500">
@@ -80,7 +80,7 @@ export default function ExamplesPage() {
                     <div className="card h-full min-w-0 border-clay-200 bg-cream-50 p-6">
                       <div className="mb-3 flex items-center gap-2">
                         <PenLine className="h-4 w-4 text-clay-700" />
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-clay-700">
+                        <p className="text-xs font-bold uppercase tracking-wider text-clay-700">
                           What the educator wrote
                         </p>
                       </div>
@@ -97,7 +97,7 @@ export default function ExamplesPage() {
                     <div className="card min-w-0 p-6 md:p-8">
                       <div className="mb-4 flex items-center gap-2">
                         <Sparkles className="h-4 w-4 text-sage-700" />
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-sage-700">
+                        <p className="text-xs font-bold uppercase tracking-wider text-sage-700">
                           The draft that comes back
                         </p>
                       </div>
@@ -108,7 +108,7 @@ export default function ExamplesPage() {
 
                       <div className="mt-6 grid gap-4 border-t border-clay-100 pt-5 sm:grid-cols-2">
                         <div>
-                          <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-ink-500">
+                          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-ink-500">
                             Dispositions noticed
                           </p>
                           <ul className="space-y-1 text-xs text-ink-600">
@@ -116,7 +116,7 @@ export default function ExamplesPage() {
                           </ul>
                         </div>
                         <div>
-                          <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-ink-500">
+                          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-ink-500">
                             Where to next
                           </p>
                           <ul className="space-y-1.5 text-xs leading-relaxed text-ink-600">
@@ -126,7 +126,7 @@ export default function ExamplesPage() {
                       </div>
 
                       <div className="mt-4 rounded-2xl border border-sage-100 bg-sage-50 p-4">
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-sage-700">
+                        <p className="text-xs font-bold uppercase tracking-wider text-sage-700">
                           Question for {example.framework === "NZ" ? "whānau" : "family"}
                         </p>
                         <p className="mt-1 text-sm leading-relaxed text-ink-700">{example.familyQuestion}</p>

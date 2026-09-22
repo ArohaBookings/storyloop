@@ -42,7 +42,7 @@ function FocusCard({ focus }: { focus: TodayFocus }) {
       href={href}
       className="card group flex min-w-0 flex-col p-5 transition-all hover:-translate-y-0.5 hover:border-clay-300 hover:shadow-warm"
     >
-      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-clay-600">{focus.eyebrow}</p>
+      <p className="text-xs font-bold uppercase tracking-[0.18em] text-clay-600">{focus.eyebrow}</p>
       <h3 className="mt-2 font-display text-xl font-bold text-ink-900">{focus.title}</h3>
       <p className="mt-2 flex-1 text-sm leading-relaxed text-ink-600">{focus.body}</p>
       <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-clay-700">
@@ -217,7 +217,7 @@ export default function TodayLoopBoard({
               className="input resize-y"
               placeholder="Mia returned to the ramp, changed the block underneath, then said “Now it goes faster.”"
             />
-            <div className="mt-1 flex items-center justify-between gap-3 text-[11px] text-ink-500">
+            <div className="mt-1 flex items-center justify-between gap-3 text-xs text-ink-500">
               <span>Keep the child&apos;s exact words exactly as spoken.</span>
               <span className="font-mono">{note.length}/2000</span>
             </div>
@@ -270,7 +270,7 @@ export default function TodayLoopBoard({
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-xs font-bold text-clay-700">{capture.child_name ?? "Unassigned moment"}</span>
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wide ${
                           capture.status === "planned"
                             ? "bg-sage-100 text-sage-700"
                             : capture.status === "story_ready"
@@ -282,7 +282,7 @@ export default function TodayLoopBoard({
                       </div>
                       <p className="story-safe mt-2 text-sm leading-relaxed text-ink-700">{capture.note}</p>
                     </div>
-                    <time className="shrink-0 text-[11px] text-ink-400">
+                    <time className="shrink-0 text-xs text-ink-400">
                       {new Date(capture.observed_at).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
                     </time>
                   </div>

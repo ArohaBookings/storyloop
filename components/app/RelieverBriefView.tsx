@@ -56,7 +56,7 @@ export default function RelieverBriefView({ brief }: { brief: RelieverBrief }) {
 
               {entry.lastMoments.length > 0 && (
                 <div className="mt-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-500">Last moments</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-ink-500">Last moments</p>
                   <ul className="mt-1 space-y-1">
                     {entry.lastMoments.map((moment) => (
                       <li key={`${moment.date}-${moment.line}`} className="text-sm leading-relaxed text-ink-700">
@@ -69,7 +69,7 @@ export default function RelieverBriefView({ brief }: { brief: RelieverBrief }) {
 
               {entry.openNextSteps.length > 0 && (
                 <div className="mt-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-500">Already planned</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-ink-500">Already planned</p>
                   <ul className="mt-1 list-disc space-y-1 pl-4">
                     {entry.openNextSteps.map((step) => (
                       <li key={step} className="text-sm leading-relaxed text-ink-700">{step}</li>

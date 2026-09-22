@@ -298,7 +298,7 @@ export default async function DashboardPage({
                 {s.outcomes?.length > 0 && (
                   <div className="flex gap-1.5 mt-2 flex-wrap">
                     {s.outcomes.slice(0, 3).map((o: string) => (
-                      <span key={o} className="text-[10px] font-mono bg-cream-100 text-clay-700 px-2 py-0.5 rounded-full">{o}</span>
+                      <span key={o} className="text-xs font-mono bg-cream-100 text-clay-700 px-2 py-0.5 rounded-full">{o}</span>
                     ))}
                   </div>
                 )}

@@ -111,7 +111,7 @@ export default function FamilyTranslationPanel({
             ["Teacher check", pack.teacherCheck],
           ].filter(([, value]) => value).map(([label, value]) => (
             <div key={label} className="min-w-0 rounded-2xl border border-clay-100 bg-cream-50 p-4">
-              <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-clay-700">{label}</p>
+              <p className="mb-1 text-xs font-bold uppercase tracking-wider text-clay-700">{label}</p>
               <p className="text-sm leading-relaxed text-ink-700">{value}</p>
             </div>
           ))}

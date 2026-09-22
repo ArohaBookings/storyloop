@@ -229,7 +229,7 @@ export default function CentrePage() {
                           {m.stories_30d} stories in 30 days · last wrote {lastActive(m.last_story_at)}
                         </p>
                       </div>
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${m.shares_stories ? "bg-sage-100 text-sage-800" : "bg-ink-100 text-ink-500"}`}>
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${m.shares_stories ? "bg-sage-100 text-sage-800" : "bg-ink-100 text-ink-500"}`}>
                         {m.shares_stories ? "Sharing stories" : "Activity only"}
                       </span>
                     </div>

@@ -105,7 +105,7 @@ export default async function RoiPage() {
           <div key={label} className="card p-5">
             <Icon className={`mb-4 h-5 w-5 ${colour}`} />
             <p className="font-display text-3xl font-bold text-ink-900">{value}</p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-clay-700">{label}</p>
+            <p className="mt-1 text-xs font-bold uppercase tracking-wider text-clay-700">{label}</p>
             <p className="mt-1 text-xs text-ink-500">{sub}</p>
           </div>
         ))}
@@ -132,7 +132,7 @@ export default async function RoiPage() {
                 <div className="h-2 overflow-hidden rounded-full bg-clay-100">
                   <div className="h-full rounded-full bg-clay-600" style={{ width: `${Math.max(row.value, row.value ? 8 : 0)}%` }} />
                 </div>
-                <p className="mt-1 text-[11px] text-ink-500">{row.detail}</p>
+                <p className="mt-1 text-xs text-ink-500">{row.detail}</p>
               </div>
             ))}
           </div>
@@ -143,21 +143,21 @@ export default async function RoiPage() {
           <p className="mt-1 text-xs text-ink-600">Supportive prompts from Documentation Radar and learning loops.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <div className="rounded-2xl border border-clay-100 bg-cream-50 p-4">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-clay-700">Needs fresh observation</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-clay-700">Needs fresh observation</p>
               <p className="mt-2 font-display text-2xl font-bold text-ink-900">
                 {planningBoard.documentationRadar.filter((item) => item.signal !== "Current").length}
               </p>
             </div>
             <div className="rounded-2xl border border-clay-100 bg-cream-50 p-4">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-clay-700">Open response ideas</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-clay-700">Open response ideas</p>
               <p className="mt-2 font-display text-2xl font-bold text-ink-900">{planningBoard.openResponses.length}</p>
             </div>
             <div className="rounded-2xl border border-clay-100 bg-cream-50 p-4">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-clay-700">Family reply gaps</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-clay-700">Family reply gaps</p>
               <p className="mt-2 font-display text-2xl font-bold text-ink-900">{planningBoard.familyReplyGaps.length}</p>
             </div>
             <div className="rounded-2xl border border-clay-100 bg-cream-50 p-4">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-clay-700">Unreviewed stories</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-clay-700">Unreviewed stories</p>
               <p className="mt-2 font-display text-2xl font-bold text-ink-900">{planningBoard.unreviewedStories.length}</p>
             </div>
           </div>

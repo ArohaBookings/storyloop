@@ -169,7 +169,7 @@ export default function ChildVoices() {
                 <p className="text-[15px] leading-relaxed text-ink-900">&ldquo;{note.words}&rdquo;</p>
                 {note.about && <p className="mt-1 text-xs text-ink-500">About: {note.about}</p>}
                 <div className="mt-2 flex items-center justify-between gap-2">
-                  <p className="text-[11px] text-ink-400">
+                  <p className="text-xs text-ink-400">
                     {when(note.said_at)} · {describeProvenance(note.provenance)}
                   </p>
                   <button

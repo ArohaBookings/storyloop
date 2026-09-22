@@ -48,13 +48,13 @@ export default function Footer() {
               <li>
                 <a href="https://ariacare.app" target="_blank" rel="noopener" className="group block">
                   <span className="text-paper font-semibold group-hover:text-cream-200 transition-colors">Aria Care →</span>
-                  <p className="text-xs text-ink-400 mt-0.5">AI operating system for NDIS providers</p>
+                  <p className="text-xs text-ink-300 mt-0.5">AI operating system for NDIS providers</p>
                 </a>
               </li>
               <li>
                 <a href="https://arohaai.app" target="_blank" rel="noopener" className="group block">
                   <span className="text-paper font-semibold group-hover:text-cream-200 transition-colors">Aroha AI →</span>
-                  <p className="text-xs text-ink-400 mt-0.5">AI voice receptionist for small business</p>
+                  <p className="text-xs text-ink-300 mt-0.5">AI voice receptionist for small business</p>
                 </a>
               </li>
             </ul>
@@ -62,8 +62,8 @@ export default function Footer() {
         </div>
 
         <div className="pt-8 border-t border-ink-800 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-ink-500">© {new Date().getFullYear()} StoryLoop · A division of Aria Care. Proudly built in New Zealand.</p>
-          <div className="flex items-center gap-5 text-xs text-ink-400">
+          <p className="text-xs text-ink-300">© {new Date().getFullYear()} StoryLoop · A division of Aria Care. Proudly built in New Zealand.</p>
+          <div className="flex items-center gap-5 text-xs text-ink-300">
             <Link href="/privacy" className="hover:text-paper transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-paper transition-colors">Terms</Link>
             <a href="mailto:ariacareapp@gmail.com" className="hover:text-paper transition-colors">Contact</a>

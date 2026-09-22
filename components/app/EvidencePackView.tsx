@@ -63,7 +63,7 @@ export default function EvidencePackView({ pack }: { pack: EvidencePack }) {
         ) : (
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-clay-100 text-[10px] font-bold uppercase tracking-wider text-ink-500">
+              <tr className="border-b border-clay-100 text-xs font-bold uppercase tracking-wider text-ink-500">
                 <th className="pb-1.5">Child</th>
                 <th className="pb-1.5 text-right tabular-nums">Stories</th>
                 <th className="pb-1.5 text-right">Last documented</th>

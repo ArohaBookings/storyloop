@@ -74,7 +74,7 @@ export default function StoryText({
           return (
             <p
               key={index}
-              className="mt-5 mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-clay-600 first:mt-0"
+              className="mt-5 mb-2 text-xs font-bold uppercase tracking-[0.18em] text-clay-600 first:mt-0"
             >
               {block.trim()}
             </p>

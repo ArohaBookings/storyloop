@@ -180,7 +180,7 @@ export default function QuillAssistant({
       {/* Top bar: obvious entry points (only when the educator can use Quill) */}
       {canUse && (
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <p className="flex items-center gap-1.5 text-[11px] text-ink-500">
+          <p className="flex items-center gap-1.5 text-xs text-ink-500">
             <Feather className="h-3.5 w-3.5 text-clay-600" />
             Highlight any line to refine it, or ask <span className="font-bold text-clay-700">Quill</span> anything.
           </p>
@@ -222,7 +222,7 @@ export default function QuillAssistant({
             <div className="mb-2 flex flex-wrap gap-1">
               {QUICK_ASKS.map((ask) => (
                 <button key={ask} onClick={() => { setInstruction(ask); void submit(ask); }} disabled={loading}
-                  className="rounded-full border border-clay-200 bg-cream-50 px-2 py-0.5 text-[10px] font-semibold text-ink-600 hover:border-clay-400 hover:text-clay-700 disabled:opacity-50">
+                  className="rounded-full border border-clay-200 bg-cream-50 px-2 py-0.5 text-xs font-semibold text-ink-600 hover:border-clay-400 hover:text-clay-700 disabled:opacity-50">
                   {ask}
                 </button>
               ))}
@@ -233,9 +233,9 @@ export default function QuillAssistant({
               className="input resize-none text-sm" disabled={loading}
               onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) void submit(); }}
             />
-            {error && !upgrade && <p className="mt-1 text-[11px] font-semibold text-red-600">{error}</p>}
+            {error && !upgrade && <p className="mt-1 text-xs font-semibold text-red-600">{error}</p>}
             {upgrade && (
-              <p className="mt-1 text-[11px] leading-relaxed text-ink-600">
+              <p className="mt-1 text-xs leading-relaxed text-ink-600">
                 {error} <Link href="/billing?feature=storyAssistant" className="font-bold text-clay-700">Unlock with Educator Pro →</Link>
               </p>
             )}
@@ -268,11 +268,11 @@ export default function QuillAssistant({
           <div className="flex items-center gap-2">
             {feedbackGiven === null ? (
               <>
-                <span className="text-[11px] text-ink-500">Was that helpful?</span>
+                <span className="text-xs text-ink-500">Was that helpful?</span>
                 <button onClick={() => sendFeedback(1)} className="rounded-full border border-clay-200 bg-white p-1.5 text-ink-500 hover:text-sage-700" aria-label="Helpful"><ThumbsUp className="h-3.5 w-3.5" /></button>
                 <button onClick={() => sendFeedback(-1)} className="rounded-full border border-clay-200 bg-white p-1.5 text-ink-500 hover:text-red-600" aria-label="Not helpful"><ThumbsDown className="h-3.5 w-3.5" /></button>
               </>
-            ) : <span className="text-[11px] font-semibold text-sage-700">Thanks, noted.</span>}
+            ) : <span className="text-xs font-semibold text-sage-700">Thanks, noted.</span>}
             <button onClick={() => { setApplied(null); setFeedbackGiven(null); }} className="btn-ghost text-xs">Done</button>
           </div>
         </div>

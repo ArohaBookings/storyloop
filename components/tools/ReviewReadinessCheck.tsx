@@ -23,7 +23,7 @@ export default function ReviewReadinessCheck() {
             <div className="flex items-baseline gap-3">
               <span className="font-display text-sm font-bold text-ink-400 tabular-nums">{index + 1}</span>
               <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-clay-700">{question.area}</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-clay-700">{question.area}</p>
                 <h3 className="mt-0.5 font-display text-lg font-bold leading-snug text-ink-900">{question.question}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-ink-600">{question.why}</p>
               </div>

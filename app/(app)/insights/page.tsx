@@ -207,7 +207,7 @@ export default async function InsightsPage({
                 <div key={item.id} className="rounded-2xl border border-clay-100 bg-cream-50 p-3">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-bold text-ink-800">{item.shortLabel}</span>
-                    <span className="font-mono text-[10px] text-clay-700">{item.count}</span>
+                    <span className="font-mono text-xs text-clay-700">{item.count}</span>
                   </div>
                   <div className="mt-3 h-2 overflow-hidden rounded-full bg-white">
                     <div
@@ -215,7 +215,7 @@ export default async function InsightsPage({
                       style={{ width: item.count ? `${Math.max((item.count / maxCompass) * 100, 12)}%` : "0%" }}
                     />
                   </div>
-                  <p className="mt-3 text-[10px] leading-relaxed text-ink-500">{item.label}</p>
+                  <p className="mt-3 text-xs leading-relaxed text-ink-500">{item.label}</p>
                 </div>
               ))}
             </div>
@@ -245,7 +245,7 @@ export default async function InsightsPage({
                       </p>
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {child.dispositions.map((item) => (
-                          <span key={item.label} className="rounded-full bg-cream-100 px-2 py-1 text-[10px] font-semibold capitalize text-clay-700">
+                          <span key={item.label} className="rounded-full bg-cream-100 px-2 py-1 text-xs font-semibold capitalize text-clay-700">
                             {item.label} · {item.count}
                           </span>
                         ))}
@@ -264,7 +264,7 @@ export default async function InsightsPage({
                           style={{ width: `${percentage(Math.min(child.storyCount, 4), 4)}%` }}
                         />
                       </div>
-                      <p className="mt-2 text-[10px] text-ink-500">
+                      <p className="mt-2 text-xs text-ink-500">
                         {child.openNextSteps} response ideas captured across this thread.
                       </p>
                     </div>

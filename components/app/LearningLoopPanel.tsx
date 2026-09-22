@@ -139,7 +139,7 @@ export default function LearningLoopPanel({
         <div className="mb-4 flex items-start gap-3">
           <CircleDot className="mt-0.5 h-5 w-5 text-sage-700" />
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-sage-700">Response pathway</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-sage-700">Response pathway</p>
             <h3 className="font-display text-lg font-bold text-ink-900">Turn next steps into a visible loop</h3>
             <p className="mt-1 text-xs text-ink-600">
               Track what was planned, tried, or worth continuing. This records educator response, not child performance.
@@ -181,7 +181,7 @@ export default function LearningLoopPanel({
         <div className="mb-4 flex items-start gap-3">
           <MessageCircleHeart className="mt-0.5 h-5 w-5 text-clay-700" />
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-clay-700">
+            <p className="text-xs font-bold uppercase tracking-wider text-clay-700">
               {isNzFramework ? "Whānau voice bridge" : "Family voice bridge"}
             </p>
             <h3 className="font-display text-lg font-bold text-ink-900">Bring home knowledge back into planning</h3>
@@ -228,7 +228,7 @@ export default function LearningLoopPanel({
       <section className="rounded-2xl border border-clay-200 bg-white p-4 xl:col-span-2">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-clay-700">Reflective quality check</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-clay-700">Reflective quality check</p>
             <h3 className="font-display text-lg font-bold text-ink-900">A human checkpoint before sharing</h3>
             <div className="mt-3 grid gap-2 md:grid-cols-2">
               {REVIEW_ITEMS.map((item) => (

@@ -133,20 +133,20 @@ export default async function PickupBriefPage() {
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h2 className="font-display text-xl font-bold text-ink-900">{line.name}</h2>
                 {line.freshness === "today" ? (
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-sage-700">Today</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-sage-700">Today</span>
                 ) : line.freshness === "earlier" ? (
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-clay-700">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-clay-700">
                     {line.date ? shortDate(line.date) : "Earlier"}, not today
                   </span>
                 ) : (
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-clay-700">Nothing written down</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-clay-700">Nothing written down</span>
                 )}
               </div>
 
               {line.says ? (
                 <>
                   <p className="mt-2 text-lg leading-relaxed text-ink-900">{line.says}</p>
-                  <p className="mt-1.5 text-[11px] text-ink-500">
+                  <p className="mt-1.5 text-xs text-ink-500">
                     {SOURCE_LABEL[line.source ?? "capture"]}
                     {line.freshness === "earlier" && " · say when it was, not today"}
                   </p>

@@ -48,20 +48,20 @@ export default function Pricing({ audience = "all" }: { audience?: "all" | "indi
           {plans.map(plan => (
             <div key={plan.name} className={`rounded-2xl p-7 flex flex-col ${plan.popular ? "bg-ink-900 text-paper border-2 border-clay-600 shadow-clay" : "bg-white border border-clay-100 shadow-soft"}`}>
               {plan.popular && (
-                <div className="inline-flex items-center gap-1 bg-clay-500 text-paper text-xs font-bold px-3 py-1 rounded-full w-fit mb-3">Most popular</div>
+                <div className="inline-flex items-center gap-1 bg-clay-700 text-paper text-xs font-bold px-3 py-1 rounded-full w-fit mb-3">Most popular</div>
               )}
               <div className="mb-5">
                 <p className={`font-semibold ${plan.popular ? "text-cream-300" : "text-clay-700"}`}>{plan.name}</p>
                 <div className="flex items-end gap-1 mt-1 mb-2">
                   <span className="font-display text-5xl font-bold">${plan.displayPrice}</span>
-                  {plan.displayPrice > 0 && <span className={`mb-2 text-sm ${plan.popular ? "text-ink-400" : "text-ink-500"}`}>{currency}/month</span>}
+                  {plan.displayPrice > 0 && <span className={`mb-2 text-sm ${plan.popular ? "text-ink-300" : "text-ink-500"}`}>{currency}/month</span>}
                 </div>
-                {plan.priceNote && <p className={`-mt-1 mb-2 text-[11px] ${plan.popular ? "text-ink-400" : "text-ink-500"}`}>{plan.priceNote}</p>}
+                {plan.priceNote && <p className={`-mt-1 mb-2 text-xs ${plan.popular ? "text-ink-300" : "text-ink-500"}`}>{plan.priceNote}</p>}
                 {/* The arithmetic that was always true and never stated: a
                     centre plan divided by its seats costs about half the
                     individual price per educator. */}
                 {plan.seats && plan.displayPrice > 0 && (
-                  <p className="mb-2 inline-flex w-fit rounded-full border border-sage-200 bg-sage-50 px-2.5 py-1 text-[11px] font-bold text-sage-800">
+                  <p className="mb-2 inline-flex w-fit rounded-full border border-sage-200 bg-sage-50 px-2.5 py-1 text-xs font-bold text-sage-800">
                     ${(plan.displayPrice / plan.seats).toFixed(2)} per educator
                   </p>
                 )}
@@ -77,7 +77,7 @@ export default function Pricing({ audience = "all" }: { audience?: "all" | "indi
                 ))}
               </ul>
               {!compact && <div className={`mb-5 rounded-2xl border p-3 ${plan.popular ? "border-ink-700 bg-ink-800/60" : "border-clay-100 bg-cream-50"}`}>
-                <p className={`mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${plan.popular ? "text-cream-300" : "text-clay-700"}`}>
+                <p className={`mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${plan.popular ? "text-cream-300" : "text-clay-700"}`}>
                   <ShieldCheck className="h-3.5 w-3.5" /> Built for
                 </p>
                 <p className={`mb-2 text-xs leading-relaxed ${plan.popular ? "text-ink-300" : "text-ink-600"}`}>{plan.buyer}</p>

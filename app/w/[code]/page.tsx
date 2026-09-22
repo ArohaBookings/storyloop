@@ -116,7 +116,7 @@ export default async function WallCardPage({
       dir={language?.rtl ? "rtl" : "ltr"}
       className="mx-auto min-h-screen max-w-2xl bg-paper px-5 py-10 sm:py-16"
     >
-      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-clay-700">The learning behind this</p>
+      <p className="text-xs font-bold uppercase tracking-[0.18em] text-clay-700">The learning behind this</p>
       <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-ink-900 text-balance sm:text-4xl">
         {card.heading}
       </h1>
