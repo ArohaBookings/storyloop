@@ -2,12 +2,14 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, Mail, AlertTriangle, Brain, Users, ClipboardList, MessageSquareText, BarChart3, SlidersHorizontal, Lock, Sunrise, Building2, UserPlus, FileCheck2, QrCode, Mic, DoorOpen, Repeat } from "lucide-react";
+import { LayoutDashboard, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, AlertTriangle, Brain, Users, ClipboardList, MessageSquareText, BarChart3, SlidersHorizontal, Lock, Sunrise, Building2, UserPlus, FileCheck2, QrCode, Mic, DoorOpen, Repeat } from "lucide-react";
 import AnimatedLogo from "@/components/brand/AnimatedLogo";
 import { createClient } from "@/lib/supabase/client";
 import { getMonthlyStoryLimit, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
 import { normalizePlanKey, hasFeatureAccess, requiredPlanForFeature, type FeatureKey, type PlanKey } from "@/lib/plans";
+import { navItemVisible } from "@/lib/nav-visibility";
+import NotificationBell from "@/components/app/NotificationBell";
 
 type NavItem = {
   href: string;
@@ -20,30 +22,79 @@ type NavItem = {
   feature?: FeatureKey;
 };
 
-const NAV: NavItem[] = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/today", icon: Sunrise, label: "Today Loop" },
-  { href: "/generate", icon: Sparkles, label: "New story", highlight: true },
-  { href: "/children", icon: Users, label: "Child profiles" },
-  { href: "/history", icon: History, label: "Story history" },
-  { href: "/insights", icon: Brain, label: "Learning threads", feature: "learningThreads" },
-  { href: "/planning", icon: ClipboardList, label: "Planning brief", feature: "planningBoard" },
-  // Ungated on purpose. An educator on an individual plan gets a centre of
-  // one, which is the upgrade prompt: they see what a team would look like and
-  // hit "upgrade to invite" exactly when they want to add someone.
-  { href: "/centre", icon: Building2, label: "My centre" },
-  { href: "/centre-tools", icon: SlidersHorizontal, label: "Centre tools", feature: "adminOversight" },
-  { href: "/reliever", icon: UserPlus, label: "Reliever brief", feature: "relieverBrief" },
-  { href: "/evidence", icon: FileCheck2, label: "Evidence pack", feature: "evidencePack" },
-  { href: "/wall", icon: QrCode, label: "Wall cards", feature: "wallCards" },
-  { href: "/voices", icon: Mic, label: "Children's words", feature: "childVoice" },
-  { href: "/pickup", icon: DoorOpen, label: "Pickup brief", feature: "pickupBrief" },
-  { href: "/practice", icon: Repeat, label: "What you came back to", feature: "practiceSignals" },
-  { href: "/roi", icon: BarChart3, label: "ROI dashboard", feature: "directorRoiDashboard" },
+/**
+ * The sidebar, in groups an educator would name themselves.
+ *
+ * It was one flat list of twenty links, ten of them padlocked for a free
+ * account. Two decisions, made for where the product is going rather than for
+ * today:
+ *
+ *   GROUPED. Children, Families, Planning, Centre. Twenty things in a column is
+ *   a list to read; five labelled groups is a map to glance at, and every new
+ *   feature has an obvious home instead of lengthening the list.
+ *
+ *   LOCKS ONLY ONE STEP AHEAD. A locked feature stays visible when it is on the
+ *   next plan someone could reasonably choose, because that is how anyone
+ *   finds out it exists. Centre-only features are hidden from individual plans:
+ *   a free educator gains nothing from five padlocks for tools that need a
+ *   whole team, and "My centre" (never locked) is where a team is pitched.
+ *   Upgrade and the hidden ones appear, without anyone having to go looking.
+ */
+type NavGroup = { label: string | null; items: NavItem[] };
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: null,
+    items: [
+      { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+      { href: "/today", icon: Sunrise, label: "Today Loop" },
+      { href: "/generate", icon: Sparkles, label: "New story", highlight: true },
+    ],
+  },
+  {
+    label: "Children",
+    items: [
+      { href: "/children", icon: Users, label: "Child profiles" },
+      { href: "/history", icon: History, label: "Story history" },
+      { href: "/voices", icon: Mic, label: "Children's words", feature: "childVoice" },
+      { href: "/insights", icon: Brain, label: "Learning threads", feature: "learningThreads" },
+    ],
+  },
+  {
+    label: "Families",
+    items: [
+      { href: "/wall", icon: QrCode, label: "Wall cards", feature: "wallCards" },
+      { href: "/pickup", icon: DoorOpen, label: "Pickup brief", feature: "pickupBrief" },
+    ],
+  },
+  {
+    label: "Planning",
+    items: [
+      { href: "/practice", icon: Repeat, label: "What you came back to", feature: "practiceSignals" },
+      { href: "/planning", icon: ClipboardList, label: "Planning brief", feature: "planningBoard" },
+      { href: "/reliever", icon: UserPlus, label: "Reliever brief", feature: "relieverBrief" },
+    ],
+  },
+  {
+    label: "Centre",
+    items: [
+      // Ungated on purpose. An educator on an individual plan gets a centre of
+      // one, which is the upgrade prompt: they see what a team would look like
+      // and hit "upgrade to invite" exactly when they want to add someone.
+      { href: "/centre", icon: Building2, label: "My centre" },
+      { href: "/evidence", icon: FileCheck2, label: "Evidence pack", feature: "evidencePack" },
+      { href: "/centre-tools", icon: SlidersHorizontal, label: "Centre tools", feature: "adminOversight" },
+      { href: "/roi", icon: BarChart3, label: "ROI dashboard", feature: "directorRoiDashboard" },
+    ],
+  },
+];
+
+const FOOTER_NAV: NavItem[] = [
   { href: "/feedback", icon: MessageSquareText, label: "Feedback" },
   { href: "/billing", icon: CreditCard, label: "Billing" },
   { href: "/support", icon: LifeBuoy, label: "Support" },
 ];
+
 
 // Short tier label shown on the lock badge for a gated feature.
 const SHORT_PLAN_LABEL: Record<PlanKey, string> = {
@@ -122,9 +173,52 @@ export default function DashboardNav({
   const planKey = normalizePlanKey(plan);
   const planInfo = PLAN_LABEL[planKey] ?? PLAN_LABEL.free;
   const initials = userName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
-  const navItems: NavItem[] = isAdminUser
-    ? [...NAV, { href: "/api/admin/session", activePath: "/admin", icon: ShieldAlert, label: "Admin" }]
-    : NAV;
+  const groups = NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => navItemVisible(planKey, item.feature)),
+  })).filter((group) => group.items.length > 0);
+  const footerItems: NavItem[] = isAdminUser
+    ? [...FOOTER_NAV, { href: "/api/admin/session", activePath: "/admin", icon: ShieldAlert, label: "Admin" }]
+    : FOOTER_NAV;
+
+  const renderItem = ({ href, icon: Icon, label, highlight, activePath, feature }: NavItem) => {
+    const locked = Boolean(feature) && !hasFeatureAccess(planKey, feature as FeatureKey);
+    const resolvedActivePath = activePath ?? href;
+    const active = !locked && (resolvedActivePath === "/dashboard"
+      ? pathname === resolvedActivePath
+      : pathname.startsWith(resolvedActivePath));
+
+    if (locked) {
+      const tier = SHORT_PLAN_LABEL[requiredPlanForFeature(feature as FeatureKey)];
+      return (
+        <Link
+          key={href}
+          href={`/billing?feature=${feature}`}
+          onClick={() => setMobileOpen(false)}
+          title={`${label} is included in ${tier}`}
+          aria-label={`${label}, included in ${tier}`}
+          className="group flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-500 transition-all hover:bg-clay-50 hover:text-clay-800"
+        >
+          <Icon className="h-4 w-4 flex-shrink-0 opacity-70 group-hover:opacity-100" />
+          <span className="flex-1 truncate">{label}</span>
+          <Lock className="h-3.5 w-3.5 flex-shrink-0 text-ink-400 group-hover:text-clay-700" aria-hidden="true" />
+        </Link>
+      );
+    }
+
+    return (
+      <Link key={href} href={href} onClick={() => setMobileOpen(false)}
+        aria-current={active ? "page" : undefined}
+        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+          active ? "bg-clay-700 text-paper shadow-warm"
+          : highlight ? "bg-cream-100 border border-clay-200 text-clay-700 hover:bg-cream-200"
+          : "text-ink-600 hover:text-ink-900 hover:bg-cream-50"
+        }`}>
+        <Icon className="w-4 h-4 flex-shrink-0" />
+        <span className="truncate">{label}</span>
+      </Link>
+    );
+  };
 
   const Content = ({ mobile = false }: { mobile?: boolean }) => (
     <div className="flex h-full min-h-0 flex-col overflow-y-auto overscroll-contain pb-6 md:pb-0">
@@ -148,46 +242,14 @@ export default function DashboardNav({
         )}
       </div>
 
-      <nav className="flex-shrink-0 px-3 py-4 space-y-1">
-        {navItems.map(({ href, icon: Icon, label, highlight, activePath, feature }) => {
-          const locked = Boolean(feature) && !hasFeatureAccess(planKey, feature as FeatureKey);
-          const resolvedActivePath = activePath ?? href;
-          const active = !locked && (resolvedActivePath === "/dashboard"
-            ? pathname === resolvedActivePath
-            : pathname.startsWith(resolvedActivePath));
-
-          if (locked) {
-            const tier = SHORT_PLAN_LABEL[requiredPlanForFeature(feature as FeatureKey)];
-            return (
-              <Link
-                key={href}
-                href={`/billing?feature=${feature}`}
-                onClick={() => setMobileOpen(false)}
-                title={`${label} unlocks with ${tier}`}
-                className="group flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-500 transition-all hover:bg-clay-50 hover:text-clay-800"
-              >
-                <Icon className="h-4 w-4 flex-shrink-0 opacity-70 group-hover:opacity-100" />
-                <span className="flex-1 truncate">{label}</span>
-                <span className="flex items-center gap-1 rounded-full bg-clay-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-clay-700 group-hover:bg-clay-700 group-hover:text-paper">
-                  <Lock className="h-2.5 w-2.5" />
-                  {tier}
-                </span>
-              </Link>
-            );
-          }
-
-          return (
-            <Link key={href} href={href} onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                active ? "bg-clay-700 text-paper shadow-warm"
-                : highlight ? "bg-cream-100 border border-clay-200 text-clay-700 hover:bg-cream-200"
-                : "text-ink-600 hover:text-ink-900 hover:bg-cream-50"
-              }`}>
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              {label}
-            </Link>
-          );
-        })}
+      <nav className="flex-shrink-0 px-3 py-4" aria-label="StoryLoop">
+        {groups.map((group, index) => (
+          <div key={group.label ?? "start"} className={index > 0 ? "mt-5" : ""}>
+            {group.label && <p className="mb-1.5 px-3 text-xs font-semibold text-ink-400">{group.label}</p>}
+            <div className="space-y-0.5">{group.items.map(renderItem)}</div>
+          </div>
+        ))}
+        <div className="mt-5 space-y-0.5 border-t border-clay-100 pt-4">{footerItems.map(renderItem)}</div>
       </nav>
 
       <div className="mt-auto space-y-3 px-3 pb-3">
@@ -195,14 +257,14 @@ export default function DashboardNav({
         {limit !== null && (
           <div className="bg-cream-50 border border-clay-200 rounded-xl p-3">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold text-clay-700 uppercase tracking-wider">Monthly allowance</span>
+              <span className="text-xs font-semibold text-clay-700">Monthly allowance</span>
               <span className="text-xs font-bold text-ink-900">{storiesUsed}/{limit}</span>
             </div>
             <div className="w-full h-1.5 bg-clay-100 rounded-full overflow-hidden mb-2">
               <div className="h-full bg-clay-500 rounded-full transition-all" style={{ width: `${Math.min((storiesUsed/limit)*100,100)}%` }} />
             </div>
-            <p className="text-[11px] text-ink-600 mb-1">{usageLabel}</p>
-            <p className="text-[10px] text-clay-600 mb-2">{allowanceLabel}</p>
+            <p className="text-xs text-ink-600 mb-1">{usageLabel}</p>
+            <p className="text-xs text-clay-600 mb-2">{allowanceLabel}</p>
             <button
               type="button"
               onClick={goToBilling}
@@ -218,10 +280,10 @@ export default function DashboardNav({
             <div className="flex items-start gap-2">
               <AlertTriangle className={`w-4 h-4 mt-0.5 ${billingBlocked ? "text-red-600" : "text-amber-600"}`} />
               <div>
-                <p className={`text-[10px] font-bold uppercase tracking-wider ${billingBlocked ? "text-red-700" : "text-amber-700"}`}>
+                <p className={`text-xs font-bold ${billingBlocked ? "text-red-700" : "text-amber-700"}`}>
                   {billingStatusLabel(subscriptionStatus)}
                 </p>
-                <p className="text-[11px] text-ink-600 mt-1">
+                <p className="text-xs text-ink-600 mt-1">
                   {billingBlocked
                     ? "Payment is needed before creating more stories."
                     : "Stripe is retrying payment. Access stays on during this grace period."}
@@ -238,29 +300,13 @@ export default function DashboardNav({
           </div>
         )}
 
-        <Link
-          href="/support"
-          onClick={() => setMobileOpen(false)}
-          className="block rounded-xl border border-clay-200 bg-gradient-to-br from-white to-cream-50 p-3 shadow-soft hover:border-clay-300 transition-all"
-        >
-          <div className="flex items-start gap-2">
-            <div className="w-8 h-8 rounded-lg bg-clay-700 text-paper flex items-center justify-center flex-shrink-0">
-              <Mail className="w-3.5 h-3.5" />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-clay-700 uppercase tracking-wider">Need help?</p>
-              <p className="text-[11px] text-ink-600 mt-0.5">Support, bugs, billing, and feature requests.</p>
-              <p className="text-[11px] font-bold text-ink-900 mt-1 break-all">ariacareapp@gmail.com</p>
-            </div>
-          </div>
-        </Link>
-
-        <div className="border-t border-clay-100 pt-3">
+        {/* On a wide screen the account lives in the top bar's menu. */}
+        <div className="border-t border-clay-100 pt-3 md:hidden">
           <div className="flex items-center gap-2 px-1.5">
             <div className="w-8 h-8 rounded-full bg-clay-700 text-paper flex items-center justify-center text-xs font-bold flex-shrink-0">{initials}</div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-ink-800 truncate">{userName}</p>
-              <span className={`inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full ${planInfo.colour} mt-0.5`}>{planInfo.label}</span>
+              <span className={`inline-block text-xs font-semibold px-1.5 py-0.5 rounded-full ${planInfo.colour} mt-0.5`}>{planInfo.label}</span>
               {appliedAccessCode && <p className="text-[10px] text-clay-700 mt-1">{appliedAccessCode.toUpperCase()} access</p>}
             </div>
             <button
@@ -289,8 +335,10 @@ export default function DashboardNav({
             <AnimatedLogo size={28} />
             <span className="truncate font-display text-base font-bold text-ink-900">StoryLoop</span>
           </div>
+          <div className="flex items-center gap-1.5">
+          <NotificationBell />
           <button
-            className="flex min-h-10 items-center gap-2 rounded-xl border border-clay-200 bg-cream-50 px-3 py-2 text-xs font-bold text-ink-800"
+            className="flex min-h-11 items-center gap-2 rounded-xl border border-clay-200 bg-cream-50 px-3 py-2 text-sm font-bold text-ink-800"
             onClick={() => setMobileOpen(true)}
             aria-label="Open dashboard navigation"
             aria-expanded={false}
@@ -298,6 +346,7 @@ export default function DashboardNav({
             <Menu className="h-4 w-4" />
             Menu
           </button>
+          </div>
         </div>
       )}
       {mobileOpen && (

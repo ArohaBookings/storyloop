@@ -5,6 +5,8 @@ import DashboardNav from "@/components/app/DashboardNav";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { isAdminEmail } from "@/lib/admin-session";
 import WhatsNewModal from "@/components/app/WhatsNewModal";
+import AppTopBar from "@/components/app/AppTopBar";
+import { PLAN_DEFINITIONS, normalizePlanKey } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -29,6 +31,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     redirect("/login?disabled=1");
   }
 
+  const planKey = normalizePlanKey(profile?.plan);
+  const planLabel = PLAN_DEFINITIONS.find((plan) => plan.key === planKey)?.name ?? "Free";
+  const userName = profile?.full_name ?? user.email ?? "";
+
   return (
     <div className="flex h-screen w-full max-w-full overflow-hidden bg-paper">
       <DashboardNav
@@ -40,7 +46,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         appliedAccessCode={profile?.applied_access_code ?? null}
         subscriptionStatus={profile?.subscription_status ?? null}
       />
-      <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden pt-14 md:pt-0">{children}</main>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <AppTopBar userName={userName} planLabel={planLabel} />
+        <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden pt-14 md:pt-0">{children}</main>
+      </div>
       {/* One-time welcome card: what changed, then the referral offer.
           Renders nothing once dismissed. */}
       <WhatsNewModal />

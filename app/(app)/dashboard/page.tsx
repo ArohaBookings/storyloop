@@ -4,6 +4,7 @@ import { AlertTriangle, ArrowRight, Brain, CheckCircle, LifeBuoy, Sparkles, Cloc
 import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
 import { redirect } from "next/navigation";
+import { PLAN_DEFINITIONS, normalizePlanKey } from "@/lib/plans";
 
 export const metadata = { title: "Dashboard" };
 
@@ -110,12 +111,12 @@ export default async function DashboardPage({
             <p className="section-title mb-2">Welcome to StoryLoop</p>
             <h2 className="font-display text-3xl font-bold text-ink-900 mb-2">Let&apos;s write your first learning story.</h2>
             <p className="text-sm text-ink-600 mb-6 max-w-2xl leading-relaxed">
-              Most educators have a finished draft in under a minute. Capture a real moment any way you like —
+              Most educators have a finished draft in under a minute. Capture a real moment any way you like.
               StoryLoop shapes the first draft, and your judgement stays at the centre.
             </p>
             <div className="grid gap-3 sm:grid-cols-3 mb-6">
               {[
-                { icon: Mic, t: "1 · Capture the moment", d: "Voice note, bullet points, or a quick braindump — no formal structure." },
+                { icon: Mic, t: "1 · Capture the moment", d: "Voice note, bullet points or a quick braindump. No formal structure needed." },
                 { icon: Sparkles, t: "2 · StoryLoop drafts it", d: "A warm, evidence-led draft with curriculum links, dispositions, and next steps." },
                 { icon: CheckCircle, t: "3 · You review & share", d: "Edit in your own voice, run the checks, then send to families." },
               ].map(({ icon: StepIcon, t, d }) => (
@@ -131,7 +132,7 @@ export default async function DashboardPage({
             <Link href="/generate" className="btn-primary text-base">
               <Sparkles className="h-4 w-4" /> Write my first story
             </Link>
-            <p className="mt-3 text-xs text-ink-500">Free plan includes 3 stories a month · no credit card.</p>
+            {plan === "free" && <p className="mt-3 text-sm text-ink-500">The free plan includes 3 stories a month, no card needed.</p>}
           </div>
         </div>
       ) : (
@@ -161,7 +162,9 @@ export default async function DashboardPage({
           { label: "Total stories", value: totalStories ?? 0, icon: TrendingUp, sub: "Lifetime" },
           {
             label: "Current plan",
-            value: plan.charAt(0).toUpperCase() + plan.slice(1),
+            // The plan's real name. This used to print the database key, so
+            // an Educator Pro subscriber read "Educator_pro".
+            value: PLAN_DEFINITIONS.find((definition) => definition.key === normalizePlanKey(plan))?.name ?? "Free",
             icon: Clock,
             sub: profile?.applied_access_code
               ? `${profile.applied_access_code.toUpperCase()} complimentary access`
