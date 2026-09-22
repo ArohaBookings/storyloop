@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Building2, Check, Copy, Loader2 } from "lucide-react";
 
-type ReferralState = { code: string | null; shareUrl: string | null };
+type ReferralState = { code: string | null; shareUrl: string | null; bankedMonths?: number; planName?: string };
 
 /**
  * Get your centre on board.
@@ -49,6 +49,8 @@ export default function CentreReferralCard({ months = 3 }: { months?: number }) 
   }, []);
 
   const message = useMemo(() => (state?.shareUrl ? MESSAGE(state.shareUrl) : ""), [state?.shareUrl]);
+  const banked = state?.bankedMonths ?? 0;
+  const onFreePlan = (state?.planName ?? "free") === "free";
 
   const copy = async (what: "link" | "message", value: string) => {
     try {
@@ -78,14 +80,32 @@ export default function CentreReferralCard({ months = 3 }: { months?: number }) 
         <div>
           <p className="section-title mb-1">Get your centre on board</p>
           <h2 className="font-display text-xl font-bold text-ink-900">
-            If your centre subscribes on your code, you get {months} months free.
+            If your centre subscribes on your code, you get {months} months of your own plan, free.
           </h2>
           <p className="mt-1 text-xs leading-relaxed text-ink-600">
-            Same link as your educator one. If a centre plan starts on it, the credit lands on your account
-            automatically, so there is nothing to claim and nothing to chase.
+            Same link as your educator one. If a centre plan starts on it, {months} months of your own subscription are
+            credited automatically, so there is nothing to claim and nothing to chase. On the free plan they are held
+            for you and applied the moment you start a plan.
           </p>
         </div>
       </div>
+
+      {/* Months already earned but not yet payable. This is the whole reason
+          the reward is held rather than dropped: an educator who brought their
+          centre aboard while on the free plan has three months banked, which is
+          the best reason to start a plan that anybody could be given. */}
+      {banked > 0 && (
+        <div className="mb-4 rounded-2xl border border-sage-200 bg-sage-50 p-4">
+          <p className="text-sm font-semibold text-sage-800">
+            You have {banked} free {banked === 1 ? "month" : "months"} waiting.
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-sage-800">
+            {onFreePlan
+              ? "They apply to your own plan automatically the moment you start one. Nothing to claim and nothing expires."
+              : "They will come off your next invoices automatically."}
+          </p>
+        </div>
+      )}
 
       <div className="flex flex-col gap-2 sm:flex-row">
         <code className="min-w-0 flex-1 truncate rounded-xl border border-clay-200 bg-cream-50 px-3 py-2.5 font-mono text-xs text-ink-700">

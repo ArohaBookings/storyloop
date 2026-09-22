@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { createStripe } from "@/lib/stripe-client";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { normalizePlanKey } from "@/lib/plans";
-import { grantReferralCreditForPayment } from "@/lib/referrals";
+import { creditEarnedReferrals, grantReferralCreditForPayment } from "@/lib/referrals";
 import { newlyScheduledCancellation, paymentFailureNotice, sendBillingEmail } from "@/lib/email/billing";
 import { cancellationFeedbackMetadata } from "@/lib/churn-reasons";
 
@@ -139,13 +139,22 @@ async function grantReferralRewardIfEarned(
       .maybeSingle();
     if (!payer?.id) return;
 
-    const result = await grantReferralCreditForPayment(getStripe(), payer.id, invoice.id ?? `inv_${Date.now()}`);
+    const invoiceId = invoice.id ?? `inv_${Date.now()}`;
+    const result = await grantReferralCreditForPayment(getStripe(), payer.id, invoiceId);
     if (result.granted) {
       console.info("Referral credit granted", {
         referrerId: result.referrerId,
         amountCents: result.amountCents,
         currency: result.currency,
       });
+    }
+
+    // And pay out anything THIS payer earned back when they had no plan of
+    // their own to put it against. An educator who brought their centre aboard
+    // while on the free plan collects the moment they subscribe.
+    const settled = await creditEarnedReferrals(getStripe(), payer.id, invoiceId);
+    if (settled.credited) {
+      console.info("Earned referrals settled", { referrerId: payer.id, ...settled });
     }
   } catch (error) {
     console.error("Referral reward check failed (billing unaffected):", error);

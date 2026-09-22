@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import {
+  countEarnedReferrals,
   getOrCreateReferralCode,
   MAX_REFERRAL_CREDITS,
   REFERRED_DISCOUNT_PERCENT,
@@ -19,10 +20,12 @@ export async function GET() {
   const code = await getOrCreateReferralCode(user.id);
   const admin = createAdminSupabase();
 
-  const [{ count: credited }, { count: pending }, { data: profileRow }] = await Promise.all([
+  const [{ count: credited }, { count: pending }, { data: profileRow }, banked] = await Promise.all([
     admin.from("referrals").select("id", { count: "exact", head: true }).eq("referrer_id", user.id).eq("status", "credited"),
     admin.from("referrals").select("id", { count: "exact", head: true }).eq("referrer_id", user.id).eq("status", "pending"),
     admin.from("profiles").select("referral_modal_seen_at, referred_by").eq("id", user.id).maybeSingle(),
+    // Months already earned that cannot be paid until this person has a plan.
+    countEarnedReferrals(user.id),
   ]);
 
   return NextResponse.json({
@@ -30,6 +33,8 @@ export async function GET() {
     shareUrl: code ? `${SITE_URL}/signup?ref=${code}` : null,
     earned: credited ?? 0,
     pending: pending ?? 0,
+    bankedMonths: banked.months,
+    bankedReferrals: banked.referrals,
     max: MAX_REFERRAL_CREDITS,
     remaining: Math.max(0, MAX_REFERRAL_CREDITS - (credited ?? 0)),
     discountPercent: REFERRED_DISCOUNT_PERCENT,

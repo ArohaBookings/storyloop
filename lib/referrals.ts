@@ -210,7 +210,24 @@ export async function grantReferralCreditForPayment(
     .eq("id", referral.referrer_id)
     .maybeSingle();
 
-  if (!referrer?.stripe_customer_id) return { granted: false, reason: "no_customer" };
+  if (!referrer?.stripe_customer_id) {
+    // THE HOLE THIS CLOSES. A referrer with no billing account cannot be given
+    // a credit, and leaving the row "pending" meant they never would be: the
+    // only thing that fires this is the referred person's invoice, which has
+    // already happened. An educator on the free plan who talks their centre
+    // into a subscription earned nothing, permanently, and that educator is
+    // exactly who this programme is for.
+    //
+    // So it is marked EARNED and waits. When they start a plan of their own,
+    // creditEarnedReferrals below pays it, which also turns the reward into
+    // the best possible reason to subscribe: three months already banked.
+    await admin
+      .from("referrals")
+      .update({ status: "earned", qualified_at: new Date().toISOString() })
+      .eq("id", referral.id)
+      .eq("status", "pending");
+    return { granted: false, reason: "no_customer" };
+  }
 
   // Value the free month at the referrer's own plan price, so upgrading is
   // rewarded rather than penalised. A referrer still on free earns the
@@ -281,4 +298,116 @@ export async function grantReferralCreditForPayment(
       .eq("id", referral.id);
     return { granted: false, reason: "error" };
   }
+}
+
+
+/** Free months a referrer has earned but cannot be paid yet, having no plan. */
+export async function countEarnedReferrals(referrerId: string) {
+  const admin = createAdminSupabase();
+  const { data } = await admin
+    .from("referrals")
+    .select("id, referred_user_id")
+    .eq("referrer_id", referrerId)
+    .eq("status", "earned");
+  if (!data?.length) return { referrals: 0, months: 0 };
+
+  const { data: referred } = await admin
+    .from("profiles")
+    .select("id, plan")
+    .in("id", data.map((row) => row.referred_user_id as string));
+  const planOf = new Map((referred ?? []).map((row) => [row.id as string, row.plan]));
+
+  return {
+    referrals: data.length,
+    months: data.reduce((total, row) => total + referralCreditMonths(planOf.get(row.referred_user_id as string)), 0),
+  };
+}
+
+/**
+ * Pay out everything this person earned before they had somewhere to put it.
+ *
+ * Called when a referrer pays their own invoice. Idempotency uses the same
+ * claim-then-charge shape as a normal credit, with a synthetic invoice id per
+ * referral so several payouts on one invoice cannot collide on the unique
+ * constraint that protects against replays.
+ */
+export async function creditEarnedReferrals(
+  stripe: Stripe,
+  referrerId: string,
+  invoiceId: string,
+): Promise<{ credited: number; months: number }> {
+  const admin = createAdminSupabase();
+
+  const { data: earned } = await admin
+    .from("referrals")
+    .select("id, referred_user_id")
+    .eq("referrer_id", referrerId)
+    .eq("status", "earned");
+  if (!earned?.length) return { credited: 0, months: 0 };
+
+  const { data: referrer } = await admin
+    .from("profiles")
+    .select("id, plan, stripe_customer_id")
+    .eq("id", referrerId)
+    .maybeSingle();
+  if (!referrer?.stripe_customer_id) return { credited: 0, months: 0 };
+
+  const customer = await stripe.customers.retrieve(referrer.stripe_customer_id);
+  const rawCurrency = ("currency" in customer && customer.currency ? customer.currency : "nzd") as string;
+  const currency: CurrencyCode = rawCurrency.toUpperCase() === "AUD" ? "AUD" : "NZD";
+  const planForCredit = normalizePlanKey(referrer.plan) === "free" ? "educator" : referrer.plan;
+
+  let credited = 0;
+  let monthsTotal = 0;
+
+  for (const row of earned) {
+    const alreadyCredited = await countCreditedReferrals(referrerId);
+    if (alreadyCredited >= MAX_REFERRAL_CREDITS) break;
+
+    const { data: referred } = await admin
+      .from("profiles").select("plan").eq("id", row.referred_user_id as string).maybeSingle();
+    const months = referralCreditMonths(referred?.plan);
+    const amountCents = planMonthlyAmountCents(planForCredit, currency) * months;
+    if (amountCents <= 0) continue;
+
+    // Claim first, so a replayed webhook loses the race before reaching Stripe.
+    const { data: claimed } = await admin
+      .from("referrals")
+      .update({
+        status: "credited",
+        stripe_invoice_id: `${invoiceId}:${row.id}`,
+        credit_amount_cents: amountCents,
+        credit_currency: currency,
+      })
+      .eq("id", row.id)
+      .eq("status", "earned")
+      .select("id")
+      .maybeSingle();
+    if (!claimed) continue;
+
+    try {
+      const transaction = await stripe.customers.createBalanceTransaction(referrer.stripe_customer_id, {
+        amount: -amountCents,
+        currency: currency.toLowerCase(),
+        description: months > 1
+          ? `StoryLoop centre referral reward - ${months} free months (earned earlier)`
+          : "StoryLoop referral reward - 1 free month (earned earlier)",
+        metadata: { app: "storyloop", referral_id: row.id as string, months: String(months), kind: "earned" },
+      });
+      await admin
+        .from("referrals")
+        .update({ stripe_balance_transaction_id: transaction.id, credited_at: new Date().toISOString() })
+        .eq("id", row.id);
+      credited += 1;
+      monthsTotal += months;
+    } catch (error) {
+      console.error("Paying an earned referral failed, releasing the claim:", error);
+      await admin
+        .from("referrals")
+        .update({ status: "earned", stripe_invoice_id: null, credit_amount_cents: null, credit_currency: null })
+        .eq("id", row.id);
+    }
+  }
+
+  return { credited, months: monthsTotal };
 }
