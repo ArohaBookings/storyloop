@@ -85,7 +85,7 @@ export default function ChildVoiceRecorder({
   useEffect(() => () => { teardown(); discard(); }, [teardown, discard]);
 
   const stop = useCallback(() => {
-    recorderRef.current?.state === "recording" && recorderRef.current.stop();
+    if (recorderRef.current?.state === "recording") recorderRef.current.stop();
   }, []);
 
   const start = useCallback(async () => {
