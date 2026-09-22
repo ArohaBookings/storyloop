@@ -826,6 +826,9 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   faq: {
     slug: "faq",
     title: "StoryLoop FAQ",
+    // Reviewed when the homepage questions moved here, so the visible date and
+    // the sitemap say when the answers were last checked against the product.
+    reviewedAt: "2026-09-23",
     description:
       "Answers about StoryLoop, Te Whāriki, EYLF, voice notes, free stories, editing, educator judgement, and generic AI writing.",
     kicker: "FAQ",
