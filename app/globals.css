@@ -12,15 +12,6 @@
     max-width: 100%;
     overflow-x: hidden;
   }
-  /* Big screens get the whole layout scaled up, not a narrow column marooned
-     in the middle. Everything is sized in rem, so growing the root size from
-     1800px wide grows type, spacing and content width together, exactly as if
-     the page had been designed for that screen. At 2560px wide the content
-     fills about 89% of the width instead of 62%. Capped so a 5K monitor gets
-     a big page, not a billboard. */
-  @media (min-width: 1800px) {
-    html { font-size: min(calc(100vw / 112.5), 26px); }
-  }
   body {
     @apply bg-paper text-ink-800 font-body;
     font-feature-settings: "ss01", "cv11";
@@ -100,9 +91,7 @@
   }
 
   .wide-shell {
-    /* 100rem is 1600px at the normal size, and grows with the root size on
-       very wide screens (see html above). */
-    width: min(100%, 100rem);
+    width: min(100%, 1600px);
     margin-inline: auto;
     padding-inline: clamp(1rem, 2.2vw, 2.5rem);
   }
