@@ -201,6 +201,8 @@ export async function sendBillingEmail(params: {
   endsAtSeconds?: number | null;
   /** Extra facts to keep on the email event, such as why they cancelled. */
   extraMetadata?: Record<string, string>;
+  /** The subscription ended because a no-card free month ran out. */
+  trialLapsed?: boolean;
 }): Promise<BillingEmailResult> {
   try {
     const recipient = await resolveRecipient(params.admin, {
@@ -234,6 +236,7 @@ export async function sendBillingEmail(params: {
         planLabel: planKey === "free" ? undefined : getPlanByKey(planKey).name,
         renewsOn: formatDate(params.renewsAtSeconds) ?? undefined,
         endsOn: formatDate(params.endsAtSeconds) ?? undefined,
+        trialLapsed: params.trialLapsed || undefined,
       },
     });
 

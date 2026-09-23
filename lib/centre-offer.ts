@@ -69,11 +69,17 @@ export function checkoutTerms(input: {
   if (!isCentrePlan(input.plan)) {
     return { trialDays: INDIVIDUAL_TRIAL_DAYS, noCardNeeded: false, foundingCoupon: null };
   }
+  // One free month per centre. Without this, a centre could let the trial
+  // lapse and start a new no-card month, indefinitely. A returning centre
+  // subscribes straight away with a card, like any other returning customer.
+  if (input.hadCentreBefore) {
+    return { trialDays: 0, noCardNeeded: false, foundingCoupon: null };
+  }
   const spotAvailable = input.spotsLeft === null || input.spotsLeft > 0;
   return {
     trialDays: CENTRE_TRIAL_DAYS,
     noCardNeeded: true,
-    foundingCoupon: !input.hadCentreBefore && spotAvailable ? input.couponId : null,
+    foundingCoupon: spotAvailable ? input.couponId : null,
   };
 }
 
@@ -117,4 +123,28 @@ export function isCouponRefusal(error: unknown): boolean {
   if (!e) return false;
   if (e.code === "coupon_expired" || e.code === "resource_missing") return true;
   return /coupon/i.test(e.message ?? "") || /discounts/.test(e.param ?? "");
+}
+
+type EndedSubscription = {
+  trial_end?: number | null;
+  ended_at?: number | null;
+  canceled_at?: number | null;
+  default_payment_method?: unknown;
+  trial_settings?: { end_behavior?: { missing_payment_method?: string } } | null;
+};
+
+/**
+ * Did this subscription end because a no-card free month ran out? Pure.
+ *
+ * That is not a cancellation, and it must not be written to like one: "your
+ * subscription has ended and you will not be charged again" tells a director
+ * who never paid anything that they were charged before.
+ */
+export function trialLapsedWithoutCard(sub: EndedSubscription): boolean {
+  if (sub.trial_settings?.end_behavior?.missing_payment_method !== "cancel") return false;
+  if (sub.default_payment_method) return false;
+  const endedAt = sub.ended_at ?? sub.canceled_at;
+  if (!sub.trial_end || !endedAt) return false;
+  // Stripe ends it at the trial end; allow a few hours of processing.
+  return Math.abs(endedAt - sub.trial_end) <= 6 * 3600;
 }

@@ -143,7 +143,9 @@ export async function POST(request: NextRequest) {
         allow_promotion_codes: !appliedCoupon,
         discounts: appliedCoupon ? [{ coupon: appliedCoupon }] : undefined,
         subscription_data: {
-          trial_period_days: terms.trialDays,
+          // Stripe rejects trial_period_days: 0, so a returning centre simply
+          // has no trial rather than a zero-length one.
+          ...(terms.trialDays > 0 ? { trial_period_days: terms.trialDays } : {}),
           // With no card on file, the trial ends in a clean cancellation, never
           // a failed charge or a past-due account.
           ...(terms.noCardNeeded ? { trial_settings: { end_behavior: { missing_payment_method: "cancel" as const } } } : {}),

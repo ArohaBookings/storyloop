@@ -43,6 +43,11 @@ export type NotificationFacts = {
   plan: PlanKey;
   subscriptionStatus: string | null;
   trialEndsAt: string | null;
+  /**
+   * For a centre's free month, which asks for no card up front: whether one
+   * is on file now (null when Stripe could not say). Undefined otherwise.
+   */
+  trialCardOnFile?: boolean | null;
   storiesThisMonth: number;
   /**
    * When the monthly count was last reset (profiles.last_reset_at). The reset
@@ -142,11 +147,14 @@ export function buildNotifications(facts: NotificationFacts): AppNotification[] 
     const ends = new Date(facts.trialEndsAt);
     const daysLeft = (ends.getTime() - now.getTime()) / DAY;
     if (daysLeft > 0 && daysLeft <= TRIAL_NOTICE_DAYS) {
+      const noCard = facts.trialCardOnFile === false || facts.trialCardOnFile === null;
       out.push({
         id: `trial:${isoDate(ends)}`,
         kind: "trial",
-        title: `Your free trial ends ${formatDay(ends)}`,
-        body: "Nothing to do if you want to keep going. If not, you can cancel from Billing before then and you will not be charged.",
+        title: noCard ? `Your centre's free month ends ${formatDay(ends)}` : `Your free trial ends ${formatDay(ends)}`,
+        body: noCard
+          ? "Add a card from Billing to keep your team going. Otherwise it simply ends, nothing is charged, and everything stays yours."
+          : "Nothing to do if you want to keep going. If not, you can cancel from Billing before then and you will not be charged.",
         href: "/billing",
         date: new Date(ends.getTime() - TRIAL_NOTICE_DAYS * DAY).toISOString(),
       });

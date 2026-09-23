@@ -8,6 +8,8 @@ import { buildNotifications, mergeSeen, unseenCount, type NotificationFacts } fr
 import { parseTermSettings } from "@/lib/term-settings";
 import { buildQuietChildRadar } from "@/lib/quiet-radar";
 import { currentOrNextTerm, localDate } from "@/lib/terms";
+import { isCentrePlan } from "@/lib/centre-offer";
+import { createStripe } from "@/lib/stripe-client";
 
 export const dynamic = "force-dynamic";
 
@@ -124,7 +126,32 @@ export async function GET() {
   const wallScans = wallRows.reduce((sum, row) => sum + (row.scan_count ?? 0), 0);
   const lastScannedAt = wallRows.map((row) => row.last_scanned_at).filter(Boolean).sort().pop() ?? null;
 
+  // A centre's free month asks for no card up front, so "nothing to do" would be
+  // untrue without one. Only asked of Stripe in the last days of such a trial.
+  let trialCardOnFile: boolean | null | undefined;
+  const trialEnds = extra.trial_ends_at ? Date.parse(extra.trial_ends_at) : Number.NaN;
+  if (
+    profile.subscription_status === "trialing" &&
+    isCentrePlan(plan) &&
+    Number.isFinite(trialEnds) &&
+    trialEnds - now.getTime() <= 3 * 86_400_000 &&
+    profile.stripe_customer_id
+  ) {
+    try {
+      const stripe = createStripe();
+      const subs = await stripe.subscriptions.list({ customer: profile.stripe_customer_id, status: "trialing", limit: 5 });
+      trialCardOnFile = subs.data.some((sub) => Boolean(sub.default_payment_method));
+      if (!trialCardOnFile) {
+        const customer = await stripe.customers.retrieve(profile.stripe_customer_id);
+        trialCardOnFile = !("deleted" in customer && customer.deleted) && Boolean((customer as { invoice_settings?: { default_payment_method?: unknown } }).invoice_settings?.default_payment_method);
+      }
+    } catch {
+      trialCardOnFile = null;
+    }
+  }
+
   const items = buildNotifications({
+    trialCardOnFile,
     now,
     plan,
     subscriptionStatus: profile.subscription_status ?? null,

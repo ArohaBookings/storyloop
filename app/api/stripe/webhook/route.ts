@@ -7,6 +7,7 @@ import { creditEarnedReferrals, grantReferralCreditForPayment } from "@/lib/refe
 import { newlyScheduledCancellation, paymentFailureNotice, sendBillingEmail } from "@/lib/email/billing";
 import { cancellationFeedbackMetadata } from "@/lib/churn-reasons";
 import { metaConfigured, sendMetaEvent } from "@/lib/meta-capi";
+import { trialLapsedWithoutCard } from "@/lib/centre-offer";
 import { SITE_URL } from "@/lib/email/config";
 
 function getStripe() {
@@ -332,14 +333,21 @@ async function processStripeEvent(admin: ReturnType<typeof createAdminSupabase>,
       if (userId) await admin.from("profiles").update(update).eq("id", userId);
       else if (customerId) await admin.from("profiles").update(update).eq("stripe_customer_id", customerId);
 
-      // Confirm it has ended and what the free plan keeps.
+      // Confirm it has ended and what the free plan keeps. A centre's no-card
+      // free month running out is worded as the end of a trial, not a
+      // cancellation: nothing was ever charged.
+      const trialLapsed = trialLapsedWithoutCard(subscription);
       await sendBillingEmail({
         admin,
         type: "subscription_cancelled",
         billingKey: subscription.id,
         userId,
         customerId,
-        extraMetadata: cancellationFeedbackMetadata(subscription.cancellation_details),
+        trialLapsed,
+        extraMetadata: {
+          ...cancellationFeedbackMetadata(subscription.cancellation_details),
+          ...(trialLapsed ? { ended_reason: "trial_lapsed_without_card" } : {}),
+        },
       });
       return;
     }

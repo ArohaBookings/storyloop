@@ -47,6 +47,12 @@ type TemplateInput = {
     /** When a scheduled cancellation takes effect. */
     endsOn?: string;
     trialEndsOn?: string;
+    /** The subscription ended because a no-card free month ran out. */
+    trialLapsed?: boolean;
+    /** A centre's free month (no card asked for up front). */
+    centreTrial?: boolean;
+    /** Whether a card is on file; null when Stripe could not say. */
+    cardOnFile?: boolean | null;
     storiesThisMonth?: number;
     hoursSaved?: number;
     referralCode?: string;
@@ -505,6 +511,36 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
     // fastest ways to lose trust, and a silent charge is a cancellation waiting
     // to happen.
     trial_ending: () => {
+      // A centre's free month with no card behind it: nothing will be taken,
+      // it simply ends unless they add one. Said plainly, both ways.
+      if (ctx.centreTrial && ctx.cardOnFile !== true) {
+        const ctaUrl = url("/billing", "trial_ending");
+        const when = ctx.trialEndsOn ? `on ${ctx.trialEndsOn}` : "soon";
+        const subject = `Your centre's free month ends ${when}`;
+        const unsure = ctx.cardOnFile === null;
+        const lines = [
+          `Hi ${name}, your centre's free month of StoryLoop ends ${when}.`,
+          unsure
+            ? "If you have already added a card, you do not need to do anything. If not, add one from Billing to keep your team going."
+            : "To keep your team going, add a card from Billing. It takes about a minute.",
+          "If you would rather not, you do not need to do anything. It simply ends, nothing is charged, and every story your team wrote stays yours.",
+        ];
+        return {
+          emailType: "trial_ending",
+          subject,
+          marketing: false,
+          ctaUrl,
+          html: layout({
+            title: `Your free month ends ${esc(when)}`,
+            preview: "Add a card to keep your team going. Nothing is charged otherwise.",
+            cta: "Add a card",
+            ctaUrl,
+            secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Not the right time? Do nothing, and nothing is charged. Everything your team wrote stays yours.</p>`,
+            body: `<p>Hi ${esc(name)}, your centre's free month of StoryLoop ends <strong>${esc(when)}</strong>.</p><p>${esc(lines[1])}</p><p>If you would rather not, you do not need to do anything. It simply ends, <strong>nothing is charged</strong>, and every story your team wrote stays yours.</p>`,
+          }),
+          text: plain({ title: subject, lines, cta: "Add a card", ctaUrl }),
+        };
+      }
       const ctaUrl = url("/billing", "trial_ending");
       const plan = ctx.planLabel ?? "your plan";
       const amount = ctx.amountLabel ?? "your plan price";
@@ -665,6 +701,34 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
     // Sent when the subscription has actually ended. It confirms, states what
     // the free plan keeps, and leaves the door open without pushing.
     subscription_cancelled: () => {
+      // A centre's no-card free month ran out. Nothing was ever charged, so
+      // this is written as the end of a trial, with the way back, not as a
+      // cancellation.
+      if (ctx.trialLapsed) {
+        const ctaUrl = url("/billing", "subscription_cancelled");
+        const subject = "Your centre's free month has ended";
+        const lines = [
+          `Hi ${name}, your centre's 30-day free trial of StoryLoop has ended. No card was added, so nothing was charged and nothing will be.`,
+          "Your account is now on the free plan. Every story your team wrote stays yours to open, edit and export.",
+          "If you would like to keep going as a centre, you can subscribe from Billing in a minute, and your team, profiles and history will be right where you left them.",
+          "If the month did not work for your centre, reply and tell us why. We read every one, and it shapes what we build next.",
+        ];
+        return {
+          emailType: "subscription_cancelled",
+          subject,
+          marketing: false,
+          ctaUrl,
+          html: layout({
+            title: "Your centre's free month has ended",
+            preview: "Nothing was charged. Your team's stories stay yours.",
+            cta: "Keep StoryLoop for my centre",
+            ctaUrl,
+            secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Not for you right now? No need to do anything. Thank you for trying StoryLoop with your team.</p>`,
+            body: `<p>Hi ${esc(name)}, your centre's 30-day free trial of StoryLoop has ended. <strong>No card was added, so nothing was charged</strong> and nothing will be.</p><p>Your account is now on the free plan. <strong>Every story your team wrote stays yours</strong> to open, edit and export.</p><p>If you would like to keep going as a centre, you can subscribe from Billing in a minute, and your team, profiles and history will be right where you left them.</p><p>If the month did not work for your centre, reply and tell us why. We read every one, and it shapes what we build next.</p>`,
+          }),
+          text: plain({ title: subject, lines, cta: "Keep StoryLoop for my centre", ctaUrl }),
+        };
+      }
       const ctaUrl = url("/dashboard", "subscription_cancelled");
       const subject = "Your StoryLoop subscription has ended";
       const lines = [

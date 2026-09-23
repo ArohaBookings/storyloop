@@ -7,6 +7,7 @@ import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } fro
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
 import { ACTIVATION_OFFER_LABEL } from "@/lib/email/config";
 import { canOfferInAppSwitch } from "@/lib/plan-change";
+import { formatDay } from "@/lib/notifications";
 import { getNextPlan, getPlanByKey, getPlanDefinitions, hasFeatureAccess, normalizePlanKey, planRank, requiredPlanForFeature, resolveFeatureParam, type CurrencyCode, type FeatureKey, type PlanKey } from "@/lib/plans";
 
 // Appealing, benefit-led copy for a feature a user clicked while locked.
@@ -65,7 +66,7 @@ const FEATURE_UPSELL: Partial<Record<FeatureKey, { title: string; blurb: string 
   },
   childVoice: {
     title: "Children's own words",
-    blurb: "One big button a three-year-old can press to tell you about their own work. Kept exactly as they said it, never tidied into adult grammar. The recording stays in the browser and is never stored.",
+    blurb: "One big button a three-year-old can press to tell you about their own work. Kept exactly as they said it, never tidied into adult grammar. StoryLoop never keeps the recording.",
   },
   learningPassport: {
     title: "Learning passport",
@@ -81,7 +82,7 @@ const FEATURE_UPSELL: Partial<Record<FeatureKey, { title: string; blurb: string 
   },
   evidencePack: {
     title: "Evidence pack",
-    blurb: "One page showing how every child is covered, where the planning cycle closes, where reflection and family voice are recorded, and which gaps to fix — counted from the stories you already saved.",
+    blurb: "One page showing how every child is covered, where the planning cycle closes, where reflection and family voice are recorded, and which gaps to fix, counted from the stories you already saved.",
   },
   centreQualityCalibration: {
     title: "Centre Quality Calibration",
@@ -89,7 +90,7 @@ const FEATURE_UPSELL: Partial<Record<FeatureKey, { title: string; blurb: string 
   },
   directorRoiDashboard: {
     title: "Director ROI dashboard",
-    blurb: "Show time saved, backlog cleared, and documentation health across rooms — the proof that StoryLoop pays for itself.",
+    blurb: "Show time saved, backlog cleared, and documentation health across rooms: the proof that StoryLoop pays for itself.",
   },
 };
 
@@ -101,6 +102,10 @@ export default function BillingPage() {
   // In-app plan switching for paying customers (the Stripe portal cannot).
   const [switchPreview, setSwitchPreview] = useState<{ plan: PlanKey; title: string; detail: string } | null>(null);
   const [switchNotice, setSwitchNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
+  // A centre's free month: whether a card is on file yet (from Stripe).
+  const [trialStatus, setTrialStatus] = useState<{ centreTrial: boolean; cardOnFile: boolean | null; founding: boolean; trialEndsAt: string | null } | null>(null);
+  // The centre offer as it stands (founding spots come from the Stripe coupon).
+  const [centreOffer, setCentreOffer] = useState<{ trialDays: number; founding: { spotsLeft: number | null; totalSpots: number; discountPercent: number; discountMonths: number } } | null>(null);
 
   const loadProfile = () =>
     fetch("/api/me").then(r => r.json()).then(data => setProfile(data.profile));
@@ -109,6 +114,8 @@ export default function BillingPage() {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (tz?.includes("Auckland")) setCurrency("NZD");
     void loadProfile();
+    fetch("/api/stripe/trial-status").then((r) => (r.ok ? r.json() : null)).then(setTrialStatus).catch(() => {});
+    fetch("/api/centre-offer").then((r) => (r.ok ? r.json() : null)).then(setCentreOffer).catch(() => {});
   }, []);
 
   const handleCheckout = async (plan: string) => {
@@ -215,6 +222,25 @@ export default function BillingPage() {
         <h1 className="font-display text-3xl font-bold text-ink-900">Billing & plan</h1>
         <p className="text-ink-600 text-sm mt-1">Upgrade, downgrade, or cancel anytime.</p>
       </div>
+
+      {/* A centre's free month with no card yet: one clear way to keep going,
+          and the plain fact that doing nothing costs nothing. */}
+      {trialStatus?.centreTrial && trialStatus.cardOnFile !== true && (
+        <div className="mb-6 rounded-2xl border border-clay-200 bg-cream-50 p-5" data-testid="centre-trial-banner">
+          <p className="font-display text-xl font-bold text-ink-900">
+            Your centre&apos;s free month{trialStatus.trialEndsAt ? ` ends ${formatDay(trialStatus.trialEndsAt)}` : " is running"}.
+          </p>
+          <p className="mt-1.5 text-base leading-relaxed text-ink-700">
+            {trialStatus.cardOnFile === null ? "If you have not added a card yet, add" : "Add"} one to keep your team going
+            {trialStatus.founding ? `. As a founding centre you then pay 50% for your first three months.` : "."} If you do nothing, it simply
+            ends, nothing is charged, and everything your team wrote stays yours.
+          </p>
+          <button type="button" onClick={handlePortal} disabled={loading === "portal"} className="btn-primary mt-4">
+            {loading === "portal" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+            Add a card
+          </button>
+        </div>
+      )}
 
       {switchNotice && (
         <div
@@ -413,13 +439,24 @@ export default function BillingPage() {
           return (
             <div key={plan.name} className={`rounded-2xl p-6 flex flex-col relative ${plan.popular ? "bg-ink-900 text-paper border-2 border-clay-600 shadow-clay" : isNext ? "bg-white border-2 border-clay-400 shadow-warm" : "bg-white border border-clay-100"}`}>
               {plan.popular && <div className="inline-flex items-center bg-clay-700 text-paper text-xs font-bold px-2 py-1 rounded-full w-fit mb-2">Most popular</div>}
-              {!plan.popular && isNext && <div className="inline-flex items-center bg-clay-100 text-clay-700 text-xs font-bold px-2 py-1 rounded-full w-fit mb-2">BEST NEXT STEP</div>}
+              {!plan.popular && isNext && <div className="inline-flex items-center bg-clay-100 text-clay-700 text-xs font-bold px-2 py-1 rounded-full w-fit mb-2">Best next step</div>}
               <p className={`font-semibold text-sm ${plan.popular ? "text-cream-300" : "text-clay-700"}`}>{plan.name}</p>
               <div className="flex items-end gap-1 mt-1 mb-2">
                 <span className="font-display text-4xl font-bold">${plan.displayPrice}</span>
                 {plan.displayPrice > 0 && <span className={`mb-1 text-xs ${plan.popular ? "text-ink-300" : "text-ink-500"}`}>{currency}/mo</span>}
               </div>
               {plan.priceNote && <p className={`-mt-1 mb-2 text-xs ${plan.popular ? "text-ink-300" : "text-ink-500"}`}>{plan.priceNote}</p>}
+              {plan.key.startsWith("centre_") && (
+                <div className="mb-3 rounded-xl border border-sage-200 bg-sage-50 px-3 py-2 text-xs leading-relaxed text-sage-900">
+                  <p className="font-semibold">30 days free, no card needed</p>
+                  {centreOffer?.founding.spotsLeft !== 0 && (
+                    <p className="mt-0.5">
+                      Founding centres then pay {100 - (centreOffer?.founding.discountPercent ?? 50)}% for {centreOffer?.founding.discountMonths ?? 3} months
+                      {typeof centreOffer?.founding.spotsLeft === "number" ? ` (${centreOffer.founding.spotsLeft} of ${centreOffer.founding.totalSpots} spots left)` : ""}.
+                    </p>
+                  )}
+                </div>
+              )}
               <p className={`text-xs mb-4 ${plan.popular ? "text-cream-300" : "text-ink-500"}`}>{plan.stories}</p>
               <p className={`mb-4 text-xs leading-relaxed ${plan.popular ? "text-ink-300" : "text-ink-600"}`}>{plan.description}</p>
               <ul className="space-y-2 flex-1 mb-5">

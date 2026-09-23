@@ -199,7 +199,8 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
     priceNote: "per centre/month · unlimited children",
     seats: 10,
     stories: "10 educator seats",
-    cta: "Start centre trial",
+    // Centres get a 30-day free month with no card (lib/centre-offer.ts).
+    cta: "Start 30 days free",
     buyer: "Directors and room leaders rolling StoryLoop into a small team.",
     features: [
       "Everything in Educator Pro, for all 10 educators",
@@ -229,7 +230,7 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
     priceNote: "per centre/month · unlimited children",
     seats: 25,
     stories: "25 educator seats",
-    cta: "Start growth trial",
+    cta: "Start 30 days free",
     buyer: "Owners, directors, and larger services needing rollout visibility.",
     features: [
       "Everything in Centre Starter, for all 25 educators",

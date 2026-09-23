@@ -7,6 +7,26 @@ import { getPlanByKey, normalizePlanKey } from "@/lib/plans";
 import { formatDate } from "./billing";
 import { createStripe } from "@/lib/stripe-client";
 import { abandonedCheckoutCandidates, stillAbandoned } from "@/lib/abandoned-checkout";
+import { isCentrePlan } from "@/lib/centre-offer";
+
+/**
+ * Whether a trialing customer has a card on file, asked of Stripe. Only needed
+ * for centres, whose free month does not ask for a card up front. Null when
+ * Stripe cannot say, and the email then gives both paths instead of guessing.
+ */
+async function cardOnFile(customerId: string | null | undefined): Promise<boolean | null> {
+  if (!customerId) return null;
+  try {
+    const stripe = createStripe();
+    const subs = await stripe.subscriptions.list({ customer: customerId, status: "trialing", limit: 5 });
+    if (subs.data.some((sub) => Boolean(sub.default_payment_method))) return true;
+    const customer = await stripe.customers.retrieve(customerId);
+    if ("deleted" in customer && customer.deleted) return null;
+    return Boolean((customer as { invoice_settings?: { default_payment_method?: unknown } }).invoice_settings?.default_payment_method);
+  } catch {
+    return null;
+  }
+}
 
 type ProfileEmailRow = {
   id: string;
@@ -24,6 +44,7 @@ type ProfileEmailRow = {
   marketing_unsubscribed_at?: string | null;
   is_internal?: boolean | null;
   trial_ends_at?: string | null;
+  stripe_customer_id?: string | null;
 };
 
 const ACTIVE_PAID_STATUSES = new Set(["active", "trialing", "admin_override"]);
@@ -251,7 +272,7 @@ export async function runLifecycleAutomation() {
   //    recorded on the profile.
   const { data: trialEndingUsers, error: trialEndingError } = await sb
     .from("profiles")
-    .select(`${baseSelect}, trial_ends_at`)
+    .select(`${baseSelect}, trial_ends_at, stripe_customer_id`)
     .eq("subscription_status", "trialing")
     .gte("trial_ends_at", new Date().toISOString())
     .lte("trial_ends_at", new Date(Date.now() + TRIAL_NOTICE_HOURS * 60 * 60 * 1000).toISOString())
@@ -260,7 +281,11 @@ export async function runLifecycleAutomation() {
   if (trialEndingError) errors.push(trialEndingError.message);
   for (const row of (trialEndingUsers ?? []) as ProfileEmailRow[]) {
     // Transactional: sent even to people unsubscribed from product tips.
-    sent.push(await sendIfNeeded(row, "trial_ending", daysAgo(14), trialEndingContext(row)));
+    // A centre's free month may have no card behind it, and "your first
+    // payment will be taken" would then be untrue, so ask Stripe.
+    const centre = isCentrePlan(row.plan);
+    const context = { ...trialEndingContext(row), ...(centre ? { centreTrial: true, cardOnFile: await cardOnFile(row.stripe_customer_id) } : {}) };
+    sent.push(await sendIfNeeded(row, "trial_ending", daysAgo(14), context));
   }
 
   // 2. Went quiet. A paying customer who was clearly getting value (3+ stories)
