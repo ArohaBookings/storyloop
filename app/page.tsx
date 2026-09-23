@@ -11,6 +11,8 @@ import CTA from "@/components/landing/CTA";
 import Footer from "@/components/landing/Footer";
 import { LANDING_FAQS } from "@/lib/landing-faqs";
 import Reviews from "@/components/landing/Reviews";
+import AccuracyProof from "@/components/landing/AccuracyProof";
+import Founder from "@/components/landing/Founder";
 import PageTracker from "@/components/analytics/PageTracker";
 
 // Keep the landing static for speed, but regenerate every 5 minutes so a review
@@ -45,17 +47,19 @@ export default function LandingPage() {
       <PageTracker />
       <Navbar />
       <main>
-        {/* Nine sections, down from fourteen (3,145 words to about 1,500).
-            What left: the Today Loop band, two overlapping feature grids, the
-            workload-statistics band, the who-it-is-for grid and the straight
-            answers block. Their search value moved to /faq and the guide pages
-            rather than disappearing. Reviews renders nothing until a real
-            review is published. */}
+        {/* The order answers the questions in the order a visitor asks them:
+            what is it (hero, demo), is the problem real and does it fit how I
+            work (proof strip, how it works), will it make things up (accuracy),
+            what else does it do (capabilities), show me (real examples), who is
+            behind it (founder), then price and questions. Reviews renders
+            nothing until a real review is published. */}
         <Hero />
         <ProofStrip />
         <HowItWorks />
+        <AccuracyProof />
         <Capabilities />
         <Examples />
+        <Founder />
         <Reviews />
         <Pricing audience="individuals" />
         <FAQ />

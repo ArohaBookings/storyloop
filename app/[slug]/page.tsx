@@ -20,7 +20,7 @@ const CENTRE_SLUGS = new Set([
   "nqs-standard-1-3-assessment-and-planning",
   "ero-early-childhood-regulation-2026",
 ]);
-import { SEO_PAGES, SEO_PAGE_SLUGS } from "@/lib/seo-pages";
+import { DEDICATED_ROUTE_SLUGS, SEO_PAGES, SEO_PAGE_SLUGS } from "@/lib/seo-pages";
 import { PenLine, ShieldCheck } from "lucide-react";
 
 const SITE_URL = "https://storyloop.space";
@@ -35,7 +35,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const page = SEO_PAGES[slug];
+  const page = DEDICATED_ROUTE_SLUGS.has(slug) ? undefined : SEO_PAGES[slug];
   if (!page) return {};
 
   return {
@@ -58,7 +58,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function SeoPage({ params }: PageProps) {
   const { slug } = await params;
-  const page = SEO_PAGES[slug];
+  const page = DEDICATED_ROUTE_SLUGS.has(slug) ? undefined : SEO_PAGES[slug];
 
   if (!page) {
     notFound();

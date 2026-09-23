@@ -58,11 +58,11 @@ export default function Capabilities() {
           <article className="flex flex-col rounded-3xl border border-sage-200 bg-sage-50 p-7 transition-transform duration-300 hover:-translate-y-0.5">
             <QrCode className="h-6 w-6 text-sage-700" strokeWidth={1.75} />
             <h3 className="mt-4 font-display text-2xl font-bold leading-snug text-ink-900">
-              The wall explains itself.
+              Families can read the wall.
             </h3>
             <p className="mt-2 text-base leading-relaxed text-ink-600">
-              A small code beside a display. Families scan it at pickup and read the learning behind it, in their own
-              language.
+              Print a small code beside any display. At pickup, a family scans it with their phone and reads the learning
+              behind what they are looking at, in their own language.
             </p>
             <ul className="mt-5 flex flex-wrap gap-2" aria-label="Some of the languages a wall card can be read in">
               {chips.map((language) => (

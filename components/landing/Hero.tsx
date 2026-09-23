@@ -1,8 +1,22 @@
 "use client";
 import Link from "next/link";
-import Image from "next/image";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowRight, Layers, Quote, ShieldCheck } from "lucide-react";
 import StoryDemo from "./StoryDemo";
+
+/**
+ * The three things a 120-visitor simulated panel (scripts/site-eval, 23 Sept
+ * 2026) said stopped them trusting the page in the first ten seconds: will it
+ * put words in a child's mouth, what happens to children's data, and does it
+ * mean leaving Storypark. Each answered in one line, with the proof one click
+ * away. "Built by Leo, 20" was the single most repeated hesitation at the
+ * decision point, so the founder story moved to its own section further down,
+ * where it reads as a reason to trust rather than a reason to doubt.
+ */
+const TRUST = [
+  { icon: Quote, text: "Children's words kept exactly, and we publish the tests", href: "/accuracy" },
+  { icon: ShieldCheck, text: "Stored in Sydney, never used to train AI", href: "/privacy" },
+  { icon: Layers, text: "Works alongside Storypark, Educa and Kinderloop", href: "#how-it-works" },
+];
 
 /**
  * The hero carries the demo itself.
@@ -50,33 +64,27 @@ export default function Hero() {
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link href="/pricing" className="btn-secondary w-full px-7 py-3.5 text-base sm:w-auto">
-                Unlimited from NZ$21 / A$19
+                Unlimited from NZ$21 / A$19 a month
               </Link>
             </div>
 
-            <p className="animate-fade-up-2 mt-4 text-sm leading-relaxed text-ink-500">
-              Three stories a month free, no card needed. Te Whāriki and EYLF.
+            {/* Free and trial, said once and unmistakably: the panel could not
+                tell whether "free" meant a trial or three stories a month. */}
+            <p className="animate-fade-up-2 mt-4 text-sm leading-relaxed text-ink-600">
+              <span className="font-semibold text-ink-800">Free forever</span> for 3 stories a month, no card.{" "}
+              <span className="font-semibold text-ink-800">Unlimited</span> starts with a 7-day free trial, cancel any time.
             </p>
 
-            {/* A real person behind it. The cheapest trust available to a
-                one-person product, and the one thing a large incumbent cannot
-                put on its homepage. */}
-            <div className="animate-fade-up-3 mt-8 flex items-center justify-center gap-3 lg:justify-start">
-              <Image
-                src="/images/leo.jpg"
-                alt="Leo, who builds StoryLoop"
-                width={48}
-                height={48}
-                className="h-12 w-12 flex-none rounded-full object-cover object-top ring-2 ring-clay-100"
-              />
-              <p className="max-w-xs text-left text-sm leading-relaxed text-ink-500">
-                Built by{" "}
-                <Link href="/about" className="font-semibold text-ink-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-700">
-                  Leo
-                </Link>
-                , 20, in Christchurch. Every story is checked against what you actually wrote.
-              </p>
-            </div>
+            <ul className="animate-fade-up-3 mt-7 grid gap-2.5 text-left sm:max-w-md lg:max-w-none" aria-label="Why educators trust it">
+              {TRUST.map((item) => (
+                <li key={item.text}>
+                  <Link href={item.href} className="group inline-flex items-start gap-2.5 text-sm font-medium leading-relaxed text-ink-700 hover:text-clay-800">
+                    <item.icon className="mt-0.5 h-4 w-4 flex-none text-sage-700" strokeWidth={2} />
+                    <span className="underline decoration-clay-200 underline-offset-4 group-hover:decoration-clay-500">{item.text}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
           <div className="animate-fade-up-1 min-w-0">
@@ -84,7 +92,7 @@ export default function Hero() {
             <StoryDemo compact />
             <p className="mt-3 flex items-center justify-center gap-2 text-xs leading-relaxed text-ink-500 lg:justify-start">
               <ShieldCheck className="h-4 w-4 flex-none text-sage-600" />
-              Private draft. Nothing publishes without you, and nothing is invented.
+              A private draft. Nothing is shared until you choose, and every draft shows what it is built on.
             </p>
           </div>
         </div>

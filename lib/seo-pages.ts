@@ -1569,4 +1569,11 @@ for (const [slug, deepDive] of Object.entries(SEO_DEEP_DIVES)) {
   }
 }
 
-export const SEO_PAGE_SLUGS = Object.keys(SEO_PAGES);
+/**
+ * Paths that have their own page in app/. The generic [slug] page must never
+ * build these: both builds write the same file, and on the September 2026
+ * deploy the thin generic "examples" page silently replaced the real one.
+ */
+export const DEDICATED_ROUTE_SLUGS = new Set(["examples"]);
+
+export const SEO_PAGE_SLUGS = Object.keys(SEO_PAGES).filter((slug) => !DEDICATED_ROUTE_SLUGS.has(slug));

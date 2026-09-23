@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import { Sparkles, Loader2, Copy, Check, HelpCircle } from "lucide-react";
+import { Fragment, useEffect, useRef, useState } from "react";
+import { Sparkles, Loader2, Copy, Check, HelpCircle, ListChecks, Quote } from "lucide-react";
 import Link from "next/link";
 import GeneratingIndicator from "@/components/app/GeneratingIndicator";
 import { track } from "@/lib/analytics/client";
@@ -21,67 +21,170 @@ const SAMPLE = `Noah (3yo) filled a bucket with damp sand, turned it over carefu
 
 /**
  * The real draft StoryLoop wrote for the note above, exactly as the production
- * model returned it on 2026-09-23 (quality 100). Shown at rest so the promise is
- * proven before anyone lifts a finger.
+ * pipeline returned it in the story evaluation run of 24 September 2026
+ * (scripts/story-eval: pipeline quality 100, independent judge fidelity 9/10,
+ * no invented speech). Shown at rest so the promise is proven before anyone
+ * lifts a finger, and replayed when someone runs the example unchanged.
  *
- * It used to be a genuine draft from a DIFFERENT note, labelled as such, sitting
- * beside this one. Honest, but a visitor's first second was spent working out
- * why the box said Noah and the story said Tama. The note and its draft now
- * match, so the pairing reads the way it looks: this in, this out.
+ * Running the unchanged example does NOT call the model: it is the same note,
+ * and this is the draft the model wrote for it, so a second call would cost
+ * money to show the same thing. The moment the note is edited, the real writer
+ * runs. That is the only thing that makes the two paths differ.
  */
-const EXAMPLE_OUTPUT = `Building a castle for the dragon
+const EXAMPLE_OUTPUT = `Noah’s sand castle idea
 
 Learning Story
-Noah filled a bucket with damp sand, turned it over carefully and tapped the sides. He was using the bucket and sand with care, checking how the sand held together as he made his tower.
+Noah worked carefully in the sandpit today. He filled a bucket with damp sand, turned it over, and tapped the sides before lifting it to make a tower. He built beside Amelia, sharing the space and continuing with his own plan.
 
-Noah built his tower beside Amelia. When Amelia asked for the spade, Noah swapped it with her. This showed us Noah was able to keep his play going while also responding to another child’s request.
+When Amelia asked for the spade, Noah swapped with her. This was a small but meaningful social moment. He listened to Amelia’s request and adjusted what he was using so they could both keep playing.
 
-As he built, Noah told us, "I'm making a castle for the dragon". His sand tower became part of a pretend story, not just a tower. When one side collapsed, Noah did not stop. He packed more sand around the base and tried again.
+Noah told us, "I'm making a castle for the dragon". His sand tower was not just a tower, it was part of an idea he was building in his mind. When one side collapsed, Noah did not stop. He packed more sand around the base and tried again, changing his method after noticing what had happened.
 
 What learning we noticed
-Noah was testing what damp sand can do. He used careful actions, turned the bucket over, tapped the sides, and changed his plan when the sand collapsed. Packing more sand around the base showed early problem solving. He noticed the tower needed more support and tried a new way to fix it.
-
-We also noticed Noah bringing imagination into his building. The castle for the dragon gave his construction a clear purpose. He used words to share his idea, and he worked near Amelia while managing a simple turn with the spade.
+Noah used careful hand movements as he filled, turned, tapped, packed and rebuilt with the damp sand. He was testing how the sand held its shape and was beginning to use a practical strategy when the tower did not stay up. His dragon castle idea also showed symbolic play, with Noah using the sand structure to represent something from his imagination.
 
 Curriculum links
-EYLF Outcome 4: Children are confident and involved learners. Noah tested the sand, noticed a problem when one side collapsed, and changed his building method by packing more sand around the base.
+This links with EYLF Outcome 4: Children are confident and involved learners. Noah tested an idea, noticed the side collapse, added more sand to the base, and tried again.
 
-EYLF Outcome 5: Children are effective communicators. Noah used spoken language to explain his idea and connect his building to pretend play.
-
-EYLF Outcome 2: Children are connected with and contribute to their world. Noah responded to Amelia’s request and swapped the spade, supporting shared play in the sand area.
+This also links with EYLF Outcome 5: Children are effective communicators. Noah shared his idea in words when he said he was making a castle for the dragon, helping us understand the story behind his building.
 
 Where to next / Responding
-We can support Noah’s sand building by offering buckets, spades, moulds, and loose parts that let him test shape, strength, and balance. We can use simple language as he builds, such as base, sides, damp, collapse, stronger, and try again.
-
-We will continue to notice how Noah shares his ideas with others, how he solves building problems, and whether his dragon castle story grows into more shared pretend play.
+We can support Noah’s sand construction by offering buckets, spades and different sized containers so he can keep testing shape, strength and balance. We can use simple language such as base, taller, damp, dry, collapse and steady as he builds, and notice the strategies he chooses when something does not work the first time.
 
 Family link
-At home, Noah might enjoy telling or drawing what could live in his castle, or trying different ways to build with sand, blocks, boxes, or other materials.`;
+You might notice Noah building or making stories at home too. His dragon castle idea could be a good way to talk about what he is planning before he starts creating.`;
 
-/** Real fields the generator returns alongside the story. Listed, never faked. */
-const ALSO_GENERATED = [
-  "Evidence anchors",
-  "Assumptions flagged",
-  "Educator checks",
-  "Privacy check",
-  "Child voice",
-  "Dispositions",
-];
+/** The evidence the same run returned with that draft, unedited. */
+const EXAMPLE_EVIDENCE: Evidence = {
+  anchors: [
+    "Noah filled a bucket with damp sand.",
+    "He turned it over carefully and tapped the sides.",
+    "He built a tower beside Amelia and swapped the spade when she asked.",
+    "When one side collapsed, he packed more sand around the base and tried again.",
+  ],
+  checks: [
+    "Confirm that the quoted words are exactly what Noah said.",
+    "Check whether Amelia’s name can be included under your centre privacy practice.",
+    "The exact sandpit setting and group size were not provided.",
+    "No educator dialogue or response was supplied.",
+  ],
+};
+
+/** How long the unchanged example "writes" for before the draft appears. */
+const EXAMPLE_WRITE_MS = 2200;
 
 type Clarify = { reason: string; questions: string[] };
+type Evidence = { anchors: string[]; checks: string[] };
+
+function stringList(value: unknown, max = 6): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0).slice(0, max) : [];
+}
+
+function normalise(text: string) {
+  return text.toLowerCase().replace(/[’‘]/g, "'").replace(/[“”]/g, '"').replace(/[^a-z0-9' ]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+/**
+ * The draft, with every quote that appears word for word in the note marked.
+ * Display only: the text itself is never changed. A quote that is NOT in the
+ * note is left unmarked, so the highlight is a promise the note can check.
+ */
+function HighlightedStory({ text, note }: { text: string; note: string }) {
+  const noteKey = normalise(note);
+  const parts = text.split(/("[^"\n]{2,160}"|“[^”\n]{2,160}”)/g);
+  return (
+    <>
+      {parts.map((part, index) => {
+        const quoted = /^["“]/.test(part);
+        if (quoted && normalise(part.slice(1, -1)) && noteKey.includes(normalise(part.slice(1, -1)))) {
+          return (
+            <mark key={index} className="rounded bg-sage-100 px-1 font-semibold not-italic text-sage-800" title="The child's words, exactly as the note has them">
+              {part}
+            </mark>
+          );
+        }
+        return <Fragment key={index}>{part}</Fragment>;
+      })}
+    </>
+  );
+}
+
+/** What the draft rests on, and what to check before sharing it. */
+function EvidencePanel({ evidence, onOpen }: { evidence: Evidence; onOpen?: () => void }) {
+  const [open, setOpen] = useState(false);
+  if (!evidence.anchors.length && !evidence.checks.length) return null;
+  return (
+    <div className="mt-3 rounded-2xl border border-sage-200 bg-sage-50/70">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => {
+          if (!open) onOpen?.();
+          setOpen(!open);
+        }}
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-bold text-sage-800"
+        data-track="demo_evidence"
+      >
+        <span className="flex items-center gap-2">
+          <ListChecks className="h-4 w-4 flex-none" />
+          What this draft is built on, and what to check
+        </span>
+        <span aria-hidden="true" className="text-lg leading-none">{open ? "−" : "+"}</span>
+      </button>
+      {open && (
+        <div className="grid gap-4 border-t border-sage-200 px-4 py-4 sm:grid-cols-2">
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-sage-700">Straight from the note</p>
+            <ul className="space-y-1.5 text-sm leading-relaxed text-ink-700">
+              {evidence.anchors.map((item) => (
+                <li key={item} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 flex-none text-sage-600" />{item}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-clay-700">Flagged for you to check</p>
+            <ul className="space-y-1.5 text-sm leading-relaxed text-ink-700">
+              {evidence.checks.map((item) => (
+                <li key={item} className="flex gap-2"><HelpCircle className="mt-0.5 h-4 w-4 flex-none text-clay-600" />{item}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function StoryDemo({ compact = false }: { compact?: boolean }) {
   const [input, setInput] = useState(SAMPLE);
   const [touched, setTouched] = useState(false);
   const [output, setOutput] = useState("");
+  const [outputNote, setOutputNote] = useState("");
+  const [evidence, setEvidence] = useState<Evidence>({ anchors: [], checks: [] });
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
   const [clarify, setClarify] = useState<Clarify | null>(null);
   const [usage, setUsage] = useState(0);
 
+  const isUnchangedExample = input.trim() === SAMPLE.trim();
+
   const handleGenerate = async (proceedWithoutClarification = false) => {
     if (!input.trim()) { setError("Add a few observations first"); return; }
+
+    // The unchanged example: the real draft for this exact note, shown after
+    // a short write. No model call, no cost, and it does not use the free try.
+    if (isUnchangedExample) {
+      setLoading(true); setError(""); setOutput(""); setClarify(null);
+      track("demo_example_played");
+      await new Promise((resolve) => setTimeout(resolve, EXAMPLE_WRITE_MS));
+      setOutput(EXAMPLE_OUTPUT);
+      setOutputNote(SAMPLE);
+      setEvidence(EXAMPLE_EVIDENCE);
+      setLoading(false);
+      return;
+    }
+
     if (usage >= 1) {
       setError("You've used your free demo. Sign up to keep going with editable story history.");
       track("demo_limit");
@@ -101,15 +204,17 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
           reason: typeof data.clarificationReason === "string" && data.clarificationReason.trim()
             ? data.clarificationReason
             : "Add a little more detail so the story stays grounded in what you actually saw.",
-          questions: Array.isArray(data.clarificationQuestions)
-            ? data.clarificationQuestions.filter((q: unknown): q is string => typeof q === "string" && q.trim().length > 0).slice(0, 3)
-            : [],
+          questions: stringList(data.clarificationQuestions, 3),
         });
         track("demo_clarification");
         return;
       }
       if (!data.story) throw new Error("No story came back. Please try again.");
-      setOutput(data.story); setUsage(usage + 1);
+      setOutput(data.story); setOutputNote(input); setUsage(usage + 1);
+      setEvidence({
+        anchors: stringList(data.evidenceAnchors),
+        checks: [...stringList(data.educatorChecks, 3), ...stringList(data.assumptions, 3)],
+      });
       track("demo_completed", { storyWords: String(data.story).trim().split(/\s+/).length });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
@@ -189,15 +294,16 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
 
         <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-ink-500">
-            {touched ? "Your words stay exactly as you wrote them." : "Edit it, or run it as it is."}
+            {isUnchangedExample ? "Edit it, or run it as it is." : "Your words stay exactly as you wrote them."}
           </p>
           <button
             onClick={() => handleGenerate()}
             disabled={loading || !input.trim()}
             className="btn-primary w-full flex-shrink-0 text-sm sm:w-auto"
+            data-track={isUnchangedExample ? "demo_run_example" : "demo_run_own"}
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            {touched ? "Write my story" : "Watch it write this"}
+            {isUnchangedExample ? "Watch it write this" : "Write my story"}
           </button>
         </div>
 
@@ -256,12 +362,17 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
           </div>
         ) : output ? (
           <div className="story-safe flex min-w-0 flex-1 flex-col">
-            <div className="story-safe prose prose-sm min-w-0 max-w-full flex-1 whitespace-pre-wrap break-words font-display font-normal italic leading-relaxed text-ink-700">
-              {output}
+            <div className={`story-safe prose prose-sm min-w-0 max-w-full flex-1 overflow-y-auto whitespace-pre-wrap break-words font-display font-normal italic leading-relaxed text-ink-700 ${compact ? "max-h-[22rem]" : ""}`}>
+              <HighlightedStory text={output} note={outputNote} />
             </div>
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-500">
+              <Quote className="h-3.5 w-3.5 text-sage-600" />
+              Highlighted: the child&apos;s words, exactly as the note has them.
+            </p>
+            <EvidencePanel evidence={evidence} onOpen={() => track("demo_evidence_opened", { example: outputNote === SAMPLE })} />
             <div className="mt-4 border-t border-clay-200 pt-4 text-center">
               <p className="mb-2 text-xs text-ink-600">Save it, edit it and write your own. Three stories a month are free.</p>
-              <Link href="/signup" className="btn-primary px-4 py-2 text-xs">Start free</Link>
+              <Link href="/signup" className="btn-primary px-4 py-2 text-xs" data-track="demo_signup">Start free</Link>
             </div>
           </div>
         ) : (
@@ -286,28 +397,14 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
                   className="demo-line block"
                   style={writing ? { animationDelay: `${Math.min(index * 70, 1400)}ms` } : undefined}
                 >
-                  {line || " "}
+                  {line ? <HighlightedStory text={line} note={SAMPLE} /> : " "}
                 </span>
               ))}
             </div>
-            <div className="mt-3 border-t border-clay-100 pt-3">
-              <p className="mb-2 text-xs leading-relaxed text-ink-400">
-                Every draft also comes with:
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {ALSO_GENERATED.map((item) => (
-                  <span
-                    key={item}
-                    className="rounded-full border border-clay-100 bg-cream-50 px-2 py-0.5 text-xs font-semibold text-ink-500"
-                  >
-                    {item}
-                  </span>
-                ))}
-              </div>
-              <p className="mt-2.5 text-xs leading-relaxed text-ink-400">
-                Press the button and yours appears here in under a minute.
-              </p>
-            </div>
+            <EvidencePanel evidence={EXAMPLE_EVIDENCE} onOpen={() => track("demo_evidence_opened", { example: true, at_rest: true })} />
+            <p className="mt-2.5 text-xs leading-relaxed text-ink-400">
+              Change the note and press the button: yours is written fresh, usually in under a minute.
+            </p>
           </div>
         )}
       </div>
