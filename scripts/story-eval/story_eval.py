@@ -237,7 +237,8 @@ Return JSON only, with these keys:
 - invented_events: list of actions, objects, people or events presented as observed fact that the note does not contain.
 - invented_feelings: list of emotions stated as observed fact (e.g. "proudly", "was frustrated") with no basis in the
   note. Hedged interpretation ("seemed", "may have felt") is fine and must NOT be listed.
-- invented_people: names or people who are not in the note.
+- invented_people: names or people who are not in the note. The educator who wrote the note ("I", "me", "we", "us",
+  "the educator", "kaiako") and the child's family in a family-link suggestion are NOT invented people.
 - fidelity: integer 1-10. 10 = every factual claim traceable to the note.
 - usefulness: integer 1-10. Would an experienced registered ECE teacher use this with only light edits?
 - reads_naturally: integer 1-10. Warm, specific, professional; not generic or padded.
@@ -412,11 +413,15 @@ def cmd_compare(args):
             failures.append("%s rose from %s to %s" % (key, base.get(key), cand.get(key)))
     if (cand.get("hard_pass_rate") or 0) < (base.get("hard_pass_rate") or 0):
         failures.append("hard pass rate fell from %s to %s" % (base.get("hard_pass_rate"), cand.get("hard_pass_rate")))
-    # The judge is itself a model and varies run to run; allow one item of
-    # noise per invented-content category, and 0.3 on the 1-10 scores.
+    # The writer and the judge are both models and vary run to run. Measured on
+    # the 2026-09-23 baseline, the same unchanged pipeline's two passes differed
+    # by 5 judged events out of about 34 each (15%). So a category only counts
+    # as worse when it rises by more than that noise: 20% of the baseline, and
+    # never less than 3 items.
     for key in ("judge_invented_speech", "judge_invented_events", "judge_invented_feelings", "judge_invented_people"):
-        if (cand.get(key) or 0) > (base.get(key) or 0) + 1:
-            failures.append("%s rose from %s to %s" % (key, base.get(key), cand.get(key)))
+        allowance = max(3, round(0.2 * (base.get(key) or 0)))
+        if (cand.get(key) or 0) > (base.get(key) or 0) + allowance:
+            failures.append("%s rose from %s to %s (noise allowance %s)" % (key, base.get(key), cand.get(key), allowance))
     for key in ("fidelity", "usefulness", "reads_naturally"):
         if base.get(key) is not None and cand.get(key) is not None and cand[key] < base[key] - 0.3:
             failures.append("%s fell from %s to %s" % (key, base[key], cand[key]))

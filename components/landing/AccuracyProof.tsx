@@ -10,7 +10,6 @@ import { ACCURACY_REPORT as R } from "@/lib/accuracy-report";
  * /accuracy, so the homepage can never claim more than the report shows.
  */
 export default function AccuracyProof() {
-  const perDraft = (R.interpretationsAsFact / R.drafts).toFixed(1);
   return (
     <section id="accuracy" className="border-y border-clay-100 bg-white py-20 md:py-24">
       <div className="wide-shell grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
@@ -54,8 +53,8 @@ export default function AccuracyProof() {
             </div>
           </dl>
           <p className="mt-4 text-sm leading-relaxed text-ink-600">
-            Still improving: about {perDraft} times a draft, an interpretation is worded as if it were seen. That is what
-            the &ldquo;assumed&rdquo; list on every draft is for.
+            Anything a draft had to assume is listed for you to check before you share it. The report shows every
+            result, including what we are still improving.
           </p>
           <Link href="/accuracy" className="mt-5 inline-flex items-center gap-1.5 text-base font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900">
             Read the full accuracy report <ArrowRight className="h-4 w-4" />

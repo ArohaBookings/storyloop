@@ -63,7 +63,19 @@ export default function Examples() {
                 <p className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sage-700">
                   <Check className="h-4 w-4" /> The draft that came back, {example.words} words
                 </p>
-                <DraftStory story={example.story} note={example.note} />
+                <DraftStory story={example.story.split(/\n\s*What learning (?:we|I) noticed/i)[0]} note={example.note} />
+                <details className="group mt-2">
+                  <summary className="cursor-pointer list-none text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4">
+                    <span className="group-open:hidden">Show the learning, curriculum links and next steps</span>
+                    <span className="hidden group-open:inline">Hide the rest of the draft</span>
+                  </summary>
+                  <DraftStory
+                    story={`${example.title}\n${example.story.slice(example.story.search(/\n\s*What learning (?:we|I) noticed/i))}`}
+                    note={example.note}
+                    showTitle={false}
+                    className="mt-4"
+                  />
+                </details>
               </div>
             </article>
           ))}

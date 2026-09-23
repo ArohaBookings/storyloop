@@ -13,7 +13,7 @@ import StoryDemo from "./StoryDemo";
  * where it reads as a reason to trust rather than a reason to doubt.
  */
 const TRUST = [
-  { icon: Quote, text: "Children's words kept exactly, and we publish the tests", href: "/accuracy" },
+  { icon: Quote, text: "Children's words kept exactly. See the test results", href: "/accuracy" },
   { icon: ShieldCheck, text: "Stored in Sydney, never used to train AI", href: "/privacy" },
   { icon: Layers, text: "Works alongside Storypark, Educa and Kinderloop", href: "#how-it-works" },
 ];
@@ -71,8 +71,9 @@ export default function Hero() {
             {/* Free and trial, said once and unmistakably: the panel could not
                 tell whether "free" meant a trial or three stories a month. */}
             <p className="animate-fade-up-2 mt-4 text-sm leading-relaxed text-ink-600">
-              <span className="font-semibold text-ink-800">Free forever</span> for 3 stories a month, no card.{" "}
-              <span className="font-semibold text-ink-800">Unlimited</span> starts with a 7-day free trial, cancel any time.
+              <span className="font-semibold text-ink-800">Free forever:</span> 3 stories a month, no card.{" "}
+              <span className="font-semibold text-ink-800">Unlimited:</span> NZ$21 or A$19 a month for one educator, after a
+              7-day free trial. Centres pay one price for the whole team.
             </p>
 
             <ul className="animate-fade-up-3 mt-7 grid gap-2.5 text-left sm:max-w-md lg:max-w-none" aria-label="Why educators trust it">
