@@ -45,6 +45,7 @@ MIGRATIONS=(
   "supabase/migrations/20260922_wall_card_translations.sql"
   "supabase/migrations/20260923_whats_new_seen_version.sql"
   "supabase/migrations/20260923_notification_state.sql"
+  "supabase/migrations/20260924_offer_grants.sql"
 )
 TESTS=(
   "supabase/tests/centre_team_model.test.sql"

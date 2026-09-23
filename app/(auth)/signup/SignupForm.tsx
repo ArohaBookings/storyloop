@@ -84,7 +84,7 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
         const checkoutResponse = await fetch("/api/stripe/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ plan, currency }),
+          body: JSON.stringify({ plan, currency, sessionId: getSessionId() }),
         });
         const checkoutData = await checkoutResponse.json();
 

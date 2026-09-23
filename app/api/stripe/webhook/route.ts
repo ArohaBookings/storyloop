@@ -9,6 +9,8 @@ import { cancellationFeedbackMetadata } from "@/lib/churn-reasons";
 import { metaConfigured, sendMetaEvent } from "@/lib/meta-capi";
 import { trialLapsedWithoutCard } from "@/lib/centre-offer";
 import { SITE_URL } from "@/lib/email/config";
+import { recordServerEvent } from "@/lib/analytics/server";
+import { PLAN_ORDER } from "@/lib/plans";
 
 function getStripe() {
   return createStripe();
@@ -283,6 +285,7 @@ async function processStripeEvent(admin: ReturnType<typeof createAdminSupabase>,
       // After the billing write, after the response, and a no-op unless Meta
       // measurement is switched on. It cannot affect the subscription.
       reportTrialToMeta(admin, session.metadata?.user_id, subscription.id);
+      await recordStoryLoopCheckout(admin, session, subscription);
       return;
     }
 
@@ -365,6 +368,47 @@ async function processStripeEvent(admin: ReturnType<typeof createAdminSupabase>,
 
     default:
       return;
+  }
+}
+
+/**
+ * The end of the checkout funnel, and the offer it redeemed if any.
+ *
+ * Only for StoryLoop's own sessions: the account's webhook also carries other
+ * businesses' checkouts, and those are recognised by not having a StoryLoop
+ * user and plan in their metadata. Never throws; the billing write above is
+ * what matters, and it has already happened.
+ */
+async function recordStoryLoopCheckout(admin: ReturnType<typeof createAdminSupabase>, session: Stripe.Checkout.Session, subscription: Stripe.Subscription) {
+  const userId = session.metadata?.user_id;
+  const plan = session.metadata?.plan;
+  if (!userId || !plan || !(PLAN_ORDER as string[]).includes(plan)) return;
+  try {
+    await recordServerEvent(admin, {
+      event: "checkout_completed",
+      userId,
+      path: "/api/stripe/webhook",
+      metadata: {
+        plan,
+        currency: session.metadata?.currency,
+        status: subscription.status,
+        trial_end: subscription.trial_end ?? undefined,
+        amount_total: session.amount_total ?? undefined,
+        offer: session.metadata?.offer_id,
+        checkout_session: session.id,
+      },
+    });
+    const offerId = session.metadata?.offer_id;
+    if (offerId) {
+      await admin
+        .from("offer_grants")
+        .update({ redeemed_at: new Date().toISOString(), stripe_subscription_id: subscription.id })
+        .eq("user_id", userId)
+        .eq("offer_id", offerId)
+        .is("redeemed_at", null);
+    }
+  } catch (error) {
+    console.error("Checkout funnel record failed:", error);
   }
 }
 

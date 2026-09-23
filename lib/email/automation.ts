@@ -398,7 +398,13 @@ export async function runLifecycleAutomation() {
             name: profile.full_name,
             force: true,
             metadata: { automation: true, checkout_session: candidate.sessionId, plan: candidate.plan },
-            context: { planLabel: getPlanByKey(candidate.plan).name },
+            context: {
+              planLabel: getPlanByKey(candidate.plan).name,
+              // Older sessions carry no terms; individual plans were 7 days then.
+              trialDays: candidate.trialDays ?? (candidate.plan.startsWith("centre") ? undefined : 7),
+              centreTrial: candidate.noCard,
+              offerCode: candidate.offer ?? undefined,
+            },
           })
         );
       }

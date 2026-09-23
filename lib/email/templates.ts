@@ -1,5 +1,6 @@
 import { ACTIVATION_OFFER_LABEL, EMAIL_REPLY_TO, SITE_URL } from "./config";
 import { unsubscribeUrl } from "./unsubscribe";
+import { renderProMonthOfferEmail } from "./offer-email";
 
 export type LifecycleEmailType =
   | "welcome"
@@ -31,7 +32,9 @@ export type LifecycleEmailType =
   | "winback_offer"
   | "went_quiet"
   | "referral_earned"
-  | "referral_invite";
+  | "referral_invite"
+  // "Pro free for a month", sent once to free educators. See lib/offers.ts.
+  | "pro_month_offer";
 
 type TemplateInput = {
   type: LifecycleEmailType;
@@ -59,6 +62,13 @@ type TemplateInput = {
     referralsEarned?: number;
     creditLabel?: string;
     offerCode?: string;
+    /** checkout_abandoned: the trial length that checkout offered, when known. */
+    trialDays?: number;
+    /** pro_month_offer: the last day to claim, the charge date if started today, and prices. */
+    claimBy?: string;
+    firstChargeIfToday?: string;
+    proPrice?: { NZD: number; AUD: number };
+    educatorPrice?: { NZD: number; AUD: number };
   };
 };
 
@@ -762,6 +772,20 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
     // account (a cancelled subscription is back on Free). This email previously
     // promised "20% off your next month" with no coupon behind it, so anyone who
     // came back paid full price.
+    pro_month_offer: () => {
+      const ctaUrl = url("/offer/pro-month", "pro_month_offer");
+      const email = renderProMonthOfferEmail({
+        name: input.name ?? "",
+        ctaUrl,
+        unsubscribeUrl: unsubscribe,
+        claimBy: ctx.claimBy ?? "the end of the month",
+        firstChargeIfToday: ctx.firstChargeIfToday ?? "30 days after you start",
+        pro: ctx.proPrice ?? { NZD: 33, AUD: 29 },
+        educator: ctx.educatorPrice ?? { NZD: 21, AUD: 19 },
+      });
+      return { emailType: "pro_month_offer", subject: email.subject, marketing: true, ctaUrl, html: email.html, text: email.text };
+    },
+
     winback_offer: () => {
       const ctaUrl = url("/billing?offer=activation", "winback_offer");
       const offer = ACTIVATION_OFFER_LABEL;
@@ -795,29 +819,40 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
     // charged until it ends, cancel from Billing before then) and asks what
     // stopped them. No discount: rewarding abandonment teaches people to abandon.
     checkout_abandoned: () => {
-      const ctaUrl = url("/billing", "checkout_abandoned");
+      const ctaUrl = url(ctx.offerCode ? "/offer/pro-month" : "/billing", "checkout_abandoned");
       const plan = ctx.planLabel ?? "a StoryLoop plan";
-      const subject = "Your StoryLoop trial has not started yet";
+      // The terms that checkout actually offered: a free month of Pro, a
+      // centre's no-card month, or an individual trial. Never a guess.
+      const terms = ctx.offerCode
+        ? "It is your free month of Pro: nothing is charged for 30 days, and you can cancel or switch plans from Billing before then."
+        : ctx.centreTrial
+          ? `It is ${ctx.trialDays ?? 30} days free with no card needed. If you do not add one, it simply ends and nothing is charged.`
+          : (ctx.trialDays ?? 7) > 0
+            ? `It is a ${ctx.trialDays ?? 7}-day free trial. Nothing is charged until it ends, and you can cancel from Billing before then.`
+            : "You can cancel from Billing at any time.";
+      const termsHtml = esc(terms);
+      const subject = ctx.offerCode ? "Your free month of StoryLoop Pro has not started yet" : "Your StoryLoop trial has not started yet";
       const lines = [
         `Hi ${name}, you picked ${plan} but checkout was not finished, so nothing was charged and your trial has not started.`,
-        "It is a 7-day free trial. Nothing is charged until it ends, and you can cancel from Billing before then.",
+        terms,
         "If something stopped you, like the price, a card problem or a question about how it works, reply and tell us. We read every one.",
       ];
+      const cta = ctx.offerCode ? "Start my free month" : "Start my free trial";
       return {
         emailType: "checkout_abandoned",
         subject,
         marketing: true,
         ctaUrl,
         html: layout({
-          title: "Your trial has not started yet",
-          preview: "Nothing was charged. The 7-day free trial is still there when you want it.",
-          cta: "Start my free trial",
+          title: ctx.offerCode ? "Your free month has not started yet" : "Your trial has not started yet",
+          preview: "Nothing was charged. It is still there when you want it.",
+          cta,
           ctaUrl,
           unsubscribe,
           secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Changed your mind? No need to do anything. Your free plan and your stories stay as they are.</p>`,
-          body: `<p>Hi ${esc(name)}, you picked <strong>${esc(plan)}</strong> but checkout was not finished, so nothing was charged and your trial has not started.</p><p>It is a <strong>7-day free trial</strong>. Nothing is charged until it ends, and you can cancel from Billing before then.</p><p>If something stopped you, like the price, a card problem or a question about how it works, reply to this email and tell us. We read every one.</p>`,
+          body: `<p>Hi ${esc(name)}, you picked <strong>${esc(plan)}</strong> but checkout was not finished, so nothing was charged and your trial has not started.</p><p>${termsHtml}</p><p>If something stopped you, like the price, a card problem or a question about how it works, reply to this email and tell us. We read every one.</p>`,
         }),
-        text: plain({ title: subject, lines, cta: "Start my free trial", ctaUrl, unsubscribe }),
+        text: plain({ title: subject, lines, cta, ctaUrl, unsubscribe }),
       };
     },
 

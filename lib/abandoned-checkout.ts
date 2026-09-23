@@ -22,7 +22,7 @@ const PAID = new Set<string>(PLAN_ORDER.filter((plan) => plan !== "free"));
 
 /** One entry per user: the most recent unfinished StoryLoop checkout in the window. */
 export function abandonedCheckoutCandidates(sessions: CheckoutSessionLike[], sinceSeconds: number) {
-  const latest = new Map<string, { userId: string; plan: PlanKey; sessionId: string; created: number }>();
+  const latest = new Map<string, { userId: string; plan: PlanKey; sessionId: string; created: number; trialDays: number | null; noCard: boolean; offer: string | null }>();
   for (const session of sessions) {
     if (session.status !== "expired" || session.created < sinceSeconds) continue;
     const userId = session.metadata?.user_id;
@@ -30,7 +30,16 @@ export function abandonedCheckoutCandidates(sessions: CheckoutSessionLike[], sin
     if (!userId || !UUID.test(userId) || !plan || !PAID.has(plan)) continue;
     const existing = latest.get(userId);
     if (!existing || session.created > existing.created) {
-      latest.set(userId, { userId, plan: plan as PlanKey, sessionId: session.id, created: session.created });
+      const trialDays = Number.parseInt(session.metadata?.trial_days ?? "", 10);
+      latest.set(userId, {
+        userId,
+        plan: plan as PlanKey,
+        sessionId: session.id,
+        created: session.created,
+        trialDays: Number.isFinite(trialDays) ? trialDays : null,
+        noCard: session.metadata?.no_card === "true",
+        offer: session.metadata?.offer_id ?? null,
+      });
     }
   }
   return [...latest.values()];

@@ -52,6 +52,8 @@ type SendLifecycleEmailParams = {
   name?: string | null;
   relatedStoryId?: string | null;
   force?: boolean;
+  /** A one-off campaign Leo chose to send: skips the five-day nudge cap, never the unsubscribe list or the duplicate check. */
+  ignoreFrequencyCap?: boolean;
   metadata?: Record<string, unknown>;
   // Optional billing/referral values the template can weave in. The template
   // must still render correctly if this is absent.
@@ -165,7 +167,7 @@ export async function sendLifecycleEmail(params: SendLifecycleEmailParams) {
 
   // Anti-spam frequency cap: at most one "nudge" email per user per window.
   const isMarketing = email.marketing || NUDGE_EMAIL_TYPES.includes(params.type);
-  if (!params.force && isMarketing) {
+  if (!params.force && !params.ignoreFrequencyCap && isMarketing) {
     const since = new Date(Date.now() - NUDGE_COOLDOWN_DAYS * 24 * 60 * 60 * 1000).toISOString();
     if (await hasRecentNudgeEmail(params.userId, since)) {
       await logEmailEvent({

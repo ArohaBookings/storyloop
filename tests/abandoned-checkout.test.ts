@@ -11,7 +11,7 @@ test("finds each user's latest unfinished StoryLoop checkout, and nothing else",
   const candidates = abandonedCheckoutCandidates(
     [
       { id: "cs_old", status: "expired", created: since + 10, metadata: { user_id: A, plan: "educator" } },
-      { id: "cs_new", status: "expired", created: since + 20, metadata: { user_id: A, plan: "educator_pro" } },
+      { id: "cs_new", status: "expired", created: since + 20, metadata: { user_id: A, plan: "educator_pro", trial_days: "30", offer_id: "pro_free_month_2026_10" } },
       { id: "cs_done", status: "complete", created: since + 30, metadata: { user_id: B, plan: "educator" } },
       { id: "cs_open", status: "open", created: since + 30, metadata: { user_id: B, plan: "educator" } },
       { id: "cs_before", status: "expired", created: since - 10, metadata: { user_id: B, plan: "educator" } },
@@ -22,7 +22,9 @@ test("finds each user's latest unfinished StoryLoop checkout, and nothing else",
     ],
     since,
   );
-  assert.deepEqual(candidates, [{ userId: A, plan: "educator_pro", sessionId: "cs_new", created: since + 20 }]);
+  assert.deepEqual(candidates, [
+    { userId: A, plan: "educator_pro", sessionId: "cs_new", created: since + 20, trialDays: 30, noCard: false, offer: "pro_free_month_2026_10" },
+  ]);
 });
 
 test("only people still on the free plan, reachable and not internal, get the email", () => {
@@ -53,4 +55,21 @@ test("the email states the real trial terms, offers no discount, and can be unsu
   assert.doesNotMatch(email.subject + email.text, /% off|discount/i);
   assert.match(email.ctaUrl, /\/billing\?/);
   for (const bad of ["undefined", "NaN", "null", "${"]) assert.ok(!email.html.includes(bad) && !email.text.includes(bad), `leaked ${bad}`);
+});
+
+test("the email restates the terms that checkout actually offered", () => {
+  const render = (context: Record<string, unknown>) =>
+    renderLifecycleEmail({ type: "checkout_abandoned", userId: "u", recipient: "kaiako@example.com", name: "Aroha", context: { planLabel: "Educator Pro", ...context } });
+  const offer = render({ offerCode: "pro_free_month_2026_10", trialDays: 30 });
+  assert.match(offer.subject, /free month of StoryLoop Pro/);
+  assert.match(offer.text, /nothing is charged for 30 days/);
+  assert.match(offer.ctaUrl, /\/offer\/pro-month\?/);
+  const centre = render({ planLabel: "Centre Starter", centreTrial: true, trialDays: 30 });
+  assert.match(centre.text, /30 days free with no card needed/);
+  assert.doesNotMatch(centre.text, /7-day/);
+  const returning = render({ planLabel: "Centre Growth", trialDays: 0 });
+  assert.match(returning.text, /cancel from Billing at any time/);
+  for (const email of [offer, centre, returning]) {
+    for (const bad of ["undefined", "NaN", "null", "${"]) assert.ok(!email.html.includes(bad) && !email.text.includes(bad), `leaked ${bad}`);
+  }
 });

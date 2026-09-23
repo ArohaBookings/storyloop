@@ -8,6 +8,7 @@ import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/bi
 import { ACTIVATION_OFFER_LABEL } from "@/lib/email/config";
 import { canOfferInAppSwitch } from "@/lib/plan-change";
 import { formatDay } from "@/lib/notifications";
+import { getSessionId, track } from "@/lib/analytics/client";
 import { getNextPlan, getPlanByKey, getPlanDefinitions, hasFeatureAccess, normalizePlanKey, planRank, requiredPlanForFeature, resolveFeatureParam, type CurrencyCode, type FeatureKey, type PlanKey } from "@/lib/plans";
 
 // Appealing, benefit-led copy for a feature a user clicked while locked.
@@ -118,11 +119,20 @@ export default function BillingPage() {
     fetch("/api/centre-offer").then((r) => (r.ok ? r.json() : null)).then(setCentreOffer).catch(() => {});
   }, []);
 
+  // Back from Stripe without starting: say plainly that nothing happened, and
+  // count it, because a checkout left half way is the most expensive exit.
+  const checkoutCancelled = searchParams.get("checkout") === "cancelled";
+  useEffect(() => {
+    if (checkoutCancelled) track("checkout_cancelled", { plan: searchParams.get("plan") ?? undefined });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkoutCancelled]);
+
   const handleCheckout = async (plan: string) => {
     setLoading(plan);
+    track("checkout_click", { plan, currency, from: "billing" });
     const res = await fetch("/api/stripe/checkout", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan, currency, activationOffer: searchParams.get("offer") === "activation" }),
+      body: JSON.stringify({ plan, currency, activationOffer: searchParams.get("offer") === "activation", sessionId: getSessionId() }),
     });
     const data = await res.json();
     if (data.url) window.location.href = data.url;
@@ -222,6 +232,17 @@ export default function BillingPage() {
         <h1 className="font-display text-3xl font-bold text-ink-900">Billing & plan</h1>
         <p className="text-ink-600 text-sm mt-1">Upgrade, downgrade, or cancel anytime.</p>
       </div>
+
+      {checkoutCancelled && (
+        <div role="status" data-testid="checkout-cancelled" className="mb-6 rounded-2xl border border-clay-200 bg-cream-50 p-5">
+          <p className="font-display text-xl font-bold text-ink-900">No problem. Nothing was charged.</p>
+          <p className="mt-1.5 max-w-2xl text-base leading-relaxed text-ink-700">
+            You left the payment page before starting, so your account is exactly as it was. If something there put you
+            off, write to <a href="mailto:ariacareapp@gmail.com" className="font-semibold text-clay-700 underline">ariacareapp@gmail.com</a> and
+            Leo will reply personally.
+          </p>
+        </div>
+      )}
 
       {/* A centre's free month with no card yet: one clear way to keep going,
           and the plain fact that doing nothing costs nothing. */}
