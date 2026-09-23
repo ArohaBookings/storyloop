@@ -64,6 +64,16 @@ export default function ResetPasswordPage() {
     if (password.length < 8) { setError("Password must be at least 8 characters"); return; }
     if (password !== confirm) { setError("Passwords don't match"); return; }
     setLoading(true); setError("");
+    // Refuse a password known from a data breach. If the check cannot run,
+    // the reset goes ahead; it must never lock someone out.
+    try {
+      const check = await fetch("/api/auth/password-check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      }).then((res) => res.json());
+      if (check && check.ok === false) { setError(check.error); setLoading(false); return; }
+    } catch { /* checked server-side where possible; never blocks */ }
     const { error } = await supabase.auth.updateUser({ password });
     if (error) { setError(error.message); setLoading(false); }
     else {

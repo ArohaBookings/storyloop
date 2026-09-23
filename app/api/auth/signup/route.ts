@@ -9,6 +9,7 @@ import { consumeRateLimit } from "@/lib/rate-limit";
 import { sendLifecycleEmail } from "@/lib/email/send";
 import { fbcFromClick, metaConfigured, sendMetaEvent } from "@/lib/meta-capi";
 import { SITE_URL } from "@/lib/email/config";
+import { PWNED_PASSWORD_MESSAGE, pwnedCount } from "@/lib/pwned-passwords";
 
 const ALLOWED_PLANS = new Set(["free", "educator", "centre"]);
 
@@ -46,6 +47,12 @@ export async function POST(request: NextRequest) {
 
     if (password.length < 8) {
       return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
+    }
+
+    // A breached password is refused; an unreachable breach service is not a
+    // reason to refuse anyone (pwnedCount returns null then).
+    if (((await pwnedCount(password)) ?? 0) > 0) {
+      return NextResponse.json({ error: PWNED_PASSWORD_MESSAGE, field: "password" }, { status: 400 });
     }
 
     if (accessCode && !accessCodeGrant) {
