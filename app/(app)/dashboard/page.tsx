@@ -8,6 +8,9 @@ import { PLAN_DEFINITIONS, normalizePlanKey } from "@/lib/plans";
 import { headers } from "next/headers";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import ReviewPrompt from "@/components/app/ReviewPrompt";
+import DashboardInsights, { topCurriculumLinks, type DashboardInsightsData } from "@/components/app/DashboardInsights";
+import { PRO_MONTH_OFFER_ID, longDay } from "@/lib/offers";
+import TrackOnce from "@/components/analytics/TrackOnce";
 
 /** Stories, and days since the first, before StoryLoop asks for a review. */
 const REVIEW_ASK_MIN_STORIES = 4;
@@ -71,6 +74,35 @@ export default async function DashboardPage({
     }
   }
 
+  // This month in numbers, and a free month if one is waiting. Best effort:
+  // any failure shows the panel with what could be read.
+  const insights: DashboardInsightsData = { storiesThisMonth: used, childrenTotal: 0, childrenWithStory: 0, topLinks: [], offer: null };
+  try {
+    const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+    const [{ data: recent }, { count: childCount }] = await Promise.all([
+      supabase.from("stories").select("child_id, outcomes").eq("user_id", user.id).gte("created_at", since).limit(1000),
+      supabase.from("child_profiles").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+    ]);
+    insights.childrenTotal = childCount ?? 0;
+    insights.childrenWithStory = new Set((recent ?? []).map((row) => row.child_id).filter(Boolean)).size;
+    insights.topLinks = topCurriculumLinks((recent ?? []).map((row) => row.outcomes as string[] | null));
+    if (plan === "free") {
+      const { data: grant } = await createAdminSupabase()
+        .from("offer_grants")
+        .select("expires_at, redeemed_at")
+        .eq("user_id", user.id)
+        .eq("offer_id", PRO_MONTH_OFFER_ID)
+        .maybeSingle();
+      if (grant && !grant.redeemed_at && Date.parse(grant.expires_at) > Date.now()) {
+        insights.offer = {
+          claimBy: longDay(new Date(grant.expires_at)),
+        };
+      }
+    }
+  } catch (error) {
+    console.error("Dashboard insights skipped:", error);
+  }
+
   // The greeting in the educator's own time. This used the server's clock,
   // which runs on UTC: a kaiako opening StoryLoop at 9am in Auckland was
   // greeted "Good evening". Vercel sends the visitor's time zone.
@@ -92,6 +124,7 @@ export default async function DashboardPage({
 
   return (
     <div className="w-full max-w-none p-4 sm:p-6 md:p-8">
+      {upgraded && <TrackOnce event="checkout_success_view" metadata={{ plan: params?.plan }} />}
       {startedCentre && (
         <div className="mb-6 rounded-3xl border border-sage-200 bg-gradient-to-br from-sage-50 via-white to-cream-50 p-5 shadow-warm animate-fade-up" data-testid="centre-started">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -216,6 +249,9 @@ export default async function DashboardPage({
           </div>
         </div>
       )}
+
+      {(totalStories ?? 0) > 0 && <DashboardInsights data={insights} />}
+      {(totalStories ?? 0) === 0 && insights.offer && <DashboardInsights data={{ ...insights, storiesThisMonth: 0 }} />}
 
       {/* Stats */}
       <div className="animate-fade-up-2 grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">

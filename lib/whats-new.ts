@@ -4,7 +4,7 @@
  * The version records which release a user acknowledged. Bumping it shows the
  * card again, once, to people who have already used StoryLoop.
  */
-export const WHATS_NEW_VERSION = "2026-09";
+export const WHATS_NEW_VERSION = "2026-10";
 
 /** Stories somebody must have written before a release note is worth showing. */
 export const WHATS_NEW_MIN_STORIES = 1;
@@ -27,7 +27,7 @@ export function shouldShowWhatsNew(seenVersion: string | null | undefined, stori
 }
 
 export type WhatsNewItem = {
-  icon: "quill" | "shield" | "voice" | "guides" | "refresh" | "today" | "family" | "centre" | "review";
+  icon: "quill" | "shield" | "voice" | "guides" | "refresh" | "today" | "family" | "centre" | "review" | "group" | "card";
   title: string;
   body: string;
   /** Where to go and try it. */
@@ -37,74 +37,52 @@ export type WhatsNewItem = {
 };
 
 /**
- * The September 2026 release.
+ * The October 2026 release.
  *
- * Everything before this was removed rather than archived. A release note that
- * accumulates is a changelog, and nobody reads a changelog in a modal; what
- * earns the interruption is the handful of things that are new since they last
- * looked.
+ * Only what is new since September, per the rule above: a card is not a
+ * changelog. September's features are all still in the sidebar.
  */
 export const WHATS_NEW_ITEMS: WhatsNewItem[] = [
   {
-    icon: "voice",
-    title: "Children can tell you themselves",
+    icon: "group",
+    title: "One moment, many children",
     body:
-      "One big button a three-year-old can press to talk about their own work. They hear it back, you write down what they said, and it is kept exactly as they said it. StoryLoop never keeps the recording.",
-    href: "/voices",
-    plan: "Educator",
-  },
-  {
-    icon: "centre",
-    title: "A code beside your wall display",
-    body:
-      "Print a small code next to a display. A family scans it at pickup and reads the learning behind what they are looking at, on their own phone, in their own language. No app, no sign-in, and no names, photographs or dates on the page.",
-    href: "/wall",
-    plan: "Educator",
-  },
-  {
-    icon: "family",
-    title: "Before the door opens",
-    body:
-      "At pickup, the specific true thing next to each child's name instead of “he had a good day”. Not a script, and never invented: where nothing was recorded it says so rather than dressing it up.",
-    href: "/pickup",
-    plan: "Educator",
+      "Write a group moment once and get a story for each child. StoryLoop splits your note by child using only your own sentences, you check each part, then every child's story is written with the same checks as any other.",
+    href: "/group",
   },
   {
     icon: "today",
-    title: "What a child takes with them",
+    title: "Your month at a glance",
     body:
-      "One file for a family to keep: who their child is as a learner, in their own words and their educators'. It opens on any computer, offline, with no account, and keeps working whatever happens to StoryLoop.",
-    href: "/children",
-    plan: "Educator",
+      "The dashboard now shows the time StoryLoop gave back this month, which children have had a story in the last 30 days, and the parts of the curriculum you have been writing to.",
+    href: "/dashboard",
   },
   {
     icon: "review",
-    title: "The evidence a review visit asks for",
+    title: "How often it gets it wrong, in public",
     body:
-      "Coverage for every child, where the planning cycle closes, where reflection and family voice are recorded, and the gaps named first. Counted from stories your team already wrote.",
-    href: "/evidence",
-    plan: "Centre",
+      "Every change to how stories are written is now tested on the same 24 notes before it ships, and the results are published, including what is still being improved.",
+    href: "/accuracy",
   },
   {
-    icon: "refresh",
-    title: "What you came back to",
+    icon: "card",
+    title: "No surprises at checkout",
     body:
-      "Every platform stores the plan. This is what happened when you went back to it: the next steps you revisited and the ones you decided were worth keeping.",
-    href: "/practice",
-    plan: "Educator",
+      "Checkout now shows StoryLoop's name, the exact date of the first charge and how to avoid it. Leave part way and Billing tells you plainly that nothing was charged.",
+    href: "/billing",
   },
   {
     icon: "shield",
-    title: "Get your centre on board",
+    title: "Safer passwords",
     body:
-      "If your centre subscribes using your code, you get three months of your own plan free. On the free plan they are held for you and applied the moment you start one. There is a message on the Support page you can send your manager without writing it yourself.",
-    href: "/support",
+      "Passwords known from data breaches are now refused when you sign up or reset one. The check never sends your password anywhere: only the first five characters of a scrambled version of it.",
   },
   {
-    icon: "guides",
-    title: "A free check for directors",
+    // Kept from September on purpose: it is the one item that pays the reader.
+    icon: "centre",
+    title: "Get your centre on board",
     body:
-      "Ten honest questions about your documentation, answered in two minutes, with nothing sent anywhere. It shows the gaps a review conversation would surface, in the order worth fixing them.",
-    href: "/review-readiness-check",
+      "If your centre subscribes using your code, you get three months of your own plan free. On the free plan they are held for you and applied the moment you start one. Centres now start with 30 days free and no card.",
+    href: "/support",
   },
 ];
