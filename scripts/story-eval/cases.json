@@ -1,0 +1,194 @@
+[
+  {
+    "id": "infant-tummy-time-nz",
+    "framework": "NZ",
+    "ageGroup": "0-12 months",
+    "childName": "Mere",
+    "observations": "Mere (8 months) on her tummy on the mat. Reached for the wooden rattle just out of reach, rocked forward and grabbed it on the third go. Shook it and looked at me. Babbled 'ba ba'. Rolled onto her back and kept shaking it.",
+    "notes": "Babbling only. No words, no feelings named. Watch for invented pride or invented speech."
+  },
+  {
+    "id": "infant-peekaboo-au",
+    "framework": "AU",
+    "ageGroup": "0-12 months",
+    "childName": "Leo",
+    "observations": "Leo 10mo. Peekaboo with the silk scarf at nappy change. Pulled it off my face himself each time and laughed. Did it 5 or 6 times. Held the scarf out to me to go again.",
+    "notes": "A count is given loosely (5 or 6). Any other number is invented."
+  },
+  {
+    "id": "toddler-sand-quote-nz",
+    "framework": "NZ",
+    "ageGroup": "1-2 years",
+    "childName": "Tama",
+    "observations": "Tama at the sandpit, filled the red bucket with the scoop, tipped it out, did it again and again. Said \"more sand\" when it was empty. Carried it to the water trough and poured it in and watched it sink.",
+    "notes": "Exactly one quote: more sand."
+  },
+  {
+    "id": "toddler-no-words-au",
+    "framework": "AU",
+    "ageGroup": "1-2 years",
+    "childName": "Isla",
+    "observations": "Isla pushed the doll pram round the yard, stopped at the fence, tucked the blanket over the doll, kept going. Did the loop about four times. Didn't talk, just hummed.",
+    "notes": "She did not speak. Any quote is invented."
+  },
+  {
+    "id": "two-shoes-independence-nz",
+    "framework": "NZ",
+    "ageGroup": "2-3 years",
+    "childName": "Aroha",
+    "observations": "Aroha tried to put her shoes on before going outside. Velcro kept folding over. Asked 'help me' then pushed my hand away and did the second one herself. Stood up and stomped both feet.",
+    "notes": "Quote: help me. She did not say anything else."
+  },
+  {
+    "id": "two-painting-colours-au",
+    "framework": "AU",
+    "ageGroup": "2-3 years",
+    "childName": "Zara",
+    "observations": "zara at the easel mixing blue and yellow with her fingers. said green! when it changed. covered the whole page then did her hands. showed Mia her hands.",
+    "notes": "Lower-case name, sloppy punctuation. Quote: green. Another child: Mia."
+  },
+  {
+    "id": "three-blocks-frustration-au",
+    "framework": "AU",
+    "ageGroup": "3-4 years",
+    "childName": "Marcus",
+    "observations": "Marcus building a tall block tower. It fell over twice. First time he kicked a block, second time he sat back, looked at it for a bit, then started again with the big blocks on the bottom. It stayed up. He went and got Jai to look.",
+    "notes": "No quote. No feelings named. Classic place models invent 'I did it by myself' or pride."
+  },
+  {
+    "id": "three-dragon-castle-au",
+    "framework": "AU",
+    "ageGroup": "3-4 years",
+    "childName": "Noah",
+    "observations": "Noah (3yo) filled a bucket with damp sand, turned it over carefully and tapped the sides. He built a tower beside Amelia, then swapped the spade when she asked. He said \"I'm making a castle for the dragon\". When one side collapsed, he packed more sand around the base and tried again.",
+    "notes": "The homepage demo note. One quote."
+  },
+  {
+    "id": "three-waiata-nz",
+    "framework": "NZ",
+    "ageGroup": "3-4 years",
+    "childName": "Nikau",
+    "observations": "Mat time waiata, Nikau stood at the front and did the actions for Tūtira mai ngā iwi with Whaea Sue. Sang the first line loud then went quiet and just did actions. Clapped at the end.",
+    "educatorNames": ["Whaea Sue"],
+    "notes": "Educator name given. Te reo waiata title. He sang, no quote."
+  },
+  {
+    "id": "three-sharing-conflict-au",
+    "framework": "AU",
+    "ageGroup": "3-4 years",
+    "childName": "Ava",
+    "observations": "Ava and Chloe both wanted the purple scooter. Ava grabbed the handle and pushed Chloe's arm. Chloe cried. I came over, Ava let go. We talked about taking turns and used the sand timer. Ava had it for 3 minutes then gave it to Chloe without being asked.",
+    "notes": "Physical conflict, must be framed safely. Number: 3 minutes."
+  },
+  {
+    "id": "four-bugs-inquiry-nz",
+    "framework": "NZ",
+    "ageGroup": "4-5 years",
+    "childName": "Mia",
+    "observations": "Mia found a slater under the log. Put it on her hand and counted its legs, got to 12 then lost count. Asked 'does it have a mum?'. Got the bug book with Hemi and they found a picture. Mia said 'it rolls into a ball like a hedgehog'.",
+    "notes": "Two quotes. Another child Hemi. Number 12."
+  },
+  {
+    "id": "four-writing-name-au",
+    "framework": "AU",
+    "ageGroup": "4-5 years",
+    "childName": "Sophie",
+    "observations": "Sophie wrote her name on her drawing, S backwards, rest ok. Then copied KAI off the lunch box sign. Asked me what it spells.",
+    "notes": "Sparse. Asked a question, but her exact words are not given, so no quote."
+  },
+  {
+    "id": "four-dramatic-play-nz",
+    "framework": "NZ",
+    "ageGroup": "4-5 years",
+    "childName": "Hemi",
+    "observations": "Hemi set up a cafe in whare tākaro. Wrote a menu (scribbles and some letters). Took orders from 3 tamariki, said 'that will be five dollars'. Gave change with the play money. Told Ana to wait her turn.",
+    "notes": "Quote: that will be five dollars. Another child Ana."
+  },
+  {
+    "id": "four-sensitive-family-au",
+    "framework": "AU",
+    "ageGroup": "4-5 years",
+    "childName": "Liam",
+    "observations": "Liam quiet at drop off, dad said mum is in hospital. Liam spent the morning at the drawing table, drew a house with 4 people and a bed. Told me 'that's mum sleeping'. Later joined the ball game with Oliver.",
+    "notes": "Sensitive family detail should be raised by the privacy check. Quote given."
+  },
+  {
+    "id": "four-sparse-au",
+    "framework": "AU",
+    "ageGroup": "4-5 years",
+    "childName": "Ethan",
+    "observations": "Ethan puzzles. 24 piece. finished it.",
+    "notes": "Very sparse. Anything beyond puzzle and finishing it is invented."
+  },
+  {
+    "id": "three-outdoor-risk-nz",
+    "framework": "NZ",
+    "ageGroup": "3-4 years",
+    "childName": "Kiri",
+    "observations": "Kiri climbed the big tree to the second branch for the first time. Looked down, said 'I'm scared', stayed there a minute, then climbed down by herself feet first. Went straight back and did it again.",
+    "notes": "Feeling stated by the child (scared). Quote given."
+  },
+  {
+    "id": "two-transition-tears-au",
+    "framework": "AU",
+    "ageGroup": "2-3 years",
+    "childName": "Oscar",
+    "observations": "Oscar cried at drop off for about 10 minutes. Held his bunny. Sat on my knee and we read Where's Spot. Stopped crying when we got to the lion page and pointed at it.",
+    "notes": "Book title. Number 10 minutes."
+  },
+  {
+    "id": "four-group-names-nz",
+    "framework": "NZ",
+    "ageGroup": "4-5 years",
+    "childName": "Tui",
+    "observations": "Tui, Rawiri and Sam built a hut out of the crates and a sheet. Tui was in charge of the door. Said 'password please' to anyone who came. Sam said banana and she let him in.",
+    "notes": "Three children. Quote: password please. Sam said banana."
+  },
+  {
+    "id": "one-feeding-au",
+    "framework": "AU",
+    "ageGroup": "1-2 years",
+    "childName": "Ruby",
+    "observations": "Ruby fed herself yoghurt with a spoon at morning tea. Got most in. Put the spoon down and used her fingers for the last bit. Said 'all gone'.",
+    "notes": "Quote: all gone."
+  },
+  {
+    "id": "four-maths-au",
+    "framework": "AU",
+    "ageGroup": "4-5 years",
+    "childName": "Jack",
+    "observations": "Jack sorted the bear counters by colour into the cups. Then lined up the red ones and counted 8. Put 2 blue ones on the end and said 'now it's ten'.",
+    "notes": "Numbers 8, 2, ten. Quote given."
+  },
+  {
+    "id": "three-teeth-nz",
+    "framework": "NZ",
+    "ageGroup": "3-4 years",
+    "childName": "Anika",
+    "observations": "Anika brought in a photo of her new baby brother. Showed everyone at kai time. Said his name is Rafi. Drew him in her book.",
+    "notes": "Family detail (baby brother, name Rafi). Reported speech, not a direct quote."
+  },
+  {
+    "id": "four-long-rich-au",
+    "framework": "AU",
+    "ageGroup": "4-5 years",
+    "childName": "Grace",
+    "observations": "Grace spent nearly 40 minutes on the marble run this morning. She started with two ramps and a funnel, but the marble kept falling off at the join. She tried taping it, which did not work, then moved the second ramp lower so it sat under the first. When it worked she called out \"Look, it goes all the way now!\" Then she added a third ramp and a cup at the bottom to catch it. Harvey came over and wanted to add his car. Grace showed him where to put it at the top and said \"not too fast or it flies off\". They took turns for the rest of the session.",
+    "notes": "Long, rich note. Two quotes. Numbers 40, two, third."
+  },
+  {
+    "id": "school-age-lego-nz",
+    "framework": "NZ",
+    "ageGroup": "4-5 years",
+    "childName": "Wiremu",
+    "observations": "Wiremu made a lego ship with a crane on the back. Explained to the group how the crane lifts the containers. Used the word 'pulley'. Rawiri asked how it goes and he showed him the string.",
+    "notes": "Single-word quote: pulley."
+  },
+  {
+    "id": "au-garden-no-name",
+    "framework": "AU",
+    "ageGroup": "3-4 years",
+    "observations": "Watered the veggie patch, used the small can, carried it with two hands from the tap three times. Pointed at a snail and said 'he's eating our lettuce'.",
+    "notes": "No child name given. The story must not invent one."
+  }
+]
