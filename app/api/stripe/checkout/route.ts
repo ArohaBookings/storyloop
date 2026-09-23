@@ -7,7 +7,8 @@ import { getPlanByKey, normalizePlanKey, type CurrencyCode, type PlanKey } from 
 import { getRuntimeSecret } from "@/lib/runtime-secrets";
 import { getOrCreateReferralCoupon } from "@/lib/referrals";
 import { resolveActivationCoupon } from "@/lib/activation-offer";
-import { configuredPriceId } from "@/lib/stripe-prices";
+import { resolveVerifiedPriceId } from "@/lib/stripe-prices";
+import { checkoutTerms, foundingCouponId, foundingSpotsLeft, isCentrePlan, isCouponRefusal } from "@/lib/centre-offer";
 
 function getStripe() {
   return createStripe();
@@ -17,13 +18,13 @@ function normaliseCurrency(value: unknown): CurrencyCode {
   return value === "NZD" ? "NZD" : "AUD";
 }
 
-function getPriceId(plan: PlanKey, currency: CurrencyCode) {
-  return configuredPriceId(plan, currency);
-}
-
-function buildLineItem(plan: PlanKey, currency: CurrencyCode): Stripe.Checkout.SessionCreateParams.LineItem {
+async function buildLineItem(stripe: Stripe, plan: PlanKey, currency: CurrencyCode): Promise<Stripe.Checkout.SessionCreateParams.LineItem> {
   const planDetails = getPlanByKey(plan);
-  const priceId = getPriceId(plan, currency);
+  // Only a price that is verified to charge exactly the advertised amount is
+  // used. Otherwise the price is built inline from the plan definition.
+  const priceId = await resolveVerifiedPriceId(stripe, plan, currency, planDetails.price[currency] * 100, {
+    live: (process.env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live"),
+  });
   if (priceId) return { price: priceId, quantity: 1 };
 
   return {
@@ -97,26 +98,73 @@ export async function POST(request: NextRequest) {
         }
       }
     }
-    const appliedCoupon = activationCoupon ?? referralCoupon;
-
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      mode: "subscription",
-      client_reference_id: user.id,
-      payment_method_types: ["card"],
-      line_items: [buildLineItem(selectedPlan, selectedCurrency)],
-      success_url: `${origin}/dashboard?upgraded=true`,
-      cancel_url: `${origin}/billing`,
-      allow_promotion_codes: !appliedCoupon,
-      discounts: appliedCoupon ? [{ coupon: appliedCoupon }] : undefined,
-      subscription_data: {
-        trial_period_days: 7,
-        metadata: { user_id: user.id, plan: selectedPlan, currency: selectedCurrency, activation_offer: activationCoupon ? "true" : "false", referral_discount: referralCoupon ? "true" : "false" },
-      },
-      metadata: { user_id: user.id, plan: selectedPlan, currency: selectedCurrency, activation_offer: activationCoupon ? "true" : "false", referral_discount: referralCoupon ? "true" : "false" },
+    // Centres: a 30-day trial with no card needed, and a founding spot (50%
+    // off after the free month) while any of the ten remain. A centre that has
+    // had a centre subscription before is not a new centre. See
+    // lib/centre-offer.ts for the reasoning behind each number.
+    let hadCentreBefore = false;
+    if (isCentrePlan(selectedPlan) && profile?.stripe_customer_id) {
+      try {
+        const previous = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 20 });
+        hadCentreBefore = previous.data.some((sub) => isCentrePlan(sub.metadata?.plan));
+      } catch {
+        hadCentreBefore = false;
+      }
+    }
+    const terms = checkoutTerms({
+      plan: selectedPlan,
+      spotsLeft: isCentrePlan(selectedPlan) ? await foundingSpotsLeft(stripe) : null,
+      hadCentreBefore,
+      couponId: foundingCouponId(),
     });
+    const lineItem = await buildLineItem(stripe, selectedPlan, selectedCurrency);
 
-    return NextResponse.json({ url: session.url });
+    const createSession = (founding: string | null) => {
+      // One coupon per checkout. The founding offer is the strongest, then the
+      // activation offer, then the referral discount.
+      const appliedCoupon = founding ?? activationCoupon ?? referralCoupon;
+      const metadata = {
+        user_id: user.id,
+        plan: selectedPlan,
+        currency: selectedCurrency,
+        activation_offer: !founding && activationCoupon ? "true" : "false",
+        referral_discount: !founding && !activationCoupon && referralCoupon ? "true" : "false",
+        founding_centre: founding ? "true" : "false",
+      };
+      return stripe.checkout.sessions.create({
+        customer: customerId,
+        mode: "subscription",
+        client_reference_id: user.id,
+        payment_method_types: ["card"],
+        ...(terms.noCardNeeded ? { payment_method_collection: "if_required" as const } : {}),
+        line_items: [lineItem],
+        success_url: `${origin}/dashboard?upgraded=true`,
+        cancel_url: `${origin}/billing`,
+        allow_promotion_codes: !appliedCoupon,
+        discounts: appliedCoupon ? [{ coupon: appliedCoupon }] : undefined,
+        subscription_data: {
+          trial_period_days: terms.trialDays,
+          // With no card on file, the trial ends in a clean cancellation, never
+          // a failed charge or a past-due account.
+          ...(terms.noCardNeeded ? { trial_settings: { end_behavior: { missing_payment_method: "cancel" as const } } } : {}),
+          metadata,
+        },
+        metadata,
+      });
+    };
+
+    let session: Stripe.Checkout.Session;
+    try {
+      session = await createSession(terms.foundingCoupon);
+    } catch (error) {
+      // The last founding spot can go between reading the count and this
+      // request. Stripe then refuses the coupon; the centre still gets the
+      // free month, just without the founding discount.
+      if (!terms.foundingCoupon || !isCouponRefusal(error)) throw error;
+      session = await createSession(null);
+    }
+
+    return NextResponse.json({ url: session.url, trialDays: terms.trialDays, noCardNeeded: terms.noCardNeeded, founding: Boolean(session.metadata?.founding_centre === "true") });
   } catch (error) {
     console.error("Checkout error:", error);
     return NextResponse.json({ error: "Failed to create checkout" }, { status: 500 });

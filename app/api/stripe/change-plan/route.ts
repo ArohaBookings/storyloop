@@ -6,7 +6,7 @@ import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { getPlanByKey } from "@/lib/plans";
 import { checkPlanChange, planChangeSummary, planProductId, type SubscriptionFacts } from "@/lib/plan-change";
-import { configuredPriceId } from "@/lib/stripe-prices";
+import { resolveVerifiedPriceId } from "@/lib/stripe-prices";
 
 /**
  * Switch a paying customer between paid plans. GET previews exactly what will
@@ -100,7 +100,10 @@ export async function POST(request: NextRequest) {
     }
 
     const item = subscription.items.data[0];
-    const priceId = configuredPriceId(check.to, check.currency);
+    // Verified to charge exactly the advertised amount, or built inline.
+    const priceId = await resolveVerifiedPriceId(stripe, check.to, check.currency, getPlanByKey(check.to).price[check.currency] * 100, {
+      live: (process.env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live"),
+    });
     const itemUpdate: Stripe.SubscriptionUpdateParams.Item = priceId
       ? { id: item.id, price: priceId }
       : {
