@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BookOpen, FileCheck, School, ShieldCheck, Sparkles } from "lucide-react";
 import Navbar from "@/components/landing/Navbar";
+import PageTracker from "@/components/analytics/PageTracker";
 import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
@@ -73,6 +74,7 @@ const GUIDES = [
 export default function ResourcesPage() {
   return (
     <div className="min-h-screen bg-paper">
+      <PageTracker />
       <Navbar />
       <main className="pt-28">
         <section className="paper-texture pb-16">

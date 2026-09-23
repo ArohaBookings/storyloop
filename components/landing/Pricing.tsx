@@ -11,11 +11,17 @@ import { getPlanDefinitions, type CurrencyCode } from "@/lib/plans";
  */
 export default function Pricing({ audience = "all" }: { audience?: "all" | "individuals" } = {}) {
   const [currency, setCurrency] = useState<CurrencyCode>("AUD");
+  // Founding spots left, from the Stripe coupon (null until known).
+  const [spotsLeft, setSpotsLeft] = useState<number | null>(null);
 
   useEffect(() => {
     // Auto-detect by timezone
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (tz?.includes("Auckland") || tz?.includes("Pacific/Auckland")) setCurrency("NZD");
+    fetch("/api/centre-offer")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setSpotsLeft(typeof data?.founding?.spotsLeft === "number" ? data.founding.spotsLeft : null))
+      .catch(() => {});
   }, []);
 
   // The homepage shows a short card; /pricing shows everything.
@@ -65,6 +71,16 @@ export default function Pricing({ audience = "all" }: { audience?: "all" | "indi
                     ${(plan.displayPrice / plan.seats).toFixed(2)} per educator
                   </p>
                 )}
+                {plan.seats && (
+                  <p className="mb-2 text-sm font-semibold text-sage-800">
+                    30 days free, no card needed
+                    {spotsLeft !== 0 && (
+                      <span className="block font-normal text-ink-600">
+                        Founding centres then pay half for 3 months{typeof spotsLeft === "number" ? ` (${spotsLeft} of 10 spots left)` : ""}.
+                      </span>
+                    )}
+                  </p>
+                )}
                 <p className={`text-sm ${plan.popular ? "text-cream-300" : "text-clay-700"}`}>{plan.stories}</p>
                 <p className={`mt-2 text-sm leading-relaxed ${plan.popular ? "text-ink-300" : "text-ink-500"}`}>{plan.description}</p>
               </div>
@@ -106,11 +122,13 @@ export default function Pricing({ audience = "all" }: { audience?: "all" | "indi
         {compact && centreStarter && (
           <div className="mx-auto mt-8 max-w-2xl rounded-2xl border border-clay-200 bg-white p-5 text-center shadow-soft">
             <p className="font-display text-lg font-bold text-ink-900">Running a centre?</p>
-            <p className="mt-1.5 text-sm leading-relaxed text-ink-600">
-              Centre plans cover your whole team and unlimited children from ${centreStarter.displayPrice} {currency} a month,
-              about half the individual price per educator.
+            <p className="mt-1.5 text-base leading-relaxed text-ink-600">
+              Your whole team and unlimited children from ${centreStarter.displayPrice} {currency} a month, with 30 days free and no card.
+              {spotsLeft !== 0 && (
+                <> The first ten centres then pay half for three months{typeof spotsLeft === "number" ? `, and ${spotsLeft} spots are left` : ""}.</>
+              )}
             </p>
-            <Link href="/pricing" className="btn-secondary mt-4 inline-flex text-sm">See centre plans</Link>
+            <Link href="/for-centres#founding" className="btn-secondary mt-4 inline-flex text-sm">See the centre offer</Link>
           </div>
         )}
 

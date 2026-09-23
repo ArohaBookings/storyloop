@@ -4,6 +4,19 @@ import { notFound } from "next/navigation";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import Pricing from "@/components/landing/Pricing";
+import FoundingCentreOffer from "@/components/centre/FoundingCentreOffer";
+import PageTracker from "@/components/analytics/PageTracker";
+
+// Guides a director reads. They get the founding-centre offer under the hero
+// and a primary button that starts a centre's free month, not an individual
+// free account.
+const CENTRE_SLUGS = new Set([
+  "for-centres",
+  "learning-story-software-cost-for-centres",
+  "early-childhood-centre-roi-dashboard",
+  "assessment-and-rating-evidence",
+  "room-planning-brief-early-childhood",
+]);
 import { SEO_PAGES, SEO_PAGE_SLUGS } from "@/lib/seo-pages";
 import { PenLine, ShieldCheck } from "lucide-react";
 
@@ -86,6 +99,10 @@ export default async function SeoPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-paper">
+      {/* Every guide records its visit and where it came from. These pages had
+          no tracker, so search and campaign visitors who landed on a guide were
+          invisible, and their source was lost before they reached signup. */}
+      <PageTracker />
       <Navbar />
       <main className="pt-28">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
@@ -125,12 +142,25 @@ export default async function SeoPage({ params }: PageProps) {
               </p>
             )}
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <Link href="/signup" className="btn-primary justify-center">
-                Start free
-              </Link>
-              <Link href="/learning-story-generator" className="btn-secondary justify-center">
-                See how it works
-              </Link>
+              {CENTRE_SLUGS.has(page.slug) ? (
+                <>
+                  <Link href="/signup?plan=centre_starter" className="btn-primary justify-center">
+                    Start your centre&apos;s free month
+                  </Link>
+                  <Link href="#founding" className="btn-secondary justify-center">
+                    See the founding offer
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/signup" className="btn-primary justify-center">
+                    Start free
+                  </Link>
+                  <Link href="/learning-story-generator" className="btn-secondary justify-center">
+                    See how it works
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </section>
@@ -142,8 +172,12 @@ export default async function SeoPage({ params }: PageProps) {
             who wants it after they know the price. */}
         {page.slug === "pricing" && <Pricing />}
 
+        {CENTRE_SLUGS.has(page.slug) && <FoundingCentreOffer />}
+
         <section className="py-16">
-          <div className="wide-shell grid md:grid-cols-3 gap-5">
+          {/* Three across only when the count divides by three; four cards in
+              a row of three left one stranded on its own. */}
+          <div className={`wide-shell grid gap-5 ${page.sections.length % 3 === 0 ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
             {page.sections.map((section) => (
               <article key={section.title} className="card p-6">
                 <h2 className="font-display text-xl font-bold text-ink-900 mb-3">{section.title}</h2>
@@ -203,7 +237,9 @@ export default async function SeoPage({ params }: PageProps) {
           <div className="reading-shell">
             <div className="text-center mb-10">
               <p className="section-title mb-3">FAQ</p>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-ink-900">Straight answers for educators.</h2>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-ink-900">
+                {CENTRE_SLUGS.has(page.slug) ? "Straight answers for directors." : "Straight answers for educators."}
+              </h2>
             </div>
             <div className="space-y-3">
               {page.faqs.map((faq) => (

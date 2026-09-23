@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "@/components/landing/Navbar";
+import PageTracker from "@/components/analytics/PageTracker";
 import Footer from "@/components/landing/Footer";
 import ReviewReadinessCheck from "@/components/tools/ReviewReadinessCheck";
 
@@ -49,6 +50,7 @@ export default function ReviewReadinessCheckPage() {
 
   return (
     <div className="min-h-screen bg-paper">
+      <PageTracker />
       <Navbar />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <main className="wide-shell pb-20 pt-28 sm:pt-32">

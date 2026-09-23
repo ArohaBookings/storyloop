@@ -1210,6 +1210,11 @@ export const SEO_PAGES: Record<string, SeoPage> = {
           "Everything on Educator Pro for every educator on the plan, plus the evidence pack, the reliever brief, a planning brief built from recent stories, a documentation radar, shared centre voice and quality settings, export packs, and admin oversight that shows activity rather than content.",
       },
       {
+        question: "How do we try it?",
+        answer:
+          "Start a centre plan and you get 30 days free with no card needed. Invite your team from My centre. If it is not right for you, do nothing: the month simply ends, nothing is charged, and every story stays yours. While founding spots last, the first ten centres then pay 50% for their first three months.",
+      },
+      {
         question: "Is it cheaper than buying individual plans?",
         answer:
           "From about six educators, yes. Ten individual Educator plans are NZ$210 a month; Centre Starter covers ten educators for NZ$109 with unlimited children. The documentation time calculator on this site does the arithmetic with your own numbers.",

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/landing/Navbar";
+import PageTracker from "@/components/analytics/PageTracker";
 import Footer from "@/components/landing/Footer";
 import DocumentationTimeCalculator from "@/components/tools/DocumentationTimeCalculator";
 
@@ -44,6 +45,7 @@ export default function DocumentationTimeCalculatorPage() {
 
   return (
     <div className="min-h-screen bg-paper">
+      <PageTracker />
       <Navbar />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <main className="wide-shell pb-20 pt-28 sm:pt-32">

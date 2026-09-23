@@ -72,6 +72,15 @@ function tidyAddressBar() {
 export function captureAttribution(): Attribution {
   const store = safeStorage();
   if (typeof window === "undefined") return {};
+  // A referral link can land on any page (the centre link lands on
+  // /for-centres). Signup reads this key, so the referrer is credited even when
+  // the person browses before signing up.
+  try {
+    const ref = new URLSearchParams(window.location.search).get("ref")?.trim().toUpperCase();
+    if (ref && /^[A-Z2-9]{5,12}$/.test(ref)) store?.setItem("storyloop_ref", ref);
+  } catch {
+    /* storage blocked: the signup page still reads ?ref= itself */
+  }
   const result = readAttribution(store);
   tidyAddressBar();
   return result;

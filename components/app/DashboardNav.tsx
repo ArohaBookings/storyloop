@@ -253,6 +253,23 @@ export default function DashboardNav({
       </nav>
 
       <div className="mt-auto space-y-3 px-3 pb-3">
+        {/* The fastest way to a centre is an educator already using StoryLoop
+            there. Shown to individual plans only; a centre already has it. */}
+        {planKey !== "centre_starter" && planKey !== "centre_growth" && (
+          <Link
+            href="/support#centre-referral"
+            onClick={() => setMobileOpen(false)}
+            data-testid="centre-promo"
+            className="block rounded-xl border border-sage-200 bg-sage-50 p-3 transition-colors hover:border-sage-300 hover:bg-sage-100"
+          >
+            <p className="flex items-center gap-2 text-sm font-semibold text-sage-900">
+              <Building2 className="h-4 w-4 flex-shrink-0" /> Get your centre on board
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-sage-900">
+              Your centre gets a free month. You get 3 months of your plan free.
+            </p>
+          </Link>
+        )}
         {/* Usage indicator */}
         {limit !== null && (
           <div className="bg-cream-50 border border-clay-200 rounded-xl p-3">

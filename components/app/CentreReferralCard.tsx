@@ -18,7 +18,7 @@ type ReferralState = { code: string | null; shareUrl: string | null; bankedMonth
  * without composing it, that argues from the centre's problems rather than
  * from how much the educator likes the product.
  */
-const MESSAGE = (shareUrl: string) =>
+const MESSAGE = (shareUrl: string, founding: boolean) =>
   `Hi,
 
 I have been using StoryLoop for my own learning stories and it has saved me a lot of evening writing. It does not replace what we use now, the drafts export straight into it.
@@ -29,7 +29,7 @@ There is a centre plan that covers every educator and unlimited children for one
 - a one page brief for relievers, built from what the team has already recorded
 - codes we can put beside wall displays so families can read the learning behind them at pickup
 
-If you want to look, this link has the details and a free trial: ${shareUrl}
+If you want to look, this page has the details. Centres get 30 days free with no card needed${founding ? ", and the first ten centres then pay half for three months" : ""}: ${shareUrl}
 
 Happy to show you what I have been doing with it.`;
 
@@ -37,6 +37,8 @@ export default function CentreReferralCard({ months = 3 }: { months?: number }) 
   const [state, setState] = useState<ReferralState | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState<"link" | "message" | null>(null);
+  // Whether founding spots remain, so the message never promises one that has gone.
+  const [founding, setFounding] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -45,10 +47,24 @@ export default function CentreReferralCard({ months = 3 }: { months?: number }) 
       .then((data) => { if (active && data && !data.error) setState(data); })
       .catch(() => {})
       .finally(() => { if (active) setLoading(false); });
+    fetch("/api/centre-offer")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (active) setFounding(typeof data?.founding?.spotsLeft === "number" && data.founding.spotsLeft > 0); })
+      .catch(() => {});
     return () => { active = false; };
   }, []);
 
-  const message = useMemo(() => (state?.shareUrl ? MESSAGE(state.shareUrl) : ""), [state?.shareUrl]);
+  // The centre link lands on the centre offer, not a bare signup form. The
+  // code is remembered from there (lib/analytics/client.ts) until they sign up.
+  const centreUrl = useMemo(() => {
+    if (!state?.shareUrl || !state.code) return null;
+    try {
+      return `${new URL(state.shareUrl).origin}/for-centres?ref=${encodeURIComponent(state.code)}#founding`;
+    } catch {
+      return state.shareUrl;
+    }
+  }, [state?.shareUrl, state?.code]);
+  const message = useMemo(() => (centreUrl ? MESSAGE(centreUrl, founding) : ""), [centreUrl, founding]);
   const banked = state?.bankedMonths ?? 0;
   const onFreePlan = (state?.planName ?? "free") === "free";
 
@@ -69,10 +85,10 @@ export default function CentreReferralCard({ months = 3 }: { months?: number }) 
       </div>
     );
   }
-  if (!state?.shareUrl) return null;
+  if (!state?.shareUrl || !centreUrl) return null;
 
   return (
-    <section className="card p-5 md:p-6">
+    <section id="centre-referral" className="card scroll-mt-24 p-5 md:p-6">
       <div className="mb-4 flex items-start gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-clay-700 text-paper">
           <Building2 className="h-5 w-5" />
@@ -82,10 +98,11 @@ export default function CentreReferralCard({ months = 3 }: { months?: number }) 
           <h2 className="font-display text-xl font-bold text-ink-900">
             If your centre subscribes on your code, you get {months} months of your own plan, free.
           </h2>
-          <p className="mt-1 text-xs leading-relaxed text-ink-600">
-            Same link as your educator one. If a centre plan starts on it, {months} months of your own subscription are
-            credited automatically, so there is nothing to claim and nothing to chase. On the free plan they are held
-            for you and applied the moment you start a plan.
+          <p className="mt-1 text-sm leading-relaxed text-ink-600">
+            Your centre gets 30 days free with no card needed{founding ? ", and the first ten centres then pay half for three months" : ""}.
+            If a centre plan starts on your link, {months} months of your own subscription are credited automatically,
+            so there is nothing to claim and nothing to chase. On the free plan they are held for you and applied the
+            moment you start a plan.
           </p>
         </div>
       </div>
@@ -109,9 +126,9 @@ export default function CentreReferralCard({ months = 3 }: { months?: number }) 
 
       <div className="flex flex-col gap-2 sm:flex-row">
         <code className="min-w-0 flex-1 truncate rounded-xl border border-clay-200 bg-cream-50 px-3 py-2.5 font-mono text-xs text-ink-700">
-          {state.shareUrl}
+          {centreUrl}
         </code>
-        <button type="button" onClick={() => copy("link", state.shareUrl!)} className="btn-secondary shrink-0 px-4 py-2.5 text-xs">
+        <button type="button" onClick={() => copy("link", centreUrl)} className="btn-secondary shrink-0 px-4 py-2.5 text-xs">
           {copied === "link" ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
           {copied === "link" ? "Copied" : "Copy link"}
         </button>

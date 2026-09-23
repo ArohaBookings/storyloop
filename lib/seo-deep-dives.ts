@@ -117,8 +117,8 @@ export const SEO_DEEP_DIVES: Record<string, Array<{ heading: string; paragraphs:
     {
       heading: "How to try it without a meeting",
       paragraphs: [
-        "Start a centre plan, write with it for a fortnight in one room, and look at three things: how long a story takes now, whether the drafts sound like your educators, and whether the planning brief said anything you did not already know.",
-        "If the answer to any of those is no, cancel from Billing in a couple of clicks. There is no contract, no per-child fee and no onboarding project. The documentation time calculator on this site will tell you, with your own numbers, whether the maths works before you start.",
+        "Every centre plan starts with 30 days free and no card. Invite your team, write with it for a few weeks in one room, and look at three things: how long a story takes now, whether the drafts sound like your educators, and whether the planning brief said anything you did not already know.",
+        "If the answer to any of those is no, do nothing. With no card on file the month simply ends, nothing is charged, and everything your team wrote stays yours. There is no contract, no per-child fee and no onboarding project. The documentation time calculator on this site will tell you, with your own numbers, whether the maths works before you start.",
       ],
     },
   ],

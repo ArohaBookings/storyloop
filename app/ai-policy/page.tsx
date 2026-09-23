@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/landing/Navbar";
+import PageTracker from "@/components/analytics/PageTracker";
 import Footer from "@/components/landing/Footer";
 import PolicyGenerator from "@/components/policy/PolicyGenerator";
 
@@ -38,7 +39,8 @@ const FAQS = [
 export default function AiPolicyPage() {
   return (
     <div className="min-h-screen bg-paper">
-      <div className="print:hidden"><Navbar /></div>
+      <div className="print:hidden"><PageTracker />
+      <Navbar /></div>
 
       <main className="wide-shell pb-20 pt-28 sm:pt-32 print:pt-0">
         <header className="mx-auto mb-10 max-w-3xl text-center print:hidden">
