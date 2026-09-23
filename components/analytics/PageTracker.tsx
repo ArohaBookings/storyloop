@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { captureAttribution, track } from "@/lib/analytics/client";
+import EngagementTracker from "./EngagementTracker";
 
 /**
  * Records a single page_view (with traffic source) per page load.
@@ -15,5 +16,5 @@ export default function PageTracker({ event = "page_view" }: { event?: string })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return null;
+  return <EngagementTracker mode="marketing" />;
 }

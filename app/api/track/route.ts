@@ -21,6 +21,20 @@ const ALLOWED_EVENTS = new Set([
   "signup_submitted",
   "signup_completed",
   "cta_click",
+  // What people do on a page, from EngagementTracker.
+  "click",
+  "scroll_depth",
+  "section_view",
+  "page_exit",
+  // The paid funnel, from the browser's side.
+  "checkout_click",
+  "checkout_cancelled",
+  "checkout_success_view",
+  "pricing_view",
+  "offer_view",
+  "offer_click",
+  "demo_example_played",
+  "demo_evidence_opened",
 ]);
 
 function clean(value: unknown, max = 200) {
@@ -72,7 +86,7 @@ export async function POST(request: NextRequest) {
       ?? request.headers.get("x-real-ip")
       ?? "unknown";
     const [sessionAllowed, ipAllowed] = await Promise.all([
-      consumeRateLimit({ scope: "track", key: sessionId, limit: 60, windowSeconds: 60 * 10 }),
+      consumeRateLimit({ scope: "track", key: sessionId, limit: 150, windowSeconds: 60 * 10 }),
       consumeRateLimit({ scope: "track-ip", key: ip, limit: 600, windowSeconds: 60 * 10 }),
     ]);
     if (!sessionAllowed || !ipAllowed) return NextResponse.json({ ok: true });

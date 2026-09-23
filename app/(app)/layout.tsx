@@ -7,6 +7,7 @@ import { isAdminEmail } from "@/lib/admin-session";
 import WhatsNewModal from "@/components/app/WhatsNewModal";
 import AppTopBar from "@/components/app/AppTopBar";
 import { PLAN_DEFINITIONS, normalizePlanKey } from "@/lib/plans";
+import EngagementTracker from "@/components/analytics/EngagementTracker";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -53,6 +54,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       {/* One-time welcome card: what changed, then the referral offer.
           Renders nothing once dismissed. */}
       <WhatsNewModal />
+      {/* Paths and named controls only, never visible text. */}
+      <EngagementTracker mode="app" />
     </div>
   );
 }
