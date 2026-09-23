@@ -196,7 +196,7 @@ export default function AboutPage() {
                 One person in Ōtautahi builds this, and that is on purpose.
               </h2>
               <p>
-                StoryLoop trades as Aria Care, a New Zealand company, but there is no team standing behind that
+                StoryLoop is part of Aria Care, a New Zealand business, but there is no team standing behind that
                 name. It is me. I write the code, I answer the support email, and I decide what gets built next.
                 Early childhood documentation is the only thing I work on, and Te Whāriki and the EYLF are what
                 StoryLoop is built around rather than adapted to afterwards.
@@ -210,7 +210,7 @@ export default function AboutPage() {
                   something, in one place instead of scattered through prose. */}
               <dl className="!mt-10 grid gap-x-8 gap-y-5 border-t border-clay-100 pt-8 text-base sm:grid-cols-2">
                 {[
-                  ["Business", "Aria Care, a New Zealand company, trading as StoryLoop"],
+                  ["Business", "Aria Care, a New Zealand business (StoryLoop is its early childhood product)"],
                   ["Based in", "Ōtautahi Christchurch, Aotearoa New Zealand"],
                   ["Built for", "Te Whāriki in New Zealand and EYLF V2.0 in Australia"],
                   ["Your work", "Editable and exportable at any time, on every plan, including after you cancel"],
