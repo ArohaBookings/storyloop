@@ -18,7 +18,7 @@ export const metadata = { title: "Dashboard" };
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ upgraded?: string }>;
+  searchParams?: Promise<{ upgraded?: string; plan?: string }>;
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -44,6 +44,9 @@ export default async function DashboardPage({
   const billingBlocked = isBillingBlocked(profile ?? {});
   const billingPastDue = isBillingPastDue(profile ?? {});
   const upgraded = params?.upgraded === "true";
+  // A centre that has just started its free month has bought nothing yet, and
+  // its next step is its team, not its billing.
+  const startedCentre = upgraded && (params?.plan === "centre_starter" || params?.plan === "centre_growth");
 
   // Whether to ask for a review: a few stories over a few days, never asked
   // of somebody who has already left one, and never of an internal account.
@@ -89,7 +92,29 @@ export default async function DashboardPage({
 
   return (
     <div className="w-full max-w-none p-4 sm:p-6 md:p-8">
-      {upgraded && (
+      {startedCentre && (
+        <div className="mb-6 rounded-3xl border border-sage-200 bg-gradient-to-br from-sage-50 via-white to-cream-50 p-5 shadow-warm animate-fade-up" data-testid="centre-started">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-sage-600 text-paper">
+                <CheckCircle className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="font-display text-2xl font-bold text-ink-900">Your centre&apos;s free month has started.</h2>
+                <p className="mt-1 text-base text-ink-600">
+                  Next, name your centre and invite your team. It takes a couple of minutes, and nothing is charged
+                  unless you add a card before the month ends.
+                </p>
+              </div>
+            </div>
+            <Link href="/centre" className="btn-primary flex-shrink-0">
+              Set up my centre <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {upgraded && !startedCentre && (
         <div className="mb-6 rounded-3xl border border-sage-200 bg-gradient-to-br from-sage-50 via-white to-cream-50 p-5 shadow-warm animate-fade-up">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">

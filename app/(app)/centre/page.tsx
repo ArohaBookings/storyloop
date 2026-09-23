@@ -71,25 +71,38 @@ export default function CentrePage() {
     } finally { setBusy(false); }
   };
 
+  // A director invites the whole team at once: paste a list, separated by
+  // commas, spaces or new lines. Each invite is its own request, so one bad
+  // address never stops the rest, and the seat limit is enforced by the server.
   const invite = async () => {
+    const emails = [...new Set(inviteEmail.split(/[\s,;]+/).map((e) => e.trim().toLowerCase()).filter(Boolean))];
+    if (!emails.length) return;
     setBusy(true); setError(""); setNotice("");
-    try {
-      const response = await fetch("/api/centres/invites", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: inviteEmail }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? "Could not send that invitation.");
-      setNotice(
-        data.emailSent
-          ? `Invitation emailed to ${inviteEmail}.`
-          : `Invitation created. Email could not be sent, so share this link: ${window.location.origin}${data.shareUrl}`,
-      );
-      setInviteEmail("");
-      await load();
-    } catch (inviteError) {
-      setError(inviteError instanceof Error ? inviteError.message : "Could not send that invitation.");
-    } finally { setBusy(false); }
+    const sent: string[] = [];
+    const links: string[] = [];
+    const failed: string[] = [];
+    for (const email of emails) {
+      try {
+        const response = await fetch("/api/centres/invites", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "Could not send that invitation.");
+        if (data.emailSent) sent.push(email);
+        else links.push(`${email}: ${window.location.origin}${data.shareUrl}`);
+      } catch (inviteError) {
+        failed.push(`${email} (${inviteError instanceof Error ? inviteError.message : "could not invite"})`);
+      }
+    }
+    const parts = [];
+    if (sent.length) parts.push(`Invitation${sent.length === 1 ? "" : "s"} emailed to ${sent.join(", ")}.`);
+    if (links.length) parts.push(`Email could not be sent for these, so share their links: ${links.join("  ")}`);
+    if (parts.length) setNotice(parts.join(" "));
+    if (failed.length) setError(`Not invited: ${failed.join("; ")}`);
+    setInviteEmail(failed.map((f) => f.split(" ")[0]).join("\n"));
+    await load();
+    setBusy(false);
   };
 
   const setSharing = async (next: boolean) => {
@@ -141,6 +154,7 @@ export default function CentrePage() {
             </div>
           </div>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            <label htmlFor="centre-name" className="sr-only">Your centre's name</label>
             <input
               id="centre-name"
               value={name}
@@ -193,16 +207,20 @@ export default function CentrePage() {
           {isLeader && (
             <>
               <div className="card p-5">
-                <h2 className="mb-1 font-display text-lg font-bold text-ink-900">Invite an educator</h2>
-                <p className="mb-3 text-sm text-ink-600">They get their own login, their own children, and their own drafts.</p>
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <input
+                <h2 className="mb-1 font-display text-lg font-bold text-ink-900">Invite your team</h2>
+                <p className="mb-3 text-sm text-ink-600">
+                  Paste one or more email addresses. Each educator gets their own login, their own children and their own
+                  drafts. {centre.seatsRemaining} {centre.seatsRemaining === 1 ? "seat" : "seats"} left.
+                </p>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
+                  <label htmlFor="invite-email" className="sr-only">Email addresses to invite</label>
+                  <textarea
                     id="invite-email"
-                    type="email"
+                    rows={3}
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
-                    placeholder="kaiako@centre.co.nz"
-                    className="input flex-1"
+                    placeholder={"aroha@centre.co.nz\nsam@centre.co.nz"}
+                    className="input flex-1 resize-y"
                   />
                   <button
                     onClick={invite}
@@ -210,7 +228,7 @@ export default function CentrePage() {
                     className="btn-primary flex-none"
                   >
                     {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
-                    Send invite
+                    Send invites
                   </button>
                 </div>
                 {centre.seatsRemaining <= 0 && (

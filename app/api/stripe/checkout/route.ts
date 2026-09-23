@@ -138,7 +138,9 @@ export async function POST(request: NextRequest) {
         payment_method_types: ["card"],
         ...(terms.noCardNeeded ? { payment_method_collection: "if_required" as const } : {}),
         line_items: [lineItem],
-        success_url: `${origin}/dashboard?upgraded=true`,
+        // The plan rides along so the dashboard can greet a centre's free month
+        // differently from a paid upgrade, before the webhook has landed.
+        success_url: `${origin}/dashboard?upgraded=true&plan=${selectedPlan}`,
         cancel_url: `${origin}/billing`,
         allow_promotion_codes: !appliedCoupon,
         discounts: appliedCoupon ? [{ coupon: appliedCoupon }] : undefined,
