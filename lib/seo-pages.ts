@@ -1430,9 +1430,9 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   // the source; short quotes only.
   "acecqa-documentation-guidance": {
     slug: "acecqa-documentation-guidance",
-    title: "ACECQA Documentation Guidance for Approved Providers, Explained",
+    title: "ACECQA Documentation Guidance, Explained",
     description:
-      "What ACECQA's 2025 guidance says services must document, what the law does not require, the documentation practices it calls misconceptions, and what that means for your centre.",
+      "What ACECQA's 2025 guidance says services must document, what the law does not require, and the practices it calls misconceptions.",
     kicker: "For approved providers and directors · Australia",
     heading: "The law does not say how much to document. ACECQA says so in writing.",
     intro:
@@ -1500,9 +1500,9 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   // has published is stated as fact; everything else is framed as practice.
   "ero-early-childhood-regulation-2026": {
     slug: "ero-early-childhood-regulation-2026",
-    title: "ERO Now Regulates Early Childhood Education: What Changes in 2026",
+    title: "ERO Now Regulates Early Childhood Services",
     description:
-      "From 1 September 2026 ERO regulates New Zealand early childhood services, after the April 2026 licensing criteria changes. What changed, and how to keep your documentation ready.",
+      "From 1 September 2026 ERO regulates NZ early childhood services, after April's licensing criteria changes. What changed and what it means.",
     kicker: "For owners and managers · Aotearoa New Zealand",
     heading: "ERO regulates early childhood education now. Here is what changed.",
     intro:
