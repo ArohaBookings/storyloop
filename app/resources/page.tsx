@@ -14,6 +14,20 @@ export const metadata: Metadata = {
 
 const GUIDES = [
   {
+    href: "/ero-early-childhood-regulation-2026",
+    kicker: "Owners · Aotearoa · New",
+    title: "ERO now regulates early childhood",
+    description: "From 1 September 2026 ERO licenses and reviews you, after April's rewrite of the licensing criteria. What changed, and how to keep documentation ready.",
+    icon: ShieldCheck,
+  },
+  {
+    href: "/acecqa-documentation-guidance",
+    kicker: "Approved providers · Australia",
+    title: "What ACECQA says you do not have to document",
+    description: "No quotas per child, no photo on every record, no outcome codes on every observation. What the law requires, and what ACECQA calls misconceptions.",
+    icon: BookOpen,
+  },
+  {
     href: "/assessment-and-rating-evidence",
     kicker: "Directors · A&R visit",
     title: "The evidence to have ready",

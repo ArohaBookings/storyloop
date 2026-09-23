@@ -122,6 +122,50 @@ export const SEO_DEEP_DIVES: Record<string, Array<{ heading: string; paragraphs:
       ],
     },
   ],
+  "acecqa-documentation-guidance": [
+    {
+      heading: "Why this guidance matters to a director",
+      paragraphs: [
+        "Most documentation workload in Australian services is not set by the regulator. It is set inside the service: a template someone designed years ago, a quota of observations per child per fortnight, a rule that every story needs a photo and a list of outcome codes. ACECQA's 2025 information sheets name several of those habits directly as misconceptions.",
+        "That puts the decision back with the approved provider. If your team is documenting at night, the first question is not which tool is fastest. It is which of your own expectations the law never asked for.",
+      ],
+    },
+    {
+      heading: "What ACECQA asks approved providers to do",
+      paragraphs: [
+        "Consult educators and build shared ownership of documentation expectations. Keep the focus on the primary purpose of documentation. Make benchmarks sustainable, reasonable and achievable. Remove or minimise duplication. Make sure documentation supports time with children rather than competing with it. Give educators the time and professional learning to do it well, and accept that people will document in different ways and at different levels of skill.",
+        "It also recommends reviewing documentation processes collaboratively and regularly, so they stay fit for purpose rather than accumulating.",
+      ],
+    },
+    {
+      heading: "What changes in practice",
+      paragraphs: [
+        "Drop per-child quotas and document significant moments when they happen. Stop coding outcome numbers onto every observation unless it genuinely helps your planning. Let a learning story carry the planning cycle inside the narrative, which ACECQA describes as an effective approach. Take photographs when they add to the child's learning and respect their rights, not by default.",
+        "StoryLoop was built for exactly this version of documentation: a short, real observation becomes a narrative draft with curriculum links only where the note supports them, and the educator decides what is true. It sits alongside whatever platform your families already use.",
+      ],
+    },
+  ],
+  "ero-early-childhood-regulation-2026": [
+    {
+      heading: "What actually moved on 1 September",
+      paragraphs: [
+        "The functions that decide whether a service is licensed, and what happens when it breaches the criteria, moved from the Ministry of Education to a Director of Regulation within ERO. The criteria documents were updated to reflect that. ERO already reviewed early childhood services; it now also regulates them.",
+      ],
+    },
+    {
+      heading: "Reading the April 2026 criteria changes",
+      paragraphs: [
+        "The Ministry's own summary is short: renumbered for clarity, updated wording, some criteria removed or merged, a greater shift toward practice, and some universal criteria now more targeted. The comparison tables are the only reliable way to see what changed for your service type, so read the one for your licence, line by line, with your leadership team.",
+      ],
+    },
+    {
+      heading: "Keeping documentation ready without a scramble",
+      paragraphs: [
+        "Documentation that is useful to a reviewer is the same documentation that is useful to your team: it shows what a child was learning, how teaching responded, and that someone came back to it. A folder of observations nobody revisited shows effort, not practice.",
+        "The simplest preparation is continuous rather than seasonal: notice every child regularly, write next steps you actually return to, and record family voice where you have it. StoryLoop's evidence pack counts those things from stories your team already wrote and names the gaps first, so they can be fixed while they are still small.",
+      ],
+    },
+  ],
   "transition-to-school-statement": [
     {
       heading: "What each place actually asks for",

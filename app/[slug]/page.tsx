@@ -16,6 +16,9 @@ const CENTRE_SLUGS = new Set([
   "early-childhood-centre-roi-dashboard",
   "assessment-and-rating-evidence",
   "room-planning-brief-early-childhood",
+  "acecqa-documentation-guidance",
+  "nqs-standard-1-3-assessment-and-planning",
+  "ero-early-childhood-regulation-2026",
 ]);
 import { SEO_PAGES, SEO_PAGE_SLUGS } from "@/lib/seo-pages";
 import { PenLine, ShieldCheck } from "lucide-react";

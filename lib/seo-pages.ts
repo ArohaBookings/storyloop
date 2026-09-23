@@ -1423,6 +1423,141 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       },
     ],
   },
+  // For Australian approved providers and directors. ACECQA's September 2025
+  // information sheets say plainly what documentation law does and does not
+  // require, which is the single most useful thing a director can read before
+  // setting (or cutting) documentation expectations. Paraphrased with links to
+  // the source; short quotes only.
+  "acecqa-documentation-guidance": {
+    slug: "acecqa-documentation-guidance",
+    title: "ACECQA Documentation Guidance for Approved Providers, Explained",
+    description:
+      "What ACECQA's 2025 guidance says services must document, what the law does not require, the documentation practices it calls misconceptions, and what that means for your centre.",
+    kicker: "For approved providers and directors · Australia",
+    heading: "The law does not say how much to document. ACECQA says so in writing.",
+    intro:
+      "ACECQA's information sheets on educational program documentation, updated in September 2025, separate what the National Law and Regulations actually require from the habits services have built on top of them. For a director setting expectations for a team, it is the clearest permission in years to document less, and better.",
+    reviewedAt: "2026-09-23",
+    sections: [
+      {
+        title: "What services must do",
+        body:
+          "Have a program based on the EYLF that contributes to its five outcomes (Regulation 73), document each child's assessments and progress (74), make that documentation understandable to educators and families (74(2)), display information about the program (75) and give families their child's records on request (76). That is the legal floor.",
+      },
+      {
+        title: "What the law does not set",
+        body:
+          "How much documentation, what it looks like, and which method or tool you use. ACECQA states that the National Law and Regulations do not prescribe the amount or the method. Authorised officers will not decide your templates, apps or tools.",
+      },
+      {
+        title: "The practices ACECQA calls misconceptions",
+        body:
+          "Quotas of observations per child in a set timeframe, inflexible program templates that duplicate information, always coding observations with EYLF outcome numbers, and requiring a photo or video for every piece of documentation.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Is there a minimum number of observations per child?",
+        answer:
+          "No. ACECQA lists quotas of observations per child in a set timeframe as a misconception that puts quantity over quality. Documenting significant moments as they happen, in a way that is meaningful for the child, is what it describes as effective.",
+      },
+      {
+        question: "Do we have to link EYLF outcome numbers to every observation?",
+        answer:
+          "No. ACECQA asks services to consider whether numbering or coding outcomes actually helps planning and is understandable to families, or whether it only duplicates work. A learning story can carry the planning cycle within the narrative.",
+      },
+      {
+        question: "Will assessors expect lots of photos?",
+        answer:
+          "No. ACECQA says authorised officers will not expect to see copious photographs or videos. Requiring a photo for every record is listed as a misconception, and images should follow the National Model Code on taking images in early childhood services.",
+      },
+      {
+        question: "Can we use AI or any documentation app?",
+        answer:
+          "The regulations do not prescribe the tool, and authorised officers will not determine the apps or approaches you use. What matters is that documentation is accurate, meaningful, understandable to families and informs the program, and that your service's privacy and digital safety policies are followed.",
+      },
+      {
+        question: "What should an approved provider actually change?",
+        answer:
+          "Set expectations that are sustainable, reasonable and achievable, remove duplication, give educators time and professional learning for documentation, and review your documentation processes with your team regularly. Those are ACECQA's own recommendations to approved providers.",
+      },
+    ],
+    sources: [
+      {
+        label: "ACECQA: QA1 Educational program documentation for approved providers (early childhood)",
+        url: "https://www.acecqa.gov.au/nqf/national-quality-standard/quality-area-1-educational-program-and-practice/information-sheets-quality-area-1/qa1-educational-program-documentation-approved-providers-early-childhood",
+      },
+      {
+        label: "ACECQA: QA1 Educational program documentation for educators and teachers (early childhood)",
+        url: "https://www.acecqa.gov.au/qa1-educational-program-documentation-educators-and-teachers-early-childhood",
+      },
+    ],
+  },
+
+  // For New Zealand owners and managers. From 1 September 2026 ERO took over
+  // regulating early childhood services from the Ministry of Education, after
+  // the April 2026 rewrite of the licensing criteria. Only what the Ministry
+  // has published is stated as fact; everything else is framed as practice.
+  "ero-early-childhood-regulation-2026": {
+    slug: "ero-early-childhood-regulation-2026",
+    title: "ERO Now Regulates Early Childhood Education: What Changes in 2026",
+    description:
+      "From 1 September 2026 ERO regulates New Zealand early childhood services, after the April 2026 licensing criteria changes. What changed, and how to keep your documentation ready.",
+    kicker: "For owners and managers · Aotearoa New Zealand",
+    heading: "ERO regulates early childhood education now. Here is what changed.",
+    intro:
+      "Two changes landed in 2026. In April the licensing criteria were renumbered, reworded, merged and in places removed, with what the Ministry calls a greater shift toward practice. On 1 September responsibility for regulating early childhood education moved from the Ministry of Education to a Director of Regulation within ERO.",
+    reviewedAt: "2026-09-23",
+    sections: [
+      {
+        title: "April 2026: the criteria",
+        body:
+          "Licensing criteria were renumbered for clarity, reworded, and some were removed or merged. Some criteria that applied to every service are now more targeted. The Ministry publishes comparison tables for centre-based, home-based and hospital-based services.",
+      },
+      {
+        title: "1 September 2026: the regulator",
+        body:
+          "ERO now has responsibility for regulating early childhood education, including kōhanga reo, licensed early learning services and certified playgroups. Licensing information and application forms have moved to ERO, and the criteria were updated to reflect the transfer.",
+      },
+      {
+        title: "What it means for documentation",
+        body:
+          "The same organisation now licenses and reviews you. Learning and assessment practice was already central to ERO reviews, so documentation that shows what children are learning and how teaching responds is worth more than documentation that only shows volume.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Who regulates early childhood education in New Zealand now?",
+        answer:
+          "From 1 September 2026, ERO. Regulatory functions moved from the Secretary for Education at the Ministry of Education to the Director of Regulation within the Education Review Office.",
+      },
+      {
+        question: "What changed in the April 2026 licensing criteria?",
+        answer:
+          "The criteria were renumbered and reworded, some were removed or merged, and some that applied to every service became more targeted, with a greater shift toward practice. Check the Ministry's comparison table for your service type to see each change.",
+      },
+      {
+        question: "Do we need to change how we write learning stories?",
+        answer:
+          "Not because of the transfer itself. Te Whāriki is unchanged. What is worth reviewing is whether your documentation shows children's learning and how teaching responds to it, rather than a volume of observations nobody returns to.",
+      },
+      {
+        question: "Where do we find the licensing forms now?",
+        answer:
+          "On the ERO website. The Ministry of Education's 2026 changes page links to ERO's licensing information and application forms.",
+      },
+    ],
+    sources: [
+      {
+        label: "Ministry of Education: 2026 changes to licensing criteria",
+        url: "https://www.education.govt.nz/education-professionals/early-learning/licensing-and-certification/2026-changes-licensing-criteria",
+      },
+      {
+        label: "Education Review Office: how ERO reviews early childhood services",
+        url: "https://www.ero.govt.nz/how-ero-reviews/how-ero-reviews-early-childhood-services",
+      },
+    ],
+  },
 };
 
 // Attach long-form bodies to the pages that have them. Kept separate so the
