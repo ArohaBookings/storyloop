@@ -1,58 +1,61 @@
 -- ============================================================
--- STORYLOOP — Stripe webhook stale lock recovery
+-- STORYLOOP: recover Stripe webhook events stuck mid-run
 -- ============================================================
--- begin_stripe_webhook_event claims an event by inserting a 'processing' row.
--- If the handler throws, finish_stripe_webhook_event marks it 'failed' and
--- Stripe's retry reprocesses it. Good.
+-- Targets public.stripe_webhook_events, the table production has used since
+-- 4 August 2026 (see 20260804_stripe_webhook_idempotency_public.sql). The first
+-- draft of this migration targeted the older private table; it was rewritten on
+-- 2026-09-23 after checking production, before it was ever applied there.
 --
--- But if the handler is KILLED rather than throwing -- a serverless function
--- timeout, a deploy mid-request, an out-of-memory -- nothing marks it. The row
--- stays 'processing' forever, and every Stripe retry hits the unique violation,
--- finds 'processing', and returns 'duplicate'. The event is skipped permanently:
--- a payment that never activates a plan, a cancellation that is never recorded.
+-- Two holes in the version production runs:
 --
--- This changes exactly one branch: a 'processing' claim older than 15 minutes is
--- treated as abandoned and reclaimed, the same way a 'failed' one already is.
--- 15 minutes is comfortably longer than any Vercel function can run, so a
--- handler that is genuinely still working is never double-claimed.
+--   1. A handler that died mid-run (a timeout, a deploy) left its event in
+--      'processing' forever. Every Stripe retry got 'skip', so a cancellation
+--      or a payment was never applied and nobody knew.
+--   2. Reclaiming a 'failed' event read the status, then updated it, in two
+--      steps. Two retries arriving together both saw 'failed' and both
+--      processed the event.
 --
--- Reprocessing is safe: profile updates are derived from Stripe's current
--- subscription state and are idempotent, and billing emails carry a per-invoice
--- billing_key so a retry cannot send a second receipt or payment notice.
---
--- Same signature, same return values, same grants. No other behaviour changes.
+-- The claim is now one conditional UPDATE. A failed event, or a processing
+-- claim older than 15 minutes, is taken by exactly one caller: Postgres
+-- re-checks the WHERE clause against the row the first caller just wrote, and
+-- a fresh received_at no longer matches. A claim younger than 15 minutes is
+-- left alone, because that handler may still be running. The return values are
+-- unchanged ('process' or 'skip'); the webhook route only acts on 'process'.
 
-create or replace function public.begin_stripe_webhook_event(p_event_id text, p_type text)
-returns text as $$
+create or replace function public.begin_stripe_webhook_event(
+  p_event_id text,
+  p_type text
+) returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
 declare
   reclaimed int;
 begin
-  insert into private.stripe_webhook_events (event_id, type, status, processed_at)
-  values (p_event_id, p_type, 'processing', now());
-  return 'process';
-exception
-  when unique_violation then
-    -- Reclaim in ONE conditional statement. Reading the status and then
-    -- updating would let two simultaneous retries both see a stale row and both
-    -- claim it; the WHERE clause here means only one UPDATE can match.
-    update private.stripe_webhook_events
-    set status = 'processing',
-        processed_at = now(),
-        error = null
-    where event_id = p_event_id
-      and (
-        status = 'failed'
-        or (status = 'processing' and processed_at < now() - interval '15 minutes')
-      );
-    get diagnostics reclaimed = row_count;
+  insert into public.stripe_webhook_events (event_id, type, status)
+  values (p_event_id, p_type, 'processing')
+  on conflict (event_id) do nothing;
 
-    if reclaimed > 0 then
-      return 'process';
-    end if;
-    return 'duplicate';
+  if found then
+    return 'process';
+  end if;
+
+  update public.stripe_webhook_events
+  set status = 'processing', error = null, received_at = now(), completed_at = null
+  where event_id = p_event_id
+    and (
+      status = 'failed'
+      or (status = 'processing' and received_at < now() - interval '15 minutes')
+    );
+  get diagnostics reclaimed = row_count;
+
+  if reclaimed > 0 then
+    return 'process';
+  end if;
+  return 'skip';
 end;
-$$ language plpgsql security definer
-set search_path = public, private;
+$$;
 
 revoke all on function public.begin_stripe_webhook_event(text, text) from public, anon, authenticated;
 grant execute on function public.begin_stripe_webhook_event(text, text) to postgres, service_role;

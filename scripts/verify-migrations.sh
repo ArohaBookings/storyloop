@@ -32,6 +32,7 @@ fi
 
 # Migrations under test, in order. Add new ones here.
 MIGRATIONS=(
+  "supabase/migrations/20260804_stripe_webhook_idempotency_public.sql"
   "supabase/migrations/20260917_centre_team_model.sql"
   "supabase/migrations/20260917_admin_system_health.sql"
   "supabase/migrations/20260917_webhook_stale_lock_recovery.sql"
@@ -108,8 +109,8 @@ done
 # The race that the stale lock fix exists to prevent: many simultaneous retries
 # reclaiming one abandoned event. Exactly one may win, every round.
 for round in 1 2 3; do
-  psql_run -c "delete from private.stripe_webhook_events where event_id = 'evt_race'" \
-           -c "insert into private.stripe_webhook_events values ('evt_race', 'invoice.paid', 'processing', now() - interval '30 minutes', null)" >/dev/null
+  psql_run -c "delete from public.stripe_webhook_events where event_id = 'evt_race'" \
+           -c "insert into public.stripe_webhook_events (event_id, type, status, received_at) values ('evt_race', 'invoice.paid', 'processing', now() - interval '30 minutes')" >/dev/null
   for i in $(seq 1 8); do
     ( psql_run -tAc "select public.begin_stripe_webhook_event('evt_race', 'invoice.paid')" >"$WORK/race_$i" 2>&1 ) &
   done
