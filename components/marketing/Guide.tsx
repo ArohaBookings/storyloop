@@ -147,6 +147,26 @@ export function GuideCta({ heading = "Try it on your own note" }: { heading?: st
   );
 }
 
+/** Official sources behind a guide, shown as links (answer engines weigh cited sources). */
+export function GuideSources({ sources }: { sources: { label: string; url: string }[] }) {
+  return (
+    <section id="sources" className="py-10">
+      <div className="wide-shell">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-ink-500">Sources</h2>
+        <ul className="mt-3 space-y-1.5 text-base">
+          {sources.map((source) => (
+            <li key={source.url}>
+              <a href={source.url} target="_blank" rel="noopener noreferrer" className="text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900">
+                {source.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
 export function RelatedGuides({ links }: { links: { href: string; title: string; body: string }[] }) {
   return (
     <section id="related" className="border-t border-clay-100 bg-cream-50/60 py-14">

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Eye, FileCheck2, Lock, MapPin, ShieldCheck, UserCheck } from "lucide-react";
-import { GuideCta, GuideFaq, GuideFigure, GuideHero, GuidePage, GuideSection, RELATED, RelatedGuides } from "@/components/marketing/Guide";
+import { GuideCta, GuideFaq, GuideFigure, GuideHero, GuidePage, GuideSection, GuideSources, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 import { ACCURACY_REPORT as R } from "@/lib/accuracy-report";
 
 export const metadata: Metadata = {
@@ -155,6 +155,10 @@ export default function SafetyPage() {
         <GuideFaq items={FAQS} />
       </GuideSection>
 
+      <GuideSources sources={[
+        { label: "Office of the Privacy Commissioner (New Zealand), Privacy Act 2020", url: "https://www.privacy.org.nz/" },
+        { label: "Office of the Australian Information Commissioner, Australian Privacy Principles", url: "https://www.oaic.gov.au/" },
+      ]} />
       <GuideCta heading="See how careful it is on your own note" />
       <RelatedGuides links={[RELATED.accuracy, RELATED.families, RELATED.centres, RELATED.alongside, RELATED.whatIs, RELATED.examples]} />
     </GuidePage>
