@@ -130,30 +130,8 @@ export default async function SeoPage({ params }: PageProps) {
               {page.heading}
             </h1>
             <p className="mt-6 text-lg text-ink-600 max-w-3xl leading-relaxed">{page.intro}</p>
-            <div className="mt-7 grid max-w-4xl gap-3 sm:grid-cols-2">
-              <div className="flex min-w-0 items-start gap-3 rounded-2xl border border-clay-200 bg-white/80 p-4 shadow-soft">
-                <PenLine className="mt-0.5 h-4 w-4 shrink-0 text-clay-700" />
-                <p className="text-sm leading-relaxed text-ink-700">
-                  Start with what actually happened: one action, quote, attempt, change, or question. A polished observation is never required.
-                </p>
-              </div>
-              <div className="flex min-w-0 items-start gap-3 rounded-2xl border border-sage-200 bg-sage-50/80 p-4 shadow-soft">
-                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-sage-700" />
-                <p className="text-sm leading-relaxed text-ink-700">
-                  StoryLoop drafts and checks. The educator reviews, edits, decides what is true, and chooses whether anything is shared.
-                </p>
-              </div>
-            </div>
-            {page.reviewedAt && (
-              <p className="mt-4 text-xs font-semibold text-clay-700">
-                Reviewed {new Date(`${page.reviewedAt}T00:00:00`).toLocaleDateString("en-NZ", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}{" "}
-                · Written by Leo, who builds StoryLoop, in Ōtautahi Christchurch
-              </p>
-            )}
+            {/* Buttons straight under the intro, so they are on a phone's first
+                screen. Below the tips they started at 932px on an 844px phone. */}
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               {EDUCATOR_FIRST_SLUGS.has(page.slug) ? (
                 <>
@@ -184,6 +162,30 @@ export default async function SeoPage({ params }: PageProps) {
                 </>
               )}
             </div>
+            <div className="mt-7 grid max-w-4xl gap-3 sm:grid-cols-2">
+              <div className="flex min-w-0 items-start gap-3 rounded-2xl border border-clay-200 bg-white/80 p-4 shadow-soft">
+                <PenLine className="mt-0.5 h-4 w-4 shrink-0 text-clay-700" />
+                <p className="text-sm leading-relaxed text-ink-700">
+                  Start with what actually happened: one action, quote, attempt, change, or question. A polished observation is never required.
+                </p>
+              </div>
+              <div className="flex min-w-0 items-start gap-3 rounded-2xl border border-sage-200 bg-sage-50/80 p-4 shadow-soft">
+                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-sage-700" />
+                <p className="text-sm leading-relaxed text-ink-700">
+                  StoryLoop drafts and checks. The educator reviews, edits, decides what is true, and chooses whether anything is shared.
+                </p>
+              </div>
+            </div>
+            {page.reviewedAt && (
+              <p className="mt-4 text-xs font-semibold text-clay-700">
+                Reviewed {new Date(`${page.reviewedAt}T00:00:00`).toLocaleDateString("en-NZ", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}{" "}
+                · Written by Leo, who builds StoryLoop, in Ōtautahi Christchurch
+              </p>
+            )}
             {page.image && (
               <div className="relative mt-10 aspect-[16/9] max-w-6xl overflow-hidden rounded-3xl border border-clay-100 shadow-[0_30px_60px_-35px_rgba(74,52,34,0.55)] md:aspect-[21/9]">
                 <Image src={page.image.src} alt={page.image.alt} fill priority sizes="(min-width: 1280px) 1152px, 100vw" className="object-cover" style={{ objectPosition: page.image.position ?? "center" }} />
