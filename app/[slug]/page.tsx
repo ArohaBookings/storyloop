@@ -21,6 +21,15 @@ const CENTRE_SLUGS = new Set([
   "nqs-standard-1-3-assessment-and-planning",
   "ero-early-childhood-regulation-2026",
 ]);
+// Regulation guides shared in educator Facebook groups. Directors read them
+// too, but most visitors are educators: 79 landed on the ERO guide in a day
+// and none clicked "Start your centre's free month". They get the individual
+// free start first, with the centre option beside it.
+const EDUCATOR_FIRST_SLUGS = new Set([
+  "ero-early-childhood-regulation-2026",
+  "acecqa-documentation-guidance",
+  "nqs-standard-1-3-assessment-and-planning",
+]);
 import { DEDICATED_ROUTE_SLUGS, SEO_PAGES, SEO_PAGE_SLUGS } from "@/lib/seo-pages";
 import { PenLine, ShieldCheck } from "lucide-react";
 
@@ -146,7 +155,16 @@ export default async function SeoPage({ params }: PageProps) {
               </p>
             )}
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              {CENTRE_SLUGS.has(page.slug) ? (
+              {EDUCATOR_FIRST_SLUGS.has(page.slug) ? (
+                <>
+                  <Link href="/signup" className="btn-primary justify-center">
+                    Try it free on your own notes
+                  </Link>
+                  <Link href="#founding" className="btn-secondary justify-center">
+                    Setting it up for a whole centre?
+                  </Link>
+                </>
+              ) : CENTRE_SLUGS.has(page.slug) ? (
                 <>
                   <Link href="/signup?plan=centre_starter" className="btn-primary justify-center">
                     Start your centre&apos;s free month
