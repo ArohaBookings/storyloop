@@ -9,3 +9,8 @@ node_modules
 dist
 .vercel
 .claude/launch.json
+
+# Raw generated scenes and captured screens (inputs to public/images/scenes)
+scripts/brand/scenes/
+scripts/brand/screens/
+scripts/brand/scenes.log

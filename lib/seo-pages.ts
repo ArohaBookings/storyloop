@@ -15,6 +15,8 @@ export type SeoPage = {
    * a set of plain paragraphs. Kept as data so pages stay easy to edit.
    */
   deepDive?: Array<{ heading: string; paragraphs: string[] }>;
+  /** A photograph under the hero. Every screen in these is a real StoryLoop page (scripts/brand). */
+  image?: { src: string; alt: string; position?: string };
 };
 
 const sharedFaqs = [
@@ -49,6 +51,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   // lift one cleanly.
   "storypark-alternative": {
     slug: "storypark-alternative",
+    image: { src: "/images/scenes/kitchen.jpg", alt: "An educator at home reading a StoryLoop learning story draft on her laptop", position: "62% 50%" },
     title: "Storypark Alternative for Learning Stories | StoryLoop",
     description:
       "StoryLoop and Storypark compared for learning stories in New Zealand and Australia: what each does, what they cost, and why most educators use both.",
@@ -347,6 +350,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
   "learning-story-generator": {
     slug: "learning-story-generator",
+    image: { src: "/images/scenes/kitchen.jpg", alt: "An educator smiling at a StoryLoop learning story draft on her laptop in the evening", position: "62% 50%" },
     title: "Learning Story Generator for Early Childhood Educators",
     description:
       "A learning story generator for ECE educators that turns observations, bullet points, or voice notes into editable drafts with curriculum links.",
@@ -555,6 +559,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
   "parent-friendly-learning-stories": {
     slug: "parent-friendly-learning-stories",
+    image: { src: "/images/scenes/family.jpg", alt: "A parent smiling at a StoryLoop wall card on her phone, her toddler seen from behind", position: "50% 30%" },
     title: "Parent-Friendly Learning Story Versions",
     description:
       "Create shorter, warmer parent-friendly versions of educator learning stories while keeping documentation-focused drafts intact.",
@@ -587,6 +592,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
   "te-whariki-learning-stories": {
     slug: "te-whariki-learning-stories",
+    image: { src: "/images/scenes/classroom.jpg", alt: "An educator holds an iPad with a Te Whāriki learning story draft while two toddlers, seen from behind, build with blocks", position: "50% 55%" },
     title: "Te Whāriki Learning Stories",
     description:
       "Draft Te Whāriki learning stories with accurate strand names, learning outcome links, dispositions, whānau connection, and responding ideas.",
@@ -619,6 +625,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
   "eylf-learning-stories": {
     slug: "eylf-learning-stories",
+    image: { src: "/images/scenes/team.jpg", alt: "Educators planning together with StoryLoop's real example drafts on a laptop", position: "50% 55%" },
     title: "EYLF Learning Stories",
     description:
       "Draft EYLF learning stories for early childhood education with Outcome links, learning dispositions, child voice, and next steps.",
@@ -705,6 +712,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
   "ai-learning-story-privacy-guard": {
     slug: "ai-learning-story-privacy-guard",
+    image: { src: "/images/scenes/office.jpg", alt: "A centre manager reviewing StoryLoop's accuracy report", position: "30% 50%" },
     title: "AI Learning Story Privacy and Evidence Guard",
     description:
       "StoryLoop flags privacy risks, unsupported claims, diagnosis-style language, and extra identifiers before educators share learning stories.",
@@ -1168,6 +1176,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   // competitor can say, so it leads.
   "for-centres": {
     slug: "for-centres",
+    image: { src: "/images/scenes/team.jpg", alt: "Three educators planning together around a low table with a laptop showing StoryLoop", position: "50% 55%" },
     title: "StoryLoop for Centres",
     description:
       "Documentation support for a whole early childhood team: unlimited children, a reliever brief, an evidence pack, and planning built from real stories.",
@@ -1374,6 +1383,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
   "responsible-ai-ece-documentation": {
     slug: "responsible-ai-ece-documentation",
+    image: { src: "/images/scenes/office.jpg", alt: "A centre manager at her desk reading StoryLoop's accuracy report on a laptop", position: "30% 50%" },
     title: "Responsible AI for ECE Documentation",
     description:
       "A practical guide to educator judgement, child privacy, evidence, transparency, and responsible AI use in early childhood learning stories.",

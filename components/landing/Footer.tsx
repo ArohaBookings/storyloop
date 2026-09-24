@@ -6,9 +6,9 @@ export default function Footer() {
   return (
     <footer className="bg-ink-900 text-ink-200 py-16">
       <div className="edge-shell">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
+        <div className="grid grid-cols-1 gap-10 mb-10 sm:grid-cols-2 lg:grid-cols-6">
           {/* Brand */}
-          <div className="md:col-span-2 max-w-md">
+          <div className="max-w-md sm:col-span-2">
             <div className="flex items-center gap-2.5 mb-3">
               <AnimatedLogo size={36} className="brightness-125" />
               <div>
@@ -25,7 +25,6 @@ export default function Footer() {
             </Link>
           </div>
 
-          {/* Product */}
           <div>
             <h4 className="font-display font-bold text-paper mb-4 text-sm">Product</h4>
             <ul className="space-y-2 text-sm text-ink-300">
@@ -33,14 +32,36 @@ export default function Footer() {
               <li><Link href="/pricing" className="hover:text-paper transition-colors">Pricing</Link></li>
               <li><Link href="/examples" className="hover:text-paper transition-colors">Examples</Link></li>
               <li><Link href="/accuracy" className="hover:text-paper transition-colors">Accuracy report</Link></li>
-              <li><Link href="/resources" className="hover:text-paper transition-colors">Educator resources</Link></li>
-              <li><Link href="/for-centres" className="hover:text-paper transition-colors">For centres</Link></li>
+              <li><Link href="/#live-demo" className="hover:text-paper transition-colors">Try free</Link></li>
               <li><Link href="/documentation-time-calculator" className="hover:text-paper transition-colors">Time calculator for centres</Link></li>
               <li><Link href="/review-readiness-check" className="hover:text-paper transition-colors">Review readiness check</Link></li>
               <li><Link href="/learning-story-data" className="hover:text-paper transition-colors">Learning stories in numbers</Link></li>
-              <li><Link href="/te-whariki-learning-stories" className="hover:text-paper transition-colors">Te Whāriki</Link></li>
-              <li><Link href="/eylf-learning-stories" className="hover:text-paper transition-colors">EYLF</Link></li>
-              <li><Link href="/#live-demo" className="hover:text-paper transition-colors">Try free</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-display font-bold text-paper mb-4 text-sm">Who it&apos;s for</h4>
+            <ul className="space-y-2 text-sm text-ink-300">
+              <li><Link href="/for-educators" className="hover:text-paper transition-colors">For educators</Link></li>
+              <li><Link href="/for-centres" className="hover:text-paper transition-colors">For centres</Link></li>
+              <li><Link href="/for-families" className="hover:text-paper transition-colors">For families</Link></li>
+              <li><Link href="/works-alongside" className="hover:text-paper transition-colors">Works with Storypark</Link></li>
+              <li><Link href="/safety" className="hover:text-paper transition-colors">Children&apos;s information and AI</Link></li>
+              <li><Link href="/ai-policy" className="hover:text-paper transition-colors">Free AI policy for services</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-display font-bold text-paper mb-4 text-sm">Guides</h4>
+            <ul className="space-y-2 text-sm text-ink-300">
+              <li><Link href="/what-is-a-learning-story" className="hover:text-paper transition-colors">What is a learning story?</Link></li>
+              <li><Link href="/learning-story-template" className="hover:text-paper transition-colors">Learning story template</Link></li>
+              <li><Link href="/eylf-learning-outcomes" className="hover:text-paper transition-colors">EYLF learning outcomes</Link></li>
+              <li><Link href="/te-whariki-learning-outcomes-guide" className="hover:text-paper transition-colors">Te Whāriki learning outcomes</Link></li>
+              <li><Link href="/te-whariki-learning-stories" className="hover:text-paper transition-colors">Te Whāriki stories</Link></li>
+              <li><Link href="/eylf-learning-stories" className="hover:text-paper transition-colors">EYLF stories</Link></li>
+              <li><Link href="/resources" className="hover:text-paper transition-colors">Educator resources</Link></li>
+              <li><Link href="/blog" className="hover:text-paper transition-colors">Blog</Link></li>
             </ul>
           </div>
 

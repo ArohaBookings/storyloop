@@ -13,6 +13,7 @@ import { LANDING_FAQS } from "@/lib/landing-faqs";
 import Reviews from "@/components/landing/Reviews";
 import AccuracyProof from "@/components/landing/AccuracyProof";
 import Founder from "@/components/landing/Founder";
+import Audiences from "@/components/landing/Audiences";
 import PageTracker from "@/components/analytics/PageTracker";
 
 // Keep the landing static for speed, but regenerate every 5 minutes so a review
@@ -50,7 +51,7 @@ export default function LandingPage() {
         {/* The order answers the questions in the order a visitor asks them:
             what is it (hero, demo), is the problem real and does it fit how I
             work (proof strip, how it works), will it make things up (accuracy),
-            what else does it do (capabilities), show me (real examples), who is
+            what else does it do (capabilities), who is it for (audiences), show me (real examples), who is
             behind it (founder), then price and questions. Reviews renders
             nothing until a real review is published. */}
         <Hero />
@@ -58,6 +59,7 @@ export default function LandingPage() {
         <HowItWorks />
         <AccuracyProof />
         <Capabilities />
+        <Audiences />
         <Examples />
         <Founder />
         <Reviews />

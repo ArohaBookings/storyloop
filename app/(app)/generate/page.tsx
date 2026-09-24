@@ -1656,8 +1656,8 @@ export default function GeneratePage() {
         </div>
 
         <div ref={storyPanelRef} className="story-safe card-warm flex min-h-[220px] min-w-0 max-w-full flex-col overflow-hidden p-4 sm:min-h-[280px] sm:p-6 md:min-h-[420px] xl:sticky xl:top-4 xl:min-h-[500px]">
-          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="section-title">Your learning story</p>
+          <div className="mb-4 flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
+            <p className="section-title whitespace-nowrap">Your learning story</p>
             {story && (
               <div className="flex min-w-0 flex-wrap items-center gap-2">
                 <button type="button" onClick={() => handleGenerate()} className={storyAction}>

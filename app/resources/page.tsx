@@ -14,6 +14,27 @@ export const metadata: Metadata = {
 
 const GUIDES = [
   {
+    href: "/what-is-a-learning-story",
+    kicker: "Every educator · New",
+    title: "What is a learning story?",
+    description: "Notice, recognise, respond; where learning stories came from; how they differ from an observation; and a real example.",
+    icon: BookOpen,
+  },
+  {
+    href: "/learning-story-template",
+    kicker: "Every educator · Free template",
+    title: "Learning story template",
+    description: "Te Whāriki and EYLF versions with a prompt under every heading, to copy into Word, Canva or Storypark.",
+    icon: BookOpen,
+  },
+  {
+    href: "/eylf-learning-outcomes",
+    kicker: "Australia · New",
+    title: "The 5 EYLF learning outcomes (V2.0)",
+    description: "All 21 sub-outcomes in the framework's own words, with what each looks like in play.",
+    icon: BookOpen,
+  },
+  {
     href: "/ero-early-childhood-regulation-2026",
     kicker: "Owners · Aotearoa · New",
     title: "ERO now regulates early childhood",

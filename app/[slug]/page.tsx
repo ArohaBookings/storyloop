@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Navbar from "@/components/landing/Navbar";
@@ -165,6 +166,11 @@ export default async function SeoPage({ params }: PageProps) {
                 </>
               )}
             </div>
+            {page.image && (
+              <div className="relative mt-10 aspect-[16/9] max-w-6xl overflow-hidden rounded-3xl border border-clay-100 shadow-[0_30px_60px_-35px_rgba(74,52,34,0.55)] md:aspect-[21/9]">
+                <Image src={page.image.src} alt={page.image.alt} fill priority sizes="(min-width: 1280px) 1152px, 100vw" className="object-cover" style={{ objectPosition: page.image.position ?? "center" }} />
+              </div>
+            )}
           </div>
         </section>
 
