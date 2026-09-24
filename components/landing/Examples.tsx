@@ -13,7 +13,8 @@ import { REAL_EXAMPLES } from "@/lib/real-examples";
  * was the worst possible example. Every quote here is marked only when it is in
  * the note, word for word, so a visitor can check.
  */
-const HOMEPAGE = ["two-shoes-independence-nz", "four-long-rich-au"];
+// One example here (the panel found two too long on a phone); twelve on /examples.
+const HOMEPAGE = ["two-shoes-independence-nz"];
 
 export default function Examples() {
   const examples = HOMEPAGE.map((slug) => REAL_EXAMPLES.find((example) => example.slug === slug)).filter(
@@ -25,10 +26,10 @@ export default function Examples() {
       <div className="wide-shell">
         <div className="max-w-3xl">
           <h2 className="font-display text-3xl font-bold leading-tight text-ink-900 text-balance md:text-4xl">
-            A two-year-old in Aotearoa. A four-year-old in Australia.
+            A real note, and the draft that came back.
           </h2>
           <p className="mt-4 text-base leading-relaxed text-ink-600 md:text-lg">
-            Real notes, and the drafts StoryLoop wrote from them, not a word changed. The{" "}
+            A two-year-old in Aotearoa, and the draft StoryLoop wrote, not a word changed. The{" "}
             <mark className="rounded bg-sage-100 px-1 font-semibold text-sage-900">highlighted words</mark> are the
             child&apos;s, exactly as the note has them.
           </p>

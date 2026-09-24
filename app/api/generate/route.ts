@@ -102,7 +102,13 @@ export async function POST(request: NextRequest) {
 
     // DEMO MODE — public, rate limited per IP
     if (demo) {
-      const demoFramework = normalizeFramework(typeof location === "string" ? location : undefined);
+      // The homepage demo has no curriculum picker, so a visitor in Aotearoa
+      // used to get EYLF links on a Te Whāriki note. Their country decides it
+      // when the request does not.
+      const visitorCountry = request.headers.get("x-vercel-ip-country")?.toUpperCase();
+      const demoFramework = normalizeFramework(
+        typeof location === "string" ? location : visitorCountry === "NZ" ? "NZ" : undefined,
+      );
       const demoChildName = typeof childName === "string" && childName.trim()
         ? childName.trim()
         : inferPrimaryChildName(observations);

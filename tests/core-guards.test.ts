@@ -886,6 +886,27 @@ test("a lower-case name in the note is still the child's name", () => {
   }
 });
 
+test("the focus child is never a routine word or a friend named later", () => {
+  // Found on production, 24 Sept 2026, through the homepage demo (which never
+  // sends a name): "Mat time waiata, Nikau..." was written up as a story about a
+  // child called Mat, and "zara at the easel ... showed Mia her hands" as a
+  // story about Mia.
+  assert.equal(
+    inferPrimaryChildName("Mat time waiata, Nikau stood at the front and did the actions for Tūtira mai ngā iwi with the big kids. Sang the whole first verse. Usually hides at the back."),
+    "Nikau",
+  );
+  assert.equal(inferPrimaryChildName("Kai time. Aroha poured her own water and passed the jug to Ben."), "Aroha");
+  // A lower-case opener followed by a verb is the child, whatever comes after.
+  assert.equal(inferPrimaryChildName("tui climbed the big tree and Mia watched from the bottom"), "Tui");
+  // Unsure (child or activity?): no name, so the writer reads it from the note
+  // instead of guessing wrong.
+  assert.equal(inferPrimaryChildName("zara at the easel mixing blue and yellow with her fingers. said green! when it changed. covered the whole page then did her hands. showed Mia her hands."), "");
+  assert.equal(inferPrimaryChildName("playdough with Liam, he rolled long snakes and cut them"), "");
+  // Properly capitalised notes are unchanged.
+  assert.equal(inferPrimaryChildName("Ruby (3) and Sam played shopkeepers."), "Ruby");
+  assert.equal(inferPrimaryChildName("Sarah noticed Ari pour water between two cups."), "Ari");
+});
+
 test("a name is found mid-sentence, and a two-word name is not cut in half", () => {
   // "so today at mat time jonah joined in" lost the name entirely because only
   // the first token was checked, and the story called him "the child".

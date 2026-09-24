@@ -3,7 +3,6 @@ import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
 import ProofStrip from "@/components/landing/ProofStrip";
 import HowItWorks from "@/components/landing/HowItWorks";
-import Capabilities from "@/components/landing/Capabilities";
 import Examples from "@/components/landing/Examples";
 import Pricing from "@/components/landing/Pricing";
 import FAQ from "@/components/landing/FAQ";
@@ -48,17 +47,20 @@ export default function LandingPage() {
       <PageTracker />
       <Navbar />
       <main>
+        {/* The "whole day" features (wall cards, pickup brief, passports) moved
+            to /features on 24 Sept 2026: in a 120-visitor panel, 109 said the
+            homepage had too much text and dozens named that section as what
+            buried the core story tool. */}
         {/* The order answers the questions in the order a visitor asks them:
             what is it (hero, demo), is the problem real and does it fit how I
             work (proof strip, how it works), will it make things up (accuracy),
-            what else does it do (capabilities), who is it for (audiences), show me (real examples), who is
+            who is it for (audiences), show me (real examples), who is
             behind it (founder), then price and questions. Reviews renders
             nothing until a real review is published. */}
         <Hero />
         <ProofStrip />
         <HowItWorks />
         <AccuracyProof />
-        <Capabilities />
         <Audiences />
         <Examples />
         <Founder />

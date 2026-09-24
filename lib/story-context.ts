@@ -135,6 +135,35 @@ const BLOCKED_NAME_WORDS = new Set([
   "Girls",
 ]);
 
+// Words after which the opening token of a shorthand note may be its subject.
+const OPENER_LINKS = new Set(["at", "in", "on", "with", "and", "was", "is", "had", "has"]);
+
+/**
+ * The opening word of a note written in lower case, when it sits in subject
+ * position and is not ordinary vocabulary ("zara at the easel", "tui climbed
+ * the tree"). `certain` when a verb follows it; otherwise it might be an
+ * activity ("playdough with Liam"). Only for notes that start in lower case:
+ * in a properly capitalised note, capitals carry the signal.
+ */
+function inferLowercaseOpener(text: string): { name: string; certain: boolean } {
+  const none = { name: "", certain: false };
+  if (!/^[a-z]/.test(text)) return none;
+  const tokens = text.match(/\b[A-Za-z][A-Za-z'-]*\b/g);
+  if (!tokens || tokens.length < 3) return none;
+  const lower = tokens[0];
+  if (lower !== lower.toLowerCase() || lower.length < 3) return none;
+  if (COMMON_WORDS.has(lower) || BLOCKED_NAME_WORDS.has(titleCaseName(lower))) return none;
+  // "painting at the easel", "pouring water": an activity, not a child.
+  if (lower.length >= 6 && /ing$/.test(lower)) return none;
+  const next = tokens[1].toLowerCase();
+  const afterNext = tokens[2]?.toLowerCase();
+  const certain =
+    FOLLOWING_VERBS.has(next) ||
+    (INTERVENING_ADVERBS.has(next) && afterNext !== undefined && FOLLOWING_VERBS.has(afterNext));
+  if (certain) return { name: titleCaseName(lower), certain: true };
+  return OPENER_LINKS.has(next) ? { name: titleCaseName(lower), certain: false } : none;
+}
+
 function cleanNameCandidate(value: string) {
   // Keep internal spaces so two-word names survive ("Te Ao", "Anna Maria").
   const cleaned = value.trim().replace(/[^A-Za-z'\- ]/g, "").replace(/\s+/g, " ").trim();
@@ -278,6 +307,13 @@ export function inferPrimaryChildName(observations: string) {
   const ageName = ageMatch ? cleanNameCandidate(ageMatch[1] ?? "") : "";
   if (ageName) return ageName;
 
+  // A note jotted in lower case usually opens with the child ("tui climbed
+  // the tree, Mia watched"). A verb after the opening word makes that certain.
+  // Without this, the only capitalised word (the friend) became the focus
+  // child and the whole story was about them.
+  const opener = inferLowercaseOpener(text);
+  if (opener.name && opener.certain) return opener.name;
+
   // Strong signal: an observation verb followed by a name, e.g. "noticed
   // Ari". Do not include ordinary child-to-child verbs such as "asked",
   // "helped", or "supported": "Ariana asked Luca" describes Luca as the
@@ -298,6 +334,10 @@ export function inferPrimaryChildName(observations: string) {
   while ((match = wordRegex.exec(text)) !== null) {
     const candidate = cleanNameCandidate(match[0]);
     if (!candidate) continue;
+    // At the start of a sentence a capital says nothing, so an ordinary word
+    // there is not a name: "Mat time waiata, Nikau stood at the front" was
+    // written up as a story about a child called Mat.
+    if (isSentenceStart(text, match.index) && COMMON_WORDS.has(candidate.toLowerCase())) continue;
     const isFirstCandidate = !firstCandidate;
     if (isFirstCandidate) firstCandidate = candidate;
     const focusBonus = isFirstCandidate ? 3 : 0;
@@ -308,6 +348,13 @@ export function inferPrimaryChildName(observations: string) {
 
   // No capitalised candidate at all: the note is probably all lower case.
   if (scores.size === 0) return inferLowercaseName(text);
+
+  // "zara at the easel ... showed Mia her hands": the opening word may be the
+  // child or may be an activity ("playdough with Liam"), and the capitalised
+  // name may be a friend. Guessing wrong writes the story about the wrong
+  // child, so say nothing and let the writer read the note (its prompt asks
+  // it to work the name out when none is given).
+  if (opener.name) return "";
 
   return (
     Array.from(scores.entries()).sort((a, b) => {

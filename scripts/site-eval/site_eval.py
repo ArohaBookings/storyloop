@@ -104,6 +104,13 @@ Return JSON only:
 - biggest_objection: the one thing most likely to stop you.
 - missing: what you wanted to know and could not find, or "nothing".
 - would_make_me_buy: the one change or proof that would most increase your chance of paying.
+- would_continue: 0-100, the chance you keep going (try it, sign up or read more) rather than close the tab.
+- amount_of_text: "too much", "about right" or "too little".
+- overload: 0-10, how overwhelmed you felt by the amount of information (0 calm, 10 overwhelmed).
+- makes_sense: 0-10, how well the page hangs together and makes sense to you.
+- looks_professional: 0-10, how professional and well made it looks.
+- trustworthy: 0-10, how much you trust it after a minute, especially with children's information.
+- hardest_part: the part of the page that was hardest to follow or least necessary, or "nothing".
 - one_line_verdict: what you would say to a colleague about it, in one sentence."""
 
 
@@ -334,6 +341,12 @@ def summarise(rows, real_signup_rate):
         "simulated_signup_per_visitor": round(sim_signup, 4),
         "simulated_paying_per_visitor": round(sim_pay, 4),
         "signup_ci95": (round(sorted(s for s, _ in sims)[50], 4), round(sorted(s for s, _ in sims)[1949], 4)),
+        "would_continue": mean_of(target, "would_continue"),
+        "overload": mean_of(target, "overload"),
+        "makes_sense": mean_of(target, "makes_sense"),
+        "looks_professional": mean_of(target, "looks_professional"),
+        "trustworthy_after_60s": mean_of(target, "trustworthy"),
+        "amount_of_text": count(r["sixty"].get("amount_of_text") for r in target),
         "next_actions": count(r["ten"].get("next_action") for r in target),
         "price_feels": count(r["sixty"].get("price_feels") for r in target),
     }
@@ -359,6 +372,12 @@ def summarise(rows, real_signup_rate):
     return summary
 
 
+def mean_of(rows, key):
+    """Mean of a 60-second numeric answer, skipping visitors who did not give one."""
+    values = [r["sixty"].get(key) for r in rows if isinstance(r["sixty"].get(key), (int, float))]
+    return round(statistics.mean(values), 2) if values else None
+
+
 def count(values):
     out = {}
     for value in values:
@@ -382,6 +401,10 @@ def render(summary, rows, meta):
     for r in rows:
         if r["target"]:
             lines.append("- (%s) %s" % (r["persona"], r["sixty"].get("would_make_me_buy")))
+    lines += ["", "## Hardest to follow, or least needed", ""]
+    for r in rows:
+        if r["target"] and (r["sixty"].get("hardest_part") or "nothing").lower() not in ("nothing", "none"):
+            lines.append("- (%s, %s) %s" % (r["persona"], r["device"], r["sixty"].get("hardest_part")))
     lines += ["", "## Misunderstood in ten seconds", ""]
     for r in rows:
         if r["target"] and not r["grade"]["understood"]:
@@ -396,7 +419,8 @@ def cmd_compare(args):
     base = json.loads((Path(args.baseline) / "panel.json").read_text())["summary"]
     cand = json.loads((Path(args.candidate) / "panel.json").read_text())["summary"]
     keys = ["understood_in_10s", "knew_what", "knew_who", "knew_cost", "knew_trial", "stay_rate", "clarity", "trust",
-            "interest", "simulated_signup_per_visitor", "simulated_paying_per_visitor"]
+            "interest", "would_continue", "overload", "makes_sense", "looks_professional", "trustworthy_after_60s",
+            "simulated_signup_per_visitor", "simulated_paying_per_visitor"]
     print("%-32s %10s %10s %8s" % ("measure", "baseline", "candidate", "change"))
     for key in keys:
         b, c = base.get(key), cand.get(key)
