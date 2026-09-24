@@ -27,7 +27,9 @@ export function configuredPriceId(plan: PlanKey, currency: CurrencyCode) {
  */
 const KNOWN_LIVE_PRICES: Partial<Record<PlanKey, Record<CurrencyCode, string>>> = {
   educator: { NZD: "price_1TOVoR1eBrPYVPx1aFF8yBKX", AUD: "price_1TOVnZ1eBrPYVPx1zY3G1coE" },
-  educator_pro: { NZD: "price_1Txxpo1eBrPYVPx1iCmMUDks", AUD: "price_1Txxpo1eBrPYVPx197rLIWoS" },
+  // Own product "StoryLoop Educator Pro" since 24 Sept 2026 (the old prices sat on the
+  // "StoryLoop Educator" product, so checkout called Pro "Educator"). No subscriber was on the old ones.
+  educator_pro: { NZD: "price_1UJ3mM1eBrPYVPx1xgCamsYu", AUD: "price_1UJ3mN1eBrPYVPx1lLG8uXbI" },
   centre_starter: { NZD: "price_1Txxpo1eBrPYVPx1JuyK3z6v", AUD: "price_1Txxpp1eBrPYVPx1A6mKniLI" },
   centre_growth: { NZD: "price_1Txxpp1eBrPYVPx1phvqIh7w", AUD: "price_1Txxpq1eBrPYVPx1LQIEtl5G" },
 };
