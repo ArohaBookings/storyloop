@@ -11,6 +11,7 @@ import { trialLapsedWithoutCard } from "@/lib/centre-offer";
 import { SITE_URL } from "@/lib/email/config";
 import { recordServerEvent } from "@/lib/analytics/server";
 import { PLAN_ORDER } from "@/lib/plans";
+import { stripeEventFacts, type StripeEventFacts } from "@/lib/stripe-events";
 
 function getStripe() {
   return createStripe();
@@ -366,8 +367,101 @@ async function processStripeEvent(admin: ReturnType<typeof createAdminSupabase>,
       return;
     }
 
+    case "checkout.session.expired": {
+      // Opened Stripe and walked away. The abandoned-checkout email already
+      // finds these by scanning Stripe; this puts the moment on the funnel.
+      const session = event.data.object as Stripe.Checkout.Session;
+      if (session.metadata?.user_id) {
+        await recordServerEvent(admin, {
+          event: "checkout_expired",
+          userId: session.metadata.user_id,
+          path: "/api/stripe/webhook",
+          metadata: { plan: session.metadata.plan, offer: session.metadata.offer_id, checkout_session: session.id },
+        });
+      }
+      return;
+    }
+
+    // Recorded in the event log for the admin page (see logStoryLoopEvent);
+    // nothing about the account changes, so nothing else to do here.
+    case "customer.subscription.trial_will_end":
+    case "invoice.payment_action_required":
+    case "invoice.upcoming":
+    case "charge.refunded":
+    case "charge.dispute.created":
+    case "charge.dispute.closed":
+    case "customer.updated":
+      return;
+
     default:
       return;
+  }
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const CUSTOMER_ID = /^cus_[A-Za-z0-9]+$/;
+
+async function findStoryLoopAccount(admin: ReturnType<typeof createAdminSupabase>, userId: string | null, customerId: string | null) {
+  const safeUser = userId && UUID.test(userId) ? userId : null;
+  const safeCustomer = customerId && CUSTOMER_ID.test(customerId) ? customerId : null;
+  if (!safeUser && !safeCustomer) return null;
+  const filters = [safeUser ? `id.eq.${safeUser}` : null, safeCustomer ? `stripe_customer_id.eq.${safeCustomer}` : null].filter(Boolean).join(",");
+  const { data, error } = await admin.from("profiles").select("id").or(filters).limit(1);
+  if (error) throw error;
+  if (data?.[0]?.id) return data[0].id as string;
+  if (safeCustomer) {
+    const centre = await admin.from("centres").select("id").eq("stripe_customer_id", safeCustomer).limit(1);
+    if (!centre.error && centre.data?.length) return "centre";
+  }
+  return null;
+}
+
+/**
+ * Whose event is this? The Stripe account is shared with Leo's other
+ * businesses and Stripe sends every endpoint every event of a subscribed type,
+ * so this webhook also hears their checkouts and invoices. An event is
+ * StoryLoop's when its user_id metadata or its customer belongs to a StoryLoop
+ * account: exactly the events the handlers above could change anything for.
+ * Everything else is answered and dropped, never recorded.
+ *
+ * A lookup failure throws, so Stripe retries rather than a real StoryLoop
+ * event being dropped.
+ */
+async function storyLoopOwner(admin: ReturnType<typeof createAdminSupabase>, event: Stripe.Event, facts: StripeEventFacts) {
+  let customerId = facts.customerId;
+  const object = event.data.object as unknown as Record<string, unknown>;
+  // A dispute names the charge, not the customer.
+  if (!customerId && event.type.startsWith("charge.dispute.") && typeof object.charge === "string") {
+    const charge = await getStripe().charges.retrieve(object.charge);
+    customerId = typeof charge.customer === "string" ? charge.customer : charge.customer?.id ?? null;
+  }
+  const found = await findStoryLoopAccount(admin, facts.userId, customerId);
+  if (found) return found;
+  // An invoice snapshot without an owner: ask its subscription, as handleInvoicePaid would.
+  if (!facts.userId && facts.subscriptionId && event.type.startsWith("invoice.")) {
+    const subscription = await getStripe().subscriptions.retrieve(facts.subscriptionId);
+    return findStoryLoopAccount(admin, subscription.metadata?.user_id ?? null, null);
+  }
+  return null;
+}
+
+/** The plain-English line the admin page shows. Never throws. */
+async function logStoryLoopEvent(admin: ReturnType<typeof createAdminSupabase>, event: Stripe.Event, facts: StripeEventFacts, owner: string) {
+  try {
+    await admin
+      .from("stripe_webhook_events")
+      .update({
+        user_id: owner !== "centre" ? owner : facts.userId,
+        customer_id: facts.customerId,
+        amount: facts.amount,
+        currency: facts.currency,
+        plan: facts.plan,
+        summary: facts.summary,
+        stripe_created_at: event.created ? new Date(event.created * 1000).toISOString() : null,
+      })
+      .eq("event_id", event.id);
+  } catch (error) {
+    console.error("Stripe event log write skipped:", error);
   }
 }
 
@@ -428,11 +522,18 @@ export async function POST(request: NextRequest) {
   const admin = createAdminSupabase();
 
   try {
+    const facts = stripeEventFacts(event as unknown as Parameters<typeof stripeEventFacts>[0]);
+    const owner = await storyLoopOwner(admin, event, facts);
+    // Another business's event: answered so Stripe stops sending it, and
+    // nothing about it is stored.
+    if (!owner) return NextResponse.json({ received: true, ignored: "not_storyloop" });
+
     const shouldProcess = await beginWebhookEvent(admin, event);
     if (!shouldProcess) return NextResponse.json({ received: true, duplicate: true });
 
     await processStripeEvent(admin, event);
     await finishWebhookEvent(admin, event.id, "processed");
+    await logStoryLoopEvent(admin, event, facts, owner);
     return NextResponse.json({ received: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown webhook error";

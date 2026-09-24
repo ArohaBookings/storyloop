@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, JetBrains_Mono, Manrope } from "next/font/google";
 import "./globals.css";
+import CookieBanner from "@/components/consent/CookieBanner";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -185,7 +186,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       </head>
-      <body className={`${fraunces.variable} ${manrope.variable} ${jetBrainsMono.variable}`}>{children}</body>
+      <body className={`${fraunces.variable} ${manrope.variable} ${jetBrainsMono.variable}`}>
+        {children}
+        <CookieBanner />
+      </body>
     </html>
   );
 }

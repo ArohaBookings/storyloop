@@ -7,7 +7,7 @@ import PageTracker from "@/components/analytics/PageTracker";
 import { ACCURACY_REPORT as R } from "@/lib/accuracy-report";
 
 export const metadata: Metadata = {
-  title: "How often does StoryLoop get it wrong?",
+  title: "How accurate are StoryLoop's learning story drafts?",
   description:
     "The StoryLoop accuracy report: every release is tested on the same 24 real-style notes, checked by rules and by an independent AI reviewer. The latest results, including what is still being fixed.",
   alternates: { canonical: "https://storyloop.space/accuracy" },
@@ -26,9 +26,9 @@ function longDate(iso: string) {
 export default function AccuracyPage() {
   const perDraft = (R.interpretationsAsFact / R.drafts).toFixed(1);
   const headline = [
-    { value: `${R.wordsInChildMouth} of ${R.drafts}`, label: "drafts put words in a child's mouth", note: "Every quote checked against the note, by rule" },
-    { value: `${R.frameworkMixups}`, label: "framework mix-ups", note: "No EYLF in a New Zealand story, no Te Whāriki in an Australian one" },
-    { value: `${R.fidelity.toFixed(1)}/10`, label: "fidelity to the note", note: "Average, scored by an independent AI reviewer" },
+    { value: `${R.drafts - R.wordsInChildMouth} of ${R.drafts}`, label: "drafts kept every child's quote word for word", note: "Every quote checked against the note, by rule" },
+    { value: `${R.drafts - R.frameworkMixups} of ${R.drafts}`, label: "used the right framework for the country", note: "Te Whāriki in New Zealand, EYLF V2.0 in Australia" },
+    { value: `${R.fidelity.toFixed(1)}/10`, label: "faithful to the educator's note", note: "Average, scored by an independent AI reviewer" },
     { value: perDraft, label: "interpretations written as if seen, per draft", note: "What we are fixing next. Details below." },
   ];
 
@@ -41,7 +41,7 @@ export default function AccuracyPage() {
           <div className="wide-shell">
             <p className="section-title mb-3">Accuracy report, {longDate(R.date)}</p>
             <h1 className="max-w-4xl font-display text-4xl font-bold leading-[1.05] tracking-tight text-ink-900 text-balance md:text-6xl">
-              How often does StoryLoop <span className="italic text-clay-700">get it wrong?</span>
+              How accurate are <span className="italic text-clay-700">StoryLoop&apos;s drafts?</span>
             </h1>
             <p className="mt-5 max-w-3xl text-lg leading-relaxed text-ink-700">
               Before a change to how stories are written can ship, the same {R.notes} notes go through the real writer twice
@@ -100,7 +100,7 @@ export default function AccuracyPage() {
             </div>
             <div className="space-y-5 text-base leading-relaxed text-ink-700">
               <p>
-                No draft in this test gave a child words they did not say. The weakness the reviewer found most is subtler:
+                In every draft, each child&apos;s quote matched the note word for word. The thing the reviewer flagged most is subtler:
                 about {perDraft} times per draft, a sentence reads as something observed when it is really the writer&apos;s
                 reading of the moment. These are the reviewer&apos;s own examples, word for word:
               </p>

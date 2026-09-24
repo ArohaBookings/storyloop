@@ -150,6 +150,8 @@ export async function POST(request: NextRequest) {
       // activation offer, then the referral discount.
       const appliedCoupon = founding ?? activationCoupon ?? referralCoupon;
       const metadata = {
+        // Marks StoryLoop's own checkouts on the shared Stripe account.
+        app: "storyloop",
         user_id: user.id,
         plan: selectedPlan,
         currency: selectedCurrency,

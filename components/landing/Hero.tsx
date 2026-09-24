@@ -6,7 +6,7 @@ import StoryDemo from "./StoryDemo";
 /**
  * The three things a 120-visitor simulated panel (scripts/site-eval, 23 Sept
  * 2026) said stopped them trusting the page in the first ten seconds: will it
- * put words in a child's mouth, what happens to children's data, and does it
+ * change what children said, what happens to children's data, and does it
  * mean leaving Storypark. Each answered in one line, with the proof one click
  * away. "Built by Leo, 20" was the single most repeated hesitation at the
  * decision point, so the founder story moved to its own section further down,

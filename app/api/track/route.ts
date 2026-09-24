@@ -35,7 +35,44 @@ const ALLOWED_EVENTS = new Set([
   "offer_click",
   "demo_example_played",
   "demo_evidence_opened",
+  // The cookie banner answer itself, so the admin can see the allow rate.
+  "consent_choice",
+  // Only with consent (see BEHAVIOUR_EVENTS below).
+  "rage_click",
+  "copy",
+  "form_abandon",
+  "js_error",
 ]);
+
+// Behaviour, as opposed to the funnel. The browser only sends these after the
+// visitor chose "Allow" on the cookie banner; this is the server-side backstop
+// so a stale tab or a hand-made request cannot record them without consent.
+const BEHAVIOUR_EVENTS = new Set(["click", "scroll_depth", "section_view", "page_exit", "rage_click", "copy", "form_abandon", "js_error"]);
+
+// What a page view may carry with consent: screen, language, time zone,
+// connection and returning-visit counts. Anything else is dropped.
+const CONTEXT_KEYS = new Set(["vw", "vh", "dpr", "lang", "tz", "conn", "visit", "days_since_first"]);
+
+function browserFrom(userAgent: string | null) {
+  if (!userAgent) return undefined;
+  const browser = /Edg\//.test(userAgent) ? "edge"
+    : /OPR\/|Opera/.test(userAgent) ? "opera"
+    : /SamsungBrowser/.test(userAgent) ? "samsung"
+    : /FBAN|FBAV|FB_IAB/.test(userAgent) ? "facebook-app"
+    : /Instagram/.test(userAgent) ? "instagram-app"
+    : /CriOS|Chrome\//.test(userAgent) ? "chrome"
+    : /FxiOS|Firefox\//.test(userAgent) ? "firefox"
+    : /Safari\//.test(userAgent) ? "safari"
+    : "other";
+  const os = /iPhone|iPad|iPod/.test(userAgent) ? "ios"
+    : /Android/.test(userAgent) ? "android"
+    : /Windows/.test(userAgent) ? "windows"
+    : /Mac OS X|Macintosh/.test(userAgent) ? "macos"
+    : /CrOS/.test(userAgent) ? "chromeos"
+    : /Linux/.test(userAgent) ? "linux"
+    : "other";
+  return { browser, os };
+}
 
 function clean(value: unknown, max = 200) {
   if (typeof value !== "string") return null;
@@ -68,6 +105,20 @@ function deviceFrom(userAgent: string | null) {
   return "desktop";
 }
 
+function metadataFor(eventType: string, raw: unknown, consent: "all" | "essential" | "unset", userAgent: string | null) {
+  const metadata: Record<string, unknown> = raw && typeof raw === "object" && !Array.isArray(raw) ? { ...(raw as Record<string, unknown>) } : {};
+  if (eventType === "page_view") {
+    for (const key of Object.keys(metadata)) {
+      // Screen and visit details only with consent.
+      if (CONTEXT_KEYS.has(key) && consent !== "all") delete metadata[key];
+    }
+    if (consent === "all") Object.assign(metadata, browserFrom(userAgent) ?? {});
+  }
+  metadata.consent = consent;
+  // One oversized payload should not bloat the table.
+  return JSON.stringify(metadata).length > 4000 ? { consent, truncated: true } : metadata;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
@@ -77,6 +128,11 @@ export async function POST(request: NextRequest) {
       // Never surface analytics problems to a visitor; just accept and drop.
       return NextResponse.json({ ok: true });
     }
+    // The cookie choice: the browser's own answer, backed by the cookie.
+    const consent = body.consent === "all" && request.cookies.get("sl_consent")?.value === "all" ? "all"
+      : body.consent === "essential" || request.cookies.get("sl_consent")?.value === "essential" ? "essential"
+      : "unset";
+    if (consent !== "all" && BEHAVIOUR_EVENTS.has(eventType)) return NextResponse.json({ ok: true });
 
     // Abuse guard. The session id comes from the browser, so limiting on it
     // alone is trivially bypassed by generating a new one per request. Limit on
@@ -105,7 +161,7 @@ export async function POST(request: NextRequest) {
       utm_campaign: clean(body.utmCampaign, 80),
       device: deviceFrom(request.headers.get("user-agent")),
       country: request.headers.get("x-vercel-ip-country")?.slice(0, 4) ?? null,
-      metadata: body.metadata && typeof body.metadata === "object" ? body.metadata : {},
+      metadata: metadataFor(eventType, body.metadata, consent, request.headers.get("user-agent")),
     });
 
     return NextResponse.json({ ok: true });

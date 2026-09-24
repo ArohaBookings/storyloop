@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AnimatedLogo from "@/components/brand/AnimatedLogo";
+import { CookiePreferencesButton } from "@/components/consent/CookieBanner";
 
 export default function Footer() {
   return (
@@ -68,6 +69,7 @@ export default function Footer() {
           <div className="flex items-center gap-5 text-xs text-ink-300">
             <Link href="/privacy" className="hover:text-paper transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-paper transition-colors">Terms</Link>
+            <CookiePreferencesButton className="hover:text-paper transition-colors" />
             <a href="mailto:ariacareapp@gmail.com" className="hover:text-paper transition-colors">Contact</a>
           </div>
         </div>

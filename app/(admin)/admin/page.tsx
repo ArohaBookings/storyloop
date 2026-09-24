@@ -6,6 +6,7 @@ import { createAdminSupabase } from "@/lib/supabase/admin";
 import { loadStripeSnapshot, loadStripeSnapshotFresh } from "@/lib/admin-command";
 import { assessBillingRisk, worstRisk, type Risk } from "@/lib/billing-risk";
 import { summariseFunnel, type EventRow } from "@/lib/admin-funnel";
+import { behaviourHeadlines, summariseBehaviour } from "@/lib/admin-behaviour";
 import { audToNzdRate } from "@/lib/stripe-mrr";
 import { MRR_GOAL_NZD } from "@/lib/mrr";
 import { getPlanByKey, normalizePlanKey } from "@/lib/plans";
@@ -92,10 +93,13 @@ export default async function CommandCentre({ searchParams }: { searchParams: Pr
 
   const sb = createAdminSupabase();
   const sinceIso = new Date(Date.now() - 30 * 86_400_000).toISOString();
-  const [profilesRes, eventsRes] = await Promise.all([
+  const [profilesRes, eventsRes, stripeLogRes] = await Promise.all([
     sb.from("profiles").select("id, full_name, email, plan, subscription_status, stripe_customer_id, created_at, last_seen_at, total_stories, stories_this_month, is_internal").limit(10000),
     sb.from("page_events").select("event_type, session_id, user_id, path, referrer_host, utm_source, device, metadata, created_at").gte("created_at", sinceIso).order("created_at", { ascending: false }).limit(25000),
+    // StoryLoop's own Stripe events, in a sentence each (lib/stripe-events.ts).
+    sb.from("stripe_webhook_events").select("event_id, type, status, user_id, summary, amount, currency, received_at, stripe_created_at").not("summary", "is", null).order("received_at", { ascending: false }).limit(40),
   ]);
+  const stripeLog = (stripeLogRes.data ?? []) as Array<{ event_id: string; type: string; status: string; user_id: string | null; summary: string; received_at: string; stripe_created_at: string | null }>;
   const profiles = (profilesRes.data ?? []) as Profile[];
   const byId = new Map(profiles.map((profile) => [profile.id, profile]));
   const userIds = profiles.map((profile) => profile.id).sort();
@@ -138,6 +142,8 @@ export default async function CommandCentre({ searchParams }: { searchParams: Pr
     sinceIso,
   });
   const maxDaily = Math.max(1, ...funnel.daily.map((d) => d.visitors));
+  const behaviour = summariseBehaviour({ events: (eventsRes.data ?? []) as EventRow[], sinceIso });
+  const behaviourLines = behaviourHeadlines(behaviour);
   const eventsCapped = (eventsRes.data?.length ?? 0) >= 25000;
 
   const goalPercent = Math.min(100, Math.round((mrrNzd / MRR_GOAL_NZD) * 1000) / 10);
@@ -364,7 +370,7 @@ export default async function CommandCentre({ searchParams }: { searchParams: Pr
         </div>
 
         <div className="grid gap-5 xl:grid-cols-3">
-          <Panel title="What visitors click" kicker="Top 25, last 30 days" id="clicks">
+          <Panel title="What visitors click" kicker="Top 25, 30 days, those who allowed analytics" id="clicks">
             {funnel.clicks.length === 0 ? (
               <p className="text-sm text-ink-400">Click tracking starts with this release. Check back in a day.</p>
             ) : (
@@ -379,7 +385,7 @@ export default async function CommandCentre({ searchParams }: { searchParams: Pr
             )}
           </Panel>
 
-          <Panel title="How far they read the homepage" kicker={`${funnel.homeSessions} homepage visits`} id="reading">
+          <Panel title="How far they read the homepage" kicker={`${funnel.homeSessions} homepage visits, reading measured with consent`} id="reading">
             <p className="text-sm text-ink-300">Median time on the homepage: <strong className="text-paper">{funnel.homeSeconds != null ? `${funnel.homeSeconds}s` : "not yet measured"}</strong></p>
             <div className="mt-3 grid grid-cols-4 gap-2 text-center">
               {funnel.depth.map((row) => (
@@ -412,6 +418,93 @@ export default async function CommandCentre({ searchParams }: { searchParams: Pr
             <p className="mt-2 text-xs text-ink-400">Top pages: {funnel.pages.slice(0, 8).map((row) => `${row.path} ${row.sessions}`).join(" · ")}</p>
           </Panel>
         </div>
+
+        <Panel title="Stripe, as it happens" kicker="StoryLoop's events only, newest first" id="stripe-log">
+          {stripeLog.length === 0 ? (
+            <p className="text-sm text-ink-400">Stripe events appear here in a sentence each from this release on. Other businesses on the Stripe account are filtered out before anything is stored.</p>
+          ) : (
+            <ul className="divide-y divide-ink-800">
+              {stripeLog.map((entry) => {
+                const person = entry.user_id ? byId.get(entry.user_id) : undefined;
+                const tone = /failed|dispute|needs them/i.test(entry.summary) ? "bg-rose-400" : /Cancelled|ended|did not finish/i.test(entry.summary) ? "bg-amber-400" : /Paid|paid|Trial turned|Subscribed|Started/i.test(entry.summary) ? "bg-sage-400" : "bg-ink-500";
+                return (
+                  <li key={entry.event_id} className="flex items-start gap-3 py-2 text-sm">
+                    <span className={`mt-1.5 h-2 w-2 flex-none rounded-full ${tone}`} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-ink-100"><strong className="text-paper">{person?.full_name || person?.email || "A StoryLoop account"}</strong>: {entry.summary}{entry.status === "failed" ? " (handler failed, Stripe will retry)" : ""}</p>
+                    </div>
+                    <time className="flex-none text-xs tabular-nums text-ink-500" dateTime={entry.stripe_created_at ?? entry.received_at}>
+                      {new Date(entry.stripe_created_at ?? entry.received_at).toLocaleString("en-NZ", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Pacific/Auckland" })}
+                    </time>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </Panel>
+
+        <Panel title="What visitors do, in plain English" kicker="Cookie choices and behaviour, 30 days" id="behaviour">
+          {behaviourLines.length === 0 ? (
+            <p className="text-sm text-ink-400">The cookie banner and deeper tracking start with this release. Check back in a day.</p>
+          ) : (
+            <ul className="space-y-1.5 text-sm text-ink-100">
+              {behaviourLines.map((line) => <li key={line} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-clay-400" />{line}</li>)}
+            </ul>
+          )}
+          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-xl border border-ink-800 p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-ink-400">Cookie answer</p>
+              <dl className="mt-2 grid grid-cols-3 gap-2 text-center">
+                <div><dd className="font-display text-2xl font-bold tabular-nums">{behaviour.consent.allowed}</dd><dt className="text-[11px] text-ink-500">allowed</dt></div>
+                <div><dd className="font-display text-2xl font-bold tabular-nums">{behaviour.consent.essential}</dd><dt className="text-[11px] text-ink-500">essential only</dt></div>
+                <div><dd className="font-display text-2xl font-bold tabular-nums">{behaviour.consent.neverAnswered}</dd><dt className="text-[11px] text-ink-500">never answered</dt></div>
+              </dl>
+              <p className="mt-2 text-[11px] leading-snug text-ink-500">Everything below this box comes only from visitors who allowed analytics.</p>
+            </div>
+            <div className="rounded-xl border border-ink-800 p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-ink-400">Page speed ({behaviour.speed.samples} loads)</p>
+              <dl className="mt-2 space-y-1 text-xs text-ink-300">
+                <div className="flex justify-between"><dt>Main content shown</dt><dd className="tabular-nums text-paper">{behaviour.speed.lcpMs != null ? `${(behaviour.speed.lcpMs / 1000).toFixed(1)}s` : "n/a"}</dd></div>
+                <div className="flex justify-between"><dt>Slower than 2.5s</dt><dd className="tabular-nums text-paper">{behaviour.speed.slowLoadRate ?? 0}%</dd></div>
+                <div className="flex justify-between"><dt>Slowest tap response</dt><dd className="tabular-nums text-paper">{behaviour.speed.inpMs != null ? `${Math.round(behaviour.speed.inpMs)}ms` : "n/a"}</dd></div>
+                <div className="flex justify-between"><dt>Layout jumping (CLS)</dt><dd className="tabular-nums text-paper">{behaviour.speed.cls ?? "n/a"}</dd></div>
+                <div className="flex justify-between"><dt>Server response</dt><dd className="tabular-nums text-paper">{behaviour.speed.ttfbMs != null ? `${Math.round(behaviour.speed.ttfbMs)}ms` : "n/a"}</dd></div>
+              </dl>
+            </div>
+            <div className="rounded-xl border border-ink-800 p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-ink-400">Where they get stuck</p>
+              <ul className="mt-2 space-y-1 text-xs text-ink-300">
+                {[...behaviour.rageClicks.slice(0, 3).map((r) => `Frustrated clicks: ${r.key} ×${r.count}`), ...behaviour.formAbandons.slice(0, 3).map((r) => `Unfinished: ${r.key} ×${r.count}`), ...behaviour.errors.slice(0, 2).map((r) => `Error: ${r.key} ×${r.count}`)].map((line) => <li key={line}>{line}</li>)}
+                {behaviour.rageClicks.length + behaviour.formAbandons.length + behaviour.errors.length === 0 && <li className="text-ink-500">Nothing yet.</li>}
+              </ul>
+            </div>
+            <div className="rounded-xl border border-ink-800 p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-ink-400">Who they are ({behaviour.audience.sessions})</p>
+              <ul className="mt-2 space-y-1 text-xs text-ink-300">
+                {behaviour.audience.browsers.slice(0, 3).map((r) => <li key={r.key}>{r.key}: {r.count}</li>)}
+                {behaviour.audience.screens.map((r) => <li key={r.key}>{r.key}: {r.count}</li>)}
+                {behaviour.audience.timezones.slice(0, 3).map((r) => <li key={r.key}>{r.key.replace("_", " ")}: {r.count}</li>)}
+                {behaviour.audience.returningRate != null && <li>Returning visitors: {behaviour.audience.returningRate}%</li>}
+              </ul>
+            </div>
+          </div>
+          {behaviour.attention.length > 0 && (
+            <div className="mt-5">
+              <p className="text-xs font-bold uppercase tracking-wider text-ink-400">What holds attention on the homepage (median seconds on screen)</p>
+              <ul className="mt-2 grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
+                {behaviour.attention.map((row) => (
+                  <li key={row.section} className="text-xs">
+                    <div className="flex justify-between text-ink-300"><span>{row.section}</span><span className="tabular-nums">{row.medianSeconds}s · {row.visitors} people</span></div>
+                    <div className="mt-0.5 h-1.5 rounded-full bg-ink-800"><div className="h-full rounded-full bg-clay-500" style={{ width: `${Math.min(100, (row.medianSeconds / Math.max(1, behaviour.attention[0].medianSeconds)) * 100)}%` }} /></div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {behaviour.copies.length > 0 && (
+            <p className="mt-3 text-xs text-ink-400">Most copied from: {behaviour.copies.map((r) => `${r.key} ×${r.count}`).join(" · ")}</p>
+          )}
+        </Panel>
 
         <Panel title="Visitors and signups by day" kicker="Last 30 days" id="daily">
           <div className="flex h-32 items-end gap-1" aria-label="Visitors per day, with signups marked">

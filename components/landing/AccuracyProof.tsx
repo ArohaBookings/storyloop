@@ -15,12 +15,12 @@ export default function AccuracyProof() {
       <div className="wide-shell grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
         <div>
           <h2 className="max-w-2xl font-display text-3xl font-bold leading-tight text-ink-900 text-balance md:text-4xl">
-            Built so it cannot put words in a child&apos;s mouth.
+            Every story stays true to what you saw.
           </h2>
           <ul className="mt-8 grid gap-6">
             {[
-              { icon: Quote, title: "Their words, checked", body: `Quotes are checked against your note before you see the draft. In testing, not one of ${R.drafts} drafts gave a child words they did not say.` },
-              { icon: ScanSearch, title: "Every draft shows its working", body: "What it took straight from your note, and what it assumed. You see both before you share anything." },
+              { icon: Quote, title: "Children's words, kept as they said them", body: "When your note has a child's own words, the draft uses them exactly, and every quote is checked against your note before you see it." },
+              { icon: ScanSearch, title: "You can see how each draft was built", body: "What it took from your note, and anything it assumed, sits beside the draft for you to check before you share." },
               { icon: ListChecks, title: "Tested before every change", body: `The same ${R.notes} notes, ${R.drafts} drafts, checked by rule and by an independent AI reviewer. Nothing ships if it gets worse.` },
             ].map((item) => (
               <li key={item.title} className="flex gap-4">
@@ -40,15 +40,15 @@ export default function AccuracyProof() {
           <p className="text-sm font-semibold text-ink-500">Latest accuracy test</p>
           <dl className="mt-4 divide-y divide-clay-200">
             <div className="flex items-baseline justify-between gap-4 py-3">
-              <dt className="text-base text-ink-700">Drafts that put words in a child&apos;s mouth</dt>
-              <dd className="font-display text-3xl font-bold tabular-nums text-ink-900">{R.wordsInChildMouth} of {R.drafts}</dd>
+              <dt className="text-base text-ink-700">Drafts with every child&apos;s quote word for word</dt>
+              <dd className="flex-none font-display text-3xl font-bold tabular-nums text-ink-900">{R.drafts - R.wordsInChildMouth} of {R.drafts}</dd>
             </div>
             <div className="flex items-baseline justify-between gap-4 py-3">
-              <dt className="text-base text-ink-700">Framework mix-ups</dt>
-              <dd className="font-display text-3xl font-bold tabular-nums text-ink-900">{R.frameworkMixups}</dd>
+              <dt className="text-base text-ink-700">Right framework for the country</dt>
+              <dd className="flex-none font-display text-3xl font-bold tabular-nums text-ink-900">{R.drafts - R.frameworkMixups} of {R.drafts}</dd>
             </div>
             <div className="flex items-baseline justify-between gap-4 py-3">
-              <dt className="text-base text-ink-700">Fidelity to the note</dt>
+              <dt className="text-base text-ink-700">Faithful to the educator&apos;s note</dt>
               <dd className="font-display text-3xl font-bold tabular-nums text-ink-900">{R.fidelity.toFixed(1)}/10</dd>
             </div>
           </dl>

@@ -1,10 +1,27 @@
 "use client";
 
-// Tiny first-party funnel tracker. No third-party scripts, no cookies beyond a
-// single anonymous session id, nothing that can slow down or break a page.
+// Tiny first-party funnel tracker. No third-party scripts, nothing that can
+// slow down or break a page. How much it records depends on the visitor's
+// cookie choice (lib/analytics/consent.ts): without "Allow", only page views
+// and funnel steps, against an id that lives in this tab only.
+
+import { consentLevel, fullTracking, type ConsentChoice } from "./consent";
 
 const SESSION_KEY = "storyloop_sid";
 const ATTRIBUTION_KEY = "storyloop_attr";
+const VISITOR_KEY = "storyloop_visitor";
+
+/** Events that describe behaviour rather than the funnel. Sent only after "Allow". */
+export const BEHAVIOUR_EVENTS = new Set([
+  "click",
+  "scroll_depth",
+  "section_view",
+  "page_exit",
+  "rage_click",
+  "copy",
+  "form_abandon",
+  "js_error",
+]);
 
 export type Attribution = {
   utmSource?: string;
@@ -18,7 +35,7 @@ export type Attribution = {
   fbclidAt?: number;
 };
 
-function safeStorage(): Storage | null {
+function localStore(): Storage | null {
   try {
     if (typeof window === "undefined" || !window.localStorage) return null;
     return window.localStorage;
@@ -27,18 +44,119 @@ function safeStorage(): Storage | null {
   }
 }
 
-export function getSessionId() {
-  const store = safeStorage();
-  if (!store) return "nostore";
-  let id = store.getItem(SESSION_KEY);
-  if (!id) {
-    id =
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID()
-        : `s_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-    store.setItem(SESSION_KEY, id);
+function tabStore(): Storage | null {
+  try {
+    if (typeof window === "undefined" || !window.sessionStorage) return null;
+    return window.sessionStorage;
+  } catch {
+    return null;
   }
+}
+
+/** Kept between visits only with consent; otherwise this tab only. */
+function safeStorage(): Storage | null {
+  return fullTracking() ? localStore() : tabStore();
+}
+
+function newId() {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `s_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+let memoryId: string | null = null;
+
+export function getSessionId() {
+  const full = fullTracking();
+  const store = full ? localStore() : tabStore();
+  if (!store) {
+    memoryId ??= newId();
+    return memoryId;
+  }
+  let id = store.getItem(SESSION_KEY);
+  if (!id && full) {
+    // Just allowed: carry on with this tab's id so the visit stays one visit.
+    id = tabStore()?.getItem(SESSION_KEY) ?? null;
+  }
+  if (!id) id = memoryId ?? newId();
+  try {
+    store.setItem(SESSION_KEY, id);
+  } catch {
+    /* storage full or blocked */
+  }
+  memoryId = id;
   return id;
+}
+
+/**
+ * Called when the visitor makes or changes their choice. Declining removes
+ * everything kept between visits; the tab's own id carries on so this visit is
+ * still counted once.
+ */
+export function applyConsent(choice: ConsentChoice) {
+  const local = localStore();
+  const tab = tabStore();
+  if (choice === "essential") {
+    try {
+      const id = local?.getItem(SESSION_KEY);
+      const attribution = local?.getItem(ATTRIBUTION_KEY);
+      if (id && !tab?.getItem(SESSION_KEY)) tab?.setItem(SESSION_KEY, id);
+      if (attribution && !tab?.getItem(ATTRIBUTION_KEY)) tab?.setItem(ATTRIBUTION_KEY, attribution);
+      local?.removeItem(SESSION_KEY);
+      local?.removeItem(ATTRIBUTION_KEY);
+      local?.removeItem(VISITOR_KEY);
+    } catch {
+      /* nothing to clear */
+    }
+    return;
+  }
+  try {
+    const id = tab?.getItem(SESSION_KEY);
+    const attribution = tab?.getItem(ATTRIBUTION_KEY);
+    if (id && !local?.getItem(SESSION_KEY)) local?.setItem(SESSION_KEY, id);
+    if (attribution && !local?.getItem(ATTRIBUTION_KEY)) local?.setItem(ATTRIBUTION_KEY, attribution);
+  } catch {
+    /* storage blocked */
+  }
+}
+
+/**
+ * With consent, what a page view can say about the visit: the screen, the
+ * language and time zone, the connection, and whether this person has been
+ * before. Nothing that identifies them.
+ */
+export function visitContext(): Record<string, unknown> {
+  if (typeof window === "undefined" || !fullTracking()) return {};
+  const context: Record<string, unknown> = {
+    vw: window.innerWidth,
+    vh: window.innerHeight,
+    dpr: Math.round((window.devicePixelRatio || 1) * 10) / 10,
+    lang: navigator.language?.slice(0, 12),
+  };
+  try {
+    context.tz = Intl.DateTimeFormat().resolvedOptions().timeZone?.slice(0, 40);
+  } catch {
+    /* optional */
+  }
+  const connection = (navigator as Navigator & { connection?: { effectiveType?: string } }).connection;
+  if (connection?.effectiveType) context.conn = connection.effectiveType;
+  const store = localStore();
+  if (store) {
+    try {
+      const now = Date.now();
+      const raw = store.getItem(VISITOR_KEY);
+      const visitor = raw ? (JSON.parse(raw) as { first: number; visits: number; last: number }) : { first: now, visits: 0, last: 0 };
+      // A new visit after 30 minutes away.
+      if (now - visitor.last > 30 * 60 * 1000) visitor.visits += 1;
+      visitor.last = now;
+      store.setItem(VISITOR_KEY, JSON.stringify(visitor));
+      context.visit = visitor.visits;
+      context.days_since_first = Math.floor((now - visitor.first) / 86_400_000);
+    } catch {
+      /* optional */
+    }
+  }
+  return context;
 }
 
 /**
@@ -74,10 +192,11 @@ export function captureAttribution(): Attribution {
   if (typeof window === "undefined") return {};
   // A referral link can land on any page (the centre link lands on
   // /for-centres). Signup reads this key, so the referrer is credited even when
-  // the person browses before signing up.
+  // the person browses before signing up. It is part of how referrals work, so
+  // it is kept whatever the cookie choice.
   try {
     const ref = new URLSearchParams(window.location.search).get("ref")?.trim().toUpperCase();
-    if (ref && /^[A-Z2-9]{5,12}$/.test(ref)) store?.setItem("storyloop_ref", ref);
+    if (ref && /^[A-Z2-9]{5,12}$/.test(ref)) localStore()?.setItem("storyloop_ref", ref);
   } catch {
     /* storage blocked: the signup page still reads ?ref= itself */
   }
@@ -93,7 +212,9 @@ function readAttribution(store: Storage | null): Attribution {
   // anything for the click that actually brought someone here. It is only
   // ever sent anywhere if Meta measurement is switched on (lib/meta-capi.ts).
   const fbclid = params.get("fbclid");
-  const click = fbclid && /^[A-Za-z0-9_-]{10,500}$/.test(fbclid) ? { fbclid, fbclidAt: Date.now() } : null;
+  // Only kept with consent, so an ad click is never reported to Meta for a
+  // visitor who chose "Essential only".
+  const click = fullTracking() && fbclid && /^[A-Za-z0-9_-]{10,500}$/.test(fbclid) ? { fbclid, fbclidAt: Date.now() } : null;
 
   const existingRaw = store?.getItem(ATTRIBUTION_KEY);
   if (existingRaw) {
@@ -127,8 +248,7 @@ function readAttribution(store: Storage | null): Attribution {
 }
 
 export function getAttribution(): Attribution {
-  const store = safeStorage();
-  const raw = store?.getItem(ATTRIBUTION_KEY);
+  const raw = localStore()?.getItem(ATTRIBUTION_KEY) ?? tabStore()?.getItem(ATTRIBUTION_KEY);
   if (!raw) return {};
   try {
     return JSON.parse(raw) as Attribution;
@@ -139,9 +259,12 @@ export function getAttribution(): Attribution {
 
 export function track(event: string, metadata: Record<string, unknown> = {}) {
   if (typeof window === "undefined") return;
+  const consent = consentLevel();
+  if (consent !== "all" && BEHAVIOUR_EVENTS.has(event)) return;
   const attribution = getAttribution();
   const payload = JSON.stringify({
     event,
+    consent,
     sessionId: getSessionId(),
     path: window.location.pathname,
     referrer: attribution.referrer ?? document.referrer ?? undefined,
