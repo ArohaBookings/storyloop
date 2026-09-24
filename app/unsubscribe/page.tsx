@@ -4,7 +4,7 @@ import { CheckCircle2, XCircle } from "lucide-react";
 import { applyUnsubscribe } from "@/lib/email/unsubscribe-apply";
 
 export const metadata = {
-  title: "Unsubscribe | StoryLoop",
+  title: "Unsubscribe",
   robots: { index: false, follow: false },
 };
 

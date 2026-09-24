@@ -7,7 +7,7 @@ import Footer from "@/components/landing/Footer";
 import PageTracker from "@/components/analytics/PageTracker";
 
 export const metadata: Metadata = {
-  title: "About StoryLoop",
+  title: { absolute: "About StoryLoop: who builds it, and why" },
   description:
     "Why StoryLoop exists, what we believe about AI in documentation, and the promises we make educators about their words and their professional judgement.",
   alternates: { canonical: "https://storyloop.space/about" },

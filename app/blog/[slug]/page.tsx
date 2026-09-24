@@ -14,14 +14,16 @@ type Params = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPublishedPost(slug);
-  if (!post) return { title: "Not found | StoryLoop" };
+  if (!post) return { title: "Not found" };
 
+  // Absolute, so the layout's "%s | StoryLoop" template is not added a second
+  // time, and the brand only when the whole title still fits Google's ~60 chars.
   const title = post.seo_title || (post.title.length > 48 ? post.title : `${post.title} | StoryLoop`);
   const description = plainSummary(post);
   const url = `https://storyloop.space/blog/${post.slug}`;
 
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: { canonical: url },
     openGraph: {

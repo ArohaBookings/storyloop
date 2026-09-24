@@ -7,7 +7,7 @@ import PageTracker from "@/components/analytics/PageTracker";
 import { ACCURACY_REPORT as R } from "@/lib/accuracy-report";
 
 export const metadata: Metadata = {
-  title: "How accurate are StoryLoop's learning story drafts?",
+  title: { absolute: "How accurate are StoryLoop's learning story drafts?" },
   description:
     "How StoryLoop tests every learning story draft: 24 real-style notes, checked by rule and by an independent AI reviewer, with the latest results in full.",
   alternates: { canonical: "https://storyloop.space/accuracy" },

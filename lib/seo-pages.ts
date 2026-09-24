@@ -52,7 +52,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   "storypark-alternative": {
     slug: "storypark-alternative",
     image: { src: "/images/scenes/kitchen.jpg", alt: "An educator at home reading a StoryLoop learning story draft on her laptop", position: "62% 50%" },
-    title: "Storypark Alternative for Learning Stories | StoryLoop",
+    title: "Storypark Alternative for Learning Stories",
     description:
       "StoryLoop and Storypark compared for learning stories in NZ and Australia: what each does, what each costs, and what switching looks like.",
     kicker: "StoryLoop or Storypark?",
@@ -772,7 +772,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
   pricing: {
     slug: "pricing",
-    title: "StoryLoop Pricing",
+    title: "Pricing for educators and centres",
     description:
       "Simple StoryLoop pricing for early childhood educators: free monthly stories, unlimited educator plans, and centre rollout support.",
     kicker: "Pricing",
@@ -838,7 +838,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
   faq: {
     slug: "faq",
-    title: "StoryLoop FAQ",
+    title: "AI learning stories: questions answered",
     // Reviewed when the homepage questions moved here, so the visible date and
     // the sitemap say when the answers were last checked against the product.
     reviewedAt: "2026-09-23",
@@ -1182,7 +1182,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   "for-centres": {
     slug: "for-centres",
     image: { src: "/images/scenes/team.jpg", alt: "Three educators planning together around a low table with a laptop showing StoryLoop", position: "50% 55%" },
-    title: "StoryLoop for Centres",
+    title: "Learning story software for ECE centres",
     description:
       "Documentation support for a whole early childhood team: unlimited children, a reliever brief, an evidence pack, and planning built from real stories.",
     kicker: "For directors and owners",
