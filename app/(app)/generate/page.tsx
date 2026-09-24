@@ -156,6 +156,8 @@ export default function GeneratePage() {
   const [editingStory, setEditingStory] = useState(false);
   const [savingStory, setSavingStory] = useState(false);
   const [storySaveMessage, setStorySaveMessage] = useState("");
+  // The AI could not write this one; the basic writer did (see /api/generate).
+  const [basicDraft, setBasicDraft] = useState(false);
   const [outcomes, setOutcomes] = useState<string[]>([]);
   const [curriculumLinks, setCurriculumLinks] = useState<string[]>([]);
   const [nextSteps, setNextSteps] = useState<string[]>([]);
@@ -537,6 +539,7 @@ export default function GeneratePage() {
       }
 
       setStory(data.story);
+      setBasicDraft(data.basicDraft === true);
       setStoryTitle(data.storyTitle ?? "");
       setStoryDraft(data.story);
       setStoryId(typeof data.storyId === "string" ? data.storyId : "");
@@ -1790,6 +1793,15 @@ export default function GeneratePage() {
             </div>
           ) : story ? (
             <div className="story-safe flex min-w-0 max-w-full flex-1 flex-col">
+              {basicDraft && (
+                <div role="status" className="mb-4 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+                  <AlertCircle className="mt-0.5 h-4 w-4 flex-none text-amber-700" />
+                  <p className="text-sm leading-relaxed text-ink-800">
+                    <strong className="font-semibold text-ink-900">Our AI writer is unavailable right now,</strong> so this is a
+                    simpler draft built only from your note. Press Regenerate in a few minutes for the full draft.
+                  </p>
+                </div>
+              )}
               {editingStory ? (
                 <div className="flex-1 flex flex-col gap-3">
                   <textarea

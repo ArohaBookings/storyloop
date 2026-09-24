@@ -166,6 +166,8 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
   const [error, setError] = useState("");
   const [clarify, setClarify] = useState<Clarify | null>(null);
   const [usage, setUsage] = useState(0);
+  // The AI could not write this one and the basic writer did (see /api/generate).
+  const [basicDraft, setBasicDraft] = useState(false);
 
   const isUnchangedExample = input.trim() === SAMPLE.trim();
 
@@ -211,6 +213,7 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
       }
       if (!data.story) throw new Error("No story came back. Please try again.");
       setOutput(data.story); setOutputNote(input); setUsage(usage + 1);
+      setBasicDraft(data.basicDraft === true);
       setEvidence({
         anchors: stringList(data.evidenceAnchors),
         checks: [...stringList(data.educatorChecks, 3), ...stringList(data.assumptions, 3)],
@@ -362,6 +365,12 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
           </div>
         ) : output ? (
           <div className="story-safe flex min-w-0 flex-1 flex-col">
+            {basicDraft && (
+              <p role="status" className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-ink-800">
+                Our AI writer is unavailable right now, so this is a simpler draft built only from your note. Try again in a
+                few minutes for the full draft.
+              </p>
+            )}
             <div className={`story-safe prose prose-sm min-w-0 max-w-full flex-1 overflow-y-auto whitespace-pre-wrap break-words font-display font-normal italic leading-relaxed text-ink-700 ${compact ? "max-h-[22rem]" : ""}`}>
               <HighlightedStory text={output} note={outputNote} />
             </div>

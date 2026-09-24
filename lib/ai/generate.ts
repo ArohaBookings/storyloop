@@ -29,6 +29,7 @@ import {
   type StoryTone,
   type TeReoLevel,
 } from "@/lib/story-options";
+import { aiFailureReason, type AiFailureReason } from "@/lib/ai-health";
 
 export interface StoryResult extends StoryMetadata {
   storyTitle: string;
@@ -44,6 +45,8 @@ export interface StoryResult extends StoryMetadata {
   childAge: string;
   /** The name the writer used, so the caller can save the correct spelling. */
   childNameUsed?: string;
+  /** Set only when the AI could not write and the basic writer did: why (lib/ai-health.ts). */
+  aiUnavailable?: AiFailureReason;
   nextSteps: string[];
   assumptions: string[];
   evidenceAnchors: string[];
@@ -129,6 +132,9 @@ function usesReasoningContract(model: string) {
 async function callAI(systemPrompt: string, userContent: string, opts: { timeoutMs?: number } = {}): Promise<string> {
   const started = Date.now();
   const timeoutMs = opts.timeoutMs ?? 45_000;
+  // Kept so that when the backup provider fails too, the error says why the
+  // primary failed (the reason that usually matters, like running out of credit).
+  let openAiFailure: unknown = null;
   // OpenAI primary
   if (process.env.OPENAI_API_KEY) {
     try {
@@ -164,6 +170,7 @@ async function callAI(systemPrompt: string, userContent: string, opts: { timeout
       console.error("OpenAI returned empty content, falling back.");
     } catch (e) {
       console.error("OpenAI failed, falling back:", e);
+      openAiFailure = e;
       // If OpenAI consumed most of our window before failing, do NOT also wait
       // on Anthropic — that cascade is what blows the 60s limit. Throw so the
       // caller drops to its instant grounded fallback instead.
@@ -175,17 +182,25 @@ async function callAI(systemPrompt: string, userContent: string, opts: { timeout
 
   // Anthropic fallback
   if (process.env.ANTHROPIC_API_KEY) {
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: timeoutMs, maxRetries: 0 });
-    const msg = await client.messages.create({
-      model: process.env.ANTHROPIC_STORY_MODEL?.trim() || "claude-sonnet-4-6",
-      max_tokens: 3200,
-      system: systemPrompt + "\n\nCRITICAL: Return ONLY valid JSON. No markdown, no code fences, no preamble.",
-      messages: [{ role: "user", content: userContent }],
-    });
-    const text = msg.content[0].type === "text" ? msg.content[0].text : "";
-    return text.replace(/```json\n?|```/g, "").trim();
+    try {
+      const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: timeoutMs, maxRetries: 0 });
+      const msg = await client.messages.create({
+        model: process.env.ANTHROPIC_STORY_MODEL?.trim() || "claude-sonnet-4-6",
+        max_tokens: 3200,
+        system: systemPrompt + "\n\nCRITICAL: Return ONLY valid JSON. No markdown, no code fences, no preamble.",
+        messages: [{ role: "user", content: userContent }],
+      });
+      const text = msg.content[0].type === "text" ? msg.content[0].text : "";
+      return text.replace(/```json\n?|```/g, "").trim();
+    } catch (e) {
+      if (!openAiFailure) throw e;
+      const primary = openAiFailure instanceof Error ? openAiFailure.message : String(openAiFailure);
+      const backup = e instanceof Error ? e.message : String(e);
+      throw new Error(`OpenAI: ${primary.slice(0, 300)} | Anthropic: ${backup.slice(0, 200)}`);
+    }
   }
 
+  if (openAiFailure) throw openAiFailure instanceof Error ? openAiFailure : new Error(String(openAiFailure));
   throw new Error("No AI API key configured. Set OPENAI_API_KEY or ANTHROPIC_API_KEY.");
 }
 
@@ -692,6 +707,7 @@ export async function generateLearningStory(params: {
         "fallback"
       ),
       privacyGuardian: runPrivacyGuardian({ observation: observations, story: fallback.story }),
+      aiUnavailable: aiFailureReason(error),
     };
   }
 }

@@ -7,6 +7,7 @@ import { loadStripeSnapshot, loadStripeSnapshotFresh } from "@/lib/admin-command
 import { assessBillingRisk, worstRisk, type Risk } from "@/lib/billing-risk";
 import { summariseFunnel, type EventRow } from "@/lib/admin-funnel";
 import { behaviourHeadlines, summariseBehaviour } from "@/lib/admin-behaviour";
+import { summariseFallbacks } from "@/lib/ai-health";
 import { audToNzdRate } from "@/lib/stripe-mrr";
 import { MRR_GOAL_NZD } from "@/lib/mrr";
 import { getPlanByKey, normalizePlanKey } from "@/lib/plans";
@@ -144,6 +145,11 @@ export default async function CommandCentre({ searchParams }: { searchParams: Pr
   const maxDaily = Math.max(1, ...funnel.daily.map((d) => d.visitors));
   const behaviour = summariseBehaviour({ events: (eventsRes.data ?? []) as EventRow[], sinceIso });
   const behaviourLines = behaviourHeadlines(behaviour);
+  // Stories the basic writer had to write because the AI could not (lib/ai-health.ts).
+  const dayAgo = Date.now() - 86_400_000;
+  const fallbackRows = ((eventsRes.data ?? []) as EventRow[]).filter((row) => row.event_type === "story_fallback" && Date.parse(row.created_at) >= dayAgo);
+  const fallbacks = summariseFallbacks(fallbackRows.map((row) => String((row.metadata ?? {}).reason ?? "unknown")));
+  const lastFallback = fallbackRows[0]?.created_at;
   const eventsCapped = (eventsRes.data?.length ?? 0) >= 25000;
 
   const goalPercent = Math.min(100, Math.round((mrrNzd / MRR_GOAL_NZD) * 1000) / 10);
@@ -177,6 +183,18 @@ export default async function CommandCentre({ searchParams }: { searchParams: Pr
       </header>
 
       <main className="space-y-5 p-4 sm:p-6">
+        {fallbacks.top && (
+          <div role="alert" className={`rounded-2xl border px-5 py-4 ${fallbacks.top.urgent ? "border-rose-400/60 bg-rose-500/15 text-rose-50" : "border-amber-500/40 bg-amber-500/10 text-amber-50"}`}>
+            <p className="font-display text-lg font-bold">
+              {fallbacks.top.title}: {fallbacks.total} {fallbacks.total === 1 ? "story" : "stories"} in the last 24 hours were written by the basic writer, not the AI.
+            </p>
+            <p className="mt-1 text-sm">
+              {fallbacks.top.fix}
+              {lastFallback && ` Last one ${new Date(lastFallback).toLocaleString("en-NZ", { hour: "numeric", minute: "2-digit", day: "numeric", month: "short", timeZone: "Pacific/Auckland" })}.`}
+            </p>
+          </div>
+        )}
+
         {!stripe.ok && (
           <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
             Stripe could not be read ({stripe.error}). Billing panels below are empty until it can.

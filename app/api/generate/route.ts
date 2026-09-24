@@ -25,6 +25,22 @@ import {
   MIN_STORY_OBSERVATION_CHARACTERS,
 } from "@/lib/story-clarification";
 import { inferPrimaryChildName } from "@/lib/story-context";
+import { createAdminSupabase } from "@/lib/supabase/admin";
+import { recordServerEvent } from "@/lib/analytics/server";
+
+/** A story written by the basic writer because the AI could not: say so where the admin will see it. */
+async function noteFallback(reason: string, userId: string | null, demo: boolean) {
+  try {
+    await recordServerEvent(createAdminSupabase(), {
+      event: "story_fallback",
+      userId,
+      path: "/api/generate",
+      metadata: { reason, demo },
+    });
+  } catch {
+    /* never costs anyone their story */
+  }
+}
 
 function getClientIp(request: NextRequest): string {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
@@ -154,7 +170,9 @@ export async function POST(request: NextRequest) {
         pedagogyFocus: normalizePedagogyFocus(typeof pedagogyFocus === "string" ? pedagogyFocus : undefined),
         educatorNames: normalizeEducatorNames(educatorNames),
       });
+      if (result.aiUnavailable) await noteFallback(result.aiUnavailable, null, true);
       return NextResponse.json({
+        basicDraft: Boolean(result.aiUnavailable),
         storyTitle: result.storyTitle,
         story: result.story,
         outcomes: result.outcomes,
@@ -333,6 +351,7 @@ export async function POST(request: NextRequest) {
       preferences: requestPreferences,
       educatorNames: resolvedEducatorNames,
     });
+    if (result.aiUnavailable) await noteFallback(result.aiUnavailable, user.id, false);
 
     // Save to history
     const { data: saved } = await supabase.from("stories").insert({
@@ -418,6 +437,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       storyId: saved?.id,
+      // True when the AI could not write and the basic writer did, so the page can say so.
+      basicDraft: Boolean(result.aiUnavailable),
       storyTitle: result.storyTitle,
       story: result.story,
       outcomes: result.outcomes,
