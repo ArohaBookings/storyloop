@@ -64,6 +64,23 @@ const GENERATION_STEPS = [
   "Adding practical, in-the-room next steps…",
 ];
 
+const TONE_OPTIONS = [
+  ["natural", "Natural educator"],
+  ["warm", "Warm reflective"],
+  ["professional", "Professional"],
+  ["simple", "Simple"],
+] as const satisfies ReadonlyArray<readonly [StoryTone, string]>;
+
+const PEDAGOGY_OPTIONS = [
+  ["balanced", "Balanced story"],
+  ["intentional_teaching", "Intentional teaching response"],
+  ["child_voice", "Child voice and agency"],
+  ["family_partnership", "Family partnership"],
+  ["working_theories", "Working theories and inquiry"],
+] as const satisfies ReadonlyArray<readonly [PedagogyFocus, string]>;
+
+const STYLE_OPEN_KEY = "storyloop-generate-style-open";
+
 type InputMethod = "typed" | "paste" | "voice" | "sample" | "backlog";
 
 type BacklogItem = {
@@ -108,6 +125,8 @@ export default function GeneratePage() {
   const [inputMethod, setInputMethod] = useState<InputMethod>("typed");
   const [showFirstStoryWizard, setShowFirstStoryWizard] = useState(false);
   const [showCentreVoice, setShowCentreVoice] = useState(false);
+  // Style and extras stay tucked away unless someone opened them last time.
+  const [showStyleOptions, setShowStyleOptions] = useState(false);
   const [accountPlan, setAccountPlan] = useState<PlanKey>("free");
   const [centrePhilosophy, setCentrePhilosophy] = useState("");
   const [likedPhrases, setLikedPhrases] = useState("");
@@ -1006,6 +1025,25 @@ export default function GeneratePage() {
     }
   };
 
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem(STYLE_OPEN_KEY) === "1") setShowStyleOptions(true);
+    } catch {
+      /* storage blocked: start closed */
+    }
+  }, []);
+
+  const toggleStyleOptions = () => {
+    setShowStyleOptions((open) => {
+      try {
+        window.localStorage.setItem(STYLE_OPEN_KEY, open ? "0" : "1");
+      } catch {
+        /* optional */
+      }
+      return !open;
+    });
+  };
+
   const recordButtonLabel = isTouchDevice ? "Record" : "Record voice note";
   const showRecordButton = !recording && liveRecordingSupported;
   const clarificationQuestionCount = clarification?.questions.length ?? 0;
@@ -1014,120 +1052,108 @@ export default function GeneratePage() {
   const currentClarificationAnswer = clarificationAnswers[boundedClarificationStep] ?? "";
   const isFinalClarificationQuestion = boundedClarificationStep >= clarificationQuestionCount - 1;
 
+  const toneLabel = TONE_OPTIONS.find(([option]) => option === tone)?.[1] ?? "Natural educator";
+  const focusLabel = PEDAGOGY_OPTIONS.find(([option]) => option === pedagogyFocus)?.[1] ?? "Balanced story";
+  const styleSummary = [
+    toneLabel,
+    `${depth.charAt(0).toUpperCase()}${depth.slice(1)}`,
+    focusLabel,
+    location === "NZ" ? `Te reo ${includeTeReoLevel}` : null,
+    educatorNames.trim() ? `Educators: ${educatorNames.trim()}` : null,
+  ].filter(Boolean).join(" · ");
+  const storyAction =
+    "inline-flex min-h-9 items-center gap-1.5 rounded-full border border-clay-200 bg-white px-3 text-xs font-semibold text-ink-700 transition-colors hover:border-clay-400 hover:text-ink-900 disabled:opacity-50";
+  const segment = (active: boolean) =>
+    `min-h-10 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay-600 ${
+      active ? "border-clay-700 bg-clay-700 text-paper" : "border-clay-200 bg-white text-ink-700 hover:border-clay-400"
+    }`;
+  const voiceStatus = recording
+    ? "Recording. Press Stop when you are done and the words will appear in the box."
+    : transcribing
+      ? "Turning your voice note into text…"
+      : transcriptionMessage
+        ? ""
+        : !liveRecordingSupported
+          ? "Recording is not available in this browser. You can upload a voice memo instead."
+          : suggestUploadFallback
+            ? "If the microphone is blocked, upload a voice memo instead."
+            : "";
+
   return (
     <div className="w-full max-w-none p-4 sm:p-6 md:p-8">
-      <div className="mb-7">
-        <h1 className="font-display text-3xl font-bold text-ink-900 mb-1">New learning story</h1>
-        <p className="text-ink-600 text-sm">Add your observations below. We&apos;ll shape them into a clear, educator-ready story with practical curriculum links.</p>
-      </div>
-
-      {showFirstStoryWizard && (
-        <div className="mb-6 rounded-3xl border border-clay-200 bg-gradient-to-br from-cream-100 via-white to-sage-50 p-5 shadow-soft">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-clay-700 text-paper">
-                <Wand2 className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="section-title mb-1">First story wizard</p>
-                <h2 className="font-display text-2xl font-bold text-ink-900">Create your first learning story in under 2 minutes.</h2>
-                <p className="mt-1 text-sm text-ink-600">
-                  Paste a real observation, type bullet points, record a voice note, or use the sample to see the output instantly.
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button onClick={() => { setMode("story"); dismissFirstStoryWizard(); }} className="btn-secondary text-xs">
-                Paste observation
-              </button>
-              <button onClick={() => { setMode("story"); setInputMethod("typed"); dismissFirstStoryWizard(); }} className="btn-secondary text-xs">
-                Type bullet points
-              </button>
-              <button onClick={() => { setMode("story"); setInputMethod("voice"); dismissFirstStoryWizard(); }} className="btn-secondary text-xs">
-                Record voice note
-              </button>
-              <button onClick={useSampleObservation} className="btn-primary text-xs">
-                Use sample observation
-              </button>
-              <button onClick={dismissFirstStoryWizard} className="btn-ghost text-xs">
-                Hide
-              </button>
-            </div>
-          </div>
+      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="min-w-0">
+          <h1 className="font-display text-3xl font-bold text-ink-900">New learning story</h1>
+          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-600">
+            {mode === "backlog"
+              ? "Paste several rough observations. StoryLoop sorts full stories from quick updates first."
+              : "Write or say what you saw. StoryLoop drafts the story with curriculum links, and you check every word before it goes anywhere."}
+          </p>
         </div>
-      )}
-
-      <div className="mb-5 grid gap-3 md:grid-cols-[1fr_auto] md:items-center">
-        <div className="inline-flex w-full rounded-2xl border border-clay-200 bg-white p-1 shadow-soft md:w-fit">
+        <div className="inline-flex w-full flex-none rounded-2xl border border-clay-200 bg-white p-1 shadow-soft sm:w-fit" role="group" aria-label="What to write">
           {([
-            ["story", "Single story", Sparkles],
+            ["story", "One story", Sparkles],
             ["backlog", "Backlog Rescue", ClipboardList],
           ] as const).map(([option, label, Icon]) => (
             <button
               key={option}
+              type="button"
+              aria-pressed={mode === option}
               onClick={() => {
                 setMode(option);
                 if (option === "backlog") {
                   setShowBacklogUpgradeNudge(true);
                 }
               }}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all md:flex-none ${
+              className={`flex min-h-10 flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-colors sm:flex-none ${
                 mode === option ? "bg-clay-700 text-paper shadow-warm" : "text-ink-600 hover:bg-cream-50"
               }`}
             >
-              <Icon className="h-3.5 w-3.5" />
+              <Icon className="h-4 w-4" />
               {label}
             </button>
           ))}
         </div>
-        {mode === "backlog" && (
-          <p className="text-xs text-ink-500">
-            Paste several rough observations. StoryLoop will sort full stories from quick updates first.
-          </p>
-        )}
       </div>
+
+      {showFirstStoryWizard && (
+        <div className="mb-6 flex flex-col gap-4 rounded-3xl border border-clay-200 bg-gradient-to-br from-cream-100 via-white to-sage-50 p-5 shadow-soft md:flex-row md:items-center md:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-clay-700 text-paper">
+              <Wand2 className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="font-display text-xl font-bold text-ink-900">Your first story takes about two minutes.</h2>
+              <p className="mt-1 text-sm text-ink-600">
+                Type a few quick points, record a voice note, or try an example first to see what you get back.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={useSampleObservation} className="btn-primary text-sm">
+              Try an example
+            </button>
+            <button type="button" onClick={() => { setMode("story"); setInputMethod("typed"); dismissFirstStoryWizard(); }} className="btn-secondary text-sm">
+              Write my own
+            </button>
+            <button type="button" onClick={dismissFirstStoryWizard} className="btn-ghost text-sm" aria-label="Hide first story tips">
+              Hide
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid min-w-0 gap-5 xl:grid-cols-2">
         <div className="min-w-0 space-y-4">
-          <div className="card p-6">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-2">
-                <label htmlFor="gen-observations" className="label mb-0">Observations</label>
-              <div className="flex flex-wrap items-center gap-2">
-                {recording && (
-                  <button
-                    onClick={toggleRecording}
-                    disabled={loading || transcribing}
-                    className="text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all bg-red-500 text-white animate-pulse"
-                  >
-                    <Square className="w-3 h-3" /> Stop
-                  </button>
-                )}
-                {showRecordButton && (
-                  <button
-                    onClick={toggleRecording}
-                    disabled={loading || transcribing}
-                    className="text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all bg-cream-100 text-clay-700 hover:bg-cream-200"
-                  >
-                    <Mic className="w-3 h-3" /> {recordButtonLabel}
-                  </button>
-                )}
-                <label
-                  htmlFor="voice-note-input"
-                  className={`text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
-                    loading || transcribing ? "bg-cream-50 text-ink-400 pointer-events-none" : "bg-cream-100 text-clay-700 hover:bg-cream-200"
-                  }`}
-                >
-                  <Mic className="w-3 h-3" /> Upload audio file
-                </label>
-              </div>
+          <div className="card p-5 sm:p-6">
+            <div className="mb-3 flex items-baseline justify-between gap-3">
+              <label htmlFor="gen-observations" className="font-display text-lg font-bold text-ink-900">
+                {mode === "backlog" ? "Your rough notes" : "What happened?"}
+              </label>
+              <span className="text-xs tabular-nums text-ink-500">
+                {observations.length > 0 ? `${observations.length} characters` : "3 or 4 quick points is enough"}
+              </span>
             </div>
-            <input
-              id="voice-note-input"
-              type="file"
-              accept="audio/*,.m4a,.mp3,.mpeg,.mpga,.wav,.webm"
-              className="sr-only"
-              onChange={handleAudioFileChange}
-            />
             {/* The box is pre-filled on a first run, so say plainly that this
                 is an example. Lily is not a child in their room, and a story
                 written about her must never be mistaken for real documentation. */}
@@ -1160,352 +1186,369 @@ export default function GeneratePage() {
                 }
               }}
               onPaste={() => setInputMethod("paste")}
-              rows={10}
+              rows={9}
               placeholder={placeholder}
-              className="input font-mono text-sm leading-relaxed resize-none"
+              className="input font-mono text-sm leading-relaxed resize-y"
             />
-            <p className="text-xs text-ink-500 mt-2">
-              {observations.length} characters · Aim for at least 3-4 quick points
-              {recording ? " · Recording now..." : ""}
-              {transcribing ? " · Turning your voice note into text and adding it here..." : ""}
-              {!recording && !transcribing && isTouchDevice && liveRecordingSupported ? " · On phone, Record will ask for microphone access." : ""}
-              {!recording && !transcribing && suggestUploadFallback ? " · Upload audio is the fallback if mic access is blocked." : ""}
-            </p>
-            {observations.trim().length === 0 && !recording && !transcribing && (
-              <button
-                type="button"
-                onClick={useSampleObservation}
-                className="mt-2 text-xs font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900"
+            <input
+              id="voice-note-input"
+              type="file"
+              accept="audio/*,.m4a,.mp3,.mpeg,.mpga,.wav,.webm"
+              className="sr-only"
+              onChange={handleAudioFileChange}
+            />
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {recording && (
+                <button
+                  type="button"
+                  onClick={toggleRecording}
+                  disabled={loading || transcribing}
+                  className="inline-flex min-h-10 items-center gap-2 rounded-full bg-red-600 px-4 text-sm font-semibold text-white animate-pulse"
+                >
+                  <Square className="h-3.5 w-3.5" /> Stop recording
+                </button>
+              )}
+              {showRecordButton && (
+                <button
+                  type="button"
+                  onClick={toggleRecording}
+                  disabled={loading || transcribing}
+                  className="inline-flex min-h-10 items-center gap-2 rounded-full border border-clay-200 bg-cream-50 px-4 text-sm font-semibold text-clay-800 transition-colors hover:border-clay-400 hover:bg-cream-100 disabled:opacity-50"
+                >
+                  <Mic className="h-4 w-4" /> {recordButtonLabel}
+                </button>
+              )}
+              <label
+                htmlFor="voice-note-input"
+                className={`inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-colors ${
+                  loading || transcribing ? "pointer-events-none border-clay-100 bg-cream-50 text-ink-400" : "border-clay-200 bg-white text-ink-700 hover:border-clay-400"
+                }`}
               >
-                Not sure where to start? Try an example observation
-              </button>
-            )}
-            {liveRecordingSupported && (
-              <p className="mt-2 text-xs text-ink-500 bg-cream-50 border border-clay-100 rounded-lg px-3 py-2">
-                Press Record, talk through the observation, then press Stop. StoryLoop will add the transcript into this box automatically.
-              </p>
-            )}
+                <Download className="h-4 w-4 rotate-180" /> Upload a voice memo
+              </label>
+              {observations.trim().length === 0 && !recording && !transcribing && (
+                <button
+                  type="button"
+                  onClick={useSampleObservation}
+                  className="ml-auto text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900"
+                >
+                  Try an example
+                </button>
+              )}
+            </div>
+            {voiceStatus && <p className="mt-2 text-xs text-ink-500">{voiceStatus}</p>}
             {transcriptionMessage && (
-              <p className="mt-2 text-xs font-semibold text-sage-700 bg-sage-50 border border-sage-100 rounded-lg px-3 py-2">
+              <p className="mt-2 rounded-lg border border-sage-100 bg-sage-50 px-3 py-2 text-xs font-semibold text-sage-700">
                 {transcriptionMessage}
-              </p>
-            )}
-            {!liveRecordingSupported && (
-              <p className="mt-2 text-xs text-ink-500 bg-cream-50 border border-clay-100 rounded-lg px-3 py-2">
-                Voice recording is not available in this browser session. You can still type bullet points or upload an audio file from Voice Memos/Recorder.
               </p>
             )}
             <ObservationCoach observation={observations} plan={accountPlan} framework={location} />
           </div>
 
-          <div className="card p-6 space-y-4">
-            <p className="section-title">Personalise (optional)</p>
+          <div className="card space-y-5 p-5 sm:p-6">
             <div>
-              <div className="flex items-center justify-between gap-3">
-                <label htmlFor="gen-learning-profile" className="label">Learning profile</label>
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="font-display text-lg font-bold text-ink-900">Who is it about? <span className="text-sm font-normal text-ink-500">Optional</span></p>
                 <Link href="/children" className="text-xs font-bold text-clay-700 hover:text-clay-900">
                   Manage profiles
                 </Link>
               </div>
-              <select id="gen-learning-profile"
-                value={selectedChildId}
-                onChange={(event) => {
-                  const childId = event.target.value;
-                  setSelectedChildId(childId);
-                  const selected = children.find((child) => child.id === childId);
-                  if (selected) {
-                    setChildName(selected.name);
-                    setAgeGroup(selected.age_group ?? "");
-                  }
-                }}
-                className="input"
-              >
-                <option value="">No saved profile</option>
-                {children.map((child) => (
-                  <option key={child.id} value={child.id}>
-                    {child.name}{child.age_group ? ` · ${child.age_group}` : ""}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-1 text-xs text-ink-500">
-                A saved profile carries interests and {location === "NZ" ? "whānau" : "family"} aspirations into the drafting context without treating them as evidence from today.
-              </p>
-              {selectedChildId && !hasFeatureAccess(accountPlan, "childContinuityProfiles") && (
-                <p className="mt-2 rounded-xl border border-clay-100 bg-cream-50 px-3 py-2 text-xs leading-relaxed text-ink-600">
-                  This story will still use the child&apos;s name and age. Educator Pro carries interests, family context, home languages, and recent learning into future stories.
-                  <Link href="/billing?feature=child-continuity" className="ml-1 font-bold text-clay-700 hover:text-clay-900">Compare Pro</Link>
+              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                <div>
+                  <label htmlFor="gen-learning-profile" className="label">Saved profile</label>
+                  <select id="gen-learning-profile"
+                    value={selectedChildId}
+                    onChange={(event) => {
+                      const childId = event.target.value;
+                      setSelectedChildId(childId);
+                      const selected = children.find((child) => child.id === childId);
+                      if (selected) {
+                        setChildName(selected.name);
+                        setAgeGroup(selected.age_group ?? "");
+                      }
+                    }}
+                    className="input"
+                  >
+                    <option value="">None</option>
+                    {children.map((child) => (
+                      <option key={child.id} value={child.id}>
+                        {child.name}{child.age_group ? ` · ${child.age_group}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="gen-childs-name" className="label">Child&apos;s first name</label>
+                  <input id="gen-childs-name"
+                    value={childName}
+                    onChange={(event) => {
+                      setChildName(event.target.value);
+                      if (selectedChildId) setSelectedChildId("");
+                    }}
+                    className="input"
+                    placeholder="e.g. Ruby"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="gen-age-group" className="label">Age group</label>
+                  <select id="gen-age-group" value={ageGroup} onChange={(e) => setAgeGroup(e.target.value)} className="input">
+                    <option value="">Choose…</option>
+                    <option>0-12 months</option>
+                    <option>1-2 years</option>
+                    <option>2-3 years</option>
+                    <option>3-4 years</option>
+                    <option>4-5 years</option>
+                    <option>Mixed group</option>
+                  </select>
+                </div>
+              </div>
+              {selectedChildId && (
+                <p className="mt-2 text-xs leading-relaxed text-ink-500">
+                  {hasFeatureAccess(accountPlan, "childContinuityProfiles") ? (
+                    <>Their interests and {location === "NZ" ? "whānau" : "family"} aspirations help shape the story, without being treated as evidence from today.</>
+                  ) : (
+                    <>
+                      This story uses their name and age. Educator Pro also carries interests, family context, home languages and recent learning into each story.
+                      <Link href="/billing?feature=child-continuity" className="ml-1 font-bold text-clay-700 hover:text-clay-900">Compare Pro</Link>
+                    </>
+                  )}
                 </p>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label htmlFor="gen-childs-name" className="label">Child&apos;s name</label>
-                <input id="gen-childs-name"
-                  value={childName}
-                  onChange={(event) => {
-                    setChildName(event.target.value);
-                    if (selectedChildId) setSelectedChildId("");
-                  }}
-                  className="input"
-                  placeholder="Optional - e.g. Ruby"
-                />
-              </div>
-              <div>
-                <label htmlFor="gen-age-group" className="label">Age group</label>
-                <select id="gen-age-group" value={ageGroup} onChange={(e) => setAgeGroup(e.target.value)} className="input">
-                  <option value="">Choose...</option>
-                  <option>0-12 months</option>
-                  <option>1-2 years</option>
-                  <option>2-3 years</option>
-                  <option>3-4 years</option>
-                  <option>4-5 years</option>
-                  <option>Mixed group</option>
-                </select>
-              </div>
-            </div>
+
             <div>
-              <label htmlFor="gen-educator-or-staff-names-optional" className="label">Educator or staff names (optional)</label>
-              <input id="gen-educator-or-staff-names-optional"
-                value={educatorNames}
-                onChange={(event) => setEducatorNames(event.target.value)}
-                className="input"
-                placeholder="Optional - e.g. Sarah, Moana"
-              />
-              <p className="mt-1 text-xs text-ink-500">
-                Add one or more names if you want the story to say “Sarah noticed...” instead of only “we noticed...”.
-              </p>
-            </div>
-            <div>
-              <label className="label">Tone</label>
-              <div className="grid grid-cols-2 gap-2">
-                {([
-                  ["natural", "Natural educator"],
-                  ["warm", "Warm reflective"],
-                  ["professional", "Professional"],
-                  ["simple", "Simple"],
-                ] as const).map(([option, label]) => (
-                  <button
-                    key={option}
-                    onClick={() => setTone(option)}
-                    className={`text-xs font-semibold py-2 rounded-lg border transition-all ${
-                      tone === option
-                        ? "bg-clay-700 text-paper border-clay-700"
-                        : "bg-white text-ink-600 border-clay-200 hover:border-clay-400"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="label">Story depth</label>
-              <div className="grid grid-cols-3 gap-2">
-                {(["concise", "balanced", "detailed"] as const).map((option) => (
-                  <button
-                    key={option}
-                    onClick={() => setDepth(option)}
-                    className={`text-xs font-semibold py-2 rounded-lg border capitalize transition-all ${
-                      depth === option
-                        ? "bg-clay-700 text-paper border-clay-700"
-                        : "bg-white text-ink-600 border-clay-200 hover:border-clay-400"
-                    }`}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="label">Framework</label>
-              <div className="grid grid-cols-2 gap-2">
+              <p className="label">Curriculum</p>
+              <div className="grid grid-cols-2 gap-2" role="group" aria-label="Curriculum">
                 {(["AU", "NZ"] as const).map((framework) => (
                   <button
                     key={framework}
+                    type="button"
+                    aria-pressed={location === framework}
                     onClick={() => chooseFramework(framework)}
-                    className={`text-xs font-semibold py-2 rounded-lg border transition-all ${
-                      location === framework
-                        ? "bg-clay-700 text-paper border-clay-700"
-                        : "bg-white text-ink-600 border-clay-200 hover:border-clay-400"
-                    }`}
+                    className={segment(location === framework)}
                   >
-                    {framework === "AU" ? "🇦🇺 EYLF" : "🇳🇿 Te Whāriki"}
+                    {framework === "AU" ? "EYLF · Australia" : "Te Whāriki · NZ"}
                   </button>
                 ))}
               </div>
             </div>
-            <div>
-              <label htmlFor="gen-pedagogy-focus" className="label">Pedagogy focus</label>
-              <select id="gen-pedagogy-focus"
-                value={pedagogyFocus}
-                onChange={(event) => setPedagogyFocus(normalizePedagogyFocus(event.target.value))}
-                className="input"
-              >
-                <option value="balanced">Balanced story</option>
-                <option value="intentional_teaching">Intentional teaching response</option>
-                <option value="child_voice">Child voice and agency</option>
-                <option value="family_partnership">Family partnership</option>
-                <option value="working_theories">Working theories and inquiry</option>
-              </select>
-              <p className="mt-1 text-xs text-ink-500">
-                Shapes the reflection lens without forcing unsupported curriculum claims.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-clay-100 bg-cream-50 p-4">
+
+            <div className="rounded-2xl border border-clay-100 bg-cream-50/60">
               <button
                 type="button"
-                onClick={() => setShowCentreVoice((value) => !value)}
-                className="flex w-full items-center justify-between gap-3 text-left"
+                aria-expanded={showStyleOptions}
+                aria-controls="gen-style-options"
+                onClick={() => toggleStyleOptions()}
+                className="flex w-full items-center justify-between gap-3 rounded-2xl px-4 py-3 text-left hover:bg-cream-50"
               >
-                <span>
-                  <span className="flex items-center gap-2 text-xs font-bold text-ink-900">
-                    <Users className="h-4 w-4 text-clay-700" /> Centre Voice / Philosophy Memory
-                  </span>
-                  <span className="mt-1 block text-xs leading-relaxed text-ink-500">
-                    Optional style memory for your centre or room. It shapes tone, not evidence.
-                  </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-bold text-ink-900">Style and extras</span>
+                  <span className="mt-0.5 block truncate text-xs text-ink-500">{styleSummary}</span>
                 </span>
-                <span className="text-xs font-bold text-clay-700">{showCentreVoice ? "Hide" : "Set up"}</span>
+                <span className="flex-none text-xs font-bold text-clay-700">{showStyleOptions ? "Done" : "Change"}</span>
               </button>
-              {showCentreVoice && (
-                <div className="mt-4 space-y-3">
+              {showStyleOptions && (
+                <div id="gen-style-options" className="space-y-5 border-t border-clay-100 px-4 pb-4 pt-4">
                   <div>
-                    <label htmlFor="gen-centre-philosophy-or-room-voice" className="label">Centre philosophy or room voice</label>
-                    <textarea id="gen-centre-philosophy-or-room-voice"
-                      value={centrePhilosophy}
-                      onChange={(event) => setCentrePhilosophy(event.target.value)}
-                      rows={4}
-                      className="input resize-none text-sm leading-relaxed"
-                      placeholder={location === "NZ"
-                        ? "Example: We value child agency, connection with whānau, outdoor inquiry, and calm practical language."
-                        : "Example: We value child agency, family partnership, outdoor inquiry, and calm practical language."
-                      }
-                    />
+                    <p className="label">Tone</p>
+                    <div className="grid grid-cols-2 gap-2" role="group" aria-label="Tone">
+                      {TONE_OPTIONS.map(([option, label]) => (
+                        <button key={option} type="button" aria-pressed={tone === option} onClick={() => setTone(option)} className={segment(tone === option)}>
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="label">Length</p>
+                    <div className="grid grid-cols-3 gap-2" role="group" aria-label="Length">
+                      {(["concise", "balanced", "detailed"] as const).map((option) => (
+                        <button key={option} type="button" aria-pressed={depth === option} onClick={() => setDepth(option)} className={`${segment(depth === option)} capitalize`}>
+                          {option}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label htmlFor="gen-words-or-phrases-you-like" className="label">Words or phrases you like</label>
-                      <input id="gen-words-or-phrases-you-like"
-                        value={likedPhrases}
-                        onChange={(event) => setLikedPhrases(event.target.value)}
+                      <label htmlFor="gen-pedagogy-focus" className="label">Focus</label>
+                      <select id="gen-pedagogy-focus"
+                        value={pedagogyFocus}
+                        onChange={(event) => setPedagogyFocus(normalizePedagogyFocus(event.target.value))}
                         className="input"
-                        placeholder="working theories, ako, confident learner"
-                      />
+                      >
+                        {PEDAGOGY_OPTIONS.map(([option, label]) => (
+                          <option key={option} value={option}>{label}</option>
+                        ))}
+                      </select>
                     </div>
                     <div>
-                      <label htmlFor="gen-words-or-phrases-to-avoid" className="label">Words or phrases to avoid</label>
-                      <input id="gen-words-or-phrases-to-avoid"
-                        value={avoidedPhrases}
-                        onChange={(event) => setAvoidedPhrases(event.target.value)}
+                      <label htmlFor="gen-educator-or-staff-names-optional" className="label">Educator names</label>
+                      <input id="gen-educator-or-staff-names-optional"
+                        value={educatorNames}
+                        onChange={(event) => setEducatorNames(event.target.value)}
                         className="input"
-                        placeholder="beautiful moment, demonstrated"
+                        placeholder="e.g. Sarah, Moana"
                       />
                     </div>
                   </div>
-                  <div className="rounded-xl border border-clay-200 bg-white p-3 text-xs leading-relaxed text-ink-600">
-                    Centre plans make this shared across teams. Free and Educator accounts can still save a personal voice memory here.
-                    <Link href="/billing?offer=activation" className="ml-1 font-bold text-clay-700 hover:text-clay-900">
-                      See centre options
-                    </Link>
+                  <p className="-mt-2 text-xs text-ink-500">
+                    Names let the story say &ldquo;Sarah noticed…&rdquo; instead of &ldquo;we noticed…&rdquo;. The focus shapes the reflection without forcing curriculum claims.
+                  </p>
+                  {location === "NZ" && (
+                    <div>
+                      <p className="label">Te reo Māori</p>
+                      <div className="grid grid-cols-3 gap-2" role="group" aria-label="Te reo Māori">
+                        {(["low", "medium", "high"] as const).map((option) => (
+                          <button key={option} type="button" aria-pressed={includeTeReoLevel === option} onClick={() => setIncludeTeReoLevel(option)} className={`${segment(includeTeReoLevel === option)} capitalize`}>
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {location === "NZ" && (
+                      <label className="flex items-start gap-2 rounded-xl border border-clay-200 bg-white p-3 text-xs text-ink-700">
+                        <input
+                          type="checkbox"
+                          checked={includeKowhitiWhakapae}
+                          onChange={(event) => setIncludeKowhitiWhakapae(event.target.checked)}
+                          className="mt-0.5 h-4 w-4 flex-none accent-clay-700"
+                        />
+                        <span>
+                          <span className="block font-bold text-ink-900">Kōwhiti Whakapae links</span>
+                          Only when social and emotional, language, or maths noticing is relevant.
+                        </span>
+                      </label>
+                    )}
+                    <label className="flex items-start gap-2 rounded-xl border border-clay-200 bg-white p-3 text-xs text-ink-700">
+                      <input
+                        type="checkbox"
+                        checked={includeTapasa}
+                        onChange={(event) => setIncludeTapasa(event.target.checked)}
+                        className="mt-0.5 h-4 w-4 flex-none accent-clay-700"
+                      />
+                      <span>
+                        <span className="block font-bold text-ink-900">Tapasā lens</span>
+                        Only when Pacific identity, {location === "NZ" ? "whānau" : "family"}, language or culture is actually present.
+                      </span>
+                    </label>
                   </div>
+                  <div className="rounded-xl border border-clay-200 bg-white p-4">
+                    <button
+                      type="button"
+                      aria-expanded={showCentreVoice}
+                      onClick={() => setShowCentreVoice((value) => !value)}
+                      className="flex w-full items-center justify-between gap-3 text-left"
+                    >
+                      <span>
+                        <span className="flex items-center gap-2 text-sm font-bold text-ink-900">
+                          <Users className="h-4 w-4 text-clay-700" /> Your centre&apos;s voice
+                        </span>
+                        <span className="mt-1 block text-xs leading-relaxed text-ink-500">
+                          Your philosophy and words you like or avoid. It shapes tone, not evidence.
+                        </span>
+                      </span>
+                      <span className="flex-none text-xs font-bold text-clay-700">{showCentreVoice ? "Hide" : "Set up"}</span>
+                    </button>
+                    {showCentreVoice && (
+                      <div className="mt-4 space-y-3">
+                        <div>
+                          <label htmlFor="gen-centre-philosophy-or-room-voice" className="label">Centre philosophy or room voice</label>
+                          <textarea id="gen-centre-philosophy-or-room-voice"
+                            value={centrePhilosophy}
+                            onChange={(event) => setCentrePhilosophy(event.target.value)}
+                            rows={4}
+                            className="input resize-none text-sm leading-relaxed"
+                            placeholder={location === "NZ"
+                              ? "Example: We value child agency, connection with whānau, outdoor inquiry, and calm practical language."
+                              : "Example: We value child agency, family partnership, outdoor inquiry, and calm practical language."
+                            }
+                          />
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div>
+                            <label htmlFor="gen-words-or-phrases-you-like" className="label">Words or phrases you like</label>
+                            <input id="gen-words-or-phrases-you-like"
+                              value={likedPhrases}
+                              onChange={(event) => setLikedPhrases(event.target.value)}
+                              className="input"
+                              placeholder="working theories, ako, confident learner"
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="gen-words-or-phrases-to-avoid" className="label">Words or phrases to avoid</label>
+                            <input id="gen-words-or-phrases-to-avoid"
+                              value={avoidedPhrases}
+                              onChange={(event) => setAvoidedPhrases(event.target.value)}
+                              className="input"
+                              placeholder="beautiful moment, demonstrated"
+                            />
+                          </div>
+                        </div>
+                        <p className="text-xs leading-relaxed text-ink-500">
+                          Centre plans share this across the team.
+                          <Link href="/billing?offer=activation" className="ml-1 font-bold text-clay-700 hover:text-clay-900">
+                            See centre options
+                          </Link>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2 border-t border-clay-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-xs text-ink-500">These apply to this story. Save them to start with them every time.</p>
+                    <button
+                      type="button"
+                      onClick={handleSavePreferences}
+                      disabled={savingPreferences}
+                      className="btn-secondary px-4 py-2 text-xs disabled:opacity-50"
+                    >
+                      {savingPreferences ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                      Save as my defaults
+                    </button>
+                  </div>
+                  {preferencesMessage && <p className="text-xs text-clay-700">{preferencesMessage}</p>}
                 </div>
               )}
             </div>
-            {location === "NZ" && (
+
+            {mode === "backlog" ? (
+              <button type="button" onClick={handleBacklogRescue} disabled={backlogLoading || loading || transcribing || observations.length < 40} className="btn-primary w-full py-4 text-base">
+                {backlogLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Sorting your backlog...
+                  </>
+                ) : (
+                  <>
+                    <ClipboardList className="h-4 w-4" /> Analyse backlog
+                  </>
+                )}
+              </button>
+            ) : (
               <div>
-                <label className="label">Te reo Māori</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(["low", "medium", "high"] as const).map((option) => (
-                    <button
-                      key={option}
-                      onClick={() => setIncludeTeReoLevel(option)}
-                      className={`text-xs font-semibold py-2 rounded-lg border capitalize transition-all ${
-                        includeTeReoLevel === option
-                          ? "bg-clay-700 text-paper border-clay-700"
-                          : "bg-white text-ink-600 border-clay-200 hover:border-clay-400"
-                      }`}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-xs text-ink-500 mt-1">
-                  NZ-only wording for Te Whāriki stories. EYLF stories stay in Australian educator language.
-                </p>
+                <button
+                  type="button"
+                  onClick={() => handleGenerate()}
+                  disabled={loading || transcribing || observations.trim().length < MIN_STORY_OBSERVATION_CHARACTERS}
+                  className="btn-primary w-full py-4 text-base"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" /> Writing your story...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" /> Generate story
+                    </>
+                  )}
+                </button>
+                {!loading && observations.trim().length > 0 && observations.trim().length < MIN_STORY_OBSERVATION_CHARACTERS && (
+                  <p className="mt-2 text-center text-xs text-ink-500">Add a little more about what happened to write the story.</p>
+                )}
               </div>
             )}
-            <div className="grid sm:grid-cols-2 gap-2">
-              {location === "NZ" && (
-                <label className="flex items-start gap-2 rounded-xl border border-clay-200 bg-white p-3 text-xs text-ink-700">
-                  <input
-                    type="checkbox"
-                    checked={includeKowhitiWhakapae}
-                    onChange={(event) => setIncludeKowhitiWhakapae(event.target.checked)}
-                    className="mt-0.5 h-4 w-4 flex-none accent-clay-700"
-                  />
-                  <span>
-                    <span className="font-bold block text-ink-900">Kōwhiti Whakapae links</span>
-                    Add only when social/emotional, language, or maths noticing is relevant.
-                  </span>
-                </label>
-              )}
-              <label className="flex items-start gap-2 rounded-xl border border-clay-200 bg-white p-3 text-xs text-ink-700">
-                <input
-                  type="checkbox"
-                  checked={includeTapasa}
-                  onChange={(event) => setIncludeTapasa(event.target.checked)}
-                  className="mt-0.5 h-4 w-4 flex-none accent-clay-700"
-                />
-                  <span>
-                    <span className="font-bold block text-ink-900">Tapasā lens</span>
-                  Use only when Pacific identity, {location === "NZ" ? "whānau" : "family"}, language, or culture is actually present.
-                </span>
-              </label>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-t border-clay-100 pt-3">
-              <p className="text-xs text-ink-500">These settings apply to this story. Save them if this is your usual style.</p>
-              <button
-                type="button"
-                onClick={handleSavePreferences}
-                disabled={savingPreferences}
-                className="btn-secondary px-4 py-2 text-xs disabled:opacity-50"
-              >
-                {savingPreferences ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-                Save defaults
-              </button>
-            </div>
-            {preferencesMessage && <p className="text-xs text-clay-700">{preferencesMessage}</p>}
           </div>
-
-          {mode === "backlog" ? (
-            <button onClick={handleBacklogRescue} disabled={backlogLoading || loading || transcribing || observations.length < 40} className="btn-primary w-full py-4 text-base">
-              {backlogLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> Sorting your backlog...
-                </>
-              ) : (
-                <>
-                  <ClipboardList className="w-4 h-4" /> Analyse backlog
-                </>
-              )}
-            </button>
-          ) : (
-            <button
-              onClick={() => handleGenerate()}
-              disabled={loading || transcribing || observations.trim().length < MIN_STORY_OBSERVATION_CHARACTERS}
-              className="btn-primary w-full py-4 text-base"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> Writing your story...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4" /> Generate story
-                </>
-              )}
-            </button>
-          )}
 
           {showBacklogUpgradeNudge && mode === "backlog" && (
             <div className="rounded-2xl border border-clay-200 bg-white p-4 shadow-soft">
@@ -1617,24 +1660,24 @@ export default function GeneratePage() {
             <p className="section-title">Your learning story</p>
             {story && (
               <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <button onClick={() => handleGenerate()} className="btn-ghost text-xs">
+                <button type="button" onClick={() => handleGenerate()} className={storyAction}>
                   <RefreshCw className="w-3 h-3" /> Regenerate
                 </button>
-                <button onClick={startStoryEdit} disabled={editingStory || savingStory} className="btn-ghost text-xs disabled:opacity-50">
+                <button type="button" onClick={startStoryEdit} disabled={editingStory || savingStory} className={storyAction}>
                   <Pencil className="w-3 h-3" /> Edit
                 </button>
-                <button onClick={handleCopy} className="btn-ghost text-xs">
+                <button type="button" onClick={handleCopy} className={storyAction}>
                   {copied ? <Check className="w-3 h-3 text-sage-600" /> : <Copy className="w-3 h-3" />}
                   {copied ? "Copied" : "Copy"}
                 </button>
-                <button onClick={handleDownload} className="btn-ghost text-xs">
+                <button type="button" onClick={handleDownload} className={storyAction}>
                   <Download className="w-3 h-3" /> Export
                 </button>
-                <button onClick={handleParentFriendlyVersion} disabled={parentVersionLoading || !storyId} className="btn-ghost text-xs disabled:opacity-50">
+                <button type="button" onClick={handleParentFriendlyVersion} disabled={parentVersionLoading || !storyId} className={storyAction}>
                   {parentVersionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <MessageCircleHeart className="w-3 h-3" />}
                   Family version
                 </button>
-                <button onClick={handleFamilyConnectionPack} disabled={familyPackLoading || !storyId} className="btn-ghost text-xs disabled:opacity-50">
+                <button type="button" onClick={handleFamilyConnectionPack} disabled={familyPackLoading || !storyId} className={storyAction}>
                   {familyPackLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : hasFeatureAccess(accountPlan, "familyConnectionPack") ? <Sparkles className="w-3 h-3" /> : <LockKeyhole className="w-3 h-3" />}
                   Family pack
                 </button>
