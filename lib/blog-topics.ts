@@ -33,6 +33,43 @@ export type GuideTopic = {
 };
 
 export const GUIDE_TOPICS: GuideTopic[] = [
+  // --- Added 24 Sept 2026 from Google autocomplete research (NZ/AU): high-volume
+  // questions no StoryLoop page answers yet. ---
+  {
+    slug: "learning-story-examples-babies",
+    title: "Learning story examples for babies and infants",
+    angle: "Infants give the least to go on and tempt the most guessing. Three short examples written from what the baby's body, gaze and sounds actually did, with the learning named honestly.",
+    intent: "informational", region: "both", category: "guide",
+    keywords: ["learning story examples babies", "infant learning story", "learning stories for babies nz"],
+  },
+  {
+    slug: "learning-story-examples-toddlers",
+    title: "Learning story examples for toddlers",
+    angle: "Toddlers repeat, test and rarely explain. Examples that treat repetition as a working theory and keep the child's one or two words exactly as said.",
+    intent: "informational", region: "both", category: "guide",
+    keywords: ["learning story examples toddlers", "toddler learning story", "learning story examples 2 year olds"],
+  },
+  {
+    slug: "notice-recognise-respond",
+    title: "Notice, recognise, respond: the assessment cycle in plain words",
+    angle: "What each step looks like on an ordinary Tuesday, the step most stories skip (respond), and how the cycle keeps going from one story to the next.",
+    intent: "informational", region: "NZ", category: "guide",
+    keywords: ["notice recognise respond", "notice recognise respond early childhood", "assessment cycle ece"],
+  },
+  {
+    slug: "group-learning-story",
+    title: "How to write a group learning story, and when each child needs their own",
+    angle: "One moment with five children: when a group story is right, when each child needs their own, and how to avoid giving one child's words or actions to another.",
+    intent: "problem", region: "both", category: "guide",
+    keywords: ["group learning story", "group learning story example", "learning story for a group of children"],
+  },
+  {
+    slug: "how-to-read-a-learning-story",
+    title: "How to read your child's learning story (for parents and whānau)",
+    angle: "For families: what the three parts mean, why it talks about dispositions instead of skills, and how adding a comment from home helps the educator plan.",
+    intent: "informational", region: "both", category: "article",
+    keywords: ["what is a learning story for parents", "how to read learning story", "learning story parent comment"],
+  },
   // --- Highest intent: people searching at the exact moment of pain ---
   {
     slug: "learning-story-examples-templates",
@@ -70,6 +107,7 @@ export const GUIDE_TOPICS: GuideTopic[] = [
     angle: "One concrete example per strand from ordinary play, plus the common mistake of linking to the equipment rather than the thinking.",
     intent: "informational", region: "NZ", category: "guide",
     keywords: ["te whariki strands", "mana atua mana reo", "te whariki explained"],
+    manualOnly: "Covered by the published te-whariki-strands-plain-english guide and /te-whariki-learning-outcomes-guide.",
   },
   {
     slug: "eylf-outcomes-explained",
@@ -77,6 +115,7 @@ export const GUIDE_TOPICS: GuideTopic[] = [
     angle: "Australian mirror of the Te Whāriki guide. Each outcome with what it actually looks like on the floor.",
     intent: "informational", region: "AU", category: "guide",
     keywords: ["eylf outcomes", "eylf learning outcomes explained", "eylf 2.0"],
+    manualOnly: "Covered by the hand-written /eylf-learning-outcomes page (24 Sept 2026); a second page would compete with it.",
   },
   {
     slug: "linking-observations-to-curriculum",

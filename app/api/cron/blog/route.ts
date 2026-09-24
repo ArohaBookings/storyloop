@@ -7,7 +7,9 @@ import { submitToIndexNow } from "@/lib/indexnow";
 export const maxDuration = 300;
 
 /**
- * Publishes the next guide from the backlog. Scheduled weekly in vercel.json.
+ * Publishes the next guide from the backlog. Checked daily in vercel.json (a
+ * weekly schedule stopped firing after July 2026); MINIMUM_DAYS_BETWEEN_POSTS
+ * still limits it to one guide a week.
  *
  * Vercel Cron calls this with GET, so GET is the publishing path; add
  * ?dryRun=1 to check the backlog and gates without publishing. It writes ONE
