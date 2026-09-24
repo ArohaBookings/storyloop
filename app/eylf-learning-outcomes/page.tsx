@@ -9,9 +9,9 @@ const LINK_EXAMPLE = REAL_EXAMPLES.flatMap((item) => item.story.split("\n"))
   .find((line) => line.startsWith("EYLF Outcome 5:")) ?? null;
 
 export const metadata: Metadata = {
-  title: "The 5 EYLF learning outcomes (V2.0) in plain English, with all 21 sub-outcomes",
+  title: { absolute: "The 5 EYLF learning outcomes (V2.0) in plain English" },
   description:
-    "The five EYLF V2.0 learning outcomes and their 21 sub-outcomes, in the framework's own words, with what each looks like in play and how to link a learning story to them honestly.",
+    "The five EYLF V2.0 learning outcomes and all 21 sub-outcomes in the framework's words, with what each looks like in play and how to link a story to them.",
   alternates: { canonical: "https://storyloop.space/eylf-learning-outcomes" },
   openGraph: { title: "The 5 EYLF learning outcomes (V2.0)", description: "All 21 sub-outcomes, and what each looks like in play.", url: "https://storyloop.space/eylf-learning-outcomes", type: "article" },
 };

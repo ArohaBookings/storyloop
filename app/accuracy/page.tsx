@@ -9,7 +9,7 @@ import { ACCURACY_REPORT as R } from "@/lib/accuracy-report";
 export const metadata: Metadata = {
   title: "How accurate are StoryLoop's learning story drafts?",
   description:
-    "The StoryLoop accuracy report: every release is tested on the same 24 real-style notes, checked by rules and by an independent AI reviewer. The latest results, including what is still being fixed.",
+    "How StoryLoop tests every learning story draft: 24 real-style notes, checked by rule and by an independent AI reviewer, with the latest results in full.",
   alternates: { canonical: "https://storyloop.space/accuracy" },
 };
 

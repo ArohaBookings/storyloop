@@ -3,9 +3,9 @@ import Link from "next/link";
 import { GuideCta, GuideFaq, GuideFigure, GuideHero, GuidePage, GuideSection, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 
 export const metadata: Metadata = {
-  title: "StoryLoop works with Storypark, Educa and Kinderloop",
+  title: { absolute: "StoryLoop works with Storypark, Educa and Kinderloop" },
   description:
-    "Write and check learning stories in StoryLoop, then share them wherever your families already are: Storypark, Educa, Kinderloop or Brightwheel. Start on your own today, with nothing to set up.",
+    "Write and check learning stories in StoryLoop, then share them wherever your families already are: Storypark, Educa, Kinderloop or Brightwheel.",
   alternates: { canonical: "https://storyloop.space/works-alongside" },
   openGraph: { title: "StoryLoop works with Storypark, Educa and Kinderloop", description: "Write it in StoryLoop, share it wherever your families already are.", url: "https://storyloop.space/works-alongside", type: "article" },
 };

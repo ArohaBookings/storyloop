@@ -10,9 +10,9 @@ import { ACCURACY_REPORT as R } from "@/lib/accuracy-report";
 import { WALL_LANGUAGES } from "@/lib/wall-languages";
 
 export const metadata: Metadata = {
-  title: "StoryLoop features and plans: every feature, and which plan it is on",
+  title: { absolute: "Every StoryLoop feature, and which plan it is on" },
   description:
-    "Every StoryLoop feature for early childhood educators and centres in New Zealand and Australia, the checks behind every learning story draft, and a plan-by-plan table from Free to Centre Growth.",
+    "Every StoryLoop feature for NZ and Australian educators and centres, the checks behind every draft, and a plan-by-plan table from Free to Centre Growth.",
   alternates: { canonical: "https://storyloop.space/features" },
   openGraph: { title: "StoryLoop features and plans", description: "Every feature, the tech behind every draft, and which plan includes what.", url: "https://storyloop.space/features", type: "website" },
 };

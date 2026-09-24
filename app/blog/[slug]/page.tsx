@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const post = await getPublishedPost(slug);
   if (!post) return { title: "Not found | StoryLoop" };
 
-  const title = post.seo_title || `${post.title} | StoryLoop`;
+  const title = post.seo_title || (post.title.length > 48 ? post.title : `${post.title} | StoryLoop`);
   const description = plainSummary(post);
   const url = `https://storyloop.space/blog/${post.slug}`;
 

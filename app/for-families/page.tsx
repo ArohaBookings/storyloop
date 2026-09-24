@@ -5,9 +5,9 @@ import { GuideFaq, GuideFigure, GuideHero, GuidePage, GuideSection, RELATED, Rel
 import ShareWithCentre from "@/components/marketing/ShareWithCentre";
 
 export const metadata: Metadata = {
-  title: "For families: what StoryLoop means for your child's learning stories",
+  title: { absolute: "What StoryLoop means for your child's learning stories" },
   description:
-    "If your child's early childhood educators use StoryLoop: what it is, what you will see (stories in plain words, a question to ask at home, wall cards in your language), and how your child's information is protected.",
+    "What families see when educators use StoryLoop: stories in plain words, a question for home, wall cards in your language, and your child's data protected.",
   alternates: { canonical: "https://storyloop.space/for-families" },
   openGraph: { title: "StoryLoop for families", description: "More stories about your child's learning, in plain words and your own language.", url: "https://storyloop.space/for-families", type: "website" },
 };

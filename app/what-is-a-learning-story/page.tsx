@@ -5,9 +5,9 @@ import { REAL_EXAMPLES } from "@/lib/real-examples";
 import { ACCURACY_REPORT as R } from "@/lib/accuracy-report";
 
 export const metadata: Metadata = {
-  title: "What is a learning story? A plain guide for ECE educators",
+  title: { absolute: "What is a learning story? A plain guide for educators" },
   description:
-    "What a learning story is, where it came from (Margaret Carr, Aotearoa New Zealand), its three parts (notice, recognise, respond), how it differs from an observation, and a real example, for Te Whāriki and EYLF.",
+    "What a learning story is, where it came from, its three parts (notice, recognise, respond), how it differs from an observation, and a real example.",
   alternates: { canonical: "https://storyloop.space/what-is-a-learning-story" },
   openGraph: { title: "What is a learning story?", description: "The three parts, the history, and a real example.", url: "https://storyloop.space/what-is-a-learning-story", type: "article" },
 };

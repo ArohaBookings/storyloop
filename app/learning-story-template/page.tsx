@@ -4,9 +4,9 @@ import CopyTemplate from "@/components/marketing/CopyTemplate";
 import { GuideCta, GuideFaq, GuideHero, GuidePage, GuideSection, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 
 export const metadata: Metadata = {
-  title: "Learning story template (Te Whāriki and EYLF), free to copy",
+  title: { absolute: "Free learning story template (Te Whāriki and EYLF)" },
   description:
-    "A free learning story template for New Zealand (Te Whāriki) and Australia (EYLF V2.0), with a prompt under every heading. Copy it into Word, Google Docs, Canva or Storypark.",
+    "A free learning story template for Te Whāriki and EYLF V2.0, with a prompt under every heading. Copy it into Word, Google Docs, Canva or Storypark.",
   alternates: { canonical: "https://storyloop.space/learning-story-template" },
   openGraph: { title: "Learning story template, free to copy", description: "Te Whāriki and EYLF versions with a prompt under every heading.", url: "https://storyloop.space/learning-story-template", type: "article" },
 };

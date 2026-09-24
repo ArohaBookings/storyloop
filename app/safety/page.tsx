@@ -5,9 +5,9 @@ import { GuideCta, GuideFaq, GuideFigure, GuideHero, GuidePage, GuideSection, Gu
 import { ACCURACY_REPORT as R } from "@/lib/accuracy-report";
 
 export const metadata: Metadata = {
-  title: "Children's information and AI at StoryLoop, in plain words",
+  title: { absolute: "Children's information and AI at StoryLoop" },
   description:
-    "Where a note about a child goes, what the AI can and cannot do with it, why it is never used to train AI, the checks on every draft, and the choices educators and families have. Stored in Sydney.",
+    "Where a note about a child goes, what the AI can and cannot do with it, why it is never used to train AI, and the checks on every draft. Stored in Sydney.",
   alternates: { canonical: "https://storyloop.space/safety" },
   openGraph: { title: "Children's information and AI at StoryLoop", description: "Stored in Sydney, never used to train AI, checked before anything is shared.", url: "https://storyloop.space/safety", type: "article" },
 };

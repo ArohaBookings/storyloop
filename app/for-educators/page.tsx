@@ -5,9 +5,9 @@ import { GuideCta, GuideFaq, GuideFigure, GuideHero, GuidePage, GuideSection, RE
 import { ACCURACY_REPORT as R } from "@/lib/accuracy-report";
 
 export const metadata: Metadata = {
-  title: "StoryLoop for educators: learning stories without the late nights",
+  title: { absolute: "Learning stories without the late nights | StoryLoop" },
   description:
-    "For early childhood teachers and educators in NZ and Australia: turn a quick note or voice memo into a learning story draft with Te Whāriki or EYLF links, check it, and publish where you always do. Free for 3 stories a month.",
+    "Turn a quick note or voice memo into a learning story draft with Te Whāriki or EYLF links, then check every word. Free for 3 stories a month.",
   alternates: { canonical: "https://storyloop.space/for-educators" },
   openGraph: { title: "StoryLoop for educators", description: "Finish the learning story before you leave, not at 9pm.", url: "https://storyloop.space/for-educators", type: "website" },
 };

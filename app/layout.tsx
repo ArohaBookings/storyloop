@@ -25,7 +25,7 @@ const jetBrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://storyloop.space"),
   title: {
-    default: "StoryLoop — Learning Stories Drafted Faster, Without Losing Educator Voice",
+    default: "StoryLoop: AI learning stories for Te Whāriki and EYLF",
     template: "%s | StoryLoop",
   },
   description: "Turn a rough note or voice memo into an editable learning story draft, with Te Whāriki or EYLF links, child voice and next steps. You edit and sign off.",
