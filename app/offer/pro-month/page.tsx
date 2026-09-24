@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import SignInLinkForm from "@/components/auth/SignInLinkForm";
 import { BellRing, CalendarCheck, Check, CreditCard, Mic, QrCode, RotateCcw, Sparkles, Users } from "lucide-react";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
@@ -115,6 +116,10 @@ export default async function ProMonthOfferPage() {
                   <Link href="/login?redirect=/offer/pro-month" className="btn-primary mt-6 w-full justify-center py-3.5 text-base" data-track="offer_signin">
                     Sign in to claim my month
                   </Link>
+                  <div className="mt-5 border-t border-clay-100 pt-5">
+                    <p className="mb-3 text-sm font-semibold text-ink-800">Forgotten your password? We will email you a link that signs you straight in.</p>
+                    <SignInLinkForm redirect="/offer/pro-month" compact />
+                  </div>
                   <p className="mt-3 text-center text-sm text-ink-500">
                     New to StoryLoop? <Link href="/signup" className="font-semibold text-clay-700 underline">Start free</Link>, and every paid plan has a 7-day free trial.
                   </p>

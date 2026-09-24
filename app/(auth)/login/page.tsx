@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { safeRedirectPath } from "@/lib/safe-redirect";
+import SignInLinkForm from "@/components/auth/SignInLinkForm";
 
 const DEFAULT_REDIRECT = "/dashboard";
 
@@ -15,12 +16,17 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [redirect, setRedirect] = useState(DEFAULT_REDIRECT);
   const [notice, setNotice] = useState("");
+  const [useLink, setUseLink] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const nextPath = params.get("redirect");
     if (nextPath) setRedirect(safeRedirectPath(nextPath));
+    if (params.get("link") === "expired") {
+      setNotice("That sign-in link has been used or has expired. Sign in below, or get a new link.");
+      setUseLink(true);
+    }
     if (params.get("disabled") === "1") {
       setNotice("This account has been disabled. Contact support if you think this is a mistake.");
     }
@@ -79,10 +85,18 @@ export default function LoginPage() {
             <button type="submit" disabled={loading} className="btn-primary w-full py-3">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sign in"}
             </button>
-            <div className="text-center">
-              <Link href="/forgot-password" className="text-xs text-ink-500 hover:text-clay-700 hover:underline">Forgot your password?</Link>
+            <div className="flex items-center justify-between gap-3 text-xs">
+              <Link href="/forgot-password" className="text-ink-500 hover:text-clay-700 hover:underline">Forgot your password?</Link>
+              <button type="button" onClick={() => setUseLink((value) => !value)} className="font-semibold text-clay-700 hover:underline">
+                {useLink ? "Hide" : "Email me a sign-in link instead"}
+              </button>
             </div>
           </form>
+          {useLink && (
+            <div className="mt-5 border-t border-clay-100 pt-5">
+              <SignInLinkForm redirect={redirect} defaultEmail={email} compact />
+            </div>
+          )}
         </div>
         <p className="text-center text-sm text-ink-500 mt-5">New here? <Link href="/signup" className="text-clay-700 font-semibold hover:underline">Create an account</Link></p>
       </div>
