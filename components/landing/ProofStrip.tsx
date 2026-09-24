@@ -38,10 +38,10 @@ export default function ProofStrip() {
         <div className="flex gap-4">
           <Layers className="mt-1 h-6 w-6 flex-none text-sage-700" strokeWidth={1.75} />
           <div>
-            <p className="text-base font-semibold leading-relaxed text-ink-900">Keep Storypark, Educa or Kinderloop.</p>
+            <p className="text-base font-semibold leading-relaxed text-ink-900">Built for Aotearoa and Australia.</p>
             <p className="mt-1 text-base leading-relaxed text-ink-700">
-              StoryLoop writes the draft. You paste or export it into whatever your centre already uses. Nothing to
-              migrate, nobody to convince.
+              Te Whāriki and EYLF V2.0 built in, te reo Māori where it belongs, and a version families can read in
+              their own language.
             </p>
           </div>
         </div>

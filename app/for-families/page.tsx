@@ -26,11 +26,11 @@ const FAQS = [
   },
   {
     q: "Where will I see the stories?",
-    a: "Wherever your centre already shares them, for example Storypark, Educa or Kinderloop. Nothing changes for you: no new app and no new login.",
+    a: "Your centre decides how they share them: printed, on a wall card you can scan at pickup, by email or message, or through the app your centre uses. You do not need a new app or a login to read a wall card.",
   },
   {
     q: "Are photos of my child uploaded to StoryLoop?",
-    a: "No. Educators do not need photos to write a story in StoryLoop; photos stay in the platform your centre already uses. Wall cards carry no names, photographs or dates.",
+    a: "No. Educators do not need photos to write a story in StoryLoop; photos are not part of a StoryLoop story. Wall cards carry no names, photographs or dates.",
   },
   {
     q: "Can I ask for my child's information to be deleted?",

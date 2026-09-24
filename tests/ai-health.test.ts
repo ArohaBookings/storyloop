@@ -22,3 +22,11 @@ test("the most urgent reason leads the admin alert", () => {
   assert.equal(summariseFallbacks([]).top, null);
   assert.equal(summariseFallbacks(["made-up"]).top?.reason, "unknown");
 });
+
+test("the stand-in writer can never run on Vercel", async () => {
+  const { offlineWriterAllowed } = await import("../lib/ai/generate");
+  assert.equal(offlineWriterAllowed({}), false);
+  assert.equal(offlineWriterAllowed({ STORYLOOP_OFFLINE_WRITER: "1" }), true);
+  assert.equal(offlineWriterAllowed({ STORYLOOP_OFFLINE_WRITER: "1", VERCEL: "1" }), false);
+  assert.equal(offlineWriterAllowed({ STORYLOOP_OFFLINE_WRITER: "1", VERCEL_ENV: "production" }), false);
+});

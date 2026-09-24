@@ -86,6 +86,17 @@ export function proMonthEligibility(input: {
 }
 
 /** Who the campaign goes to. Pure: the caller supplies the rows. */
+// Domains that can never receive mail (reserved for testing, RFC 2606 / 6761),
+// our own test domain, and the typos of big providers that turn up in signups.
+// Sending to them bounces, and bounces hurt delivery for everyone else.
+const UNDELIVERABLE_DOMAIN = /(\.(test|invalid|example|localhost|local)$)|(^|\.)example\.(com|net|org)$|^storyloop\.qa$|^(gnail|gmial|gmal|gmai|gamil|hotmial|hotmal|yaho|yahooo|outlok|iclod)\.[a-z.]+$/i;
+
+/** True when an address can never receive this email. Pure. */
+export function isUndeliverableEmail(email: string) {
+  const domain = email.trim().toLowerCase().split("@")[1] ?? "";
+  return !domain || !domain.includes(".") || UNDELIVERABLE_DOMAIN.test(domain);
+}
+
 export function proMonthAudience<T extends OfferProfile & { id: string; email?: string | null; marketing_unsubscribed_at?: string | null }>(input: {
   profiles: T[];
   centreMemberIds: Set<string>;
@@ -98,6 +109,7 @@ export function proMonthAudience<T extends OfferProfile & { id: string; email?: 
   for (const profile of input.profiles) {
     const email = (profile.email ?? "").trim().toLowerCase();
     if (!email || !email.includes("@")) { skip("no_email"); continue; }
+    if (isUndeliverableEmail(email)) { skip("undeliverable"); continue; }
     if (profile.is_active === false) { skip("inactive"); continue; }
     if (profile.is_internal) { skip("internal"); continue; }
     if (isPayingAccount(profile)) { skip("already_paid"); continue; }

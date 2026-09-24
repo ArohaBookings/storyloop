@@ -146,3 +146,13 @@ test("offer dates read naturally, without the en-NZ comma", async () => {
   const { longDay } = await import("../lib/offers");
   assert.equal(longDay(new Date("2026-10-07T03:00:00Z")), "Wednesday 7 October");
 });
+
+test("the free-month email never goes to an address that cannot receive it", async () => {
+  const { isUndeliverableEmail } = await import("../lib/offers");
+  for (const bad of ["qa+1@storyloop.test", "x@example.invalid", "a@example.com", "story@storyloop.qa", "shellh2017@gnail.com", "t@test.local", "nodomain@", "no-dot@localhost"]) {
+    assert.equal(isUndeliverableEmail(bad), true, bad);
+  }
+  for (const good of ["educator@gmail.com", "erica@thepark-elc.co.nz", "shannon@education.wa.edu.au", "isla@ais.com.sg", "a@yahoo.co.nz", "person@mail.com"]) {
+    assert.equal(isUndeliverableEmail(good), false, good);
+  }
+});

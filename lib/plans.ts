@@ -315,6 +315,14 @@ const FEATURE_REQUIREMENTS: Record<FeatureKey, PlanKey> = {
   practiceSignals: "educator",
 };
 
+/** Every feature key, for pages that must list them all (the features page and its test). */
+export const ALL_FEATURE_KEYS = Object.keys(FEATURE_REQUIREMENTS) as FeatureKey[];
+
+/** The first plan that includes a feature. */
+export function minimumPlanFor(feature: FeatureKey): PlanKey {
+  return FEATURE_REQUIREMENTS[feature];
+}
+
 export function normalizePlanKey(plan: unknown): PlanKey {
   if (plan === "educator" || plan === "educator_pro" || plan === "centre_starter" || plan === "centre_growth") {
     return plan;

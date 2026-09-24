@@ -147,7 +147,7 @@ export default async function CommandCentre({ searchParams }: { searchParams: Pr
   const behaviourLines = behaviourHeadlines(behaviour);
   // Stories the basic writer had to write because the AI could not (lib/ai-health.ts).
   const dayAgo = Date.now() - 86_400_000;
-  const fallbackRows = ((eventsRes.data ?? []) as EventRow[]).filter((row) => row.event_type === "story_fallback" && Date.parse(row.created_at) >= dayAgo);
+  const fallbackRows = ((eventsRes.data ?? []) as EventRow[]).filter((row) => (row.event_type === "story_failed" || row.event_type === "story_fallback") && Date.parse(row.created_at) >= dayAgo);
   const fallbacks = summariseFallbacks(fallbackRows.map((row) => String((row.metadata ?? {}).reason ?? "unknown")));
   const lastFallback = fallbackRows[0]?.created_at;
   const eventsCapped = (eventsRes.data?.length ?? 0) >= 25000;
@@ -186,7 +186,7 @@ export default async function CommandCentre({ searchParams }: { searchParams: Pr
         {fallbacks.top && (
           <div role="alert" className={`rounded-2xl border px-5 py-4 ${fallbacks.top.urgent ? "border-rose-400/60 bg-rose-500/15 text-rose-50" : "border-amber-500/40 bg-amber-500/10 text-amber-50"}`}>
             <p className="font-display text-lg font-bold">
-              {fallbacks.top.title}: {fallbacks.total} {fallbacks.total === 1 ? "story" : "stories"} in the last 24 hours were written by the basic writer, not the AI.
+              {fallbacks.top.title}: {fallbacks.total} {fallbacks.total === 1 ? "story" : "stories"} could not be written in the last 24 hours. Educators were asked to try again.
             </p>
             <p className="mt-1 text-sm">
               {fallbacks.top.fix}

@@ -15,7 +15,7 @@ import StoryDemo from "./StoryDemo";
 const TRUST = [
   { icon: Quote, text: "Children's words kept exactly. See the test results", href: "/accuracy" },
   { icon: ShieldCheck, text: "Stored in Sydney, never used to train AI", href: "/safety" },
-  { icon: Layers, text: "Works alongside Storypark, Educa and Kinderloop", href: "/works-alongside" },
+  { icon: Layers, text: "Works with Storypark, Educa and Kinderloop", href: "/works-alongside" },
 ];
 
 /**

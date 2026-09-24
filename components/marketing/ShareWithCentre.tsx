@@ -5,7 +5,7 @@ import { Check, Copy, Share2 } from "lucide-react";
 import { track } from "@/lib/analytics/client";
 
 const LINK = "https://storyloop.space/for-educators";
-const MESSAGE = `Hi, I came across StoryLoop, which helps educators write learning stories from a quick note or voice memo (with Te Whāriki or EYLF links), so they take minutes rather than an evening. You still write and check everything, and it works alongside Storypark. It is free for 3 stories a month if anyone wants to try it: ${LINK}`;
+const MESSAGE = `Hi, I came across StoryLoop, which helps educators write learning stories from a quick note or voice memo (with Te Whāriki or EYLF links), so they take minutes rather than an evening. You still write and check everything. It is free for 3 stories a month if anyone wants to try it: ${LINK}`;
 
 /** A ready-made message a family can send their centre. Nothing is sent from here. */
 export default function ShareWithCentre() {

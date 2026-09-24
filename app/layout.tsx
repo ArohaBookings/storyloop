@@ -62,7 +62,14 @@ export const metadata: Metadata = {
     description: "Turn observations into editable Te Whāriki or EYLF learning story drafts.",
     images: ["/images/hero.jpg"],
   },
-  icons: { icon: "/favicon.svg" },
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/brand/favicon-48.png", sizes: "48x48", type: "image/png" },
+      { url: "/brand/favicon-96.png", sizes: "96x96", type: "image/png" },
+    ],
+    apple: [{ url: "/brand/apple-touch-icon.png", sizes: "180x180" }],
+  },
   // A page can only appear in Google's AI Overviews or AI Mode if it is
   // eligible to be shown WITH A SNIPPET. Leaving snippet length to the default
   // is a silent cap; "max-snippet: -1" removes it. Binary payoff, so it is set
@@ -92,7 +99,8 @@ const structuredData = {
       "name": "StoryLoop by Aria Care",
       "url": "https://storyloop.space/",
       "email": "ariacareapp@gmail.com",
-      "logo": "https://storyloop.space/logo.svg",
+      // A raster logo: Google's Organization logo guidance asks for a bitmap of 112px or more.
+      "logo": "https://storyloop.space/brand/storyloop-icon.png",
       "founder": { "@id": "https://storyloop.space/#leo" },
       "foundingDate": "2026",
       "foundingLocation": {
@@ -183,7 +191,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en-AU">
       <head>
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       </head>
       <body className={`${fraunces.variable} ${manrope.variable} ${jetBrainsMono.variable}`}>

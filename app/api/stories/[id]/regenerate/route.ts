@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const maxDuration = 60;
-import { generateLearningStory } from "@/lib/ai/generate";
+import { generateLearningStory, StoryWriterUnavailableError } from "@/lib/ai/generate";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { getMonthlyStoryLimit, getRemainingStories } from "@/lib/story-limits";
@@ -307,6 +307,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
       remaining: limit === null ? "unlimited" : getRemainingStories(profile),
     });
   } catch (error) {
+    if (error instanceof StoryWriterUnavailableError) {
+      return NextResponse.json({ error: "Our story writer could not finish this one. Your story is unchanged. Please try again in a minute.", aiUnavailable: true }, { status: 503 });
+    }
     console.error("Story regenerate error:", error);
     return NextResponse.json({ error: "Could not regenerate story" }, { status: 500 });
   }

@@ -76,19 +76,13 @@ export function ogImage({
         />
 
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <div
-            style={{
-              width: 46,
-              height: 46,
-              borderRadius: 14,
-              background: CLAY,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <div style={{ width: 16, height: 16, borderRadius: 999, background: PAPER }} />
-          </div>
+          {/* The StoryLoop mark (public/logo.svg). */}
+          <svg width="46" height="46" viewBox="0 0 64 64">
+            <rect width="64" height="64" rx="15" fill={CLAY} />
+            <path d="M 44.1 19.9 A 16 16 0 1 0 48 32" stroke={PAPER} strokeWidth="5" strokeLinecap="round" fill="none" />
+            <circle cx="46.5" cy="21.5" r="4.4" fill="#e8c155" />
+            <circle cx="32" cy="32" r="3.2" fill={PAPER} />
+          </svg>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ fontSize: 30, fontWeight: 700, color: INK, letterSpacing: -0.5 }}>StoryLoop</div>
             <div style={{ fontSize: 14, color: INK_SOFT, letterSpacing: 3, textTransform: "uppercase" }}>by Aria Care</div>

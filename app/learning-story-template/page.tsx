@@ -60,8 +60,8 @@ const FAQS = [
     q: "Can I use it in Storypark or Educa?",
     a: (
       <>
-        Yes. Paste the finished story into the platform&apos;s story editor and add your photos there. See{" "}
-        <Link href="/works-alongside" className="font-semibold text-clay-700 underline">using StoryLoop with Storypark, Educa and Kinderloop</Link>.
+        Yes. The template is plain text, so it pastes into any story editor. Or let StoryLoop fill it in from your
+        note: <Link href="/storypark-alternative" className="font-semibold text-clay-700 underline">StoryLoop or Storypark?</Link>
       </>
     ),
   },

@@ -3,11 +3,11 @@ import Link from "next/link";
 import { GuideCta, GuideFaq, GuideFigure, GuideHero, GuidePage, GuideSection, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 
 export const metadata: Metadata = {
-  title: "Use StoryLoop alongside Storypark, Educa or Kinderloop",
+  title: "StoryLoop works with Storypark, Educa and Kinderloop",
   description:
-    "Keep Storypark, Educa, Kinderloop or Brightwheel for families and photos. StoryLoop writes the learning story draft; you paste it in and publish as usual. Nothing to migrate, no families to re-invite.",
+    "Write and check learning stories in StoryLoop, then share them wherever your families already are: Storypark, Educa, Kinderloop or Brightwheel. Start on your own today, with nothing to set up.",
   alternates: { canonical: "https://storyloop.space/works-alongside" },
-  openGraph: { title: "StoryLoop alongside Storypark, Educa or Kinderloop", description: "StoryLoop writes the draft; your platform keeps publishing it.", url: "https://storyloop.space/works-alongside", type: "article" },
+  openGraph: { title: "StoryLoop works with Storypark, Educa and Kinderloop", description: "Write it in StoryLoop, share it wherever your families already are.", url: "https://storyloop.space/works-alongside", type: "article" },
 };
 
 const STEPS = [
@@ -33,8 +33,8 @@ const FAQS = [
     q: "Is StoryLoop a Storypark alternative?",
     a: (
       <>
-        Not really. Storypark is where families see stories; StoryLoop is where the story gets written. Most educators keep
-        both. If you are comparing, see <Link href="/storypark-alternative" className="font-semibold text-clay-700 underline">StoryLoop compared with Storypark</Link>.
+        For learning stories, it can be: writing, checking, following each child&apos;s learning and sharing with families.
+        It does not host a family photo feed yet. See <Link href="/storypark-alternative" className="font-semibold text-clay-700 underline">StoryLoop or Storypark?</Link>
       </>
     ),
   },
@@ -56,13 +56,13 @@ export default function WorksAlongsidePage() {
   return (
     <GuidePage>
       <GuideHero
-        kicker="Keep your platform"
-        title={<>Works alongside <span className="italic text-clay-700">Storypark, Educa and Kinderloop</span></>}
+        kicker="Works with your platform"
+        title={<>Works with <span className="italic text-clay-700">Storypark, Educa and Kinderloop</span></>}
         answer={
           <p>
-            StoryLoop writes the learning story; your platform keeps publishing it. Draft the story in StoryLoop from a
-            quick note, check it, then paste it into Storypark, Educa, Kinderloop or Brightwheel and add your photos as
-            usual. Nothing to migrate, and no families to re-invite.
+            Write the learning story in StoryLoop from a quick note or voice memo, check it, then share it wherever your
+            families already are: Storypark, Educa, Kinderloop or Brightwheel, with your photos added there as usual. You
+            can start on your own today, and your centre can bring its learning stories into StoryLoop whenever it is ready.
           </p>
         }
         image="/images/scenes/kitchen.jpg"
@@ -113,8 +113,8 @@ export default function WorksAlongsidePage() {
         <GuideFaq items={FAQS} />
       </GuideSection>
 
-      <GuideCta heading="Write this week's stories in StoryLoop, publish them where you always do" />
-      <RelatedGuides links={[RELATED.educators, RELATED.centres, RELATED.safety, RELATED.examples, RELATED.template, RELATED.whatIs]} />
+      <GuideCta heading="Write this week's stories in StoryLoop, share them where your families already are" />
+      <RelatedGuides links={[RELATED.vsStorypark, RELATED.educators, RELATED.centres, RELATED.safety, RELATED.examples, RELATED.template]} />
     </GuidePage>
   );
 }

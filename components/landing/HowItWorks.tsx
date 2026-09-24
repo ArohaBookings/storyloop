@@ -24,7 +24,7 @@ const STEPS = [
   {
     icon: Send,
     title: "Make it yours",
-    desc: "Edit anything, then copy or export it into Storypark, Educa or wherever you share.",
+    desc: "Edit anything, then share it with families in plain words, or export it anywhere in one tap.",
   },
 ];
 

@@ -142,9 +142,8 @@ export default function Pricing({ audience = "all" }: { audience?: "all" | "indi
           </p>
           <p className="mt-1.5 text-sm leading-relaxed text-ink-600">
             Centre plans cover unlimited children. Enrol twenty more tamariki and the price does not move.
-            Per educator they work out at about half the individual plan, and you keep the platform your
-            centre already runs on, because StoryLoop exports straight into Storypark, Educa, Kinderloop
-            and Brightwheel rather than replacing them.
+            Per educator they work out at about half the individual plan, and every story, child profile
+            and family version lives in one place your whole team can use.
           </p>
           <p className="mt-3 border-t border-sage-200 pt-3 text-sm leading-relaxed text-ink-600">
             <strong className="font-semibold text-ink-900">Your educators keep their drafts.</strong>{" "}

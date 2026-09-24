@@ -31,6 +31,29 @@ import {
 } from "@/lib/story-options";
 import { aiFailureReason, type AiFailureReason } from "@/lib/ai-health";
 
+/**
+ * The AI could not write this story. Production never substitutes a basic,
+ * non-AI story (Leo, 24 Sept 2026: "everything should be done through AI"):
+ * the caller tells the educator to try again and no story is used up.
+ */
+export class StoryWriterUnavailableError extends Error {
+  reason: AiFailureReason;
+  constructor(reason: AiFailureReason, cause?: unknown) {
+    super(`Story writer unavailable: ${reason}`);
+    this.name = "StoryWriterUnavailableError";
+    this.reason = reason;
+    if (cause !== undefined) (this as { cause?: unknown }).cause = cause;
+  }
+}
+
+/**
+ * The deterministic stand-in writer, for the local test stack only (it has no
+ * AI key, and tests must not spend money). Never on Vercel, whatever is set.
+ */
+export function offlineWriterAllowed(env: Record<string, string | undefined> = process.env) {
+  return env.STORYLOOP_OFFLINE_WRITER === "1" && !env.VERCEL && !env.VERCEL_ENV;
+}
+
 export interface StoryResult extends StoryMetadata {
   storyTitle: string;
   story: string;
@@ -681,11 +704,14 @@ export async function generateLearningStory(params: {
       privacyGuardian: runPrivacyGuardian({ observation: observations, story: finalDraft.story }),
     };
   } catch (error) {
-    // AI path unavailable (API down, timeout, or unparseable JSON). Fall back
-    // to the deterministic grounded builder so the educator always gets a
-    // usable, evidence-led story; physical-conflict notes are routed to the
-    // safety builder inside buildGroundedFallbackStory.
-    console.error("Story generation failed, using grounded fallback:", error);
+    // AI path unavailable (API down, out of credit, timeout, or unparseable
+    // JSON). In production the educator is told to try again; only the local
+    // test stack may use the deterministic stand-in (offlineWriterAllowed).
+    if (!offlineWriterAllowed()) {
+      console.error("Story generation failed, AI unavailable:", error);
+      throw new StoryWriterUnavailableError(aiFailureReason(error), error);
+    }
+    console.error("Story generation failed, using the local offline writer:", error);
     const seed = normaliseStoryResult({
       storyTitle: params.childName ? `${params.childName}'s Learning Story` : "Learning Through Play",
       story: "",

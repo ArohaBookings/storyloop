@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 // fix pass). Give the serverless function room so it is never killed mid-write.
 export const maxDuration = 60;
 import { createClient } from "@/lib/supabase/server";
-import { generateLearningStory } from "@/lib/ai/generate";
+import { generateLearningStory, StoryWriterUnavailableError } from "@/lib/ai/generate";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { getMonthlyStoryLimit, getRemainingStories } from "@/lib/story-limits";
 import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
@@ -28,11 +28,11 @@ import { inferPrimaryChildName } from "@/lib/story-context";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { recordServerEvent } from "@/lib/analytics/server";
 
-/** A story written by the basic writer because the AI could not: say so where the admin will see it. */
+/** The AI could not write a story: say why where the admin will see it (lib/ai-health.ts). */
 async function noteFallback(reason: string, userId: string | null, demo: boolean) {
   try {
     await recordServerEvent(createAdminSupabase(), {
-      event: "story_fallback",
+      event: "story_failed",
       userId,
       path: "/api/generate",
       metadata: { reason, demo },
@@ -469,6 +469,14 @@ export async function POST(request: NextRequest) {
           : getRemainingStories({ ...profile, stories_this_month: newStoriesThisMonth }),
     });
   } catch (error) {
+    if (error instanceof StoryWriterUnavailableError) {
+      // Nothing was saved and no story was used up.
+      await noteFallback(error.reason, null, false);
+      return NextResponse.json({
+        error: "Our story writer could not finish this one. Nothing was used from your stories this month. Please try again in a minute.",
+        aiUnavailable: true,
+      }, { status: 503 });
+    }
     console.error("Generate error:", error);
     // Never hand an internal message to the caller. A visitor on the landing
     // demo was being shown backend configuration errors verbatim

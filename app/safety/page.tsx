@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 const JOURNEY = [
-  { icon: UserCheck, title: "You write or say a note", body: "First names only. You do not upload photos to write a story; they stay wherever you publish, like Storypark." },
+  { icon: UserCheck, title: "You write or say a note", body: "First names only. You do not upload photos to write a story." },
   { icon: MapPin, title: "It is saved in Sydney", body: "StoryLoop's database runs on Amazon Web Services in Sydney, Australia, encrypted in transit and at rest." },
   { icon: Lock, title: "The AI drafts, and forgets", body: "The note goes to OpenAI or Anthropic under their business terms, which do not allow it to be used to train their models. They keep it only for a short safety-monitoring period." },
   { icon: FileCheck2, title: "Every draft is checked", body: "Children's quotes are checked word for word against your note, and a privacy check flags anything that should not reach a family." },

@@ -38,8 +38,8 @@ const FAQS = [
     q: "My centre uses Storypark. Can I still use this?",
     a: (
       <>
-        Yes, it is built for exactly that: draft in StoryLoop, paste into Storypark and publish as usual. See{" "}
-        <Link href="/works-alongside" className="font-semibold text-clay-700 underline">how it works alongside your platform</Link>.
+        Yes. You can start on your own today, and any story exports in one tap. Many centres then move their learning
+        stories to StoryLoop as a team. See <Link href="/storypark-alternative" className="font-semibold text-clay-700 underline">StoryLoop or Storypark?</Link>
       </>
     ),
   },
@@ -77,7 +77,7 @@ export default function ForEducatorsPage() {
           {[
             ["In the moment, 30 seconds", "Three or four quick points, or say them into your phone. Write the child's words down as they said them."],
             ["Straight after, under a minute", "StoryLoop drafts the story, the learning, the curriculum links and where to next. Anything it assumed is listed beside it."],
-            ["When you have five minutes", "Read it, change what you would say differently, and paste it into Storypark, Educa or Kinderloop."],
+            ["When you have five minutes", "Read it, change what you would say differently, then share the family version or wall card."],
           ].map(([title, body]) => (
             <li key={title} className="rounded-3xl border border-clay-100 bg-white p-5">
               <h3 className="font-display text-xl font-bold text-ink-900">{title}</h3>

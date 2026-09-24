@@ -30,6 +30,9 @@ export const maxDuration = 60;
 
 const day = longDay;
 
+/** Send results that mean this person has had the email (or must never get it). */
+const DONE_STATUSES = new Set(["sent", "skipped_duplicate", "skipped_unsubscribed"]);
+
 function emailContext(expiresAt: Date) {
   const prices = proMonthPrices();
   return {
@@ -53,7 +56,10 @@ async function loadAudience() {
     profiles: profiles.data ?? [],
     centreMemberIds: new Set((members.data ?? []).map((row) => row.user_id)),
     unsubscribedEmails: new Set((unsubscribes.data ?? []).map((row) => String(row.email).toLowerCase())),
-    alreadyGranted: new Set((grants.data ?? []).map((row) => row.user_id)),
+    // Only a person whose email actually went (or who already claimed) is done.
+    // A grant whose send failed, for example on the daily email limit, is sent
+    // again by the next batch instead of being skipped for ever.
+    alreadyGranted: new Set((grants.data ?? []).filter((row) => DONE_STATUSES.has(String(row.email_status)) || row.redeemed_at).map((row) => row.user_id)),
   });
   const grantRows = grants.data ?? [];
   return {
@@ -138,13 +144,16 @@ export async function POST(request: NextRequest) {
         results.push({ id: profile.id, status: `grant_failed: ${grantError.message}` });
         continue;
       }
+      // A retried send keeps the claim-by date of the original grant.
+      const { data: grant } = await sb.from("offer_grants").select("expires_at").eq("user_id", profile.id).eq("offer_id", PRO_MONTH_OFFER_ID).maybeSingle();
+      const personExpiry = grant?.expires_at ? new Date(grant.expires_at) : expiresAt;
       const result = await sendLifecycleEmail({
         type: "pro_month_offer",
         userId: profile.id,
         recipient: profile.email,
         name: profile.full_name,
         ignoreFrequencyCap: true,
-        context: emailContext(expiresAt),
+        context: emailContext(personExpiry),
         metadata: { offer: PRO_MONTH_OFFER_ID },
       });
       await sb

@@ -8,6 +8,7 @@ Writes public/brand/:
   storyloop-icon.png        512 x 512, the loop mark on paper (Stripe icon, favicons)
   storyloop-logo.png        mark + wordmark, transparent, for Stripe Checkout
   storyloop-logo-email.png  mark + wordmark at 2x for emails (shown at 190 x 44)
+  favicon-48/96.png, icon-192.png, apple-touch-icon.png  the mark alone, for search and home screens
 
 The mark is public/logo.svg; the wordmark is Fraunces, the display face the
 site uses, so every surface a customer sees says the same name the same way.
@@ -47,6 +48,10 @@ def main():
         render(page, "storyloop-icon.png", mark=512, word_size=0, gap=0, pad=0, with_word=False)
         render(page, "storyloop-logo.png", mark=160, word_size=112, gap=36, pad=16)
         render(page, "storyloop-logo-email.png", mark=72, word_size=52, gap=16, pad=8)
+        # Favicons as PNG as well as SVG: Google Search shows a favicon that is a
+        # multiple of 48px, and iOS home screens want a 180px apple-touch-icon.
+        for size, name in ((48, "favicon-48.png"), (96, "favicon-96.png"), (192, "icon-192.png"), (180, "apple-touch-icon.png")):
+            render(page, name, mark=size, word_size=0, gap=0, pad=0, with_word=False)
         browser.close()
     for f in sorted(OUT.glob("*.png")):
         print(f.relative_to(REPO), f.stat().st_size, "bytes")
