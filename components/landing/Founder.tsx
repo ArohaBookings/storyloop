@@ -16,7 +16,7 @@ export default function Founder() {
     <section id="founder" className="py-20 md:py-24">
       <div className="wide-shell grid items-center gap-10 md:grid-cols-[minmax(0,300px)_1fr] lg:gap-16">
         <div className="relative mx-auto aspect-[4/5] w-full max-w-[300px] overflow-hidden rounded-3xl border border-clay-100 bg-cream-100">
-          <Image src="/images/leo.jpg" alt="Leo, who builds StoryLoop, in Christchurch" fill sizes="300px" className="object-cover object-top" />
+          <Image src="/images/leo-storyloop-founder.jpg" alt="Leo, who builds StoryLoop, in Christchurch" fill sizes="300px" className="object-cover object-top" />
         </div>
         <div className="max-w-2xl">
           <p className="section-title mb-3">Who builds it</p>

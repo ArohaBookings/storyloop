@@ -32,6 +32,7 @@ export function GuideHero({
   image,
   imageAlt,
   imagePosition = "center",
+  updated = GUIDE_UPDATED,
   children,
 }: {
   kicker: string;
@@ -40,6 +41,8 @@ export function GuideHero({
   image?: string;
   imageAlt?: string;
   imagePosition?: string;
+  /** A page whose facts were checked on a different day (prices, say) shows that date. */
+  updated?: string;
   children?: React.ReactNode;
 }) {
   return (
@@ -51,7 +54,7 @@ export function GuideHero({
             {title}
           </h1>
           <div className="mt-5 max-w-3xl text-lg leading-relaxed text-ink-700">{answer}</div>
-          <p className="mt-4 text-sm text-ink-500">Updated {GUIDE_UPDATED} · StoryLoop, Ōtautahi Christchurch</p>
+          <p className="mt-4 text-sm text-ink-500">Updated {updated} · StoryLoop, Ōtautahi Christchurch</p>
           {children}
         </div>
         {image && (
@@ -202,5 +205,6 @@ export const RELATED = {
   educators: { href: "/for-educators", title: "For educators", body: "From a quick note after play to a finished story, before you leave." },
   families: { href: "/for-families", title: "For families", body: "What you will see, in plain words and your own language." },
   centres: { href: "/for-centres", title: "For centres", body: "One price for the whole team, and consistent documentation." },
+  aiTools: { href: "/ai-tools-for-learning-stories", title: "AI tools for learning stories, compared", body: "Storypark Assist, Educa Assist, One Child, Kinderloop, ChatGPT and StoryLoop: who can buy each, and the prices." },
   teWhariki: { href: "/te-whariki-learning-outcomes-guide", title: "Te Whāriki learning outcomes", body: "The strands and outcomes, and how a story links to them honestly." },
 } as const;

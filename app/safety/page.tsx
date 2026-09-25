@@ -160,7 +160,7 @@ export default function SafetyPage() {
         { label: "Office of the Australian Information Commissioner, Australian Privacy Principles", url: "https://www.oaic.gov.au/" },
       ]} />
       <GuideCta heading="See how careful it is on your own note" />
-      <RelatedGuides links={[RELATED.accuracy, RELATED.families, RELATED.centres, RELATED.alongside, RELATED.whatIs, RELATED.examples]} />
+      <RelatedGuides links={[RELATED.accuracy, RELATED.aiTools, RELATED.families, RELATED.centres, RELATED.alongside, RELATED.whatIs]} />
     </GuidePage>
   );
 }

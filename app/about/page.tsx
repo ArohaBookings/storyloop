@@ -113,10 +113,10 @@ export default function AboutPage() {
               <div className="grid items-start gap-8 md:grid-cols-[auto_1fr] md:gap-12">
                 <div className="mx-auto w-full max-w-[220px] md:mx-0 md:w-[220px]">
                   <Image
-                    src="/images/leo.jpg"
+                    src="/images/leo-storyloop-founder.jpg"
                     alt="Leo, the founder of StoryLoop, in Christchurch"
                     width={440}
-                    height={586}
+                    height={550}
                     className="w-full rounded-2xl object-cover shadow-warm"
                     sizes="(max-width: 768px) 220px, 220px"
                   />

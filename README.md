@@ -3,7 +3,7 @@
 
 > Turn 3 bullet points into a beautiful, EYLF-aligned learning story in under 30 seconds. Built for educators across Australia and New Zealand.
 
-**A division of Aria Care. Built by Leo Bons, 19, in New Zealand 🇳🇿**
+**A division of Aria Care. Built by Leo Bons in Christchurch, New Zealand 🇳🇿**
 
 ---
 
@@ -15,10 +15,12 @@ Educators spend 30+ minutes writing each learning story. StoryLoop does it in 30
 | Plan | AUD | NZD | Limit |
 |------|-----|-----|-------|
 | Free | $0 | $0 | 3 stories/month |
-| Educator | $19/mo | $21/mo | Unlimited |
-| Centre | $49/mo | $55/mo | Up to 10 educators |
+| Educator | $19/mo | $21/mo | Unlimited stories |
+| Educator Pro | $29/mo | $33/mo | Unlimited, plus child profiles and family translation |
+| Centre Starter | $99/mo | $109/mo | 10 educator seats, unlimited children |
+| Centre Growth | $199/mo | $219/mo | 25 educator seats, unlimited children |
 
-All paid plans start with a **7-day free trial**.
+Individual plans start with a **7-day free trial**, centre plans with a **30-day free trial**. Live prices: https://storyloop.space/pricing
 
 ---
 
@@ -29,7 +31,7 @@ All paid plans start with a **7-day free trial**.
 - **Supabase** (auth, Postgres with RLS, hosted in Sydney)
 - **Stripe** (subscriptions + 7-day trials, AUD + NZD)
 - **Resend** (activation, retention, and upgrade lifecycle emails)
-- **OpenAI GPT-4o-mini** (primary — cheap + fast) or **Anthropic Claude** (fallback)
+- **OpenAI GPT-5.5** (primary) with **Anthropic Claude** as the backup writer
 - **Vercel** deploy target
 
 ---

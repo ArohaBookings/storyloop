@@ -14,6 +14,13 @@ export const metadata: Metadata = {
 
 const GUIDES = [
   {
+    href: "/ai-tools-for-learning-stories",
+    kicker: "Every educator · New",
+    title: "AI tools for learning stories, compared",
+    description: "Storypark Assist, Educa Assist, One Child, Kinderloop, ChatGPT and StoryLoop: who can buy each, the published prices, and what the AI does.",
+    icon: Sparkles,
+  },
+  {
     href: "/what-is-a-learning-story",
     kicker: "Every educator · New",
     title: "What is a learning story?",

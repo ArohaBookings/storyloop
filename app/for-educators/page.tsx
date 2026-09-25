@@ -121,7 +121,7 @@ export default function ForEducatorsPage() {
       </GuideSection>
 
       <GuideCta />
-      <RelatedGuides links={[RELATED.alongside, RELATED.examples, RELATED.template, RELATED.whatIs, RELATED.safety, RELATED.centres]} />
+      <RelatedGuides links={[RELATED.alongside, RELATED.aiTools, RELATED.examples, RELATED.template, RELATED.whatIs, RELATED.safety]} />
     </GuidePage>
   );
 }

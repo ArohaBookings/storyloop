@@ -134,7 +134,7 @@ const structuredData = {
       "description":
         "Founder of StoryLoop, building learning story drafting tools for early childhood educators from Christchurch, Aotearoa New Zealand.",
       "url": "https://storyloop.space/about",
-      "image": "https://storyloop.space/images/leo.jpg",
+      "image": "https://storyloop.space/images/leo-storyloop-founder.jpg",
       "homeLocation": {
         "@type": "Place",
         "address": {

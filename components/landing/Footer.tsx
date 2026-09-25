@@ -47,6 +47,7 @@ export default function Footer() {
               <li><Link href="/for-families" className="hover:text-paper transition-colors">For families</Link></li>
               <li><Link href="/works-alongside" className="hover:text-paper transition-colors">Works with Storypark</Link></li>
               <li><Link href="/storypark-alternative" className="hover:text-paper transition-colors">StoryLoop or Storypark?</Link></li>
+              <li><Link href="/ai-tools-for-learning-stories" className="hover:text-paper transition-colors">AI tools compared</Link></li>
               <li><Link href="/safety" className="hover:text-paper transition-colors">Children&apos;s information and AI</Link></li>
               <li><Link href="/ai-policy" className="hover:text-paper transition-colors">Free AI policy for services</Link></li>
             </ul>

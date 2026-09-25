@@ -114,7 +114,7 @@ export default function WorksAlongsidePage() {
       </GuideSection>
 
       <GuideCta heading="Write this week's stories in StoryLoop, share them where your families already are" />
-      <RelatedGuides links={[RELATED.vsStorypark, RELATED.educators, RELATED.centres, RELATED.safety, RELATED.examples, RELATED.template]} />
+      <RelatedGuides links={[RELATED.vsStorypark, RELATED.aiTools, RELATED.educators, RELATED.centres, RELATED.safety, RELATED.examples]} />
     </GuidePage>
   );
 }
