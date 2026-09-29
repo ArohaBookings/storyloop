@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import GuideProof from "@/components/marketing/GuideProof";
 import { GuideCta, GuideFaq, GuideFigure, GuideHero, GuidePage, GuideSection, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 import { REAL_EXAMPLES } from "@/lib/real-examples";
 import { ACCURACY_REPORT as R } from "@/lib/accuracy-report";
@@ -96,6 +97,8 @@ export default function WhatIsALearningStoryPage() {
         image="/images/scenes/classroom.jpg"
         imageAlt="An educator holds an iPad showing a StoryLoop learning story draft while two toddlers build a block tower"
       />
+
+      <GuideProof framework="NZ" />
 
       <GuideSection id="three-parts" kicker="The shape of every story" title="Notice, recognise, respond">
         <p>
@@ -226,7 +229,7 @@ export default function WhatIsALearningStoryPage() {
       </GuideSection>
 
       <GuideCta />
-      <RelatedGuides links={[RELATED.template, RELATED.eylf, RELATED.teWhariki, RELATED.examples, RELATED.accuracy, RELATED.educators]} />
+      <RelatedGuides links={[RELATED.template, RELATED.observation, RELATED.eylf, RELATED.teWhariki, RELATED.examples, RELATED.accuracy]} />
     </GuidePage>
   );
 }

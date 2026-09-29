@@ -7,6 +7,100 @@
  */
 
 export const SEO_DEEP_DIVES: Record<string, Array<{ heading: string; paragraphs: string[] }>> = {
+  "eylf-principles-and-practices": [
+    {
+      heading: "The principles, one at a time",
+      paragraphs: [
+        "Secure, respectful and reciprocal relationships: children learn best when they trust the adults around them, and that trust is built in small, everyday responses. Partnerships: families are children's first and most influential teachers, so their knowledge shapes what you plan. Respect for diversity: children's cultures, languages and family structures are visible and valued, not treated as extras.",
+        "Aboriginal and Torres Strait Islander perspectives: new in V2.0, it asks services to embed First Nations ways of knowing and being across the program, not only on particular days. Equity, inclusion and high expectations: every child can succeed, and educators remove barriers rather than lowering expectations. Sustainability: new in V2.0, covering environmental, social and economic sustainability, and children as active contributors to it.",
+        "Critical reflection and ongoing professional learning: educators question their own practice and keep learning, individually and as a team. Collaborative leadership and teamwork: new in V2.0, it describes shared responsibility for children's learning, with leadership that helps every member of the team do their best work.",
+      ],
+    },
+    {
+      heading: "The practices, and what they look like",
+      paragraphs: [
+        "Holistic, integrated and interconnected approaches: a child's body, feelings, thinking and relationships are learning together, so a block tower is also maths, language and friendship. Responsiveness to children: noticing a child's ideas and interests and building on them, in the moment and in your planning. Play-based learning and intentionality: play is the main context for learning, and educators take part in it deliberately, knowing why they step in and when to step back.",
+        "Learning environments: indoor and outdoor spaces that invite exploration and reflect the children and community. Cultural responsiveness: respecting and drawing on each child's culture, and examining your own. Continuity of learning and transitions: supporting children as they move between rooms, services and into school, with information that travels with them.",
+        "Assessment and evaluation for learning, development and wellbeing: gathering and analysing information about children's learning, and evaluating your own program, to decide what to do next. This is where learning stories, observations and planning cycles live.",
+      ],
+    },
+    {
+      heading: "Why older lists say eight practices",
+      paragraphs: [
+        "Version 1 of the EYLF, from 2009, had five principles and eight practices. Its practices included learning through play and intentional teaching as two separate items, and cultural competence and assessment for learning under older names. V2.0 joined the first two into play-based learning and intentionality and renamed the others, so it has seven practices. If a resource lists eight practices or five principles, it was written for version 1.",
+        "The five learning outcomes kept their names in V2.0, but several sub-outcomes were reworded, so it is worth checking outcome codes on older templates too.",
+      ],
+    },
+  ],
+  "critical-reflection-early-childhood": [
+    {
+      heading: "Three short examples",
+      paragraphs: [
+        "Arrival routine. An educator notices that the same two children cry at drop-off every morning while the room is busy with breakfast. She asks whose needs the routine serves, trials a quieter corner with a familiar adult for the first ten minutes, and records what changed over two weeks. That last step is what makes it critical reflection rather than a diary entry.",
+        "Who gets documented. A team looks at a term of learning stories and finds that confident, talkative children appear three times as often as quieter ones. They ask why, agree that busy educators document what is loud, and plan to notice each quieter child deliberately at least once a week.",
+        "Photos everywhere. A room's documentation is mostly photos with one-line captions. The team asks what families actually learn from them, and whether the child's own words appear anywhere. They start recording one quote per story, and ask families what they want to know.",
+      ],
+    },
+    {
+      heading: "A ten-minute template",
+      paragraphs: [
+        "What did I notice? One specific moment or pattern, in facts. What did I assume, and why? Name the belief behind your first reaction. Whose perspective is missing? The child's, the family's, a colleague's, or a cultural perspective. What will I try? One small, concrete change. What happened? Come back to it within a fortnight and write two lines.",
+        "Kept this short, a reflection takes ten minutes and produces something a colleague, a family or an assessor can follow from question to change.",
+      ],
+    },
+    {
+      heading: "Reflecting as a team",
+      paragraphs: [
+        "Group reflection works best around real evidence: a few recent stories, a routine that is not working, or a family's comment. Bring the documentation, not only opinions. Agree on one change and who will watch whether it helps, then return to it at the next meeting.",
+        "For NQS element 1.3.2, assessors may ask how reflection on individual children and on the group has shaped the program. Short notes that show the thread from noticing to change are more convincing than long entries that end with a feeling.",
+      ],
+    },
+  ],
+  "intentional-teaching": [
+    {
+      heading: "Examples by age",
+      paragraphs: [
+        "Babies: an infant reaches for a rattle just out of reach. You wait instead of handing it over, name what they are doing, and move it slightly closer only when they have tried a few times. The waiting is the intentional part.",
+        "Toddlers: a toddler keeps filling a bucket that tips over. You offer a scoop and a flatter bucket, and say \"Let's see if this one stays up.\" You are giving them a new way to test the same idea, not solving it for them.",
+        "Preschoolers: a group argues about whose tower is tallest. You ask \"How could we find out?\", bring string and blocks, and let them decide how to measure. Tomorrow you plan a measuring experience because of what you saw today.",
+      ],
+    },
+    {
+      heading: "Knowing when to step back",
+      paragraphs: [
+        "Intentionality includes choosing not to act. If children are deep in play and working something out together, interrupting to teach can end the learning you wanted to support. Many experienced educators treat observing first as the default and step in when a child is stuck, unsafe, excluded or ready for a nudge.",
+        "Writing down why you stepped in, or why you did not, is one of the clearest ways to show intentional teaching in documentation and in conversations with assessors or reviewers.",
+      ],
+    },
+    {
+      heading: "From one moment to a plan",
+      paragraphs: [
+        "Intentional teaching connects to the planning cycle: you notice something, recognise the learning, respond in the moment, and plan what comes next. A learning story's where-to-next section is where that plan is written, and the next story is where you find out whether it worked.",
+      ],
+    },
+  ],
+  "observation-methods-early-childhood": [
+    {
+      heading: "Write what you saw before what it means",
+      paragraphs: [
+        "The most useful observations separate facts from interpretation. Facts are what a child did and said, in order, with their exact words in quotes. Interpretation, what learning you think it shows, comes after and separately. \"Ana poured water into three cups and said 'this one's the most'\" can be checked by anyone; \"Ana understands volume\" cannot.",
+        "Keeping children's exact words matters. Tidying a two-year-old's speech into a proper sentence changes the evidence. If you are not sure of the words, say so rather than guessing.",
+      ],
+    },
+    {
+      heading: "Choosing a method",
+      paragraphs: [
+        "Ask what you want to understand. A significant new achievement suits an anecdotal record or a learning story. How a child joins play, or what happens during transitions, suits a running record or an event sample. Whether a skill is emerging across a term suits a simple checklist alongside richer records.",
+        "Coverage matters as much as method. Confident, talkative children tend to fill documentation; it is worth checking which children have not been noticed lately and planning to observe them on purpose.",
+      ],
+    },
+    {
+      heading: "From observation to learning story",
+      paragraphs: [
+        "A jotting or anecdotal record often becomes a learning story later: the facts stay the same, and you add what learning you noticed, a link to Te Whāriki or the EYLF V2.0 where it genuinely fits, and what you will do next. That is the part that takes time at the end of the day, and the part StoryLoop drafts from a quick note, with the child's words checked against what you wrote.",
+      ],
+    },
+  ],
   "nqs-standard-1-3-assessment-and-planning": [
     {
       heading: "What the three elements are really asking",

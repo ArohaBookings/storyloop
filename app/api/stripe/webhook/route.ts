@@ -11,7 +11,7 @@ import { trialLapsedWithoutCard } from "@/lib/centre-offer";
 import { SITE_URL } from "@/lib/email/config";
 import { recordServerEvent } from "@/lib/analytics/server";
 import { PLAN_ORDER } from "@/lib/plans";
-import { stripeEventFacts, type StripeEventFacts } from "@/lib/stripe-events";
+import { sendsPaymentReceipt, stripeEventFacts, type StripeEventFacts } from "@/lib/stripe-events";
 
 function getStripe() {
   return createStripe();
@@ -167,7 +167,7 @@ async function grantReferralRewardIfEarned(
   }
 }
 
-async function handleInvoicePaid(admin: ReturnType<typeof createAdminSupabase>, invoice: Stripe.Invoice) {
+async function handleInvoicePaid(admin: ReturnType<typeof createAdminSupabase>, invoice: Stripe.Invoice, options: { receipt: boolean }) {
   const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
   const subscriptionId = invoiceSubscriptionId(invoice);
 
@@ -177,6 +177,7 @@ async function handleInvoicePaid(admin: ReturnType<typeof createAdminSupabase>, 
     await grantReferralRewardIfEarned(admin, invoice);
     // Receipt last: the subscription record is what matters, and sendBillingEmail
     // never throws, so this cannot cost us a state update.
+    if (!options.receipt) return;
     await sendBillingEmail({
       admin,
       type: "payment_succeeded",
@@ -192,6 +193,7 @@ async function handleInvoicePaid(admin: ReturnType<typeof createAdminSupabase>, 
 
   await updateProfileByInvoiceCustomer(admin, invoice, { subscription_status: "active" });
   await grantReferralRewardIfEarned(admin, invoice);
+  if (!options.receipt) return;
   await sendBillingEmail({
     admin,
     type: "payment_succeeded",
@@ -358,7 +360,8 @@ async function processStripeEvent(admin: ReturnType<typeof createAdminSupabase>,
 
     case "invoice.paid":
     case "invoice.payment_succeeded": {
-      await handleInvoicePaid(admin, event.data.object as Stripe.Invoice);
+      // Both events update the record; only invoice.paid sends the receipt.
+      await handleInvoicePaid(admin, event.data.object as Stripe.Invoice, { receipt: sendsPaymentReceipt(event.type) });
       return;
     }
 

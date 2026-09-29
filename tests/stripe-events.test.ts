@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { formatMoney, stripeEventFacts } from "../lib/stripe-events";
+import { formatMoney, sendsPaymentReceipt, stripeEventFacts } from "../lib/stripe-events";
 
 const USER = "7a1f3c2e-9b1d-4c7e-8f00-123456789abc";
 
@@ -55,4 +55,10 @@ test("disputes and refunds say what to do", () => {
   assert.equal(dispute.summary, "Opened a dispute for NZ$33.00. Respond in Stripe before the deadline");
   const refund = stripeEventFacts({ id: "e", type: "charge.refunded", data: { object: { object: "charge", customer: "cus_1", amount: 3300, amount_refunded: 3300, currency: "nzd" } } });
   assert.equal(refund.summary, "Refunded NZ$33.00");
+});
+
+test("only invoice.paid sends the receipt, so a paid invoice is thanked once", () => {
+  assert.equal(sendsPaymentReceipt("invoice.paid"), true);
+  assert.equal(sendsPaymentReceipt("invoice.payment_succeeded"), false);
+  assert.equal(sendsPaymentReceipt("invoice.payment_failed"), false);
 });

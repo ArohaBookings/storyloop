@@ -154,6 +154,7 @@ export const GUIDE_TOPICS: GuideTopic[] = [
     angle: "Evidence before interpretation. What to write down in the ten seconds you actually have. The details that matter and the ones that do not.",
     intent: "informational", region: "both", category: "guide",
     keywords: ["how to write observation early childhood", "anecdotal observation example"],
+    manualOnly: "Covered by the hand-written /observation-methods-early-childhood page (29 Sept 2026); a second page would compete with it.",
   },
   {
     slug: "recording-child-voice",

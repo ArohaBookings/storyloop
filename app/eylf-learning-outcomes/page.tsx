@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import GuideProof from "@/components/marketing/GuideProof";
 import { GuideCta, GuideFaq, GuideHero, GuidePage, GuideSection, GuideSources, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 import { REAL_EXAMPLES } from "@/lib/real-examples";
 import { ACCURACY_REPORT as R } from "@/lib/accuracy-report";
@@ -125,6 +126,8 @@ export default function EylfOutcomesPage() {
         imageAlt="Three educators planning around a low table with a laptop showing StoryLoop's real example drafts"
       />
 
+      <GuideProof framework="AU" />
+
       {OUTCOMES.map((outcome, index) => (
         <GuideSection key={outcome.n} id={`outcome-${outcome.n}`} tone={index % 2 ? "white" : "plain"} kicker={`Outcome ${outcome.n}`} title={outcome.title}>
           <p className="text-lg">{outcome.plain}</p>
@@ -169,7 +172,7 @@ export default function EylfOutcomesPage() {
 
       <GuideSources sources={[{ label: "Belonging, Being and Becoming: The Early Years Learning Framework for Australia (V2.0), 2022. Australian Government Department of Education, via ACECQA", url: "https://www.acecqa.gov.au/sites/default/files/2023-01/Belonging_Being_And_Becoming_V2.0.pdf" }]} />
       <GuideCta heading="Drafts with EYLF V2.0 links, from your own notes" />
-      <RelatedGuides links={[RELATED.whatIs, RELATED.template, RELATED.examples, RELATED.accuracy, RELATED.alongside, RELATED.centres]} />
+      <RelatedGuides links={[RELATED.eylfPrinciples, RELATED.whatIs, RELATED.template, RELATED.examples, RELATED.observation, RELATED.accuracy]} />
     </GuidePage>
   );
 }

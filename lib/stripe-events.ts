@@ -66,6 +66,19 @@ function fromMetadata(object: AnyObject, key: string): string | null {
   return null;
 }
 
+/**
+ * Stripe sends invoice.paid AND invoice.payment_succeeded for the same invoice,
+ * often in the same second. Both keep the subscription record right, but only
+ * one may send the receipt: when both did, the "already sent?" check ran for
+ * each before either had written its row, and customers got two receipts
+ * (seen on the 23 and 25 September 2026 renewals). invoice.paid is the one,
+ * because Stripe sends it for every invoice that becomes paid, including ones
+ * paid out of band, where payment_succeeded never comes.
+ */
+export function sendsPaymentReceipt(eventType: string) {
+  return eventType === "invoice.paid";
+}
+
 export function formatMoney(amountCents: number | null, currency: string | null) {
   if (amountCents == null) return "";
   const code = (currency ?? "nzd").toUpperCase();

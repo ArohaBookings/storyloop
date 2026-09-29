@@ -7,6 +7,7 @@ import Footer from "@/components/landing/Footer";
 import Pricing from "@/components/landing/Pricing";
 import FoundingCentreOffer from "@/components/centre/FoundingCentreOffer";
 import PageTracker from "@/components/analytics/PageTracker";
+import GuideProof from "@/components/marketing/GuideProof";
 
 // Guides a director reads. They get the founding-centre offer under the hero
 // and a primary button that starts a centre's free month, not an individual
@@ -21,6 +22,20 @@ const CENTRE_SLUGS = new Set([
   "nqs-standard-1-3-assessment-and-planning",
   "ero-early-childhood-regulation-2026",
 ]);
+// Every guide shows a real note and the real draft written from it, right under
+// the hero (see components/marketing/GuideProof). These pages are Australian, so
+// they show the EYLF example; everything else shows the Te Whāriki one.
+const AU_SLUGS = new Set([
+  "australia-eylf-learning-stories",
+  "eylf-learning-stories",
+  "eylf-planning-cycle",
+  "acecqa-documentation-guidance",
+  "nqs-standard-1-3-assessment-and-planning",
+  "assessment-and-rating-evidence",
+  "eylf-principles-and-practices",
+]);
+// Pages with their own job: prices first, or a list of answers.
+const NO_PROOF_SLUGS = new Set(["pricing", "faq"]);
 // Regulation guides shared in educator Facebook groups. Directors read them
 // too, but most visitors are educators: 79 landed on the ERO guide in a day
 // and none clicked "Start your centre's free month". They get the individual
@@ -200,6 +215,8 @@ export default async function SeoPage({ params }: PageProps) {
             before seeing a number. The explanation is still below, for anyone
             who wants it after they know the price. */}
         {page.slug === "pricing" && <Pricing />}
+
+        {!NO_PROOF_SLUGS.has(page.slug) && <GuideProof framework={AU_SLUGS.has(page.slug) ? "AU" : "NZ"} />}
 
         {CENTRE_SLUGS.has(page.slug) && <FoundingCentreOffer />}
 

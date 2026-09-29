@@ -773,32 +773,60 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   pricing: {
     slug: "pricing",
     title: "Pricing for educators and centres",
+    // Prices in plain words in both currencies. The table below is a client
+    // component that renders AUD on the server, so search engines and AI
+    // answer engines only ever saw Australian prices (checked 26 Sep 2026).
     description:
-      "Simple StoryLoop pricing for early childhood educators: free monthly stories, unlimited educator plans, and centre rollout support.",
+      "StoryLoop is free for 3 stories a month, then NZ$21 or A$19 a month for unlimited stories. Centres from NZ$109 or A$99 a month for 10 educators.",
     kicker: "Pricing",
     // Short on purpose. The old heading ran six lines on a 375px phone and ate
     // the entire first screen of the one page people open to see a number.
     heading: "Start free. Upgrade when it is worth it.",
     intro:
-      "The free plan includes 3 stories per month. Paid plans are designed for educators and centres that want unlimited drafting, voice notes, saved history, and Stripe-managed billing.",
+      "Free for 3 learning stories a month, no card. Unlimited stories for one educator is NZ$21 a month in New Zealand or A$19 in Australia, after a 7-day free trial. Centres pay one price for the whole team, from NZ$109 or A$99 a month, with 30 days free and no card.",
     sections: [
       {
-        title: "Free plan",
+        title: "Free",
         body:
-          "Create 3 learning stories each month, edit and copy drafts, and test Te Whāriki or EYLF support before choosing a paid plan.",
+          "NZ$0 and A$0. Three learning stories a month, with Te Whāriki or EYLF V2.0 links, editing and copy. No card, and no time limit.",
       },
       {
-        title: "Educator plan",
+        title: "Educator: NZ$21 or A$19 a month",
         body:
-          "Unlock unlimited learning stories for individual educators who want to keep their documentation backlog under control.",
+          "Unlimited stories for one educator, voice notes and saved history. Starts with a 7-day free trial; cancel in Billing before it ends and you pay nothing.",
       },
       {
-        title: "Centre plan",
+        title: "Educator Pro: NZ$33 or A$29 a month",
         body:
-          "Designed for services that want shared rollout support, admin visibility, and a consistent educator-led documentation workflow.",
+          "Everything in Educator, plus child profiles that remember each child's interests, family versions you can translate, and unlimited Quill edits. Also a 7-day free trial.",
+      },
+      {
+        title: "Centre Starter: NZ$109 or A$99 a month",
+        body:
+          "Ten educator seats and any number of children, with shared centre voice, planning and documentation coverage for the team. 30 days free, no card needed.",
+      },
+      {
+        title: "Centre Growth: NZ$219 or A$199 a month",
+        body:
+          "Twenty-five educator seats and any number of children, with the director's dashboard. 30 days free, no card needed.",
+      },
+      {
+        title: "No surprises",
+        body:
+          "Prices are per month and billed by Stripe in your own currency. You can cancel any time from Billing, and your stories stay yours and export in one tap either way.",
       },
     ],
     faqs: [
+      {
+        question: "How much does StoryLoop cost in New Zealand?",
+        answer:
+          "Free for 3 stories a month. Educator is NZ$21 a month and Educator Pro NZ$33, each after a 7-day free trial. Centre plans are NZ$109 a month for 10 educators or NZ$219 for 25, with 30 days free.",
+      },
+      {
+        question: "How much does StoryLoop cost in Australia?",
+        answer:
+          "Free for 3 stories a month. Educator is A$19 a month and Educator Pro A$29, each after a 7-day free trial. Centre plans are A$99 a month for 10 educators or A$199 for 25, with 30 days free.",
+      },
       { question: "Can I manage my subscription?", answer: "Yes. Paid users can manage subscription and billing through the Stripe customer portal from Billing & plan." },
       { question: "Do upgrade prompts block history?", answer: "No. Upgrade prompts are dismissible and never block existing story history." },
       ...sharedFaqs,
@@ -1571,6 +1599,267 @@ export const SEO_PAGES: Record<string, SeoPage> = {
         label: "Education Review Office: how ERO reviews early childhood services",
         url: "https://www.ero.govt.nz/how-ero-reviews/how-ero-reviews-early-childhood-services",
       },
+    ],
+  },
+  // ---- Guides added 29 Sep 2026 from search demand (Google autocomplete, NZ and
+  // AU): each was a top suggestion with no StoryLoop page. Written by hand from
+  // the framework documents; the blog cron must not write competing posts.
+  "eylf-principles-and-practices": {
+    slug: "eylf-principles-and-practices",
+    title: "EYLF V2.0 principles and practices, in plain English",
+    description:
+      "All 8 EYLF V2.0 principles and 7 practices, what each looks like with children, and what changed from version 1, when there were 5 principles and 8 practices.",
+    kicker: "EYLF V2.0 · Australia",
+    heading: "The 8 EYLF principles and 7 practices, explained simply.",
+    intro:
+      "The Early Years Learning Framework V2.0 has eight principles and seven practices. The principles are what you believe about children and learning; the practices are what you do because of it; the five learning outcomes are what you are working towards. V2.0 added three principles and merged play-based learning and intentional teaching into one practice, which is why older lists show five principles and eight practices.",
+    image: { src: "/images/scenes/classroom.jpg", alt: "An educator in a centre holding a tablet with a learning story draft, children building with blocks behind her", position: "45% 60%" },
+    sections: [
+      {
+        title: "The eight principles",
+        body:
+          "Secure, respectful and reciprocal relationships. Partnerships. Respect for diversity. Aboriginal and Torres Strait Islander perspectives. Equity, inclusion and high expectations. Sustainability. Critical reflection and ongoing professional learning. Collaborative leadership and teamwork.",
+      },
+      {
+        title: "The seven practices",
+        body:
+          "Holistic, integrated and interconnected approaches. Responsiveness to children. Play-based learning and intentionality. Learning environments. Cultural responsiveness. Continuity of learning and transitions. Assessment and evaluation for learning, development and wellbeing.",
+      },
+      {
+        title: "What changed from version 1",
+        body:
+          "Three principles are new: Aboriginal and Torres Strait Islander perspectives, sustainability, and collaborative leadership and teamwork. Learning through play and intentional teaching became one practice, and cultural competence became cultural responsiveness.",
+      },
+    ],
+    faqs: [
+      {
+        question: "How many principles are in the EYLF V2.0?",
+        answer:
+          "Eight: secure, respectful and reciprocal relationships; partnerships; respect for diversity; Aboriginal and Torres Strait Islander perspectives; equity, inclusion and high expectations; sustainability; critical reflection and ongoing professional learning; and collaborative leadership and teamwork.",
+      },
+      {
+        question: "How many practices are in the EYLF V2.0?",
+        answer:
+          "Seven. Many lists still say eight because version 1 had eight: V2.0 combined learning through play and intentional teaching into one practice, play-based learning and intentionality.",
+      },
+      {
+        question: "What are the five EYLF learning outcomes?",
+        answer:
+          "Children have a strong sense of identity; are connected with and contribute to their world; have a strong sense of wellbeing; are confident and involved learners; and are effective communicators. They did not change in V2.0, though several sub-outcomes were reworded.",
+      },
+      {
+        question: "Do I have to name a principle or practice in every observation?",
+        answer:
+          "No. The principles and practices describe how you work, not labels for each record. ACECQA is clear there is no one way to document; what matters is that your records show children's learning and how your teaching responds to it.",
+      },
+      {
+        question: "Where do learning stories fit?",
+        answer:
+          "Mostly in the practice of assessment and evaluation for learning, development and wellbeing: a story records what a child did, what you understood about their learning, and what you will do next. Written with families in mind, they also serve the partnerships principle.",
+      },
+    ],
+    reviewedAt: "2026-09-29",
+    sources: [
+      { label: "Belonging, Being and Becoming: The Early Years Learning Framework for Australia (V2.0), 2022", url: "https://www.acecqa.gov.au/sites/default/files/2023-01/Belonging_Being_And_Becoming_V2.0.pdf" },
+      { label: "Australian Government Department of Education: Early Years Learning Framework", url: "https://www.education.gov.au/early-childhood/resources/early-years-learning-framework" },
+      { label: "AERO practice resources: collaborative leadership and teamwork, play-based learning and intentionality", url: "https://www.edresearch.edu.au/guides-resources/practice-resources/collaborative-leadership-pblai" },
+    ],
+  },
+  "critical-reflection-early-childhood": {
+    slug: "critical-reflection-early-childhood",
+    title: "Critical reflection in early childhood, with examples",
+    description:
+      "What critical reflection means under the EYLF V2.0 and NQS element 1.3.2, the questions that make reflection critical, three short examples and a simple template.",
+    kicker: "Reflective practice · Australia and Aotearoa",
+    heading: "Critical reflection, without the jargon.",
+    intro:
+      "Critical reflection is looking closely at your own practice, asking why you do things and who they work for, and changing something as a result. In Australia it is an EYLF V2.0 principle, critical reflection and ongoing professional learning, and NQS element 1.3.2 asks whether it drives your program. In Aotearoa, reflecting on and evaluating practice is how services improve, and it is part of what ERO looks at. The test is simple: did anything change because of it?",
+    image: { src: "/images/scenes/office.jpg", alt: "A centre manager at her desk reading a StoryLoop report on a laptop", position: "30% 50%" },
+    sections: [
+      {
+        title: "Reflection or critical reflection?",
+        body:
+          "Reflection asks what happened and how it went. Critical reflection goes further: what did I assume, whose voice is missing, who does this routine suit, and what would I do differently? It looks at the reasons behind practice, not only the event.",
+      },
+      {
+        title: "Questions that make it critical",
+        body:
+          "Who benefits from the way we do this, and who does not? What do I believe about this child, and where did that come from? Whose knowledge is missing: the child's, the family's, the culture's? What does the evidence in our documentation actually show?",
+      },
+      {
+        title: "What it looks like written down",
+        body:
+          "Short and specific beats long and general. One noticing, the question it raised, what you tried, and what happened next. A note made in the moment or a two-minute conversation between educators counts, not only a formal journal entry.",
+      },
+    ],
+    faqs: [
+      {
+        question: "What is critical reflection in early childhood?",
+        answer:
+          "Thinking deeply about your practice: questioning assumptions, considering different perspectives, including children's and families', and using what you find to change what you do. It is one of the eight EYLF V2.0 principles.",
+      },
+      {
+        question: "Which NQS element covers critical reflection?",
+        answer:
+          "Element 1.3.2: critical reflection on children's learning and development, both as individuals and in groups, drives program planning and implementation. Assessors may ask how reflection has led to changes.",
+      },
+      {
+        question: "What is an example of critical reflection?",
+        answer:
+          "An educator notices the same three children fill the documentation while others barely appear. She asks why, finds it is the confident, talkative children, and changes the plan so each quieter child is deliberately noticed at least once a week. The change is what makes it critical reflection.",
+      },
+      {
+        question: "How often should educators critically reflect?",
+        answer:
+          "There is no set number. What matters is that reflection is ongoing and leads somewhere. Quick notes during the day and short team conversations are valued alongside formal reflections.",
+      },
+      {
+        question: "Can AI help with critical reflection?",
+        answer:
+          "It can prompt good questions and show patterns, such as which children are rarely documented, but the thinking has to be yours. Reflection an AI wrote for you is not reflection.",
+      },
+    ],
+    reviewedAt: "2026-09-29",
+    sources: [
+      { label: "ACECQA: Element 1.3.2, Critical reflection", url: "https://www.acecqa.gov.au/national-quality-framework/guide-nqf/section-3-national-quality-standard-and-assessment-and-rating/quality-area-1-educational-program-and-practice/standard-13-assessment-and-planning/element-132-critical-reflection" },
+      { label: "Belonging, Being and Becoming: The Early Years Learning Framework for Australia (V2.0), 2022", url: "https://www.acecqa.gov.au/sites/default/files/2023-01/Belonging_Being_And_Becoming_V2.0.pdf" },
+      { label: "Education Review Office: how ERO reviews early childhood services", url: "https://www.ero.govt.nz/how-ero-reviews/how-ero-reviews-early-childhood-services" },
+    ],
+  },
+  "intentional-teaching": {
+    slug: "intentional-teaching",
+    title: "Intentional teaching strategies for early childhood",
+    description:
+      "What intentional teaching means, the strategies educators use every day, examples for babies, toddlers and preschoolers, and how to show it in a learning story.",
+    kicker: "Teaching practice · Australia and Aotearoa",
+    heading: "Intentional teaching: purposeful, not scripted.",
+    intro:
+      "Intentional teaching means being deliberate, purposeful and thoughtful about your decisions and actions, inside children's play as much as in planned experiences. In the EYLF V2.0 it sits within the practice of play-based learning and intentionality. It does not mean adult-led lessons: it means knowing why you step in, how, and when to step back.",
+    image: { src: "/images/scenes/classroom.jpg", alt: "An educator in a centre with a tablet, children building with blocks in the background", position: "45% 60%" },
+    sections: [
+      {
+        title: "Strategies you already use",
+        body:
+          "Modelling, open questions, thinking aloud, scaffolding a skill just beyond reach, offering a new material, demonstrating, and sustained shared thinking, where you and a child work through an idea together over several turns.",
+      },
+      {
+        title: "Planned and in the moment",
+        body:
+          "Some intentional teaching is planned from what you noticed last week. Much of it is spontaneous: a child is stuck, and you choose to wait, to ask a question, or to show one step. Both count when you know why you chose it.",
+      },
+      {
+        title: "How it shows in a learning story",
+        body:
+          "In the responding or where-to-next part: what you did, why, and what happened. \"I added a longer plank to see if Mia would test the gap again\" says more about intentional teaching than any label.",
+      },
+    ],
+    faqs: [
+      {
+        question: "What is intentional teaching in early childhood?",
+        answer:
+          "Educators being deliberate, purposeful and thoughtful in their decisions and actions to support children's learning, whether in planned experiences or in the middle of play.",
+      },
+      {
+        question: "Is intentional teaching still in the EYLF V2.0?",
+        answer:
+          "Yes. In V2.0 it is part of the practice called play-based learning and intentionality, which joined version 1's separate practices of learning through play and intentional teaching.",
+      },
+      {
+        question: "What are examples of intentional teaching strategies?",
+        answer:
+          "With a baby, naming what they reach for and waiting for their response. With a toddler, offering a scoop when a bucket keeps tipping. With a four-year-old, asking \"How could we find out?\" and planning the test together.",
+      },
+      {
+        question: "What is sustained shared thinking?",
+        answer:
+          "Two or more people working together on an idea, solving a problem or extending a story, where both contribute and the thinking develops over several exchanges. The term comes from research in England led by Iram Siraj-Blatchford.",
+      },
+      {
+        question: "Does intentional teaching mean less free play?",
+        answer:
+          "No. It is about how educators take part in play, not replacing it. Often the most intentional choice is to observe and not interrupt.",
+      },
+    ],
+    reviewedAt: "2026-09-29",
+    sources: [
+      { label: "Belonging, Being and Becoming: The Early Years Learning Framework for Australia (V2.0), 2022", url: "https://www.acecqa.gov.au/sites/default/files/2023-01/Belonging_Being_And_Becoming_V2.0.pdf" },
+      { label: "AERO practice resources: play-based learning and intentionality", url: "https://www.edresearch.edu.au/guides-resources/practice-resources/collaborative-leadership-pblai" },
+    ],
+  },
+  "observation-methods-early-childhood": {
+    slug: "observation-methods-early-childhood",
+    title: "Observation methods in early childhood, with examples",
+    description:
+      "Jottings, anecdotal records, running records, learning stories, photos and work samples, checklists and time samples: what each is for, with short examples.",
+    kicker: "Observation and documentation",
+    heading: "Observation methods: which one, and when.",
+    intro:
+      "There is no single required observation method. Most educators use a mix: quick jottings, anecdotal records, running records, learning stories, photos and work samples, checklists, and time or event samples. ACECQA says there is no one way to meet documentation requirements, so pick the method that fits what you are trying to understand, and write what you saw before what you think it means.",
+    image: { src: "/images/scenes/kitchen.jpg", alt: "An educator at home reading a learning story draft on her laptop", position: "62% 50%" },
+    sections: [
+      {
+        title: "Jottings",
+        body:
+          "A few words in the moment: \"Tia, 10:15, lined up 6 cars, counted to 4.\" Fast and easy to lose. Most useful as the raw material for something fuller later the same day.",
+      },
+      {
+        title: "Anecdotal record",
+        body:
+          "A short, factual account of one significant moment, written soon after: who, where, what they did and said. Example: \"Leo tried the monkey bars three times, reached the third bar, said 'nearly' and went again.\"",
+      },
+      {
+        title: "Running record",
+        body:
+          "A continuous, detailed account of everything a child does and says over a set time, often 5 to 10 minutes. Useful when you want to understand a pattern, such as how a child joins play.",
+      },
+      {
+        title: "Learning story",
+        body:
+          "A narrative of a meaningful moment, written to the child or family, with what learning you noticed and where to next. It turns an observation into assessment and a plan, in words families read.",
+      },
+      {
+        title: "Photos and work samples",
+        body:
+          "A drawing, a construction or a photo of a process, with a line on what the child did and said. Check your service's device policy: in centre-based services ACECQA says images of children should be taken on service devices.",
+      },
+      {
+        title: "Checklists, time and event samples",
+        body:
+          "A checklist records whether a skill is seen. A time sample notes what a child is doing at set intervals; an event sample records each time a behaviour happens. Good for questions, not for the whole child.",
+      },
+    ],
+    faqs: [
+      {
+        question: "What are the types of observation in early childhood?",
+        answer:
+          "The common ones are jottings, anecdotal records, running records, learning stories, photos and work samples, checklists, and time or event samples. Most services use several, chosen for the question they want to answer.",
+      },
+      {
+        question: "What is the difference between an anecdotal record and a running record?",
+        answer:
+          "An anecdotal record is a short account of one significant moment, written after it happens. A running record captures everything, continuously, over a set time while you watch.",
+      },
+      {
+        question: "How is a learning story different from an anecdotal record?",
+        answer:
+          "An anecdotal record states what happened. A learning story tells it as a story, usually to the child or family, and adds what learning you noticed and what you will do next, so it is also assessment and planning.",
+      },
+      {
+        question: "How many observations do we need per child?",
+        answer:
+          "There is no required number. ACECQA lists a set quota of observations as a misconception; what matters is that documentation shows each child's learning over time and how your program responds.",
+      },
+      {
+        question: "How do you write an objective observation?",
+        answer:
+          "Describe what the child did and said, in order, before any interpretation: \"Sam stacked five blocks, the sixth fell, he said 'too wobbly' and moved the bottom one\" rather than \"Sam was frustrated but persistent\". Interpretation comes after, and separately.",
+      },
+    ],
+    reviewedAt: "2026-09-29",
+    sources: [
+      { label: "ACECQA: Standard 1.3, Assessment and planning", url: "https://www.acecqa.gov.au/national-quality-framework/guide-nqf/section-3-national-quality-standard-and-assessment-and-rating/quality-area-1-educational-program-and-practice/standard-13-assessment-and-planning" },
+      { label: "Te Whāriki Online: assessment, planning and evaluation", url: "https://tewhariki.tahurangi.education.govt.nz/te-whariki-online/assessment-planning-and-evaluation/5637165598.p" },
+      { label: "ACECQA: National Model Code for taking images or videos of children", url: "https://www.acecqa.gov.au/national-model-code-images-ecec" },
     ],
   },
 };

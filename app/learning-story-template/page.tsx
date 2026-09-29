@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import CopyTemplate from "@/components/marketing/CopyTemplate";
+import GuideProof from "@/components/marketing/GuideProof";
 import { GuideCta, GuideFaq, GuideHero, GuidePage, GuideSection, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 
 export const metadata: Metadata = {
@@ -94,6 +95,8 @@ export default function LearningStoryTemplatePage() {
           <a href="#au" className="btn-secondary">EYLF template</a>
         </div>
       </GuideHero>
+
+      <GuideProof framework="NZ" />
 
       <GuideSection id="nz" kicker="Aotearoa New Zealand" title="Te Whāriki learning story template">
         <CopyTemplate id="nz" label="Te Whāriki template" text={NZ_TEMPLATE} />
