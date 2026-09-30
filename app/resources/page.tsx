@@ -70,6 +70,13 @@ const GUIDES = [
     icon: BookOpen,
   },
   {
+    href: "/te-whariki-principles",
+    kicker: "Aotearoa · New",
+    title: "The 4 Te Whāriki principles",
+    description: "Whakamana, Kotahitanga, Whānau tangata and Ngā hononga in plain English, and how they weave with the strands.",
+    icon: BookOpen,
+  },
+  {
     href: "/ero-early-childhood-regulation-2026",
     kicker: "Owners · Aotearoa · New",
     title: "ERO now regulates early childhood",

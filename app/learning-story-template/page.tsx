@@ -136,7 +136,7 @@ export default function LearningStoryTemplatePage() {
       </GuideSection>
 
       <GuideCta heading="Or skip the blank page: StoryLoop fills the template from your note" />
-      <RelatedGuides links={[RELATED.whatIs, RELATED.eylf, RELATED.teWhariki, RELATED.examples, RELATED.alongside, RELATED.educators]} />
+      <RelatedGuides links={[RELATED.whatIs, RELATED.eylf, RELATED.teWhPrinciples, RELATED.teWhariki, RELATED.examples, RELATED.observation]} />
     </GuidePage>
   );
 }

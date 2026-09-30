@@ -7,6 +7,30 @@
  */
 
 export const SEO_DEEP_DIVES: Record<string, Array<{ heading: string; paragraphs: string[] }>> = {
+  "te-whariki-principles": [
+    {
+      heading: "The principles, one at a time",
+      paragraphs: [
+        "Whakamana | Empowerment. The curriculum empowers the child to learn and grow. In practice that looks like tamariki making real choices, their ideas taken seriously, and their mana upheld: an educator following a child's plan for the block tower rather than replacing it with their own.",
+        "Kotahitanga | Holistic development. Children learn with their whole selves: body, feelings, thinking, spirit and relationships at once. A child climbing the frame is also problem solving, managing fear and watching a friend. Learning is seen as connected, not split into separate skills.",
+        "Whānau tangata | Family and community. The wider world of whānau and community is part of the curriculum, not an audience for it. What whānau know and hope for their child shapes what happens at the service, and learning connects to home, culture and community.",
+        "Ngā hononga | Relationships. Children learn through responsive and reciprocal relationships with people, places and things. The quality of those relationships, with kaiako, other children, the environment and the materials, is where learning happens.",
+      ],
+    },
+    {
+      heading: "How the principles show up in a learning story",
+      paragraphs: [
+        "Most learning stories link to strands and learning outcomes, but a good story shows the principles too. The child's own words, kept exactly, and the choices they made reflect Whakamana. Describing the whole moment, not one skill, reflects Kotahitanga. A whānau voice section, or a question for home, reflects Whānau tangata. Naming who and what the learning happened with reflects Ngā hononga.",
+        "None of that needs labels. It needs a story written from what actually happened, in a way the child and their whānau would recognise.",
+      ],
+    },
+    {
+      heading: "The strands, briefly",
+      paragraphs: [
+        "The five strands are Mana atua | Wellbeing, Mana whenua | Belonging, Mana tangata | Contribution, Mana reo | Communication and Mana aotūroa | Exploration. Each has goals and learning outcomes, 20 learning outcomes in all. When you link a story to a strand, name the strand and say in a sentence why the moment fits it: that reason is what makes the link honest.",
+      ],
+    },
+  ],
   "eylf-principles-and-practices": [
     {
       heading: "The principles, one at a time",

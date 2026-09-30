@@ -208,5 +208,6 @@ export const RELATED = {
   aiTools: { href: "/ai-tools-for-learning-stories", title: "AI tools for learning stories, compared", body: "Storypark Assist, Educa Assist, One Child, Kinderloop, ChatGPT and StoryLoop: who can buy each, and the prices." },
   eylfPrinciples: { href: "/eylf-principles-and-practices", title: "EYLF principles and practices", body: "All 8 principles and 7 practices of V2.0, in plain English." },
   observation: { href: "/observation-methods-early-childhood", title: "Observation methods", body: "Anecdotal and running records, jottings, learning stories: which to use when." },
+  teWhPrinciples: { href: "/te-whariki-principles", title: "The 4 Te Whāriki principles", body: "Whakamana, Kotahitanga, Whānau tangata and Ngā hononga, in plain English." },
   teWhariki: { href: "/te-whariki-learning-outcomes-guide", title: "Te Whāriki learning outcomes", body: "The strands and outcomes, and how a story links to them honestly." },
 } as const;

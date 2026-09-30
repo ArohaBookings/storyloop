@@ -1786,6 +1786,67 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       { label: "AERO practice resources: play-based learning and intentionality", url: "https://www.edresearch.edu.au/guides-resources/practice-resources/collaborative-leadership-pblai" },
     ],
   },
+  "te-whariki-principles": {
+    slug: "te-whariki-principles",
+    title: "The 4 Te Whāriki principles, in plain English",
+    description:
+      "Whakamana, Kotahitanga, Whānau tangata and Ngā hononga: the four Te Whāriki principles explained simply, and how they weave with the five strands.",
+    kicker: "Te Whāriki · Aotearoa",
+    heading: "The four principles of Te Whāriki, explained simply.",
+    intro:
+      "Te Whāriki (2017), the early childhood curriculum of Aotearoa New Zealand, is woven from four principles and five strands. The principles are the foundations of every curriculum decision: Whakamana | Empowerment, Kotahitanga | Holistic development, Whānau tangata | Family and community, and Ngā hononga | Relationships. The strands describe the areas of learning. The 2017 update kept the same principles and strands and reduced the learning outcomes from 118 to 20.",
+    image: { src: "/images/scenes/family.jpg", alt: "A parent at home smiling at a StoryLoop wall card on her phone, with a toddler leaning on her arm, seen from behind", position: "50% 35%" },
+    sections: [
+      {
+        title: "The four principles",
+        body:
+          "Whakamana | Empowerment: the curriculum empowers the child to learn and grow. Kotahitanga | Holistic development: it reflects the holistic way children learn and grow. Whānau tangata | Family and community: the wider world of family and community is an integral part of the curriculum. Ngā hononga | Relationships: children learn through responsive and reciprocal relationships with people, places and things.",
+      },
+      {
+        title: "The five strands",
+        body:
+          "Mana atua | Wellbeing. Mana whenua | Belonging. Mana tangata | Contribution. Mana reo | Communication. Mana aotūroa | Exploration. Each strand has goals and learning outcomes, and there are 20 learning outcomes across the five.",
+      },
+      {
+        title: "Principles or strands?",
+        body:
+          "The principles describe how you work with tamariki and whānau. The strands describe what children are learning. A learning story usually links to strands and learning outcomes, while the principles show in how the moment was noticed, whose voice is in it, and how you responded.",
+      },
+    ],
+    faqs: [
+      {
+        question: "What are the four principles of Te Whāriki?",
+        answer:
+          "Whakamana | Empowerment, Kotahitanga | Holistic development, Whānau tangata | Family and community, and Ngā hononga | Relationships. They are the foundations for curriculum decisions and a guide for every aspect of teaching and practice.",
+      },
+      {
+        question: "What is the difference between the principles and the strands?",
+        answer:
+          "The principles are the foundations: how the curriculum treats the child, their whānau and their relationships. The five strands are the areas of learning and development, each with goals and learning outcomes. In Te Whāriki the two are woven together, like the whāriki the curriculum is named after.",
+      },
+      {
+        question: "How many learning outcomes are in Te Whāriki 2017?",
+        answer:
+          "Twenty, across the five strands. The 1996 version had 118. The principles and strands themselves did not change in 2017.",
+      },
+      {
+        question: "Does a learning story need to name a principle?",
+        answer:
+          "No. Stories usually link to strands and learning outcomes. The principles show in the story itself: the child's own words and choices (Whakamana), the whole child rather than one skill (Kotahitanga), whānau voice (Whānau tangata), and the people, places and things the learning happened with (Ngā hononga).",
+      },
+      {
+        question: "Why is it called Te Whāriki?",
+        answer:
+          "A whāriki is a woven mat. The curriculum uses it as a metaphor: four principles interwoven with five strands, and each service weaving its own curriculum from them for its tamariki and community.",
+      },
+    ],
+    reviewedAt: "2026-09-30",
+    sources: [
+      { label: "Te Whāriki Online: Kaupapa whakahaere | Principles", url: "https://tewhariki.tahurangi.education.govt.nz/kaupapa-whakahaere-principles/5637176829.p" },
+      { label: "Te Whāriki Online: Strands, goals and learning outcomes", url: "https://tewhariki.tahurangi.education.govt.nz/te-whariki/our-curriculum/strands/5637145233.c" },
+      { label: "Te Whāriki early childhood curriculum document", url: "https://tewhariki.tahurangi.education.govt.nz/te-wh-riki-early-childhood-curriculum-document/5637184332.p" },
+    ],
+  },
   "observation-methods-early-childhood": {
     slug: "observation-methods-early-childhood",
     title: "Observation methods in early childhood, with examples",
