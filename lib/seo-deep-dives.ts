@@ -304,6 +304,18 @@ export const SEO_DEEP_DIVES: Record<string, Array<{ heading: string; paragraphs:
       ],
     },
     {
+      heading: "Example wording you can adapt",
+      paragraphs: [
+        "These show the style, not text to paste. Each one says what the child did and what helped, so a new teacher can use it on day one. Replace every detail with something you actually saw and recorded.",
+        "Interests and strengths: \"Mia's strongest interest this year has been building. In August she spent most of a morning making a ramp for the cars, testing three heights and choosing the one where the cars 'go fast but don't fly off'.\"",
+        "Relationships: \"Tom takes time to join a group. He usually watches first from the edge of the sandpit, and joins in when an adult names what the group is doing and offers him a role.\"",
+        "Approaches to learning: \"When a task is hard, Ava tries a second way before asking for help. Asking her 'what else could you try?' works better for her than showing her the answer.\"",
+        "Communication: \"Sione speaks Samoan at home and English at kindergarten. He talks most in small groups, and he loves retelling stories with the puppets.\"",
+        "What helps: \"Arrivals go best when Sam has a job straight away, like feeding the fish. A few minutes' warning before a change of activity helps him move on calmly.\"",
+        "Notice what is missing: no \"shy\", no \"behind\", no labels. Each sentence describes something a teacher could see for themselves, and what has worked.",
+      ],
+    },
+    {
       heading: "What to leave out",
       paragraphs: [
         "A transition statement follows a child into a new place, so write it for a reader who has never met them and may keep it. Leave out diagnoses or developmental labels you are not qualified to give. Leave out comparisons with other children, and other children's names. Describe a difficulty through what helps, rather than as a trait the child is. If you could not point to a moment in your documentation that shows something, it does not belong in the statement.",
@@ -385,6 +397,62 @@ export const SEO_DEEP_DIVES: Record<string, Array<{ heading: string; paragraphs:
         "Most AI writing about children reads badly for two reasons. It gushes, reaching for words like beautiful and remarkable that the observation never earned, and it invents, filling gaps with plausible detail that never happened. Both are trust killers in documentation, because a family or an assessor can tell, and because a made up detail can lead to a real judgement about a child.",
         "StoryLoop is built to avoid both. It uses plain educator language, it keeps every claim tied to evidence in your note, and it strips the tells that make writing feel machine made. Run the same observation twice and you get two genuinely different stories, because a folder of near identical documentation helps nobody.",
         "The result is a draft that reads like a thoughtful educator wrote it for review, which is the whole point. You are meant to recognise your own room in it. If you cannot, the tool has failed, and that is the standard it is held to.",
+      ],
+    },
+  ],
+  "te-whariki-pdf": [
+    {
+      heading: "What is on which page",
+      paragraphs: [
+        "Foreword, page 2. Te Tiriti o Waitangi | The Treaty of Waitangi, page 3. Introduction, page 6. Early childhood education in New Zealand, page 8. The whāriki, page 10. A curriculum for all children, page 12. How the curriculum framework is organised, page 16.",
+        "Principles | Kaupapa whakahaere, page 17: Empowerment | Whakamana 18, Holistic development | Kotahitanga 19, Family and community | Whānau tangata 20, Relationships | Ngā hononga 21.",
+        "Strands, goals and learning outcomes | Taumata whakahirahira, page 22, with the overview of all five strands on page 24. Wellbeing | Mana atua 26, Belonging | Mana whenua 30, Contribution | Mana tangata 36, Communication | Mana reo 41, Exploration | Mana aotūroa 46.",
+        "Pathways to school and kura, page 51. Responsibilities of kaiako, page 59. Underpinning theories and approaches, page 60. Assessment, planning and evaluation, page 63. Glossary of Māori and Pasifika words, page 66. References, page 68. Te Whāriki: Two pathways, page 69.",
+        "These are the numbers printed on the pages. In the English web PDF your reader's page counter runs two ahead, so printed page 24 is page 26 of the file.",
+      ],
+    },
+    {
+      heading: "What the 2017 update changed",
+      paragraphs: [
+        "Te Whāriki was first published in 1996. The 2017 update left the principles and strands untouched and kept the whāriki, the woven mat, as its central metaphor. It gave clear learning outcomes, 20 across the five strands, made explicit links to The New Zealand Curriculum and Te Marautanga o Aotearoa, and placed more emphasis on language, culture and identity.",
+        "Each strand has dual English and Māori names. The document notes that while closely related, different cultural connotations mean the two are not equivalents, which is why a learning story names both: Mana aotūroa | Exploration, not one or the other.",
+      ],
+    },
+    {
+      heading: "Using it when you write learning stories",
+      paragraphs: [
+        "Most kaiako only need pages 24 and 25 open while they write: the five strands, their goals and the 20 learning outcomes in one view. The goals describe what kaiako provide; the learning outcomes describe what children become increasingly capable of. A story links to a strand, and to an outcome where one fits closely, and says in a sentence what the child did that shows it.",
+        "StoryLoop has a page for each strand with its goals and learning outcomes in the curriculum's own words, and a page listing all 20 outcomes, so you can check a link without opening the PDF.",
+      ],
+    },
+  ],
+  "eylf-v2-changes": [
+    {
+      heading: "The key updates, as ACECQA lists them",
+      paragraphs: [
+        "Aboriginal and Torres Strait Islander perspectives are strengthened throughout the framework, in the vision, principles, practices and outcomes. ACECQA calls this one of the most significant shifts in V2.0.",
+        "Three principles are new: Aboriginal and Torres Strait Islander perspectives, sustainability, and collaborative leadership and teamwork. High expectations and equity became equity, inclusion and high expectations. Ongoing learning and reflective practice became critical reflection and ongoing professional learning. Secure, respectful and reciprocal relationships now includes relational pedagogy, and partnerships now include other professionals.",
+        "In the practices, the meaning of holistic approaches was clarified, play-based learning and intentionality became one practice, cultural competence was replaced with cultural responsiveness, and assessment was aligned with evaluation for learning, development and wellbeing. The link between the vision and the planning cycle was strengthened, and the guidance under each learning outcome was expanded.",
+      ],
+    },
+    {
+      heading: "The dates that matter",
+      paragraphs: [
+        "December 2022: all Australian, state and territory Education Ministers approved EYLF V2.0 and My Time, Our Place V2.0. January 2023: both were released, and 2023 became a familiarisation year in which services could use either version.",
+        "1 February 2024: the original EYLF and MTOP stopped being recognised under the National Law. From then, services using the EYLF must use V2.0, and they are assessed and rated against it.",
+      ],
+    },
+    {
+      heading: "What to update in your documentation",
+      paragraphs: [
+        "Check your templates. If a learning story or planning template lists five principles, eight practices or two sub-outcomes under outcome 3, it was written for version 1. Outcome 3 now runs 3.1 to 3.3, covering social, emotional and mental wellbeing, physical learning and wellbeing, and children's own strategies for health and personal safety.",
+        "Nothing about the update asks for more documentation. ACECQA's FAQ is clear that the National Quality Standard and the National Law did not change because of it. What changed is the language your links should use: outcome links worded the V2.0 way, and practice that shows the new principles, such as Aboriginal and Torres Strait Islander perspectives embedded across the program rather than kept for particular days.",
+      ],
+    },
+    {
+      heading: "How the update was made",
+      paragraphs: [
+        "The update ran from April 2021 to May 2022. A consortium led by Macquarie University, Queensland University of Technology and Edith Cowan University reviewed the research, heard from more than 5,400 educators, providers, families, children and other professionals, and piloted the changes in 16 services across Australia in early 2022 before the final version was written.",
       ],
     },
   ],

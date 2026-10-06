@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import robots from "../app/robots";
 import { SEO_PAGE_SLUGS } from "../lib/seo-pages";
+import { EYLF_OUTCOMES } from "../lib/eylf-outcomes";
+import { TE_WHARIKI_STRANDS } from "../lib/te-whariki-strands";
 
 // Google's and Bing's matching: a rule is a path prefix, "*" matches anything,
 // a trailing "$" anchors the end, and the longest matching rule wins (allow on a tie).
@@ -31,6 +33,10 @@ test("no public guide is blocked by a robots rule", () => {
     "/resources",
     "/learning-story-template",
     "/blog/how-to-write-a-learning-story",
+    "/eylf-learning-outcomes",
+    "/te-whariki-learning-outcomes-guide",
+    ...EYLF_OUTCOMES.map((outcome) => `/eylf-learning-outcomes/${outcome.slug}`),
+    ...TE_WHARIKI_STRANDS.map((strand) => `/${strand.slug}`),
     ...SEO_PAGE_SLUGS.map((slug) => `/${slug}`),
   ];
   const blocked = publicPaths.filter((path) => !isAllowed(path));

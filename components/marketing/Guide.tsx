@@ -195,7 +195,7 @@ export function RelatedGuides({ links }: { links: { href: string; title: string;
 
 export const RELATED = {
   whatIs: { href: "/what-is-a-learning-story", title: "What is a learning story?", body: "Where they came from, the three parts, and how they differ from an observation." },
-  eylf: { href: "/eylf-learning-outcomes", title: "The 5 EYLF learning outcomes", body: "All 21 V2.0 sub-outcomes in plain English, with what each looks like in play." },
+  eylf: { href: "/eylf-learning-outcomes", title: "The 5 EYLF learning outcomes", body: "All 20 V2.0 sub-outcomes in plain English, with what each looks like in play." },
   template: { href: "/learning-story-template", title: "Learning story template", body: "Te Whāriki and EYLF versions to copy into Word, Canva or Storypark." },
   examples: { href: "/examples", title: "12 real learning story drafts", body: "Real notes and the drafts StoryLoop wrote from them, unedited." },
   accuracy: { href: "/accuracy", title: "The accuracy report", body: "How every draft is tested, and what we are still improving." },
@@ -209,5 +209,7 @@ export const RELATED = {
   eylfPrinciples: { href: "/eylf-principles-and-practices", title: "EYLF principles and practices", body: "All 8 principles and 7 practices of V2.0, in plain English." },
   observation: { href: "/observation-methods-early-childhood", title: "Observation methods", body: "Anecdotal and running records, jottings, learning stories: which to use when." },
   teWhPrinciples: { href: "/te-whariki-principles", title: "The 4 Te Whāriki principles", body: "Whakamana, Kotahitanga, Whānau tangata and Ngā hononga, in plain English." },
-  teWhariki: { href: "/te-whariki-learning-outcomes-guide", title: "Te Whāriki learning outcomes", body: "The strands and outcomes, and how a story links to them honestly." },
+  teWhariki: { href: "/te-whariki-learning-outcomes-guide", title: "Te Whāriki learning outcomes", body: "All 20 learning outcomes by strand, and how a story links to them honestly." },
+  eylfV2: { href: "/eylf-v2-changes", title: "What changed in EYLF V2.0", body: "Three new principles, seven practices, and the reworded sub-outcomes." },
+  teWhPdf: { href: "/te-whariki-pdf", title: "The Te Whāriki PDF", body: "Where to download the official 2017 document, and what is on which page." },
 } as const;

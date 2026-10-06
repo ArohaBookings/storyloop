@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SEO_PAGES, SEO_PAGE_SLUGS } from "@/lib/seo-pages";
+import { EYLF_OUTCOMES } from "@/lib/eylf-outcomes";
+import { TE_WHARIKI_STRANDS } from "@/lib/te-whariki-strands";
 import { listPublishedPosts } from "@/lib/blog";
 
 const SITE_URL = "https://storyloop.space";
@@ -7,7 +9,11 @@ const SITE_URL = "https://storyloop.space";
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const staticPages = ["", "about", "resources", "examples", "ai-policy", "documentation-time-calculator", "review-readiness-check", "learning-story-data", "accuracy", "privacy", "terms", "blog", "features", "what-is-a-learning-story", "eylf-learning-outcomes", "learning-story-template", "safety", "works-alongside", "for-educators", "for-families", "ai-tools-for-learning-stories"];
+  const staticPages = ["", "about", "resources", "examples", "ai-policy", "documentation-time-calculator", "review-readiness-check", "learning-story-data", "accuracy", "privacy", "terms", "blog", "features", "what-is-a-learning-story", "eylf-learning-outcomes", "learning-story-template", "safety", "works-alongside", "for-educators", "for-families", "ai-tools-for-learning-stories",
+    "te-whariki-learning-outcomes-guide",
+    ...EYLF_OUTCOMES.map((outcome) => `eylf-learning-outcomes/${outcome.slug}`),
+    ...TE_WHARIKI_STRANDS.map((strand) => strand.slug),
+  ];
 
   const base: MetadataRoute.Sitemap = [...staticPages, ...SEO_PAGE_SLUGS].map((slug) => ({
     url: slug ? `${SITE_URL}/${slug}` : `${SITE_URL}/`,

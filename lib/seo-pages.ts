@@ -975,9 +975,9 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   // not verify are not described, only pointed back to their department.
   "transition-to-school-statement": {
     slug: "transition-to-school-statement",
-    title: "Transition to School Statements: An Educator's Guide",
+    title: "Transition to School Statement: Examples and Requirements",
     description:
-      "What Victoria, NSW and Queensland require in a transition to school statement, how New Zealand differs, and how to have the evidence ready.",
+      "Example wording for a transition to school statement, what Victoria (TLDS), NSW and Queensland require, how New Zealand differs, and how to have the evidence ready.",
     kicker: "Educator guide · Term 4",
     heading: "Write a transition statement from a year of noticing, not a week of remembering.",
     intro:
@@ -1279,61 +1279,6 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       },
     ],
   },
-  "te-whariki-learning-outcomes-guide": {
-    slug: "te-whariki-learning-outcomes-guide",
-    title: "Te Whāriki Learning Outcomes: A Practical Guide",
-    description:
-      "Understand Te Whāriki strands, goals, learning outcomes, dispositions, working theories, and assessment-for-learning in everyday learning stories.",
-    kicker: "Educator guide · Aotearoa",
-    heading: "Link Te Whāriki learning outcomes to evidence, not labels.",
-    intro:
-      "The five strands organise broad areas of learning and development. Learning outcomes sit within those strands and encompass knowledge, skills, attitudes, and dispositions that develop over time.",
-    reviewedAt: "2026-06-14",
-    sections: [
-      {
-        title: "Start with the moment",
-        body:
-          "Notice the child’s action, language, strategy, relationship, or working theory first. Curriculum language should clarify what mattered in the moment rather than replace the observation.",
-      },
-      {
-        title: "Name strand and outcome idea",
-        body:
-          "A natural link names the relevant strand, then explains the outcome idea and the evidence. For example, testing and adjusting an idea can connect with Mana aotūroa | Exploration and reasoning or problem solving.",
-      },
-      {
-        title: "Keep assessment formative",
-        body:
-          "Assessment becomes useful when it helps kaiako respond. Practical next steps can include revisiting an interest, changing resources, inviting whānau knowledge, or noticing how a working theory develops.",
-      },
-    ],
-    faqs: [
-      {
-        question: "Are Exploration and Communication learning outcomes?",
-        answer:
-          "They are English names for Te Whāriki strands. Each strand contains broader learning outcomes that describe valued learning developing over time.",
-      },
-      {
-        question: "Where does Kōwhiti Whakapae fit?",
-        answer:
-          "Kōwhiti Whakapae supports planning, formative assessment, and teaching practice within Te Whāriki in social and emotional learning, oral language and literacy, and maths.",
-      },
-      ...sharedFaqs,
-    ],
-    sources: [
-      {
-        label: "Te Whāriki Online: Strands, goals and learning outcomes",
-        url: "https://tewhariki.tahurangi.education.govt.nz/te-whariki/our-curriculum/strands/5637145233.c",
-      },
-      {
-        label: "Te Whāriki Online: Kōwhiti Whakapae",
-        url: "https://tewhariki.tahurangi.education.govt.nz/k-whiti-whakapae-strengthening-progress-through-practice/5637184340.p",
-      },
-      {
-        label: "Education Review Office: Te Ara Poutama indicators of quality",
-        url: "https://www.ero.govt.nz/how-ero-reviews/early-childhood-services/akarangi-quality-evaluation/te-ara-poutama-indicators-of-quality-for-early-childhood-education-what-matters",
-      },
-    ],
-  },
   "family-connection-pack-learning-stories": {
     slug: "family-connection-pack-learning-stories",
     title: "Family Connection Packs for Learning Stories",
@@ -1606,7 +1551,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   // the framework documents; the blog cron must not write competing posts.
   "eylf-principles-and-practices": {
     slug: "eylf-principles-and-practices",
-    title: "EYLF V2.0 principles and practices, in plain English",
+    title: "8 EYLF Principles and 7 Practices (V2.0), With Examples",
     description:
       "All 8 EYLF V2.0 principles and 7 practices, what each looks like with children, and what changed from version 1, when there were 5 principles and 8 practices.",
     kicker: "EYLF V2.0 · Australia",
@@ -1728,7 +1673,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
   "intentional-teaching": {
     slug: "intentional-teaching",
-    title: "Intentional teaching strategies for early childhood",
+    title: "Intentional Teaching in Early Childhood: Examples by Age",
     description:
       "What intentional teaching means, the strategies educators use every day, examples for babies, toddlers and preschoolers, and how to show it in a learning story.",
     kicker: "Teaching practice · Australia and Aotearoa",
@@ -1923,6 +1868,145 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       { label: "ACECQA: National Model Code for taking images or videos of children", url: "https://www.acecqa.gov.au/national-model-code-images-ecec" },
     ],
   },
+  // People search for the PDF itself. This page sends them to the official
+  // copy on Te Whāriki Online and tells them what is on which page. Page
+  // numbers are the printed ones, checked against the 2017 English web PDF.
+  "te-whariki-pdf": {
+    slug: "te-whariki-pdf",
+    title: "Te Whāriki PDF: Official 2017 Download and Page Guide",
+    description:
+      "Where to download the official Te Whāriki 2017 PDF, and what is on which page: the principles, the five strands, the 20 learning outcomes, and assessment.",
+    kicker: "Te Whāriki · Aotearoa",
+    heading: "The Te Whāriki PDF, and where everything is in it.",
+    intro:
+      "Te Whāriki: He whāriki mātauranga mō ngā mokopuna o Aotearoa Early childhood curriculum was published by the Ministry of Education in 2017. The official PDF is free on Te Whāriki Online. Below is what is on which page, so you can go straight to the strands, goals and learning outcomes.",
+    reviewedAt: "2026-10-06",
+    sections: [
+      {
+        title: "Where to download it",
+        body:
+          "Te Whāriki Online (tewhariki.tahurangi.education.govt.nz), the Ministry of Education's site, has the curriculum document page with the PDF. Download it from there rather than from a copy on another site, so you know you have the current version.",
+      },
+      {
+        title: "The pages most kaiako need",
+        body:
+          "The principles are on pages 17 to 21. Strands, goals and learning outcomes start on page 22, with all five strands side by side on pages 24 and 25. Assessment, planning and evaluation is on page 63.",
+      },
+      {
+        title: "Two pathways, one framework",
+        body:
+          "The printed curriculum is a flip book. One side is Te Whāriki for all early childhood services; the other is Te Whāriki a te Kōhanga Reo, for kōhanga reo affiliated to Te Kōhanga Reo National Trust. Neither is a translation of the other.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Where can I download the Te Whāriki PDF?",
+        answer:
+          "From Te Whāriki Online, the Ministry of Education's site for the curriculum, on the page for the Te Whāriki early childhood curriculum document. It is free.",
+      },
+      {
+        question: "What page are the Te Whāriki learning outcomes on?",
+        answer:
+          "All five strands, with their goals and 20 learning outcomes, are side by side on pages 24 and 25. Each strand then has its own section: Wellbeing from page 26, Belonging 30, Contribution 36, Communication 41 and Exploration 46.",
+      },
+      {
+        question: "How many pages is Te Whāriki?",
+        answer:
+          "The English web PDF is 72 pages including the covers. The printed page numbers run to 69, so your PDF reader's page counter runs two ahead: printed page 24 is page 26 of the file.",
+      },
+      {
+        question: "When was Te Whāriki last updated?",
+        answer:
+          "It was first published in 1996 and updated in 2017. The update left the principles and strands untouched and added clearer learning outcomes, 20 in all.",
+      },
+      {
+        question: "Is there a te reo Māori version?",
+        answer:
+          "The other side of the flip book is Te Whāriki a te Kōhanga Reo, a distinct curriculum pathway for kōhanga reo. The document is clear that neither part is a translation of the other.",
+      },
+    ],
+    sources: [
+      {
+        label: "Te Whāriki Online: Te Whāriki early childhood curriculum document",
+        url: "https://tewhariki.tahurangi.education.govt.nz/te-wh-riki-early-childhood-curriculum-document/5637184332.p",
+      },
+      {
+        label: "Te Whāriki Online: Strands, goals and learning outcomes",
+        url: "https://tewhariki.tahurangi.education.govt.nz/te-whariki/our-curriculum/strands/5637145233.c",
+      },
+    ],
+  },
+  // Searches for "EYLF V2.0 changes" and "EYLF 2.0 vs 1.0". Every fact here is
+  // from ACECQA's Approved Learning Frameworks Update FAQ or the V2.0 framework.
+  "eylf-v2-changes": {
+    slug: "eylf-v2-changes",
+    title: "EYLF V2.0 Changes: What Is New Since Version 1",
+    description:
+      "What changed in EYLF V2.0: three new principles, seven practices instead of eight, reworded sub-outcomes, and the dates it took effect, checked against ACECQA.",
+    kicker: "EYLF V2.0 · Australia",
+    heading: "What changed in EYLF V2.0, and what it means for your documentation.",
+    intro:
+      "All Australian Education Ministers approved EYLF V2.0 in December 2022, and it was released in January 2023. From 1 February 2024 the original EYLF stopped being recognised under the National Law, so services are now assessed against V2.0. ACECQA describes it as an update and refresh, not a rewrite.",
+    reviewedAt: "2026-10-06",
+    sections: [
+      {
+        title: "Three new principles",
+        body:
+          "Aboriginal and Torres Strait Islander perspectives, sustainability, and collaborative leadership and teamwork, taking the principles from five to eight. Two existing principles were also strengthened and renamed.",
+      },
+      {
+        title: "Seven practices, not eight",
+        body:
+          "Learning through play and intentional teaching became one practice, play-based learning and intentionality. Cultural competence became cultural responsiveness, and assessment for learning became assessment and evaluation for learning, development and wellbeing.",
+      },
+      {
+        title: "Same five outcomes",
+        body:
+          "The five learning outcomes kept their names, but the sub-outcomes beneath them were revised. Outcome 3 now has three instead of two, and others were reworded, so older templates may use outdated codes.",
+      },
+    ],
+    faqs: [
+      {
+        question: "When did EYLF V2.0 come into effect?",
+        answer:
+          "It was released in January 2023 and ran alongside the original EYLF through 2023. From 1 February 2024 the original stopped being recognised under the National Law, and services are assessed and rated against V2.0.",
+      },
+      {
+        question: "What are the three new principles in EYLF V2.0?",
+        answer:
+          "Aboriginal and Torres Strait Islander perspectives; sustainability; and collaborative leadership and teamwork. With the five existing principles, some renamed, there are eight.",
+      },
+      {
+        question: "Did the EYLF learning outcomes change in V2.0?",
+        answer:
+          "The five outcomes kept their names. The sub-outcomes were revised: outcome 3 grew from two to three, 2.1 now speaks of children as active and informed citizens, 4.1 adds a growth mindset, and 5.5 refers to digital technologies and media.",
+      },
+      {
+        question: "Did the National Quality Standard change with EYLF V2.0?",
+        answer:
+          "No. ACECQA's FAQ says the National Quality Standard and the National Law were outside the update and did not change because of it. V2.0 does strengthen the links to the NQS in areas like transitions, sustainability and critical reflection.",
+      },
+      {
+        question: "Does EYLF V2.0 apply in Victoria?",
+        answer:
+          "The EYLF is a national framework. Victoria's own framework, the VEYLDF, was outside the update and remains an approved learning framework under the National Quality Framework.",
+      },
+    ],
+    sources: [
+      {
+        label: "ACECQA: Approved Learning Frameworks Update, Frequently Asked Questions (V2.0)",
+        url: "https://www.acecqa.gov.au/sites/default/files/2023-01/Approved%20Learning%20Frameworks%20Update%20FAQs_V2.0_0.pdf",
+      },
+      {
+        label: "Belonging, Being and Becoming: The Early Years Learning Framework for Australia (V2.0), 2022",
+        url: "https://www.acecqa.gov.au/sites/default/files/2023-01/Belonging_Being_And_Becoming_V2.0.pdf",
+      },
+      {
+        label: "ACECQA: Approved learning frameworks",
+        url: "https://www.acecqa.gov.au/nqf/national-law-regulations/approved-learning-frameworks",
+      },
+    ],
+  },
 };
 
 // Attach long-form bodies to the pages that have them. Kept separate so the
@@ -1939,6 +2023,6 @@ for (const [slug, deepDive] of Object.entries(SEO_DEEP_DIVES)) {
  * build these: both builds write the same file, and on the September 2026
  * deploy the thin generic "examples" page silently replaced the real one.
  */
-export const DEDICATED_ROUTE_SLUGS = new Set(["examples"]);
+export const DEDICATED_ROUTE_SLUGS = new Set(["examples", "te-whariki-learning-outcomes-guide"]);
 
 export const SEO_PAGE_SLUGS = Object.keys(SEO_PAGES).filter((slug) => !DEDICATED_ROUTE_SLUGS.has(slug));

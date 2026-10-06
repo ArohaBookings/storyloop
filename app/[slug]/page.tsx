@@ -33,6 +33,7 @@ const AU_SLUGS = new Set([
   "nqs-standard-1-3-assessment-and-planning",
   "assessment-and-rating-evidence",
   "eylf-principles-and-practices",
+  "eylf-v2-changes",
 ]);
 // Pages with their own job: prices first, or a list of answers.
 const NO_PROOF_SLUGS = new Set(["pricing", "faq"]);

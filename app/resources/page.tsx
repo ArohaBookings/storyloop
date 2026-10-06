@@ -38,7 +38,7 @@ const GUIDES = [
     href: "/eylf-learning-outcomes",
     kicker: "Australia · New",
     title: "The 5 EYLF learning outcomes (V2.0)",
-    description: "All 21 sub-outcomes in the framework's own words, with what each looks like in play.",
+    description: "All 20 sub-outcomes in the framework's own words, with what each looks like in play.",
     icon: BookOpen,
   },
   {
@@ -46,6 +46,13 @@ const GUIDES = [
     kicker: "Australia · New",
     title: "EYLF V2.0 principles and practices",
     description: "All 8 principles and 7 practices in plain English, and why older lists still say 5 and 8.",
+    icon: BookOpen,
+  },
+  {
+    href: "/eylf-v2-changes",
+    kicker: "Australia · New",
+    title: "What changed in EYLF V2.0",
+    description: "Three new principles, seven practices instead of eight, reworded sub-outcomes, and the dates, checked against ACECQA.",
     icon: BookOpen,
   },
   {
@@ -77,6 +84,20 @@ const GUIDES = [
     icon: BookOpen,
   },
   {
+    href: "/te-whariki-learning-outcomes-guide",
+    kicker: "Aotearoa · New",
+    title: "Te Whāriki learning outcomes, all 20",
+    description: "Every learning outcome in English and te reo Māori, by strand, with a page for each of the five strands.",
+    icon: BookOpen,
+  },
+  {
+    href: "/te-whariki-pdf",
+    kicker: "Aotearoa · New",
+    title: "The Te Whāriki PDF, page by page",
+    description: "Where to download the official 2017 document, and which page has the principles, strands and outcomes.",
+    icon: BookOpen,
+  },
+  {
     href: "/ero-early-childhood-regulation-2026",
     kicker: "Owners · Aotearoa · New",
     title: "ERO now regulates early childhood",
@@ -101,7 +122,7 @@ const GUIDES = [
     href: "/transition-to-school-statement",
     kicker: "Term 4",
     title: "Transition to school statements",
-    description: "What Victoria, NSW and Queensland ask for, how Aotearoa differs, and how to have the evidence ready before November.",
+    description: "Example wording, what Victoria, NSW and Queensland ask for, how Aotearoa differs, and how to have the evidence ready.",
     icon: School,
   },
   {
@@ -131,13 +152,6 @@ const GUIDES = [
     title: "EYLF planning cycle",
     description: "Move from observation to analysis, response, implementation, and reflection without checklist documentation.",
     icon: BookOpen,
-  },
-  {
-    href: "/te-whariki-learning-outcomes-guide",
-    kicker: "Aotearoa",
-    title: "Te Whāriki learning outcomes",
-    description: "Use strands, outcome ideas, dispositions, working theories, and assessment-for-learning accurately.",
-    icon: Sparkles,
   },
   {
     href: "/responsible-ai-ece-documentation",
