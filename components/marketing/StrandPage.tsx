@@ -92,8 +92,8 @@ export default function StrandPage({ slug }: { slug: string }) {
       </GuideSection>
 
       {real && (
-        <GuideSection id="real-example" tone="white" kicker="From a real draft" title="How a real learning story linked this strand">
-          <p>The note a kaiako typed:</p>
+        <GuideSection id="real-example" tone="white" kicker="From a real draft" title="How a real StoryLoop draft linked this strand">
+          <p>The note:</p>
           <blockquote className="rounded-3xl border border-clay-200 bg-cream-50 p-5 font-mono text-[15px] leading-relaxed text-ink-800">{real.example.note}</blockquote>
           <p>The link StoryLoop wrote in the draft, unedited:</p>
           <blockquote className="story-safe rounded-3xl border border-clay-100 bg-paper p-5 font-display text-lg leading-relaxed text-ink-800">{real.paragraph}</blockquote>

@@ -95,8 +95,8 @@ export default async function EylfOutcomePage({ params }: PageProps) {
       </GuideSection>
 
       {real && (
-        <GuideSection id="real-example" kicker="From a real draft" title={`How a real learning story linked Outcome ${outcome.n}`}>
-          <p>The note an educator typed:</p>
+        <GuideSection id="real-example" kicker="From a real draft" title={`How a real StoryLoop draft linked Outcome ${outcome.n}`}>
+          <p>The note:</p>
           <blockquote className="rounded-3xl border border-clay-200 bg-cream-50 p-5 font-mono text-[15px] leading-relaxed text-ink-800">{real.example.note}</blockquote>
           <p>The curriculum link StoryLoop wrote in the draft, unedited:</p>
           <blockquote className="story-safe rounded-3xl border border-clay-100 bg-paper p-5 font-display text-lg leading-relaxed text-ink-800">{real.line}</blockquote>
