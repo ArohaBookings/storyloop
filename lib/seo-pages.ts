@@ -977,7 +977,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     slug: "transition-to-school-statement",
     title: "Transition to School Statement: Examples and Requirements",
     description:
-      "Example wording for a transition to school statement, what Victoria (TLDS), NSW and Queensland require, how New Zealand differs, and how to have the evidence ready.",
+      "Example wording for a transition to school statement, what Victoria (TLDS), NSW and Queensland require, and how New Zealand differs.",
     kicker: "Educator guide · Term 4",
     heading: "Write a transition statement from a year of noticing, not a week of remembering.",
     intro:
@@ -1614,7 +1614,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     slug: "critical-reflection-early-childhood",
     title: "Critical reflection in early childhood, with examples",
     description:
-      "What critical reflection means under the EYLF V2.0 and NQS element 1.3.2, the questions that make reflection critical, three short examples and a simple template.",
+      "What critical reflection means under EYLF V2.0 and NQS element 1.3.2, the questions that make reflection critical, three short examples and a simple template.",
     kicker: "Reflective practice · Australia and Aotearoa",
     heading: "Critical reflection, without the jargon.",
     intro:

@@ -7,7 +7,7 @@ import { OUTCOMES_LEAD, TE_WHARIKI_SOURCES, TE_WHARIKI_STRANDS, realExampleForSt
 const PAGE_URL = "https://storyloop.space/te-whariki-learning-outcomes-guide";
 const TITLE = "Te Whāriki Learning Outcomes: All 20, by Strand, With Examples";
 const DESCRIPTION =
-  "All 20 Te Whāriki learning outcomes in the curriculum's own words, in English and te reo Māori, grouped by the five strands and their 18 goals, with how to link a learning story honestly.";
+  "All 20 Te Whāriki learning outcomes in the curriculum's own words, in English and te reo Māori, by strand, with how to link a learning story honestly.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
