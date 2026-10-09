@@ -108,7 +108,10 @@ export async function POST(request: NextRequest) {
     // only one coupon per checkout and the activation offer is the stronger one.
     let referralCoupon: string | undefined;
     if (!activationCoupon && !offer) {
-      const { data: referralRow } = await supabase
+      // The admin client: row security lets only the referrer read a referral,
+      // so the referred person's own client never finds it and the discount
+      // silently never applied.
+      const { data: referralRow } = await admin
         .from("referrals")
         .select("id")
         .eq("referred_user_id", user.id)
