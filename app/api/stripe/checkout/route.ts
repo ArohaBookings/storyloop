@@ -7,6 +7,7 @@ import { getPlanByKey, normalizePlanKey, type CurrencyCode, type PlanKey } from 
 import { getRuntimeSecret } from "@/lib/runtime-secrets";
 import { getOrCreateReferralCoupon } from "@/lib/referrals";
 import { resolveActivationCoupon } from "@/lib/activation-offer";
+import { checkoutDiscountParams } from "@/lib/checkout-discount";
 import { resolveVerifiedPriceId } from "@/lib/stripe-prices";
 import { checkoutTerms, foundingCouponId, foundingSpotsLeft, isCentrePlan, isCouponRefusal } from "@/lib/centre-offer";
 import { CHECKOUT_BRANDING, checkoutTermsMessage, isBrandingRefusal } from "@/lib/stripe-branding";
@@ -188,9 +189,8 @@ export async function POST(request: NextRequest) {
         // differently from a paid upgrade, before the webhook has landed.
         success_url: `${origin}/dashboard?upgraded=true&plan=${selectedPlan}`,
         cancel_url: `${origin}/billing?checkout=cancelled&plan=${selectedPlan}`,
-        // A free month is the whole offer; a promotion code on top of it is not.
-        allow_promotion_codes: !appliedCoupon && !offer,
-        discounts: appliedCoupon ? [{ coupon: appliedCoupon }] : undefined,
+        // A coupon or the promotion code box, never both: Stripe refuses the pair.
+        ...checkoutDiscountParams(appliedCoupon, offer),
         subscription_data: {
           // Stripe rejects trial_period_days: 0, so a returning centre simply
           // has no trial rather than a zero-length one.
