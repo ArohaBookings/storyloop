@@ -137,6 +137,17 @@ export function planMonthlyAmountCents(plan: PlanKey | string, currency: Currenc
 }
 
 /**
+ * The currency a referral credit must be issued in: the referrer's own Stripe
+ * billing currency, or null when they have never been billed. Stripe keeps a
+ * balance per currency, so a credit in any other currency is never applied. Pure.
+ */
+export function referralCreditCurrency(customer: Stripe.Customer | Stripe.DeletedCustomer): CurrencyCode | null {
+  if ("deleted" in customer && customer.deleted) return null;
+  const currency = ((customer as Stripe.Customer).currency ?? "").toUpperCase();
+  return currency === "NZD" || currency === "AUD" ? currency : null;
+}
+
+/**
  * The 10%-off-first-month coupon for referred users. Created once, then reused.
  * `duration: "once"` means it only ever applies to the first invoice.
  */
@@ -210,6 +221,15 @@ export async function grantReferralCreditForPayment(
     .eq("id", referral.referrer_id)
     .maybeSingle();
 
+  const markEarned = async (): Promise<ReferralCreditResult> => {
+    await admin
+      .from("referrals")
+      .update({ status: "earned", qualified_at: new Date().toISOString() })
+      .eq("id", referral.id)
+      .eq("status", "pending");
+    return { granted: false, reason: "no_customer" };
+  };
+
   if (!referrer?.stripe_customer_id) {
     // THE HOLE THIS CLOSES. A referrer with no billing account cannot be given
     // a credit, and leaving the row "pending" meant they never would be: the
@@ -221,22 +241,22 @@ export async function grantReferralCreditForPayment(
     // So it is marked EARNED and waits. When they start a plan of their own,
     // creditEarnedReferrals below pays it, which also turns the reward into
     // the best possible reason to subscribe: three months already banked.
-    await admin
-      .from("referrals")
-      .update({ status: "earned", qualified_at: new Date().toISOString() })
-      .eq("id", referral.id)
-      .eq("status", "pending");
-    return { granted: false, reason: "no_customer" };
+    return markEarned();
   }
+
+  // A Stripe customer that has never been billed (someone who opened checkout
+  // and left) has no currency yet, and the credit used to be guessed as NZ$.
+  // Stripe keeps a balance per currency, so for an Australian that NZ$ credit
+  // was never applied to their A$ invoices: the free month silently vanished
+  // (proven in Stripe test mode, 10 Oct 2026). Never guess. Hold it as earned
+  // and creditEarnedReferrals pays it once their own billing currency exists.
+  const customer = await stripe.customers.retrieve(referrer.stripe_customer_id);
+  const safeCurrency = referralCreditCurrency(customer);
+  if (!safeCurrency) return markEarned();
 
   // Value the free month at the referrer's own plan price, so upgrading is
   // rewarded rather than penalised. A referrer still on free earns the
   // Educator price, which is what they would pay if they upgraded.
-  const customer = await stripe.customers.retrieve(referrer.stripe_customer_id);
-  const currency = (
-    ("currency" in customer && customer.currency ? customer.currency : "nzd") as string
-  ).toUpperCase() as CurrencyCode;
-  const safeCurrency: CurrencyCode = currency === "AUD" ? "AUD" : "NZD";
   const planForCredit = normalizePlanKey(referrer.plan) === "free" ? "educator" : referrer.plan;
   const amountCents = planMonthlyAmountCents(planForCredit, safeCurrency) * months;
   if (amountCents <= 0) return { granted: false, reason: "error" };
@@ -353,8 +373,9 @@ export async function creditEarnedReferrals(
   if (!referrer?.stripe_customer_id) return { credited: 0, months: 0 };
 
   const customer = await stripe.customers.retrieve(referrer.stripe_customer_id);
-  const rawCurrency = ("currency" in customer && customer.currency ? customer.currency : "nzd") as string;
-  const currency: CurrencyCode = rawCurrency.toUpperCase() === "AUD" ? "AUD" : "NZD";
+  const currency = referralCreditCurrency(customer);
+  // Not billed yet: leave them earned rather than guess (see grantReferralCreditForPayment).
+  if (!currency) return { credited: 0, months: 0 };
   const planForCredit = normalizePlanKey(referrer.plan) === "free" ? "educator" : referrer.plan;
 
   let credited = 0;

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CENTRE_REFERRAL_MONTHS, MAX_REFERRAL_CREDITS, planMonthlyAmountCents, referralCreditMonths } from "../lib/referrals";
+import type Stripe from "stripe";
+import { CENTRE_REFERRAL_MONTHS, MAX_REFERRAL_CREDITS, planMonthlyAmountCents, referralCreditCurrency, referralCreditMonths } from "../lib/referrals";
 
 test("a centre coming aboard is worth three months, an individual one", () => {
   assert.equal(referralCreditMonths("centre_starter"), CENTRE_REFERRAL_MONTHS);
@@ -37,4 +38,17 @@ test("plan pricing is read per currency, so an Australian referrer is not paid i
   assert.equal(planMonthlyAmountCents("educator", "NZD"), 2100);
   assert.equal(planMonthlyAmountCents("educator", "AUD"), 1900);
   assert.equal(planMonthlyAmountCents("free", "NZD"), 0, "a free plan has no monthly value to credit");
+});
+
+// Stripe keeps a customer balance per currency, so a credit in the wrong one is
+// never applied. Proven in test mode on 10 Oct 2026: a never-billed customer given
+// an NZ$21 credit then subscribed in A$ and was charged the full A$19.
+test("a referral credit is only ever issued in the referrer's own billing currency", () => {
+  const customer = (currency: string | null) => ({ id: "cus_x", object: "customer", currency }) as unknown as Stripe.Customer;
+  assert.equal(referralCreditCurrency(customer("aud")), "AUD");
+  assert.equal(referralCreditCurrency(customer("nzd")), "NZD");
+  // Never billed: no guess, the reward waits as earned.
+  assert.equal(referralCreditCurrency(customer(null)), null);
+  assert.equal(referralCreditCurrency(customer("usd")), null);
+  assert.equal(referralCreditCurrency({ id: "cus_x", object: "customer", deleted: true } as Stripe.DeletedCustomer), null);
 });

@@ -30,6 +30,17 @@ export default function LoginPage() {
     if (params.get("disabled") === "1") {
       setNotice("This account has been disabled. Contact support if you think this is a mistake.");
     }
+    // A link that names where to go (an email's "claim your 15% off") should not
+    // ask someone who is already signed in to sign in again. Only for an explicit
+    // redirect and never with a notice to show, so a disabled account or an
+    // expired link cannot bounce between pages.
+    if (nextPath && !params.get("disabled") && !params.get("link")) {
+      const target = safeRedirectPath(nextPath);
+      supabase.auth.getUser().then(({ data }) => {
+        if (data.user) window.location.replace(target);
+      }).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
