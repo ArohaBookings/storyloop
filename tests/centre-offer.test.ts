@@ -4,14 +4,20 @@ import {
   CENTRE_TRIAL_DAYS,
   INDIVIDUAL_TRIAL_DAYS,
   checkoutTerms,
+  FOUNDING_CENTRE_SPOTS,
+  FOUNDING_DISCOUNT_MONTHS,
+  foundingCouponId,
+  foundingPaidMonths,
+  holdsFoundingSpot,
   isCouponRefusal,
-  spotsFromCoupon,
+  isFoundingDiscount,
+  spotsLeftFromSubscriptions,
   trialLapsedWithoutCard,
 } from "../lib/centre-offer";
 import { priceMatchesPlan, resolveVerifiedPriceId, resetVerifiedPriceCache } from "../lib/stripe-prices";
 import { renderLifecycleEmail } from "../lib/email/templates";
 
-const COUPON = "storyloop_founding_centre_50";
+const COUPON = "storyloop_founding_centre_3paid";
 
 test("individual plans keep the 7-day trial with a card, and never get the founding coupon", () => {
   for (const plan of ["educator", "educator_pro"] as const) {
@@ -46,12 +52,43 @@ test("one free month per centre: a returning centre subscribes with a card and n
   });
 });
 
-test("spots left come from the coupon's own counters", () => {
-  assert.equal(spotsFromCoupon({ max_redemptions: 10, times_redeemed: 0, valid: true }), 10);
-  assert.equal(spotsFromCoupon({ max_redemptions: 10, times_redeemed: 7, valid: true }), 3);
-  assert.equal(spotsFromCoupon({ max_redemptions: 10, times_redeemed: 12, valid: true }), 0, "never negative");
-  assert.equal(spotsFromCoupon({ max_redemptions: 10, times_redeemed: 2, valid: false }), 0, "an invalid coupon has no spots");
-  assert.equal(spotsFromCoupon(null), null);
+test("a founding spot is held by a free month and used by paying, and a lapsed trial gives it back", () => {
+  const founding = { founding_centre: "true" };
+  assert.equal(holdsFoundingSpot({ status: "trialing", metadata: founding }), true, "on the free month: held");
+  assert.equal(holdsFoundingSpot({ status: "active", metadata: founding }), true, "paying: used");
+  assert.equal(holdsFoundingSpot({ status: "past_due", metadata: founding }), true, "a card problem still holds it");
+  assert.equal(holdsFoundingSpot({ status: "canceled", metadata: founding }), false, "free month ended with no card: released");
+  assert.equal(holdsFoundingSpot({ status: "incomplete_expired", metadata: founding }), false);
+  assert.equal(holdsFoundingSpot({ status: "canceled", metadata: { ...founding, founding_paid: "true" } }), true, "paid then left: the spot stays used");
+  assert.equal(holdsFoundingSpot({ status: "active", metadata: { founding_centre: "false" } }), false, "not a founding centre");
+  assert.equal(holdsFoundingSpot({ status: "active", metadata: null }), false);
+});
+
+test("spots left count each centre once and never go below zero", () => {
+  const sub = (customer: string, status: string, extra: Record<string, string> = {}) => ({ customer, status, metadata: { founding_centre: "true", ...extra } });
+  assert.equal(spotsLeftFromSubscriptions([]), FOUNDING_CENTRE_SPOTS);
+  assert.equal(spotsLeftFromSubscriptions([sub("a", "trialing"), sub("b", "active"), sub("c", "canceled")]), 8, "the lapsed trial is not counted");
+  assert.equal(spotsLeftFromSubscriptions([sub("a", "trialing"), sub("a", "active")]), 9, "one centre, one spot");
+  assert.equal(spotsLeftFromSubscriptions(Array.from({ length: 12 }, (_, i) => sub(`c${i}`, "active"))), 0);
+});
+
+test("exactly three paid months: only invoices paid with money count", () => {
+  assert.equal(FOUNDING_DISCOUNT_MONTHS, 3);
+  assert.equal(foundingPaidMonths([{ status: "paid", amount_paid: 0 }]), 0, "the free month's $0 invoice is not a paid month");
+  assert.equal(foundingPaidMonths([{ status: "paid", amount_paid: 0 }, { status: "paid", amount_paid: 5450 }, { status: "open", amount_paid: 0 }]), 1);
+  assert.equal(foundingPaidMonths([{ status: "paid", amount_paid: 5450 }, { status: "paid", amount_paid: 5450 }, { status: "paid", amount_paid: 5450 }]), 3);
+  assert.equal(foundingPaidMonths([{ status: "paid", amount_paid: 0, total: 5450, billing_reason: "subscription_cycle" }]), 1, "a month paid with credit is still a month");
+  assert.equal(foundingPaidMonths([{ status: "paid", amount_paid: 0, total: 0, billing_reason: "subscription_create" }]), 0, "the free month");
+  assert.equal(foundingPaidMonths([{ status: "paid", amount_paid: 2725, total: 2725, billing_reason: "subscription_update" }]), 0, "a plan-change top-up is not a month");
+});
+
+test("the founding discount is recognised by its coupon, old or new, and nothing else is", () => {
+  assert.equal(foundingCouponId({}), COUPON);
+  assert.equal(isFoundingDiscount({ id: "di_1", source: { coupon: COUPON } } as never, {}), true);
+  assert.equal(isFoundingDiscount({ id: "di_2", source: { coupon: { id: "storyloop_founding_centre_50" } } } as never, {}), true, "the earlier coupon");
+  assert.equal(isFoundingDiscount({ id: "di_2b", source: { coupon: "storyloop_founding_centre_3m" } } as never, {}), true, "the short-lived 4-month coupon");
+  assert.equal(isFoundingDiscount({ id: "di_3", source: { coupon: "storyloop_checkout_apology_15" } } as never, {}), false);
+  assert.equal(isFoundingDiscount("di_unexpanded", {}), false, "an unexpanded id cannot be judged");
 });
 
 test("a spent coupon is recognised, so checkout can retry without it", () => {

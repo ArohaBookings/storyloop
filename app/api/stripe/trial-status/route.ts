@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 /**
  * For Billing: is this a centre's free month, is a card on file yet, and is it
  * a founding centre? Answered from Stripe, which is the only source that knows
- * whether a card has been added in the portal.
+ * whether a card has been added on the StoryLoop card page.
  */
 export async function GET() {
   const supabase = await createClient();

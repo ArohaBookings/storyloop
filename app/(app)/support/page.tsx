@@ -26,7 +26,7 @@ const SUPPORT_OPTIONS = [
   },
   {
     title: "Billing or subscription help",
-    description: "Payment failed, invoice question, plan change, cancellation, or Stripe portal trouble.",
+    description: "Payment failed, receipt question, plan change, or cancellation.",
     icon: CreditCard,
     href: mailto(
       "StoryLoop billing support",

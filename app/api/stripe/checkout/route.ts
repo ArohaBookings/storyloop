@@ -10,7 +10,7 @@ import { resolveActivationCoupon } from "@/lib/activation-offer";
 import { checkoutDiscountParams } from "@/lib/checkout-discount";
 import { resolveVerifiedPriceId } from "@/lib/stripe-prices";
 import { checkoutTerms, foundingCouponId, foundingSpotsLeft, isCentrePlan, isCouponRefusal } from "@/lib/centre-offer";
-import { CHECKOUT_BRANDING, checkoutTermsMessage, isBrandingRefusal } from "@/lib/stripe-branding";
+import { CHECKOUT_BRANDING, CHECKOUT_PRESENTATION, checkoutAuthorisationMessage, checkoutTermsMessage, isBrandingRefusal } from "@/lib/stripe-branding";
 import { OFFER_REASON_COPY, PRO_MONTH_OFFER_ID, PRO_MONTH_PLAN, PRO_MONTH_TRIAL_DAYS, proMonthEligibility } from "@/lib/offers";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { recordServerEvent } from "@/lib/analytics/server";
@@ -168,8 +168,11 @@ export async function POST(request: NextRequest) {
         no_card: terms.noCardNeeded ? "true" : "false",
         ...(offer === "pro_month" ? { offer_id: PRO_MONTH_OFFER_ID } : {}),
       };
+      // StoryLoop's own authorisation line, in place of Stripe's (which names the
+      // shared account). Only with the presentation, since that is what hides Stripe's.
+      const authorisation = branded ? checkoutAuthorisationMessage({ trialDays: terms.trialDays, noCardNeeded: terms.noCardNeeded }) : null;
       return stripe.checkout.sessions.create({
-        ...(branded ? { branding_settings: CHECKOUT_BRANDING } : {}),
+        ...(branded ? { branding_settings: CHECKOUT_BRANDING, ...CHECKOUT_PRESENTATION } : {}),
         custom_text: {
           submit: {
             message: checkoutTermsMessage({
@@ -181,6 +184,7 @@ export async function POST(request: NextRequest) {
               offer,
             }),
           },
+          ...(authorisation ? { after_submit: { message: authorisation } } : {}),
         },
         customer: customerId,
         mode: "subscription",

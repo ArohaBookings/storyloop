@@ -8,7 +8,7 @@ import {
   proMonthEligibility,
   proMonthFirstChargeDate,
 } from "../lib/offers";
-import { checkoutTermsMessage, isBrandingRefusal, CHECKOUT_BRANDING } from "../lib/stripe-branding";
+import { checkoutTermsMessage, checkoutAuthorisationMessage, cardUpdateMessages, isBrandingRefusal, CHECKOUT_BRANDING, CHECKOUT_PRESENTATION } from "../lib/stripe-branding";
 import { matchSuffix } from "../lib/pwned-passwords";
 import { renderLifecycleEmail } from "../lib/email/templates";
 
@@ -87,7 +87,7 @@ test("the checkout terms line states the free period, the date, the price and ho
   assert.match(offer, /24 October 2026/);
   assert.match(offer, /NZ\$33 a month/);
   assert.match(offer, /Cancel or switch plans before then/);
-  assert.match(offer, /Aria Care/);
+  assert.match(offer, /STORYLOOP/);
 
   const trial = checkoutTermsMessage({ plan: "educator", currency: "AUD", trialDays: 7, noCardNeeded: false, founding: false, offer: null, now: NOW });
   assert.match(trial, /7-day free trial/);
@@ -96,12 +96,37 @@ test("the checkout terms line states the free period, the date, the price and ho
 
   const centre = checkoutTermsMessage({ plan: "centre_starter", currency: "NZD", trialDays: 30, noCardNeeded: true, founding: true, offer: null, now: NOW });
   assert.match(centre, /30 days free with no card/);
-  assert.match(centre, /half price for three months, then NZ\$109 a month/);
+  assert.match(centre, /first three paid months are half price at NZ\$54\.50, then NZ\$109 a month/);
   assert.match(centre, /nothing is charged/);
 
   const returning = checkoutTermsMessage({ plan: "centre_growth", currency: "AUD", trialDays: 0, noCardNeeded: false, founding: false, offer: null, now: NOW });
   assert.match(returning, /A\$199 a month/);
-  for (const message of [offer, trial, centre, returning]) assert.ok(message.length < 1200, "Stripe's limit");
+  for (const message of [offer, trial, centre, returning]) {
+    assert.ok(message.length < 1200, "Stripe's limit");
+    // StoryLoop shares its Stripe account with other businesses: none is ever named.
+    assert.doesNotMatch(message, /Aroha|Aria Care|PaidLoop|Veylaro|WayReady|Stripe/i);
+  }
+});
+
+test("StoryLoop states the card authorisation itself, naming only StoryLoop", () => {
+  const trial = checkoutAuthorisationMessage({ trialDays: 30, noCardNeeded: false, now: NOW });
+  assert.match(trial ?? "", /authorise StoryLoop/);
+  assert.match(trial ?? "", /from 24 October 2026/);
+  assert.match(checkoutAuthorisationMessage({ trialDays: 0, noCardNeeded: false, now: NOW }) ?? "", /from today/);
+  assert.equal(checkoutAuthorisationMessage({ trialDays: 30, noCardNeeded: true, now: NOW }), null);
+  const card = cardUpdateMessages();
+  for (const message of [trial ?? "", card.submit, card.afterSubmit]) {
+    assert.ok(message.length < 1200);
+    assert.doesNotMatch(message, /Aroha|Aria Care|PaidLoop|Veylaro|WayReady|Stripe/i);
+  }
+});
+
+test("checkout hides everything that names the shared Stripe account", () => {
+  assert.deepEqual(CHECKOUT_PRESENTATION.wallet_options, { link: { display: "never" } });
+  assert.deepEqual(CHECKOUT_PRESENTATION.consent_collection, { payment_method_reuse_agreement: { position: "hidden" } });
+  assert.equal(isBrandingRefusal({ param: "wallet_options[link][display]", message: "Invalid" }), true);
+  assert.equal(isBrandingRefusal({ param: "consent_collection[payment_method_reuse_agreement][position]", message: "Invalid" }), true);
+  assert.equal(isBrandingRefusal({ param: "custom_text[after_submit][message]", message: "Invalid" }), true);
 });
 
 test("checkout shows StoryLoop, and only a branding refusal triggers the unbranded retry", () => {

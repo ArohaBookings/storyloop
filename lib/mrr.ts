@@ -29,7 +29,7 @@ export type SubscriptionLike = {
   ended_at?: number | null;
   metadata?: Record<string, string> | null;
   items: Array<{ unit_amount: number | null; quantity: number | null; interval: string | null; interval_count: number | null }>;
-  /** What the customer told the Stripe portal when they cancelled. */
+  /** The reason the customer gave when they cancelled. */
   cancellation?: { feedback: string | null; comment: string | null } | null;
   /** Discounts that keep applying (repeating or forever). One-off first-month discounts do not change MRR. */
   ongoingDiscounts?: Array<{ percent_off: number | null; amount_off: number | null; currency?: string | null }>;

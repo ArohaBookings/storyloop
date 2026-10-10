@@ -827,7 +827,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
         answer:
           "Free for 3 stories a month. Educator is A$19 a month and Educator Pro A$29, each after a 7-day free trial. Centre plans are A$99 a month for 10 educators or A$199 for 25, with 30 days free.",
       },
-      { question: "Can I manage my subscription?", answer: "Yes. Paid users can manage subscription and billing through the Stripe customer portal from Billing & plan." },
+      { question: "Can I manage my subscription?", answer: "Yes. In Billing & plan you can update your card, see your next payment, download receipts, and cancel or keep your plan, all inside StoryLoop." },
       { question: "Do upgrade prompts block history?", answer: "No. Upgrade prompts are dismissible and never block existing story history." },
       ...sharedFaqs,
     ],

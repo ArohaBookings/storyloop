@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { runLifecycleAutomation } from "@/lib/email/automation";
+import { settleAllFoundingDiscounts } from "@/lib/centre-offer";
+import { createStripe } from "@/lib/stripe-client";
 
 export async function GET(request: Request) {
   try {
@@ -10,7 +12,20 @@ export async function GET(request: Request) {
     }
 
     const result = await runLifecycleAutomation();
-    return NextResponse.json({ ...result, ran_at: new Date().toISOString() });
+
+    // Backstop for the invoice.paid webhook: a founding centre's discount comes
+    // off after exactly three paid months even if that webhook was missed.
+    // Separate from the emails, and never allowed to fail them.
+    let founding: Awaited<ReturnType<typeof settleAllFoundingDiscounts>> | { error: string } | null = null;
+    if (process.env.STRIPE_SECRET_KEY) {
+      try {
+        founding = await settleAllFoundingDiscounts(createStripe());
+      } catch (error) {
+        founding = { error: error instanceof Error ? error.message : "founding settle failed" };
+      }
+    }
+
+    return NextResponse.json({ ...result, founding, ran_at: new Date().toISOString() });
   } catch (error) {
     console.error("Email automation error:", error);
     return NextResponse.json(

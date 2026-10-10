@@ -2,14 +2,20 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { AlertTriangle, Check, Loader2, CreditCard, ExternalLink, LifeBuoy, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Check, Loader2, CreditCard, ExternalLink, FileText, LifeBuoy, ShieldCheck } from "lucide-react";
 import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
 import { ACTIVATION_OFFER_LABEL } from "@/lib/email/config";
 import { canOfferInAppSwitch } from "@/lib/plan-change";
 import { formatDay } from "@/lib/notifications";
+import { CANCELLATION_REASONS, type BillingSummary } from "@/lib/billing-manage";
 import { getSessionId, track } from "@/lib/analytics/client";
 import { getNextPlan, getPlanByKey, getPlanDefinitions, hasFeatureAccess, normalizePlanKey, planRank, requiredPlanForFeature, resolveFeatureParam, type CurrencyCode, type FeatureKey, type PlanKey } from "@/lib/plans";
+
+function formatMoney(cents: number, currency: string) {
+  const symbol = currency.toLowerCase() === "nzd" ? "NZ$" : currency.toLowerCase() === "aud" ? "A$" : `${currency.toUpperCase()} `;
+  return `${symbol}${(cents / 100).toFixed(2)}`;
+}
 
 // Appealing, benefit-led copy for a feature a user clicked while locked.
 const FEATURE_UPSELL: Partial<Record<FeatureKey, { title: string; blurb: string }>> = {
@@ -100,21 +106,37 @@ export default function BillingPage() {
   const [currency, setCurrency] = useState<CurrencyCode>("AUD");
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState<string>("");
-  // In-app plan switching for paying customers (the Stripe portal cannot).
+  // In-app plan switching for paying customers.
   const [switchPreview, setSwitchPreview] = useState<{ plan: PlanKey; title: string; detail: string } | null>(null);
   const [switchNotice, setSwitchNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   // A centre's free month: whether a card is on file yet (from Stripe).
   const [trialStatus, setTrialStatus] = useState<{ centreTrial: boolean; cardOnFile: boolean | null; founding: boolean; trialEndsAt: string | null } | null>(null);
-  // The centre offer as it stands (founding spots come from the Stripe coupon).
+  // StoryLoop's own billing management (card, cancel or keep, receipts). Stripe's
+  // portal is never used: it shows the shared Stripe account's business name.
+  const [billing, setBilling] = useState<BillingSummary | null>(null);
+  const [cardNotice, setCardNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState<string>("");
+  const [cancelComment, setCancelComment] = useState("");
+  // The centre offer as it stands (founding spots counted from Stripe).
   const [centreOffer, setCentreOffer] = useState<{ trialDays: number; founding: { spotsLeft: number | null; totalSpots: number; discountPercent: number; discountMonths: number } } | null>(null);
 
   const loadProfile = () =>
     fetch("/api/me").then(r => r.json()).then(data => setProfile(data.profile));
+  const loadBilling = () =>
+    fetch("/api/stripe/billing")
+      .then((r) => r.json())
+      .then((data) => {
+        setBilling(data);
+        if (data?.error) setCardNotice({ tone: "error", text: data.error });
+      })
+      .catch(() => {});
 
   useEffect(() => {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (tz?.includes("Auckland")) setCurrency("NZD");
     void loadProfile();
+    void loadBilling();
     fetch("/api/stripe/trial-status").then((r) => (r.ok ? r.json() : null)).then(setTrialStatus).catch(() => {});
     fetch("/api/centre-offer").then((r) => (r.ok ? r.json() : null)).then(setCentreOffer).catch(() => {});
   }, []);
@@ -126,6 +148,33 @@ export default function BillingPage() {
     if (checkoutCancelled) track("checkout_cancelled", { plan: searchParams.get("plan") ?? undefined });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkoutCancelled]);
+
+  // Back from StoryLoop's card page: make that card the one charged (the webhook
+  // does the same), say what happened, and refresh what the page shows.
+  const cardReturn = searchParams.get("card");
+  const cardSession = searchParams.get("session_id");
+  useEffect(() => {
+    if (cardReturn === "cancelled") {
+      setCardNotice({ tone: "ok", text: "No change made. Your card on file is the same as before." });
+      return;
+    }
+    if (cardReturn !== "updated" || !cardSession) return;
+    fetch("/api/stripe/card/confirm", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: cardSession }) })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.ok && data.overdueFailed > 0) {
+          setCardNotice({ tone: "error", text: "Your new card is saved, but the overdue payment didn't go through on it. Try another card, or contact your bank." });
+        } else if (data.ok && data.paidOverdue > 0) {
+          setCardNotice({ tone: "ok", text: "Your new card is saved and the overdue payment has gone through. You're all set." });
+        } else if (data.ok) {
+          setCardNotice({ tone: "ok", text: "Your new card is saved. StoryLoop will use it from your next payment." });
+        } else {
+          setCardNotice({ tone: "error", text: "We couldn't confirm that card. If you saved one, refresh in a minute; otherwise try again." });
+        }
+      })
+      .catch(() => setCardNotice({ tone: "error", text: "We couldn't confirm that card. Refresh in a minute to check." }))
+      .finally(() => { void loadProfile(); void loadBilling(); });
+  }, [cardReturn, cardSession]);
 
   const handleCheckout = async (plan: string) => {
     setLoading(plan);
@@ -139,12 +188,48 @@ export default function BillingPage() {
     else { setLoading(""); alert(data.error ?? "Checkout failed"); }
   };
 
-  const handlePortal = async () => {
-    setLoading("portal");
-    const res = await fetch("/api/stripe/portal", { method: "POST" });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
-    else { setLoading(""); alert(data.error); }
+  // StoryLoop's card page: Stripe Checkout in setup mode, branded as StoryLoop.
+  const handleCard = async () => {
+    setLoading("card");
+    try {
+      const res = await fetch("/api/stripe/card", { method: "POST" });
+      const data = await res.json();
+      if (data.url) { window.location.href = data.url; return; }
+      setCardNotice({ tone: "error", text: data.error ?? "Could not open the card page. Please try again." });
+    } catch {
+      setCardNotice({ tone: "error", text: "Could not open the card page. Please try again." });
+    }
+    setLoading("");
+  };
+
+  const changeCancellation = async (action: "cancel" | "resume") => {
+    setLoading(action);
+    try {
+      const res = await fetch("/api/stripe/subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, reason: cancelReason || undefined, comment: cancelComment || undefined }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setCardNotice({
+          tone: "ok",
+          text: action === "cancel"
+            ? `Done. Your plan stays on until ${data.subscription?.endsAt ? formatDay(data.subscription.endsAt) : "the end of this period"}, then ends. Nothing more is charged.`
+            : "Done. Your plan carries on as normal.",
+        });
+        setCancelOpen(false);
+        setCancelReason("");
+        setCancelComment("");
+        await Promise.all([loadBilling(), loadProfile()]);
+      } else {
+        setCardNotice({ tone: "error", text: "That didn't go through. Please try again, or contact Support." });
+      }
+    } catch {
+      setCardNotice({ tone: "error", text: "That didn't go through. Please try again, or contact Support." });
+    } finally {
+      setLoading("");
+    }
   };
 
   const previewSwitch = async (plan: PlanKey) => {
@@ -192,13 +277,17 @@ export default function BillingPage() {
       await handleCheckout(plan);
       return;
     }
-    // Paying customers switch here. Accounts that cannot (comped, payment
-    // trouble, no Stripe subscription) keep the portal, which fixes payments.
+    // Paying customers switch here. A card problem is fixed first; accounts
+    // with no StoryLoop subscription to change (complimentary access) ask us.
     if (canSwitchInApp) {
       await previewSwitch(plan);
       return;
     }
-    await handlePortal();
+    if (billingBlocked || billingPastDue) {
+      await handleCard();
+      return;
+    }
+    setSwitchNotice({ tone: "error", text: "Plan changes for this account are made by StoryLoop. Use Support and we'll change it for you." });
   };
 
   const plans = getPlanDefinitions(currency);
@@ -209,7 +298,7 @@ export default function BillingPage() {
   const limit = getMonthlyStoryLimit(profile ?? {});
   const remaining = getRemainingStories(profile ?? {});
   const allowanceLabel = getStoryAllowanceLabel(profile ?? {});
-  const upgradeLoading = nextPlan ? loading === nextPlan || loading === "portal" : loading === "portal";
+  const upgradeLoading = nextPlan ? loading === nextPlan || loading === "card" : loading === "card";
   const billingBlocked = isBillingBlocked(profile ?? {});
   const billingPastDue = isBillingPastDue(profile ?? {});
   const statusLabel = billingStatusLabel(profile?.subscription_status);
@@ -253,13 +342,23 @@ export default function BillingPage() {
           </p>
           <p className="mt-1.5 text-base leading-relaxed text-ink-700">
             {trialStatus.cardOnFile === null ? "If you have not added a card yet, add" : "Add"} one to keep your team going
-            {trialStatus.founding ? `. As a founding centre you then pay 50% for your first three months.` : "."} If you do nothing, it simply
+            {trialStatus.founding ? `. As a founding centre, your first three paid months are then half price.` : "."} If you do nothing, it simply
             ends, nothing is charged, and everything your team wrote stays yours.
           </p>
-          <button type="button" onClick={handlePortal} disabled={loading === "portal"} className="btn-primary mt-4">
-            {loading === "portal" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+          <button type="button" onClick={handleCard} disabled={loading === "card"} className="btn-primary mt-4">
+            {loading === "card" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
             Add a card
           </button>
+        </div>
+      )}
+
+      {cardNotice && (
+        <div
+          role="status"
+          data-testid="card-notice"
+          className={`mb-6 rounded-2xl border px-4 py-3 text-sm ${cardNotice.tone === "ok" ? "border-sage-200 bg-sage-50 text-sage-800" : "border-red-100 bg-red-50 text-red-700"}`}
+        >
+          {cardNotice.text}
         </div>
       )}
 
@@ -318,7 +417,7 @@ export default function BillingPage() {
                 disabled={Boolean(loading)}
                 className="btn-primary justify-center whitespace-nowrap px-5 py-2.5 text-sm"
               >
-                {loading === featurePlan.key || loading === "portal"
+                {loading === featurePlan.key || loading === "card"
                   ? <Loader2 className="h-4 w-4 animate-spin" />
                   : <>Unlock with {featurePlan.name} <ExternalLink className="h-3.5 w-3.5" /></>}
               </button>
@@ -347,19 +446,19 @@ export default function BillingPage() {
                   {statusLabel}
                 </p>
                 <h2 className="font-display text-2xl font-bold text-ink-900">
-                  {billingBlocked ? "Update payment to keep creating stories." : "Stripe is retrying your payment."}
+                  {billingBlocked ? "Update your card to keep creating stories." : "Your last card payment didn't go through."}
                 </h2>
                 <p className="mt-1 text-sm text-ink-700">
                   {billingBlocked
                     ? "You can still view history and support, but new story generation pauses until payment is fixed."
-                    : "Your StoryLoop access stays on during this retry window. Update your payment method now to avoid interruption."}
+                    : "Your StoryLoop access stays on while we retry. Update your card now and the payment goes through straight away."}
                 </p>
               </div>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
-              <button onClick={handlePortal} disabled={loading === "portal"} className="btn-primary">
-                {loading === "portal" ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
-                {billingBlocked ? "Fix payment" : "Open Stripe billing"}
+              <button onClick={handleCard} disabled={loading === "card"} className="btn-primary">
+                {loading === "card" ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+                Update card
               </button>
               <Link href="/support" className="btn-secondary">
                 <LifeBuoy className="w-4 h-4" /> Support
@@ -393,18 +492,112 @@ export default function BillingPage() {
             {nextPlanDetails && (
               <button onClick={() => handlePlanUpgrade(nextPlanDetails.key)} disabled={upgradeLoading} className="btn-primary">
                 {upgradeLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
-                {currentPlan === "free" ? `Start ${nextPlanDetails.name}` : canSwitchInApp ? `Upgrade to ${nextPlanDetails.name}` : `Upgrade in Stripe`}
+                {currentPlan === "free" ? `Start ${nextPlanDetails.name}` : canSwitchInApp ? `Upgrade to ${nextPlanDetails.name}` : billingBlocked || billingPastDue ? "Update card first" : `Ask us to upgrade`}
               </button>
             )}
-            {currentPlan !== "free" && (
-              <button onClick={handlePortal} disabled={loading === "portal"} className="btn-secondary">
-                {loading === "portal" ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+            {billing?.subscription && (
+              <a href="#subscription" className="btn-secondary">
+                <CreditCard className="w-4 h-4" />
                 {billingBlocked ? "Fix payment" : "Manage subscription"}
-              </button>
+              </a>
             )}
           </div>
         </div>
       </div>
+
+      {billing?.subscription && (
+        <section id="subscription" data-testid="subscription-section" className="card mb-8 scroll-mt-24 p-6">
+          <p className="section-title mb-2">Your subscription</p>
+          <div className="grid gap-5 md:grid-cols-2">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-ink-900">
+                {billing.subscription.endsAt
+                  ? `Ends on ${formatDay(billing.subscription.endsAt)}`
+                  : billing.subscription.trialEndsAt
+                    ? `Free until ${formatDay(billing.subscription.trialEndsAt)}`
+                    : billing.subscription.status === "past_due" || billing.subscription.status === "unpaid"
+                      ? "Payment overdue"
+                      : "Active"}
+              </p>
+              <p className="mt-1 text-sm text-ink-600">
+                {billing.subscription.endsAt
+                  ? "You've cancelled. You keep everything until then, and nothing more is charged."
+                  : billing.subscription.nextPayment
+                    ? `Next payment ${formatMoney(billing.subscription.nextPayment.amount, billing.subscription.nextPayment.currency)} on ${formatDay(billing.subscription.nextPayment.date)}.`
+                    : billing.subscription.trialEndsAt
+                      ? "Add a card to keep going after the free month. If you don't, it simply ends and nothing is charged."
+                      : ""}
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {billing.subscription.endsAt ? (
+                  <button type="button" onClick={() => changeCancellation("resume")} disabled={Boolean(loading)} className="btn-primary" data-testid="keep-subscription">
+                    {loading === "resume" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                    Keep my subscription
+                  </button>
+                ) : (
+                  <button type="button" onClick={() => setCancelOpen(true)} disabled={Boolean(loading)} className="btn-secondary" data-testid="cancel-subscription">
+                    Cancel subscription
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="min-w-0 rounded-2xl border border-clay-100 bg-cream-50 p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-ink-500">Card</p>
+              <p className="mt-1 text-sm text-ink-800" data-testid="card-on-file">
+                {billing.card
+                  ? `${billing.card.brand.charAt(0).toUpperCase()}${billing.card.brand.slice(1)} ending ${billing.card.last4}${billing.card.expMonth && billing.card.expYear ? `, expires ${String(billing.card.expMonth).padStart(2, "0")}/${String(billing.card.expYear).slice(-2)}` : ""}`
+                  : "No card on file"}
+              </p>
+              <button type="button" onClick={handleCard} disabled={loading === "card"} className="btn-secondary mt-3" data-testid="update-card">
+                {loading === "card" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+                {billing.card ? "Update card" : "Add a card"}
+              </button>
+            </div>
+          </div>
+
+          {billing.receipts.length > 0 && (
+            <div className="mt-6 border-t border-clay-100 pt-5">
+              <p className="text-xs font-bold uppercase tracking-wider text-ink-500">Receipts</p>
+              <ul className="mt-2 divide-y divide-clay-50" data-testid="receipts">
+                {billing.receipts.map((receipt) => (
+                  <li key={receipt.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+                    <span className="text-ink-700">{formatDay(receipt.paidAt ?? receipt.createdAt)}</span>
+                    <span className="tabular-nums text-ink-900">{formatMoney(receipt.amount, receipt.currency)}{receipt.status === "open" ? " (due)" : ""}</span>
+                    <Link href={`/billing/receipt/${receipt.id}`} className="inline-flex items-center gap-1 font-semibold text-clay-700 hover:underline">
+                      <FileText className="h-4 w-4" /> {receipt.status === "open" ? "View" : "Receipt"}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+      )}
+
+      {cancelOpen && billing?.subscription && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink-950/40 p-4 sm:items-center" onClick={() => !loading && setCancelOpen(false)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="cancel-title" className="w-full max-w-md rounded-3xl bg-white p-6 shadow-warm" onClick={(event) => event.stopPropagation()}>
+            <h2 id="cancel-title" className="font-display text-2xl font-bold text-ink-900">Cancel your subscription?</h2>
+            <p className="mt-2 text-sm leading-relaxed text-ink-600">
+              Your plan stays on until {billing.subscription.trialEndsAt ? formatDay(billing.subscription.trialEndsAt) : billing.subscription.currentPeriodEnd ? formatDay(billing.subscription.currentPeriodEnd) : "the end of this period"}, then ends. Nothing more is charged, and everything you've written stays yours.
+            </p>
+            <label htmlFor="cancel-reason" className="mt-4 block text-sm font-semibold text-ink-800">What's the main reason? (optional)</label>
+            <select id="cancel-reason" value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} className="input mt-1">
+              <option value="">Choose one</option>
+              {CANCELLATION_REASONS.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+            </select>
+            <label htmlFor="cancel-comment" className="mt-3 block text-sm font-semibold text-ink-800">Anything we should fix? (optional)</label>
+            <textarea id="cancel-comment" value={cancelComment} onChange={(event) => setCancelComment(event.target.value)} maxLength={500} rows={3} className="input mt-1" />
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button type="button" onClick={() => setCancelOpen(false)} disabled={Boolean(loading)} className="btn-secondary">Keep my plan</button>
+              <button type="button" onClick={() => changeCancellation("cancel")} disabled={Boolean(loading)} className="btn-primary" data-testid="confirm-cancel">
+                {loading === "cancel" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                Cancel subscription
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {nextPlanDetails && (
         <div className="mb-8 rounded-3xl border border-clay-200 bg-gradient-to-br from-cream-100 via-white to-sage-50 p-5 md:p-6 shadow-soft">
@@ -432,7 +625,7 @@ export default function BillingPage() {
             </div>
             <button onClick={() => handlePlanUpgrade(nextPlanDetails.key)} disabled={upgradeLoading} className="btn-primary flex-shrink-0">
               {upgradeLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
-              {currentPlan === "free" || canSwitchInApp ? `Upgrade to ${nextPlanDetails.name}` : "Open Stripe portal"}
+              {currentPlan === "free" || canSwitchInApp ? `Upgrade to ${nextPlanDetails.name}` : billingBlocked || billingPastDue ? "Update card first" : "Ask us to upgrade"}
             </button>
           </div>
         </div>
@@ -456,7 +649,7 @@ export default function BillingPage() {
           const isCurrent = plan.key === currentPlan;
           const isNext = plan.key === nextPlan;
           const isPaidChoice = plan.key !== "free";
-          const planLoading = loading === plan.key || (currentPlan !== "free" && isNext && loading === "portal");
+          const planLoading = loading === plan.key || (currentPlan !== "free" && isNext && loading === "card");
           return (
             <div key={plan.name} className={`rounded-2xl p-6 flex flex-col relative ${plan.popular ? "bg-ink-900 text-paper border-2 border-clay-600 shadow-clay" : isNext ? "bg-white border-2 border-clay-400 shadow-warm" : "bg-white border border-clay-100"}`}>
               {plan.popular && <div className="inline-flex items-center bg-clay-700 text-paper text-xs font-bold px-2 py-1 rounded-full w-fit mb-2">Most popular</div>}
@@ -472,7 +665,7 @@ export default function BillingPage() {
                   <p className="font-semibold">30 days free, no card needed</p>
                   {centreOffer?.founding.spotsLeft !== 0 && (
                     <p className="mt-0.5">
-                      Founding centres then pay {100 - (centreOffer?.founding.discountPercent ?? 50)}% for {centreOffer?.founding.discountMonths ?? 3} months
+                      Founding centres then pay {100 - (centreOffer?.founding.discountPercent ?? 50)}% for their first {centreOffer?.founding.discountMonths ?? 3} paid months
                       {typeof centreOffer?.founding.spotsLeft === "number" ? ` (${centreOffer.founding.spotsLeft} of ${centreOffer.founding.totalSpots} spots left)` : ""}.
                     </p>
                   )}
@@ -509,7 +702,7 @@ export default function BillingPage() {
                   isCurrent ? "Current plan" :
                   plan.key === "free" ? "Included" :
                   currentPlan !== "free" && canSwitchInApp ? (planRank(plan.key) > planRank(currentPlan) ? `Upgrade to ${plan.name}` : `Switch to ${plan.name}`) :
-                  currentPlan !== "free" ? "Manage in Stripe" :
+                  currentPlan !== "free" ? (billingBlocked || billingPastDue ? "Update card first" : "Ask us to switch") :
                   `Upgrade to ${plan.name}`}
               </button>
             </div>

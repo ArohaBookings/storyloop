@@ -84,10 +84,10 @@ export function checkPlanChange(input: {
   if (!ownedByUser && !ownedByCustomer) return refuse("not_owner", "Billing details do not match this account. Contact support.");
 
   if (subscription.status !== "active" && subscription.status !== "trialing") {
-    return refuse("not_active", "Fix your payment first from Manage subscription, then switch plans.");
+    return refuse("not_active", "Update your card first (Your subscription, below), then switch plans.");
   }
   if (subscription.cancelAtPeriodEnd || subscription.cancelAt !== null) {
-    return refuse("cancellation_scheduled", "Your plan is set to end. Keep it from Manage subscription first, then switch.");
+    return refuse("cancellation_scheduled", "Your plan is set to end. Choose Keep my subscription below first, then switch.");
   }
   if (subscription.itemCount !== 1) return refuse("unexpected_items", "This subscription has a custom setup. Contact support to change it.");
 

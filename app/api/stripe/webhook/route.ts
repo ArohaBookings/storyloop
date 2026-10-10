@@ -7,7 +7,8 @@ import { creditEarnedReferrals, grantReferralCreditForPayment } from "@/lib/refe
 import { newlyScheduledCancellation, paymentFailureNotice, sendBillingEmail } from "@/lib/email/billing";
 import { cancellationFeedbackMetadata } from "@/lib/churn-reasons";
 import { metaConfigured, sendMetaEvent } from "@/lib/meta-capi";
-import { trialLapsedWithoutCard } from "@/lib/centre-offer";
+import { settleFoundingDiscount, trialLapsedWithoutCard } from "@/lib/centre-offer";
+import { applySavedCard } from "@/lib/billing-manage";
 import { SITE_URL } from "@/lib/email/config";
 import { recordServerEvent } from "@/lib/analytics/server";
 import { PLAN_ORDER } from "@/lib/plans";
@@ -175,6 +176,16 @@ async function handleInvoicePaid(admin: ReturnType<typeof createAdminSupabase>, 
     const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
     await updateProfileForSubscription(admin, subscription, { customerId });
     await grantReferralRewardIfEarned(admin, invoice);
+    // Founding centres: exactly three half-price paid months, and a paid centre
+    // has used its spot for good. Never allowed to fail the webhook; the cron
+    // settles anything missed here.
+    if (subscription.metadata?.founding_centre === "true" && ((invoice.total ?? 0) > 0 || (invoice.amount_paid ?? 0) > 0)) {
+      try {
+        await settleFoundingDiscount(getStripe(), subscription.id);
+      } catch (error) {
+        console.error("Founding discount settle failed (billing unaffected):", error);
+      }
+    }
     // Receipt last: the subscription record is what matters, and sendBillingEmail
     // never throws, so this cannot cost us a state update.
     if (!options.receipt) return;
@@ -277,6 +288,16 @@ async function processStripeEvent(admin: ReturnType<typeof createAdminSupabase>,
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
+      // StoryLoop's card page (setup mode): make that card the one charged, and
+      // pay anything overdue. The success page does the same; both are safe.
+      // Only StoryLoop's own card pages: the shared account's other businesses
+      // use setup mode too, and their customers are never touched.
+      if (session.mode === "setup") {
+        const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
+        const ours = session.metadata?.app === "storyloop" && session.metadata?.purpose === "card_update";
+        if (customerId && ours) await applySavedCard(getStripe(), { sessionId: session.id, customerId });
+        return;
+      }
       const subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription?.id;
       if (!subscriptionId) return;
       const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
