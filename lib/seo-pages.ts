@@ -78,7 +78,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       {
         title: "What each one costs",
         body:
-          "Storypark is priced per child, around NZ$1.79 per child per month paid monthly with a minimum around NZ$23.85, so a 60-child centre pays roughly NZ$107 a month. StoryLoop is free for 3 stories a month, NZ$21 a month for an individual educator, or NZ$109 a month for a centre team of up to 10 educators with unlimited children. Check both against your own roll.",
+          "Storypark is priced per child: NZ$1.79 a month per child prepaid annually or NZ$1.89 paid monthly, with a base rate for the first 15 children, so a 60-child centre pays roughly NZ$107 to NZ$113 a month (checked 13 October 2026). StoryLoop is free for 3 stories a month, NZ$21 a month for an individual educator, or NZ$109 a month for a centre team of up to 10 educators with unlimited children. Check both against your own roll.",
       },
       {
         title: "Switching",

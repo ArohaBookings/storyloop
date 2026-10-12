@@ -7,12 +7,12 @@ import { GuideCta, GuideFaq, GuideHero, GuidePage, GuideSection, GuideSources, R
 // in visible text and a recent date, so all three are here. Every competitor fact
 // comes from that company's own page (see SOURCES), checked on PRICES_CHECKED.
 // Recheck the prices whenever this page is edited.
-const PRICES_CHECKED = "25 September 2026";
+const PRICES_CHECKED = "13 October 2026";
 
 export const metadata: Metadata = {
   title: { absolute: "Best AI tools for learning stories in 2026, compared" },
   description:
-    "Storypark Assist, Educa Assist, One Child, Kinderloop, ChatGPT and StoryLoop compared for learning stories: who can buy each, published prices, and what the AI does.",
+    "Storypark AI, Educa Assist, Mana, KindieCloud, One Child, Kinderloop, ChatGPT and StoryLoop compared: who can buy each, published prices, what the AI does.",
   alternates: { canonical: "https://storyloop.space/ai-tools-for-learning-stories" },
   openGraph: {
     title: "Best AI tools for learning stories in 2026, compared",
@@ -36,9 +36,23 @@ const TOOLS: Tool[] = [
   {
     name: "Storypark Assist",
     buyer: "The service: an admin turns it on",
-    price: "Storypark is priced per child, from about NZ$1.79 a month on monthly billing. Assist is an add-on to the documentation plan and included in the all-in-one plan. The add-on price is not published.",
+    price: "Storypark is priced per child: about NZ$1.79 to NZ$1.89 a month (prepaid annually or monthly), with a base rate for the first 15 children. Its AI is a paid add-on on every plan, and the add-on price is not published.",
     ai: "Drafting help, pedagogical feedback, grammar suggestions, story review and learning summaries, inside Storypark. Storypark says customer data is never used to train AI models.",
     lives: "Inside Storypark, where your families already are.",
+  },
+  {
+    name: "Mana (formerly LoveHeart AI)",
+    buyer: "Centres and groups; a Room plan for single rooms, family day care and very small centres",
+    price: "Room A$39 a month. Centre and Enterprise: price on request.",
+    ai: "Turns observations, photos and voice memos into documentation and planning across a centre. Australian, founded in 2022, with BestStart among its customers.",
+    lives: "Inside Mana.",
+  },
+  {
+    name: "KindieCloud",
+    buyer: "New Zealand centres: book a demo",
+    price: "Not published.",
+    ai: "A two-minute voice note becomes a Te Whāriki tagged learning story, with translation, a centre philosophy setting and manager approval before families see it. Made by Rayvion, a New Zealand company.",
+    lives: "Inside KindieCloud, then shared with families.",
   },
   {
     name: "Educa Assist",
@@ -60,6 +74,13 @@ const TOOLS: Tool[] = [
     price: "$1.25 per child a month, with a $10 monthly minimum.",
     ai: "Kinderloop Magic: AI tools to help strengthen documentation.",
     lives: "Inside Kinderloop.",
+  },
+  {
+    name: "Little Narratives",
+    buyer: "Australian educators, as an Android app",
+    price: "Not published.",
+    ai: "Turns a spoken or typed observation into documentation mapped to the EYLF V2.0 outcomes and NQS quality areas, plus illustrated stories.",
+    lives: "In the app.",
   },
   {
     name: "ChatGPT, Gemini, Claude or Copilot",
@@ -101,7 +122,7 @@ const FAQS = [
   },
   {
     q: "Does Storypark have AI for learning stories?",
-    a: "Yes. Storypark Assist drafts, reviews and suggests improvements to stories inside Storypark. It is an add-on to Storypark's documentation plan and included in its all-in-one plan, and a service admin turns it on. Storypark offers independent services a seven-day free trial.",
+    a: "Yes. Storypark's AI (Storypark Assist) drafts, reviews and suggests improvements to stories inside Storypark. It is a paid add-on that a service admin turns on, and Storypark does not publish its price.",
   },
   {
     q: "Does Educa have AI?",
@@ -109,7 +130,7 @@ const FAQS = [
   },
   {
     q: "Which AI tools work with Te Whāriki?",
-    a: "Storypark, Educa and StoryLoop all serve Aotearoa New Zealand services. StoryLoop links each story to Te Whāriki strands and learning outcomes and explains why each link fits, or to the EYLF V2.0 for Australian educators. One Child is built for Australian services.",
+    a: "Storypark, Educa, KindieCloud and StoryLoop all serve Aotearoa New Zealand services. KindieCloud is sold to centres. StoryLoop links each story to Te Whāriki strands and learning outcomes and explains why each link fits, or to the EYLF V2.0 for Australian educators, and an educator can start on their own. One Child and Little Narratives are built for Australia.",
   },
   {
     q: "Is it safe to put children's names into AI?",
@@ -124,7 +145,10 @@ const FAQS = [
 ];
 
 const SOURCES = [
-  { label: "Storypark pricing", url: "https://www.storypark.com/pricing" },
+  { label: "Storypark pricing (New Zealand)", url: "https://nz.storypark.com/pricing" },
+  { label: "Mana plans", url: "https://www.makemana.com/plans" },
+  { label: "KindieCloud", url: "https://www.kindiecloud.co.nz/" },
+  { label: "Little Narratives: EYLF & NQS (Android listing)", url: "https://chrome-stats.com/d/com.littlenarratives.center" },
   { label: "Storypark Assist fact sheet", url: "https://help.storypark.com/en/articles/10114616-storypark-assist-fact-sheet" },
   { label: "Educa Assist", url: "https://www.geteduca.com/educa-assist/" },
   { label: "One Child pricing, in One Child's own comparison (4 July 2026)", url: "https://onechild.com.au/articles/one-child-vs-storypark-an-honest-comparison-for-australian-services" },
@@ -149,7 +173,7 @@ export default function AiToolsForLearningStoriesPage() {
               a month, then NZ$21 or A$19. A general chatbot is free, but nothing checks what it writes about a child.
             </p>
             <p className="mt-3 text-base text-ink-600">
-              Six options below, with who can buy each and the prices each company publishes. We make StoryLoop, so we have
+              {TOOLS.length} options below, with who can buy each and the prices each company publishes. We make StoryLoop, so we have
               linked every other company&apos;s own page for you to check.
             </p>
           </>
@@ -160,12 +184,12 @@ export default function AiToolsForLearningStoriesPage() {
             Try StoryLoop free
           </Link>
           <Link href="#compared" className="btn-secondary justify-center">
-            See all six compared
+            See all {TOOLS.length} compared
           </Link>
         </div>
       </GuideHero>
 
-      <GuideSection id="compared" kicker={`Prices checked ${PRICES_CHECKED}`} title="Six AI options for learning stories">
+      <GuideSection id="compared" kicker={`Prices checked ${PRICES_CHECKED}`} title={`${TOOLS.length} AI options for learning stories`}>
         <ul className="grid gap-4">
           {TOOLS.map((tool) => (
             <li key={tool.name} className="rounded-3xl border border-clay-100 bg-white p-5">
