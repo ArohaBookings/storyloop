@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { draftOpening, proofExample } from "@/lib/guide-proof";
+import StoryDemo from "@/components/landing/StoryDemo";
 
 /**
  * A real note and the start of the real draft StoryLoop wrote from it, placed
@@ -10,10 +11,20 @@ import { draftOpening, proofExample } from "@/lib/guide-proof";
  * the homepage, where the demo shows a finished draft at rest, and the guides
  * turned 271 landings into none. A guide reader has come to learn, so the
  * product appears as proof at the point of interest, not as a louder button.
- * Nothing here calls the AI: both drafts are exactly what production wrote in
- * the 23 Sep evaluation run (lib/real-examples.ts), shown unedited.
+ * The drafts shown call no AI: both are exactly what production wrote in the
+ * 23 Sep evaluation run (lib/real-examples.ts), shown unedited. Below them the
+ * reader can try their own note without signing up (the public demo, rate
+ * limited per visitor), because a link to /signup still turned 602 guide
+ * landings into 4 signups in the 60 days to 13 Oct.
  */
-export default function GuideProof({ framework }: { framework: "NZ" | "AU" }) {
+export default function GuideProof({
+  framework,
+  demo = framework,
+}: {
+  framework: "NZ" | "AU";
+  /** The curriculum the "try your own note" draft uses. "visitor": their country decides (NZ gets Te Whāriki, everyone else EYLF). */
+  demo?: "NZ" | "AU" | "visitor";
+}) {
   const example = proofExample(framework);
   if (!example) return null;
   const draft = draftOpening(example.story);
@@ -61,11 +72,25 @@ export default function GuideProof({ framework }: { framework: "NZ" | "AU" }) {
           </figure>
         </div>
 
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <Link href="/signup" className="btn-primary justify-center" data-track="guide_proof_start_free">
-            Try it on your own note, free
-          </Link>
-          <p className="text-sm leading-relaxed text-ink-600">3 stories a month free, no card. You check every word before anything is shared.</p>
+        <div id="try" className="mt-12 scroll-mt-24">
+          <h3 className="font-display text-2xl font-bold leading-tight text-ink-900 text-balance md:text-3xl">
+            Now try it with your own note. No signup.
+          </h3>
+          <p className="mt-2 max-w-3xl text-base leading-relaxed text-ink-600">
+            Type what you saw today. StoryLoop writes the draft here, with{" "}
+            {demo === "visitor" ? "Te Whāriki or EYLF V2.0" : demo === "NZ" ? "Te Whāriki" : "EYLF V2.0"} links, and shows you exactly what it is
+            built on.
+          </p>
+          <div className="mt-6">
+            <StoryDemo surface="guide" framework={demo === "visitor" ? undefined : demo} />
+          </div>
+          <p className="mt-4 text-sm leading-relaxed text-ink-600">
+            Want to keep it?{" "}
+            <Link href="/signup" className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900" data-track="guide_proof_start_free">
+              Start free
+            </Link>
+            : 3 stories a month, no card. You check every word before anything is shared.
+          </p>
         </div>
       </div>
     </section>

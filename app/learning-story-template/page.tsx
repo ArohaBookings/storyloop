@@ -96,7 +96,7 @@ export default function LearningStoryTemplatePage() {
         </div>
       </GuideHero>
 
-      <GuideProof framework="NZ" />
+      <GuideProof framework="NZ" demo="visitor" />
 
       <GuideSection id="nz" kicker="Aotearoa New Zealand" title="Te Whāriki learning story template">
         <CopyTemplate id="nz" label="Te Whāriki template" text={NZ_TEMPLATE} />

@@ -35,6 +35,27 @@ const GUIDES = [
     icon: BookOpen,
   },
   {
+    href: "/learning-story-next-steps-examples",
+    kicker: "Every educator · New",
+    title: "Next steps: 12 real examples",
+    description: "Real 'where to next' sections from babies to five year olds, for Te Whāriki and the EYLF, and what makes each one useful.",
+    icon: BookOpen,
+  },
+  {
+    href: "/learning-story-examples-preschool",
+    kicker: "Every educator · New",
+    title: "Learning story examples, 3 to 5 years",
+    description: "Seven real notes and drafts, from waiata to marble runs, with the curriculum link and what makes each one strong.",
+    icon: BookOpen,
+  },
+  {
+    href: "/chatgpt-for-learning-stories",
+    kicker: "Every educator · New",
+    title: "Can you use ChatGPT for learning stories?",
+    description: "What the NZ and Australian privacy regulators say, a safer way to use a general chatbot, and where they go wrong.",
+    icon: Sparkles,
+  },
+  {
     href: "/eylf-learning-outcomes",
     kicker: "Australia · New",
     title: "The 5 EYLF learning outcomes (V2.0)",
@@ -124,6 +145,20 @@ const GUIDES = [
     title: "Transition to school statements",
     description: "Example wording, what Victoria, NSW and Queensland ask for, how Aotearoa differs, and how to have the evidence ready.",
     icon: School,
+  },
+  {
+    href: "/tlds-examples",
+    kicker: "Victoria · Term 4",
+    title: "TLDS examples",
+    description: "What each section of the Transition Learning and Development Statement asks for, with intentional teaching strategies for all five outcomes.",
+    icon: School,
+  },
+  {
+    href: "/end-of-year-learning-summary",
+    kicker: "Term 4",
+    title: "End of year learning summaries",
+    description: "A one-page structure families keep, with example paragraphs for the EYLF and Te Whāriki.",
+    icon: FileCheck,
   },
   {
     href: "/nqs-standard-1-3-assessment-and-planning",

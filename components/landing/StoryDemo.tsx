@@ -155,8 +155,26 @@ function EvidencePanel({ evidence, onOpen }: { evidence: Evidence; onOpen?: () =
   );
 }
 
-export default function StoryDemo({ compact = false }: { compact?: boolean }) {
-  const [input, setInput] = useState(SAMPLE);
+/**
+ * `surface="guide"`: the same demo on the guides people arrive at from search.
+ * Those pages already show a real note and draft (GuideProof) for their own
+ * curriculum, so here the box starts empty for the reader's own note, the
+ * framework is the page's (an EYLF draft on a Te Whāriki page would be wrong),
+ * and there is no canned example. Measured over 60 days to 13 Oct 2026: guide
+ * landings converted at 0.7% and homepage visitors who tried the demo at 6.9%,
+ * but no guide reader could try it without signing up first.
+ */
+export default function StoryDemo({
+  compact = false,
+  surface = "home",
+  framework,
+}: {
+  compact?: boolean;
+  surface?: "home" | "guide";
+  framework?: "NZ" | "AU";
+}) {
+  const guide = surface === "guide";
+  const [input, setInput] = useState(guide ? "" : SAMPLE);
   const [touched, setTouched] = useState(false);
   const [output, setOutput] = useState("");
   const [outputNote, setOutputNote] = useState("");
@@ -169,7 +187,7 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
   // The AI could not write this one and the basic writer did (see /api/generate).
   const [basicDraft, setBasicDraft] = useState(false);
 
-  const isUnchangedExample = input.trim() === SAMPLE.trim();
+  const isUnchangedExample = !guide && input.trim() === SAMPLE.trim();
 
   const handleGenerate = async (proceedWithoutClarification = false) => {
     if (!input.trim()) { setError("Add a few observations first"); return; }
@@ -193,11 +211,17 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
       return;
     }
     setLoading(true); setError(""); setOutput(""); setClarify(null);
-    track("demo_started", { inputWords: input.trim().split(/\s+/).length, prefilled: !touched });
+    track("demo_started", { inputWords: input.trim().split(/\s+/).length, prefilled: !touched, surface });
     try {
       const res = await fetch("/api/generate", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ observations: input, ageGroup: "3-4 years", demo: true, proceedWithoutClarification }),
+        body: JSON.stringify({
+          observations: input,
+          ageGroup: "3-4 years",
+          demo: true,
+          proceedWithoutClarification,
+          ...(framework ? { location: framework } : {}),
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Something went wrong. Please try again.");
@@ -218,7 +242,7 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
         anchors: stringList(data.evidenceAnchors),
         checks: [...stringList(data.educatorChecks, 3), ...stringList(data.assumptions, 3)],
       });
-      track("demo_completed", { storyWords: String(data.story).trim().split(/\s+/).length });
+      track("demo_completed", { storyWords: String(data.story).trim().split(/\s+/).length, surface });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
       track("demo_error", { message: e instanceof Error ? e.message.slice(0, 120) : "unknown" });
@@ -231,7 +255,7 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
   };
 
   const rows = compact ? 5 : 8;
-  const showingExample = !output && !loading && !clarify;
+  const showingExample = !guide && !output && !loading && !clarify;
 
   /**
    * Write the example draft on when it scrolls into view.
@@ -276,34 +300,42 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
       {/* ---------------------------------------------------------- input */}
       <div className="card min-w-0 p-5 sm:p-6">
         <div className="mb-1.5 flex items-center justify-between gap-3">
-          <label htmlFor="demo-note" className="label mb-0">A real observation</label>
-          <button
-            type="button"
-            onClick={() => { setInput(SAMPLE); setTouched(false); setError(""); setClarify(null); }}
-            className="text-xs font-bold text-clay-700 hover:text-clay-900"
-          >
-            Reset example
-          </button>
+          <label htmlFor={guide ? "guide-demo-note" : "demo-note"} className="label mb-0">
+            {guide ? "Your note, as rough as you like" : "A real observation"}
+          </label>
+          {!guide && (
+            <button
+              type="button"
+              onClick={() => { setInput(SAMPLE); setTouched(false); setError(""); setClarify(null); }}
+              className="text-xs font-bold text-clay-700 hover:text-clay-900"
+            >
+              Reset example
+            </button>
+          )}
         </div>
 
         <textarea
-          id="demo-note"
+          id={guide ? "guide-demo-note" : "demo-note"}
           value={input}
           onChange={(e) => { setInput(e.target.value); setTouched(true); if (clarify) setClarify(null); }}
           rows={rows}
-          placeholder={PLACEHOLDER}
+          placeholder={guide ? SAMPLE : PLACEHOLDER}
           className="input resize-none font-mono text-sm leading-relaxed"
         />
 
         <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-ink-500">
-            {isUnchangedExample ? "Edit it, or run it as it is." : "Your words stay exactly as you wrote them."}
+            {isUnchangedExample
+              ? "Edit it, or run it as it is."
+              : guide
+                ? "No signup for your first try. Use a first name or initial only."
+                : "Your words stay exactly as you wrote them."}
           </p>
           <button
             onClick={() => handleGenerate()}
             disabled={loading || !input.trim()}
             className="btn-primary w-full flex-shrink-0 text-sm sm:w-auto"
-            data-track={isUnchangedExample ? "demo_run_example" : "demo_run_own"}
+            data-track={isUnchangedExample ? "demo_run_example" : guide ? "guide_demo_run" : "demo_run_own"}
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
             {isUnchangedExample ? "Watch it write this" : "Write my story"}
@@ -381,8 +413,19 @@ export default function StoryDemo({ compact = false }: { compact?: boolean }) {
             <EvidencePanel evidence={evidence} onOpen={() => track("demo_evidence_opened", { example: outputNote === SAMPLE })} />
             <div className="mt-4 border-t border-clay-200 pt-4 text-center">
               <p className="mb-2 text-xs text-ink-600">Save it, edit it and write your own. Three stories a month are free.</p>
-              <Link href="/signup" className="btn-primary px-4 py-2 text-xs" data-track="demo_signup">Start free</Link>
+              <Link href="/signup" className="btn-primary px-4 py-2 text-xs" data-track={guide ? "guide_demo_signup" : "demo_signup"}>Start free</Link>
             </div>
+          </div>
+        ) : guide ? (
+          <div className="flex min-w-0 flex-1 flex-col justify-center text-center">
+            <Sparkles className="mx-auto h-6 w-6 text-clay-400" />
+            <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-ink-600">
+              Your draft appears here, with {framework === "NZ" ? "Te Whāriki" : framework === "AU" ? "EYLF V2.0" : "curriculum"} links that
+              only claim what your note shows, usually in under a minute.
+            </p>
+            <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-ink-400">
+              Tip: what the child did, one thing they said, and what happened next. Three lines is plenty.
+            </p>
           </div>
         ) : (
           /* At rest: show a real draft so the promise is proven before any effort. */

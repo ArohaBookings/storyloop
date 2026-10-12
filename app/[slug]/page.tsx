@@ -34,6 +34,17 @@ const AU_SLUGS = new Set([
   "assessment-and-rating-evidence",
   "eylf-principles-and-practices",
   "eylf-v2-changes",
+  "tlds-examples",
+]);
+// Aotearoa-only guides: their "try your own note" draft is always Te Whāriki.
+// Every other guide that is not in AU_SLUGS serves both countries, so the
+// visitor's country picks the curriculum for their own draft.
+const NZ_SLUGS = new Set([
+  "nz-learning-stories",
+  "te-whariki-learning-stories",
+  "ero-early-childhood-regulation-2026",
+  "te-whariki-principles",
+  "te-whariki-pdf",
 ]);
 // Pages with their own job: prices first, or a list of answers.
 const NO_PROOF_SLUGS = new Set(["pricing", "faq"]);
@@ -217,7 +228,12 @@ export default async function SeoPage({ params }: PageProps) {
             who wants it after they know the price. */}
         {page.slug === "pricing" && <Pricing />}
 
-        {!NO_PROOF_SLUGS.has(page.slug) && <GuideProof framework={AU_SLUGS.has(page.slug) ? "AU" : "NZ"} />}
+        {!NO_PROOF_SLUGS.has(page.slug) && (
+          <GuideProof
+            framework={AU_SLUGS.has(page.slug) ? "AU" : "NZ"}
+            demo={AU_SLUGS.has(page.slug) ? "AU" : NZ_SLUGS.has(page.slug) ? "NZ" : "visitor"}
+          />
+        )}
 
         {CENTRE_SLUGS.has(page.slug) && <FoundingCentreOffer />}
 

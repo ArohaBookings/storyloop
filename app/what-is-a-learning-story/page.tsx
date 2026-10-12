@@ -98,7 +98,7 @@ export default function WhatIsALearningStoryPage() {
         imageAlt="An educator holds an iPad showing a StoryLoop learning story draft while two toddlers build a block tower"
       />
 
-      <GuideProof framework="NZ" />
+      <GuideProof framework="NZ" demo="visitor" />
 
       <GuideSection id="three-parts" kicker="The shape of every story" title="Notice, recognise, respond">
         <p>

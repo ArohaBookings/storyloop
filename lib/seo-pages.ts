@@ -2009,10 +2009,16 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
 };
 
+// Guides added 13 Oct 2026 (see the file for why), with the shared answers.
+import { OCT_2026_DEEP_DIVES, OCT_2026_PAGES } from "./seo-pages-2026-10";
+for (const page of Object.values(OCT_2026_PAGES)) {
+  SEO_PAGES[page.slug] = { ...page, faqs: [...page.faqs, ...sharedFaqs] };
+}
+
 // Attach long-form bodies to the pages that have them. Kept separate so the
 // heavy prose lives in its own file and this one stays a readable index.
 import { SEO_DEEP_DIVES } from "./seo-deep-dives";
-for (const [slug, deepDive] of Object.entries(SEO_DEEP_DIVES)) {
+for (const [slug, deepDive] of Object.entries({ ...SEO_DEEP_DIVES, ...OCT_2026_DEEP_DIVES })) {
   if (SEO_PAGES[slug]) {
     SEO_PAGES[slug].deepDive = deepDive;
   }
