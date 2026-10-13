@@ -8,7 +8,7 @@ import { hasFeatureAccess, requiredPlanForFeature } from "@/lib/plans";
 import { buildPlanningBoard } from "@/lib/planning-board";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
-import { normalizeFramework } from "@/lib/story-options";
+import { normalizeAnyFramework } from "@/lib/international-frameworks";
 
 function asRecord(value: unknown) {
   return value && typeof value === "object" ? value as Record<string, unknown> : {};
@@ -54,7 +54,7 @@ export async function POST() {
       return NextResponse.json({ error: "Create at least one story before generating a planning brief." }, { status: 400 });
     }
 
-    const dominantFramework = normalizeFramework(stories[0]?.location);
+    const dominantFramework = normalizeAnyFramework(stories[0]?.location);
     const briefStories = stories.slice(0, 12);
     const brief = await generateRoomPlanningBrief({
       framework: dominantFramework,

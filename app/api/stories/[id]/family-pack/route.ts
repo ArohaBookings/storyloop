@@ -7,7 +7,7 @@ import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
 import { hasFeatureAccess, requiredPlanForFeature } from "@/lib/plans";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
-import { normalizeFramework } from "@/lib/story-options";
+import { normalizeAnyFramework } from "@/lib/international-frameworks";
 
 export async function POST(
   _request: NextRequest,
@@ -50,7 +50,7 @@ export async function POST(
     const familyPack = await generateFamilyConnectionPack({
       story: story.story_text,
       childName: story.child_name,
-      framework: normalizeFramework(story.location),
+      framework: normalizeAnyFramework(story.location),
       learningSummary: typeof metadata.learningSummary === "string" ? metadata.learningSummary : "",
       familyQuestion: typeof metadata.familyQuestion === "string" ? metadata.familyQuestion : "",
       nextSteps: Array.isArray(story.next_steps) ? story.next_steps.filter((item): item is string => typeof item === "string") : [],

@@ -4,7 +4,7 @@ export const maxDuration = 60;
 
 import { generateParentFriendlyVersion } from "@/lib/ai/generate";
 import { createClient } from "@/lib/supabase/server";
-import { normalizeFramework } from "@/lib/story-options";
+import { normalizeAnyFramework } from "@/lib/international-frameworks";
 
 export async function POST(
   _request: NextRequest,
@@ -37,7 +37,7 @@ export async function POST(
     const parentVersion = await generateParentFriendlyVersion({
       story: story.story_text,
       childName: story.child_name,
-      framework: normalizeFramework(story.location),
+      framework: normalizeAnyFramework(story.location),
       learningSummary: typeof metadata.learningSummary === "string" ? metadata.learningSummary : "",
     });
 

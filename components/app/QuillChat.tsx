@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Feather, X, Loader2, Check, ArrowUp } from "lucide-react";
-import type { StoryFrameworkId } from "@/lib/story-options";
+import type { AnyFrameworkId } from "@/lib/international-frameworks";
 
 type Edit = { editId: string | null; story: string; summary: string; kept: boolean };
 type Message = { role: "user" | "assistant"; content: string; edit?: Edit };
@@ -20,7 +20,7 @@ export default function QuillChat({
   story: string;
   storyId?: string;
   childId?: string;
-  framework: StoryFrameworkId;
+  framework: AnyFrameworkId;
   childName?: string;
   selection?: string;
   onApply: (newStory: string, editId: string | null) => void;

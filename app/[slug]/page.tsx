@@ -8,6 +8,8 @@ import Pricing from "@/components/landing/Pricing";
 import FoundingCentreOffer from "@/components/centre/FoundingCentreOffer";
 import PageTracker from "@/components/analytics/PageTracker";
 import GuideProof from "@/components/marketing/GuideProof";
+import InternationalTry from "@/components/marketing/InternationalTry";
+import { INTERNATIONAL_SLUG_FRAMEWORK } from "@/lib/seo-pages-international";
 
 // Guides a director reads. They get the founding-centre offer under the hero
 // and a primary button that starts a centre's free month, not an individual
@@ -123,7 +125,7 @@ export default async function SeoPage({ params }: PageProps) {
         author: { "@type": "Person", "@id": `${SITE_URL}/#leo`, name: "Leo" },
         publisher: { "@type": "Organization", name: "StoryLoop", url: SITE_URL },
         mainEntityOfPage: `${SITE_URL}/${page.slug}`,
-        inLanguage: "en-AU",
+        inLanguage: INTERNATIONAL_SLUG_FRAMEWORK[page.slug] === "UK" ? "en-GB" : INTERNATIONAL_SLUG_FRAMEWORK[page.slug] === "IE" ? "en-IE" : "en-AU",
         isPartOf: { "@type": "WebSite", "@id": `${SITE_URL}/#website` },
         citation: page.sources?.map((source) => source.url),
       }
@@ -228,7 +230,10 @@ export default async function SeoPage({ params }: PageProps) {
             who wants it after they know the price. */}
         {page.slug === "pricing" && <Pricing />}
 
-        {!NO_PROOF_SLUGS.has(page.slug) && (
+        {/* England and Ireland guides: the demo in their own curriculum. */}
+        {INTERNATIONAL_SLUG_FRAMEWORK[page.slug] && <InternationalTry framework={INTERNATIONAL_SLUG_FRAMEWORK[page.slug]} />}
+
+        {!NO_PROOF_SLUGS.has(page.slug) && !INTERNATIONAL_SLUG_FRAMEWORK[page.slug] && (
           <GuideProof
             framework={AU_SLUGS.has(page.slug) ? "AU" : "NZ"}
             demo={AU_SLUGS.has(page.slug) ? "AU" : NZ_SLUGS.has(page.slug) ? "NZ" : "visitor"}

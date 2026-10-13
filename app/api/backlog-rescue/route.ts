@@ -8,7 +8,8 @@ import { hasFeatureAccess, requiredPlanForFeature } from "@/lib/plans";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
-import { mergeStoryPreferences, normalizeFramework, sanitizeStoryPreferences } from "@/lib/story-options";
+import { mergeStoryPreferences, sanitizeStoryPreferences } from "@/lib/story-options";
+import { normalizeAnyFramework } from "@/lib/international-frameworks";
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const observations = typeof body.observations === "string" ? body.observations.trim() : "";
-    const framework = normalizeFramework(typeof body.framework === "string" ? body.framework : undefined);
+    const framework = normalizeAnyFramework(typeof body.framework === "string" ? body.framework : undefined);
 
     if (observations.length < 40) {
       return NextResponse.json(

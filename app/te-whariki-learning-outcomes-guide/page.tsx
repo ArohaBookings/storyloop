@@ -68,6 +68,25 @@ export default function TeWharikiOutcomesPage() {
         }
       />
 
+      {/* The full list first, for people searching "te whariki learning
+          outcomes": before 13 Oct 2026 the first outcome sat below the proof
+          card and demo. */}
+      <GuideSection id="all-outcomes" tone="white" kicker="Quick list" title={<>All {TOTAL_OUTCOMES} learning outcomes <span className="italic text-clay-700">at a glance</span></>}>
+        <div className="gap-8 sm:columns-2">
+          {TE_WHARIKI_STRANDS.map((strand) => (
+            <div key={strand.slug} className="mb-6 min-w-0 break-inside-avoid">
+              <p className="font-display text-lg font-bold text-ink-900">{strand.maori} | {strand.english}</p>
+              <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm">
+                {strand.outcomes.map((outcome) => (
+                  <li key={outcome.mi}>{outcome.en} <span className="italic text-ink-500">({outcome.mi})</span></li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <p className="text-sm text-ink-600">Each strand is below with what it looks like in everyday play.</p>
+      </GuideSection>
+
       <GuideProof framework="NZ" />
 
       {TE_WHARIKI_STRANDS.map((strand, index) => (

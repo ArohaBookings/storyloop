@@ -171,7 +171,7 @@ export default function StoryDemo({
 }: {
   compact?: boolean;
   surface?: "home" | "guide";
-  framework?: "NZ" | "AU";
+  framework?: "NZ" | "AU" | "UK" | "IE";
 }) {
   const guide = surface === "guide";
   const [input, setInput] = useState(guide ? "" : SAMPLE);
@@ -420,7 +420,7 @@ export default function StoryDemo({
           <div className="flex min-w-0 flex-1 flex-col justify-center text-center">
             <Sparkles className="mx-auto h-6 w-6 text-clay-400" />
             <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-ink-600">
-              Your draft appears here, with {framework === "NZ" ? "Te Whāriki" : framework === "AU" ? "EYLF V2.0" : "curriculum"} links that
+              Your draft appears here, with {framework === "NZ" ? "Te Whāriki" : framework === "AU" ? "EYLF V2.0" : framework === "UK" ? "EYFS" : framework === "IE" ? "Aistear" : "curriculum"} links that
               only claim what your note shows, usually in under a minute.
             </p>
             <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-ink-400">

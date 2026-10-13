@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const maxDuration = 60;
 import { generateLearningStory, StoryWriterUnavailableError } from "@/lib/ai/generate";
+import { generateInternationalStory } from "@/lib/ai/international-story";
+import { isInternationalFramework, normalizeAnyFramework } from "@/lib/international-frameworks";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { getMonthlyStoryLimit, getRemainingStories } from "@/lib/story-limits";
@@ -132,6 +134,16 @@ export async function POST(request: NextRequest, context: RouteContext) {
           ? existingStory.location
           : profilePreferences.defaultFramework
     );
+    // England (EYFS) and Ireland (Aistear) stories regenerate with their own
+    // writer. For AU and NZ this is null and nothing below changes.
+    const requestedFramework = normalizeAnyFramework(
+      typeof body.location === "string"
+        ? body.location
+        : typeof existingStory.location === "string"
+          ? existingStory.location
+          : profilePreferences.defaultFramework
+    );
+    const internationalFramework = isInternationalFramework(requestedFramework) ? requestedFramework : null;
     const tone = normalizeTone(
       typeof body.tone === "string"
         ? body.tone
@@ -189,7 +201,19 @@ export async function POST(request: NextRequest, context: RouteContext) {
       pedagogyFocus,
     });
 
-    const result = await generateLearningStory({
+    const result = internationalFramework
+      ? await generateInternationalStory({
+          observations: existingStory.observations,
+          framework: internationalFramework,
+          ageGroup: existingStory.age_group ?? undefined,
+          childName: existingStory.child_name ?? undefined,
+          tone,
+          depth,
+          pedagogyFocus,
+          preferences,
+          educatorNames,
+        })
+      : await generateLearningStory({
       observations: existingStory.observations,
       ageGroup: existingStory.age_group ?? undefined,
       childName: existingStory.child_name ?? undefined,
@@ -227,7 +251,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       followUpStatus: existingMetadata.followUpStatus ?? "open",
       editedAt: updatedAt,
       storySettings: {
-        framework,
+        framework: internationalFramework ?? framework,
         tone,
         depth,
         includeTeReoLevel,
@@ -243,7 +267,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       outcomes: result.outcomes,
       next_steps: result.nextSteps,
       tone,
-      location: framework,
+      location: internationalFramework ?? framework,
       word_count: result.wordCount,
       metadata,
       updated_at: updatedAt,

@@ -41,7 +41,7 @@ export default function ProofStrip() {
             <p className="text-base font-semibold leading-relaxed text-ink-900">Built for Aotearoa and Australia.</p>
             <p className="mt-1 text-base leading-relaxed text-ink-700">
               Te Whāriki and EYLF V2.0 built in, te reo Māori where it belongs, and a version families can read in
-              their own language.
+              their own language. EYFS (England) and Aistear (Ireland) too.
             </p>
           </div>
         </div>

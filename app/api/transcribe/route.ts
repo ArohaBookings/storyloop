@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { STORY_FRAMEWORKS, normalizeFramework } from "@/lib/story-options";
+import { INTERNATIONAL_FRAMEWORKS, isInternationalFramework, normalizeAnyFramework } from "@/lib/international-frameworks";
 import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
 import { consumeRateLimit } from "@/lib/rate-limit";
 
@@ -70,10 +71,14 @@ export async function POST(request: NextRequest) {
     const requestedFramework =
       typeof formData.get("framework") === "string" ? String(formData.get("framework")) : undefined;
     const framework = normalizeFramework(requestedFramework ?? profile.story_preferences.defaultFramework);
+    // England and Ireland get their own transcription hint; AU and NZ unchanged.
+    const internationalFramework = normalizeAnyFramework(requestedFramework ?? profile.story_preferences.defaultFramework);
     const transcription = await getOpenAI().audio.transcriptions.create({
       file: upload,
       model: "gpt-4o-mini-transcribe",
-      prompt: STORY_FRAMEWORKS[framework].transcriptionPrompt,
+      prompt: isInternationalFramework(internationalFramework)
+        ? INTERNATIONAL_FRAMEWORKS[internationalFramework].transcriptionPrompt
+        : STORY_FRAMEWORKS[framework].transcriptionPrompt,
     });
 
     const text = transcription.text?.trim();

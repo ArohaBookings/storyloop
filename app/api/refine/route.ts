@@ -9,7 +9,7 @@ import { isBillingBlocked, billingBlockPayload } from "@/lib/billing-access";
 import { hasFeatureAccess, normalizePlanKey, EDUCATOR_ASSISTANT_MONTHLY } from "@/lib/plans";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { refineStorySection } from "@/lib/ai/assistant";
-import { normalizeFramework } from "@/lib/story-options";
+import { normalizeAnyFramework } from "@/lib/international-frameworks";
 
 // Educator gets a monthly taste of Quill (EDUCATOR_ASSISTANT_MONTHLY); Educator
 // Pro and centre plans are unlimited. The cap counts kept (accepted) edits.
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     const childName = typeof body.childName === "string" ? body.childName : null;
-    const framework = normalizeFramework(typeof body.framework === "string" ? body.framework : undefined);
+    const framework = normalizeAnyFramework(typeof body.framework === "string" ? body.framework : undefined);
     const result = await refineStorySection({ story, selection, instruction, framework, childName });
 
     const { data: inserted } = await admin

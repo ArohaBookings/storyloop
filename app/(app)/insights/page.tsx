@@ -4,7 +4,7 @@ import { ArrowRight, BookOpen, Brain, CheckCircle2, Compass, RefreshCw, Sparkles
 import { createClient } from "@/lib/supabase/server";
 import { buildStoryInsights } from "@/lib/story-insights";
 import { buildCurriculumCompass } from "@/lib/curriculum-compass";
-import { normalizeFramework } from "@/lib/story-options";
+import { normalizeAnyFramework } from "@/lib/international-frameworks";
 
 export const metadata = { title: "Learning threads" };
 
@@ -42,7 +42,7 @@ export default async function InsightsPage({
     ? (stories ?? []).filter((story) => story.child_id === selectedChild.id)
     : stories ?? [];
   const insights = buildStoryInsights(selectedStories);
-  const framework = normalizeFramework(selectedStories[0]?.location);
+  const framework = normalizeAnyFramework(selectedStories[0]?.location);
   const compass = buildCurriculumCompass(framework, selectedStories);
   const maxCompass = Math.max(...compass.map((item) => item.count), 1);
   const maxDisposition = Math.max(...insights.dispositions.map((item) => item.count), 1);
@@ -193,7 +193,7 @@ export default async function InsightsPage({
               <div>
                 <p className="section-title mb-1">Curriculum compass</p>
                 <h2 className="font-display text-2xl font-bold text-ink-900">
-                  {framework === "NZ" ? "Te Whāriki strands over time" : "EYLF outcomes over time"}
+                  {framework === "UK" ? "EYFS areas of learning over time" : framework === "IE" ? "Aistear Themes over time" : framework === "NZ" ? "Te Whāriki strands over time" : "EYLF outcomes over time"}
                 </h2>
                 <p className="mt-1 max-w-2xl text-xs text-ink-500">
                   A reflection map of what documentation has surfaced so far. Empty areas are invitations to notice,

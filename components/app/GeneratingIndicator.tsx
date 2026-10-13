@@ -15,7 +15,7 @@ const BASE_STEPS = [
   "Final polish…",
 ];
 
-export default function GeneratingIndicator({ framework }: { framework?: "AU" | "NZ" }) {
+export default function GeneratingIndicator({ framework }: { framework?: "AU" | "NZ" | "UK" | "IE" }) {
   const [step, setStep] = useState(0);
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export default function GeneratingIndicator({ framework }: { framework?: "AU" | 
   }, []);
 
   const steps = [...BASE_STEPS];
-  steps[2] = framework === "NZ" ? "Linking it to Te Whāriki…" : "Linking it to the EYLF…";
+  steps[2] = framework === "UK" ? "Linking it to the EYFS…" : framework === "IE" ? "Linking it to Aistear…" : framework === "NZ" ? "Linking it to Te Whāriki…" : "Linking it to the EYLF…";
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center text-center">

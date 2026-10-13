@@ -6,7 +6,7 @@ import { Feather, Loader2, Check, X, ThumbsUp, ThumbsDown, Sparkles, LockKeyhole
 import StoryText from "@/components/app/StoryText";
 import QuillChat from "@/components/app/QuillChat";
 import { hasFeatureAccess } from "@/lib/plans";
-import type { StoryFrameworkId } from "@/lib/story-options";
+import type { AnyFrameworkId } from "@/lib/international-frameworks";
 
 // Quill: the educator's own writing helper.
 //  - Inline: highlight any line, a small box pops up right there, ask for a
@@ -41,7 +41,7 @@ export default function QuillAssistant({
   story: string;
   storyId?: string;
   childId?: string;
-  framework: StoryFrameworkId;
+  framework: AnyFrameworkId;
   childName?: string;
   plan: string;
   onApply: (newStory: string) => void;

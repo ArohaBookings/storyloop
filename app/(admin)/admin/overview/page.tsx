@@ -243,7 +243,7 @@ export default async function AdminPage() {
   const conversionBase = paidProfiles.length + freeLimitUsers.length;
   const freeLimitToPaidConversion = percent(paidProfiles.length, conversionBase);
   const frameworkCounts = storyRows.reduce<Record<string, number>>((counts, story) => {
-    const key = story.location === "NZ" ? "Te Whāriki" : "EYLF";
+    const key = story.location === "UK" ? "EYFS" : story.location === "IE" ? "Aistear" : story.location === "NZ" ? "Te Whāriki" : "EYLF";
     counts[key] = (counts[key] ?? 0) + 1;
     return counts;
   }, {});

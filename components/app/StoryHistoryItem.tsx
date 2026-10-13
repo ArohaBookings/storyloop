@@ -11,16 +11,15 @@ import ExportPackPanel from "@/components/app/ExportPackPanel";
 import FamilyTranslationPanel from "@/components/app/FamilyTranslationPanel";
 import {
   normalizeDepth,
-  normalizeFramework,
   normalizePedagogyFocus,
   normalizeTeReoLevel,
   normalizeTone,
   type StoryDepth,
-  type StoryFrameworkId,
   type PedagogyFocus,
   type StoryTone,
   type TeReoLevel,
 } from "@/lib/story-options";
+import { isInternationalFramework, normalizeAnyFramework, type AnyFrameworkId } from "@/lib/international-frameworks";
 import type { PrivacyGuardianResult } from "@/lib/privacy-guardian";
 
 type StoryHistoryItemProps = {
@@ -83,9 +82,12 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
   );
   const [regenerateTone, setRegenerateTone] = useState<StoryTone>(normalizeTone(story.tone ?? (initialSettings.tone as string | undefined)));
   const [regenerateDepth, setRegenerateDepth] = useState<StoryDepth>(normalizeDepth(initialSettings.depth as string | undefined));
-  const [regenerateFramework, setRegenerateFramework] = useState<StoryFrameworkId>(
-    normalizeFramework(story.location ?? (initialSettings.framework as string | undefined))
+  const [regenerateFramework, setRegenerateFramework] = useState<AnyFrameworkId>(
+    normalizeAnyFramework(story.location ?? (initialSettings.framework as string | undefined))
   );
+  // England and Ireland options only appear on stories written for them, so
+  // Australian and New Zealand stories show exactly the same two choices.
+  const storyIsInternational = isInternationalFramework(normalizeAnyFramework(story.location ?? (initialSettings.framework as string | undefined)));
   const [regenerateTeReo, setRegenerateTeReo] = useState<TeReoLevel>(
     normalizeTeReoLevel(initialSettings.includeTeReoLevel as string | undefined)
   );
@@ -113,7 +115,7 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
     }
   }, [regenerateFramework]);
 
-  const chooseRegenerateFramework = (framework: StoryFrameworkId) => {
+  const chooseRegenerateFramework = (framework: AnyFrameworkId) => {
     setRegenerateFramework(framework);
     if (framework !== "NZ") {
       setRegenerateTeReo("low");
@@ -162,7 +164,7 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
         }
       : null;
   const wasEdited = Boolean(currentUpdatedAt && currentUpdatedAt !== story.created_at);
-  const currentFramework = normalizeFramework((asRecord(metadata.storySettings).framework as string | undefined) ?? story.location ?? undefined);
+  const currentFramework = normalizeAnyFramework((asRecord(metadata.storySettings).framework as string | undefined) ?? story.location ?? undefined);
   const familyLinkLabel = currentFramework === "NZ" ? "Family or whānau link" : "Family link";
 
   const startEdit = () => {
@@ -442,9 +444,11 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
                 <option value="balanced">Balanced</option>
                 <option value="detailed">Detailed</option>
               </select>
-              <select value={regenerateFramework} onChange={(event) => chooseRegenerateFramework(normalizeFramework(event.target.value))} className="input text-xs">
+              <select value={regenerateFramework} onChange={(event) => chooseRegenerateFramework(normalizeAnyFramework(event.target.value))} className="input text-xs">
                 <option value="AU">EYLF</option>
                 <option value="NZ">Te Whāriki</option>
+                {storyIsInternational && <option value="UK">EYFS</option>}
+                {storyIsInternational && <option value="IE">Aistear</option>}
               </select>
               {regenerateFramework === "NZ" && (
                 <select value={regenerateTeReo} onChange={(event) => setRegenerateTeReo(normalizeTeReoLevel(event.target.value))} className="input text-xs">

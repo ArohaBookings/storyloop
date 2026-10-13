@@ -12,7 +12,8 @@ export type PedagogyFocus =
   | "working_theories";
 
 export type StoryPreferences = {
-  defaultFramework?: StoryFrameworkId;
+  /** "UK" (EYFS) and "IE" (Aistear) since 13 Oct 2026; see lib/international-frameworks.ts. */
+  defaultFramework?: StoryFrameworkId | "UK" | "IE";
   preferredTone?: StoryTone;
   depthPreference?: StoryDepth;
   preferredStoryLength?: StoryDepth;
@@ -229,7 +230,11 @@ export function sanitizeStoryPreferences(value: unknown): StoryPreferences {
       : undefined;
 
   return {
-    defaultFramework: rawDefaultFramework ? normalizeFramework(rawDefaultFramework) : undefined,
+    defaultFramework: rawDefaultFramework
+      ? rawDefaultFramework === "UK" || rawDefaultFramework === "IE"
+        ? rawDefaultFramework
+        : normalizeFramework(rawDefaultFramework)
+      : undefined,
     preferredTone: rawPreferredTone ? normalizeTone(rawPreferredTone) : undefined,
     depthPreference: rawDepthPreference ? normalizeDepth(rawDepthPreference) : undefined,
     preferredStoryLength: rawPreferredStoryLength ? normalizeDepth(rawPreferredStoryLength) : undefined,

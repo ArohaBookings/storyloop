@@ -167,6 +167,7 @@ const structuredData = {
         "Voice notes to editable learning stories",
         "Today Loop for quick moments and daily follow-up focus",
         "EYLF and Te Whāriki curriculum links",
+        "EYFS (England) and Aistear (Ireland) curriculum links",
         "Child learning continuity profiles",
         "Curriculum compass for reflection",
         "Whānau voice capture",

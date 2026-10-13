@@ -29,6 +29,7 @@ import {
   type StoryTone,
   type TeReoLevel,
 } from "@/lib/story-options";
+import { frameworkPromptValue, isInternationalFramework, type AnyFrameworkId } from "@/lib/international-frameworks";
 import { aiFailureReason, type AiFailureReason } from "@/lib/ai-health";
 
 /**
@@ -152,7 +153,7 @@ function usesReasoningContract(model: string) {
   return /^(gpt-5|o\d)/i.test(model);
 }
 
-async function callAI(systemPrompt: string, userContent: string, opts: { timeoutMs?: number } = {}): Promise<string> {
+export async function callAI(systemPrompt: string, userContent: string, opts: { timeoutMs?: number } = {}): Promise<string> {
   const started = Date.now();
   const timeoutMs = opts.timeoutMs ?? 45_000;
   // Kept so that when the backup provider fails too, the error says why the
@@ -227,7 +228,7 @@ async function callAI(systemPrompt: string, userContent: string, opts: { timeout
   throw new Error("No AI API key configured. Set OPENAI_API_KEY or ANTHROPIC_API_KEY.");
 }
 
-function parseJSON<T>(text: string): T {
+export function parseJSON<T>(text: string): T {
   const clean = text.replace(/```json\n?|```/g, "").trim();
   const match = clean.match(/\{[\s\S]*\}/);
   if (match) return JSON.parse(match[0]) as T;
@@ -314,7 +315,7 @@ function humaniseQualityNotes(value: unknown, limit = 6) {
   );
 }
 
-function normaliseStoryResult(result: Partial<StoryResult>): StoryResult {
+export function normaliseStoryResult(result: Partial<StoryResult>): StoryResult {
   const storyTitle = localiseSpelling(formatTitle(result.storyTitle));
   const story = localiseSpelling(ensureStoryTitle(formatStoryText(result.story), storyTitle));
   const learningSummary =
@@ -788,7 +789,7 @@ Return only valid JSON:
 export async function generateParentFriendlyVersion(params: {
   story: string;
   childName?: string | null;
-  framework?: StoryFrameworkId;
+  framework?: AnyFrameworkId;
   learningSummary?: string;
 }) {
   const prompt = `Create a parent-friendly version of an early childhood learning story.
@@ -807,7 +808,7 @@ Return only valid JSON:
     prompt,
     JSON.stringify({
       childName: params.childName ?? "the child",
-      framework: params.framework ?? "AU",
+      framework: frameworkPromptValue(params.framework ?? "AU"),
       learningSummary: params.learningSummary ?? "",
       story: params.story,
     })
@@ -819,7 +820,7 @@ Return only valid JSON:
 export async function generateFamilyConnectionPack(params: {
   story: string;
   childName?: string | null;
-  framework?: StoryFrameworkId;
+  framework?: AnyFrameworkId;
   learningSummary?: string;
   familyQuestion?: string;
   nextSteps?: string[];
@@ -847,7 +848,7 @@ Return only valid JSON:
     prompt,
     JSON.stringify({
       childName: params.childName ?? "the child",
-      framework: params.framework ?? "AU",
+      framework: frameworkPromptValue(params.framework ?? "AU"),
       learningSummary: params.learningSummary ?? "",
       familyQuestion: params.familyQuestion ?? "",
       nextSteps: params.nextSteps ?? [],
@@ -874,7 +875,7 @@ export async function generateRoomPlanningBrief(params: {
     outcomes?: string[];
     createdAt?: string | null;
   }>;
-  framework?: StoryFrameworkId;
+  framework?: AnyFrameworkId;
 }) {
   const prompt = `Create a Room Planning Brief for early childhood educators from recent learning stories.
 
@@ -905,7 +906,7 @@ Return only valid JSON:
   const response = await callAI(
     prompt,
     JSON.stringify({
-      framework: params.framework ?? "AU",
+      framework: frameworkPromptValue(params.framework ?? "AU"),
       stories: params.stories.slice(0, 12),
     })
   );
@@ -926,7 +927,7 @@ Return only valid JSON:
 
 export async function analyzeBacklogRescue(params: {
   observations: string;
-  framework: StoryFrameworkId;
+  framework: AnyFrameworkId;
   preferences?: StoryPreferences;
 }) {
   const prompt = `You are StoryLoop's Backlog Rescue helper for early childhood educators.
@@ -960,9 +961,13 @@ Return only valid JSON:
 }`;
 
   const response = await callAI(
-    prompt,
+    // England and Ireland only: name their framework in the hint. AU and NZ
+    // send the prompt exactly as written above.
+    isInternationalFramework(params.framework)
+      ? prompt.replace("simple EYLF or Te Whāriki hint", `simple ${params.framework === "UK" ? "EYFS" : "Aistear"} hint`)
+      : prompt,
     JSON.stringify({
-      framework: params.framework,
+      framework: frameworkPromptValue(params.framework),
       preferences: params.preferences ?? {},
       observations: params.observations.slice(0, 6000),
     })

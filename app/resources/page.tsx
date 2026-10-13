@@ -195,6 +195,27 @@ const GUIDES = [
     description: "Keep evidence, child privacy, transparency, and educator professional judgement at the centre.",
     icon: ShieldCheck,
   },
+  {
+    href: "/eyfs-learning-stories",
+    kicker: "England · EYFS",
+    title: "EYFS learning stories and observations",
+    description: "What the September 2026 framework does and does not ask you to record, the seven areas and the three characteristics.",
+    icon: BookOpen,
+  },
+  {
+    href: "/eyfs-observation-examples",
+    kicker: "England · EYFS",
+    title: "EYFS observation examples",
+    description: "Four examples from baby room to pre-reception, each linked to an area of learning and a characteristic.",
+    icon: BookOpen,
+  },
+  {
+    href: "/aistear-learning-stories",
+    kicker: "Ireland · Aistear",
+    title: "Aistear learning stories",
+    description: "Linking a story to the four Themes under the updated Aistear, with an example link for each Theme.",
+    icon: BookOpen,
+  },
 ];
 
 export default function ResourcesPage() {

@@ -57,7 +57,7 @@ function joinSections(sections: Array<{ label: string; value: string }>) {
 export function buildExportPacks(input: ExportPackInput): ExportPack[] {
   const child = input.childName?.trim() || "Child";
   const title = input.storyTitle?.trim() || `${child}'s learning story`;
-  const frameworkLabel = input.framework === "NZ" ? "Te Whāriki" : "EYLF";
+  const frameworkLabel = input.framework === "UK" ? "EYFS" : input.framework === "IE" ? "Aistear" : input.framework === "NZ" ? "Te Whāriki" : "EYLF";
   const familyLabel = input.framework === "NZ" ? "Question for family/whānau" : "Question for family";
   const nextSteps = list(input.nextSteps);
   const curriculum = list(input.curriculumLinks?.length ? input.curriculumLinks : input.outcomes);

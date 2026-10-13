@@ -5,6 +5,8 @@ import { NextRequest, NextResponse } from "next/server";
 export const maxDuration = 60;
 import { createClient } from "@/lib/supabase/server";
 import { generateLearningStory, StoryWriterUnavailableError } from "@/lib/ai/generate";
+import { generateInternationalStory } from "@/lib/ai/international-story";
+import { frameworkForCountry, isInternationalFramework, normalizeAnyFramework } from "@/lib/international-frameworks";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { getMonthlyStoryLimit, getRemainingStories } from "@/lib/story-limits";
 import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
@@ -125,6 +127,14 @@ export async function POST(request: NextRequest) {
       const demoFramework = normalizeFramework(
         typeof location === "string" ? location : visitorCountry === "NZ" ? "NZ" : undefined,
       );
+      // England and Ireland (13 Oct 2026): asked for by the page, or a visitor
+      // there with no curriculum chosen. Everyone else gets exactly the AU/NZ
+      // demo as before.
+      const demoInternational = isInternationalFramework(location)
+        ? location
+        : typeof location === "string"
+          ? null
+          : frameworkForCountry(visitorCountry);
       const demoChildName = typeof childName === "string" && childName.trim()
         ? childName.trim()
         : inferPrimaryChildName(observations);
@@ -138,7 +148,7 @@ export async function POST(request: NextRequest) {
           clarificationKind: demoClarification.kind,
           clarificationReason: demoClarification.reason,
           clarificationQuestions: demoClarification.questions,
-          framework: demoFramework,
+          framework: demoInternational ?? demoFramework,
         });
       }
 
@@ -157,7 +167,18 @@ export async function POST(request: NextRequest) {
         : "low";
       const demoIncludeKowhiti = demoFramework === "NZ" ? Boolean(includeKowhitiWhakapae) : false;
       const demoGenerationObservations = buildGenerationObservations(observations, demoClarificationAnswers);
-      const result = await generateLearningStory({
+      const result = demoInternational
+        ? await generateInternationalStory({
+            observations: demoGenerationObservations,
+            ageGroup,
+            childName: demoChildName,
+            framework: demoInternational,
+            tone: normalizeTone(typeof tone === "string" ? tone : undefined),
+            depth: normalizeDepth(typeof depth === "string" ? depth : undefined),
+            pedagogyFocus: normalizePedagogyFocus(typeof pedagogyFocus === "string" ? pedagogyFocus : undefined),
+            educatorNames: normalizeEducatorNames(educatorNames),
+          })
+        : await generateLearningStory({
         observations: demoGenerationObservations,
         ageGroup,
         childName: demoChildName,
@@ -215,6 +236,10 @@ export async function POST(request: NextRequest) {
     const framework = normalizeFramework(
       typeof location === "string" ? location : preferences.defaultFramework
     );
+    // England (EYFS) and Ireland (Aistear) take their own writer. For AU and NZ
+    // this is null and everything below runs exactly as before.
+    const requestedFramework = normalizeAnyFramework(typeof location === "string" ? location : preferences.defaultFramework);
+    const internationalFramework = isInternationalFramework(requestedFramework) ? requestedFramework : null;
     const resolvedTone = normalizeTone(typeof tone === "string" ? tone : preferences.preferredTone);
     const resolvedDepth = normalizeDepth(typeof depth === "string" ? depth : preferences.depthPreference);
     const resolvedTeReoLevel = framework === "NZ"
@@ -336,7 +361,20 @@ export async function POST(request: NextRequest) {
           .join("\n")
       : "";
 
-    const result = await generateLearningStory({
+    const result = internationalFramework
+      ? await generateInternationalStory({
+          observations: generationObservations,
+          framework: internationalFramework,
+          ageGroup: resolvedAgeGroup,
+          childName: resolvedChildName,
+          tone: resolvedTone,
+          depth: resolvedDepth,
+          pedagogyFocus: resolvedPedagogyFocus,
+          childContext,
+          preferences: requestPreferences,
+          educatorNames: resolvedEducatorNames,
+        })
+      : await generateLearningStory({
       observations: generationObservations,
       ageGroup: resolvedAgeGroup,
       childName: resolvedChildName,
@@ -368,7 +406,7 @@ export async function POST(request: NextRequest) {
       // two-word name that a pattern match would cut in half.
       child_name: resolvedChildName || result.childNameUsed || null,
       tone: resolvedTone,
-      location: framework,
+      location: internationalFramework ?? framework,
       word_count: result.wordCount,
       metadata: {
         storyTitle: result.storyTitle,
@@ -396,7 +434,7 @@ export async function POST(request: NextRequest) {
         sourceStoryId: typeof sourceStoryId === "string" ? sourceStoryId : undefined,
         nextStepProgress: result.nextSteps.map((text) => ({ text, status: "planned" })),
         storySettings: {
-          framework,
+          framework: internationalFramework ?? framework,
           tone: resolvedTone,
           depth: resolvedDepth,
           includeTeReoLevel: resolvedTeReoLevel,

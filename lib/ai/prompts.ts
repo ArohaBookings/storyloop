@@ -119,7 +119,7 @@ function countObservationWords(observations: string) {
   return observations.trim().split(/\s+/).filter(Boolean).length;
 }
 
-function getObservationDetailGuidance(observations: string) {
+export function getObservationDetailGuidance(observations: string) {
   const words = countObservationWords(observations);
   const lines = observations.split(/\n+/).map((line) => line.trim()).filter(Boolean).length;
   const hasQuote = /["“”']/.test(observations);
@@ -154,7 +154,7 @@ function getObservationDetailGuidance(observations: string) {
   ].join("\n");
 }
 
-function getAgeGroupGuidance(ageGroup: string | undefined) {
+export function getAgeGroupGuidance(ageGroup: string | undefined) {
   if (!ageGroup) {
     return "AGE-GROUP CALIBRATION: Age not supplied. Avoid age-specific developmental claims and keep interpretation observation-led.";
   }

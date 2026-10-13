@@ -1,4 +1,4 @@
-import type { StoryFrameworkId } from "@/lib/story-options";
+import type { AnyFrameworkId } from "@/lib/international-frameworks";
 
 type CompassStory = {
   id: string;
@@ -30,6 +30,24 @@ const NZ_DEFINITIONS: CompassDefinition[] = [
   { id: "tw-exploration", label: "Mana aotūroa · Exploration", shortLabel: "Exploration", keywords: ["mana aotūroa", "mana aoturoa", "exploration", "working theor"] },
 ];
 
+// England (EYFS areas of learning) and Ireland (Aistear Themes), 13 Oct 2026.
+const UK_DEFINITIONS: CompassDefinition[] = [
+  { id: "eyfs-cl", label: "Communication and Language", shortLabel: "Communication", keywords: ["communication and language"] },
+  { id: "eyfs-pd", label: "Physical Development", shortLabel: "Physical", keywords: ["physical development"] },
+  { id: "eyfs-psed", label: "Personal, Social and Emotional Development", shortLabel: "PSED", keywords: ["personal, social and emotional", "personal social and emotional"] },
+  { id: "eyfs-literacy", label: "Literacy", shortLabel: "Literacy", keywords: ["literacy"] },
+  { id: "eyfs-maths", label: "Mathematics", shortLabel: "Mathematics", keywords: ["mathematics"] },
+  { id: "eyfs-utw", label: "Understanding the World", shortLabel: "World", keywords: ["understanding the world"] },
+  { id: "eyfs-ead", label: "Expressive Arts and Design", shortLabel: "Arts", keywords: ["expressive arts and design"] },
+];
+
+const IE_DEFINITIONS: CompassDefinition[] = [
+  { id: "aistear-wellbeing", label: "Wellbeing", shortLabel: "Wellbeing", keywords: ["wellbeing", "well-being"] },
+  { id: "aistear-identity", label: "Identity and Belonging", shortLabel: "Identity", keywords: ["identity and belonging"] },
+  { id: "aistear-communicating", label: "Communicating", shortLabel: "Communicating", keywords: ["communicating"] },
+  { id: "aistear-exploring", label: "Exploring and Thinking", shortLabel: "Exploring", keywords: ["exploring and thinking"] },
+];
+
 function record(value: unknown) {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 }
@@ -40,8 +58,8 @@ function strings(value: unknown) {
     : [];
 }
 
-export function buildCurriculumCompass(framework: StoryFrameworkId, stories: CompassStory[]) {
-  const definitions = framework === "NZ" ? NZ_DEFINITIONS : AU_DEFINITIONS;
+export function buildCurriculumCompass(framework: AnyFrameworkId, stories: CompassStory[]) {
+  const definitions = framework === "UK" ? UK_DEFINITIONS : framework === "IE" ? IE_DEFINITIONS : framework === "NZ" ? NZ_DEFINITIONS : AU_DEFINITIONS;
   const relevantStories = stories.filter((story) => !story.location || story.location === framework);
 
   return definitions.map((definition) => {

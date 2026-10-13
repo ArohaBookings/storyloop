@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
-import type { StoryFrameworkId } from "@/lib/story-options";
+import { frameworkPromptValue, isInternationalFramework, type AnyFrameworkId } from "@/lib/international-frameworks";
 
 // Quill runs on a fast model — small, interactive turns, not full stories.
 const ASSISTANT_MODEL = process.env.OPENAI_ASSISTANT_MODEL?.trim() || "gpt-5.4-mini";
@@ -94,13 +94,13 @@ export async function refineStorySection(params: {
   story: string;
   selection: string;
   instruction: string;
-  framework?: StoryFrameworkId;
+  framework?: AnyFrameworkId;
   childName?: string | null;
 }): Promise<QuillRefinement> {
   const raw = await callModel(
     EDIT_PROMPT,
     JSON.stringify({
-      framework: params.framework === "NZ" ? "Te Whāriki (NZ)" : "EYLF (Australia)",
+      framework: isInternationalFramework(params.framework) ? frameworkPromptValue(params.framework) : params.framework === "NZ" ? "Te Whāriki (NZ)" : "EYLF (Australia)",
       childName: params.childName ?? "",
       instruction: params.instruction.slice(0, 500),
       selection: params.selection.slice(0, 2000),
@@ -141,14 +141,14 @@ export async function chatWithQuill(params: {
   message: string;
   history?: QuillChatTurn[];
   selection?: string;
-  framework?: StoryFrameworkId;
+  framework?: AnyFrameworkId;
   childName?: string | null;
   childContext?: string;
 }): Promise<QuillChatResult> {
   const raw = await callModel(
     CHAT_PROMPT,
     JSON.stringify({
-      framework: params.framework === "NZ" ? "Te Whāriki (NZ)" : "EYLF (Australia)",
+      framework: isInternationalFramework(params.framework) ? frameworkPromptValue(params.framework) : params.framework === "NZ" ? "Te Whāriki (NZ)" : "EYLF (Australia)",
       childName: params.childName ?? "",
       childContext: params.childContext?.slice(0, 1200) ?? "",
       highlightedSelection: params.selection?.slice(0, 1500) ?? "",

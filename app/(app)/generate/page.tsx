@@ -31,16 +31,15 @@ import type { ChildProfile } from "@/lib/children";
 import { hasFeatureAccess, normalizePlanKey, type PlanKey } from "@/lib/plans";
 import {
   normalizeDepth,
-  normalizeFramework,
   normalizePedagogyFocus,
   normalizeTeReoLevel,
   normalizeTone,
   type PedagogyFocus,
   type StoryDepth,
-  type StoryFrameworkId,
   type StoryTone,
   type TeReoLevel,
 } from "@/lib/story-options";
+import { FRAMEWORK_LABELS, normalizeAnyFramework, type AnyFrameworkId } from "@/lib/international-frameworks";
 import type { PrivacyGuardianResult } from "@/lib/privacy-guardian";
 import { MIN_STORY_OBSERVATION_CHARACTERS } from "@/lib/story-clarification";
 
@@ -142,7 +141,7 @@ export default function GeneratePage() {
   const [ageGroup, setAgeGroup] = useState("");
   const [tone, setTone] = useState<StoryTone>("natural");
   const [depth, setDepth] = useState<StoryDepth>("balanced");
-  const [location, setLocation] = useState<StoryFrameworkId>("AU");
+  const [location, setLocation] = useState<AnyFrameworkId>("AU");
   const [includeTeReoLevel, setIncludeTeReoLevel] = useState<TeReoLevel>("low");
   const [includeKowhitiWhakapae, setIncludeKowhitiWhakapae] = useState(false);
   const [includeTapasa, setIncludeTapasa] = useState(false);
@@ -222,6 +221,8 @@ export default function GeneratePage() {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (tz?.includes("Auckland")) setLocation("NZ");
     if (tz?.startsWith("Australia/")) setLocation("AU");
+    if (tz === "Europe/London") setLocation("UK");
+    if (tz === "Europe/Dublin") setLocation("IE");
     if (typeof window !== "undefined") {
       const touchDevice =
         /Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent) ||
@@ -239,7 +240,7 @@ export default function GeneratePage() {
         const preferences = accountData?.profile?.story_preferences;
         setAccountPlan(normalizePlanKey(accountData?.profile?.plan));
         if (preferences?.defaultFramework) {
-          setLocation(normalizeFramework(preferences.defaultFramework));
+          setLocation(normalizeAnyFramework(preferences.defaultFramework));
         }
         if (preferences?.preferredTone) {
           setTone(normalizeTone(preferences.preferredTone));
@@ -394,7 +395,7 @@ export default function GeneratePage() {
     }
   }, [location]);
 
-  const chooseFramework = (framework: StoryFrameworkId) => {
+  const chooseFramework = (framework: AnyFrameworkId) => {
     setLocation(framework);
     if (framework !== "NZ") {
       setIncludeTeReoLevel("low");
@@ -1322,7 +1323,7 @@ export default function GeneratePage() {
             <div>
               <p className="label">Curriculum</p>
               <div className="grid grid-cols-2 gap-2" role="group" aria-label="Curriculum">
-                {(["AU", "NZ"] as const).map((framework) => (
+                {(["AU", "NZ", "UK", "IE"] as const).map((framework) => (
                   <button
                     key={framework}
                     type="button"
@@ -1330,7 +1331,7 @@ export default function GeneratePage() {
                     onClick={() => chooseFramework(framework)}
                     className={segment(location === framework)}
                   >
-                    {framework === "AU" ? "EYLF · Australia" : "Te Whāriki · NZ"}
+                    {FRAMEWORK_LABELS[framework].picker}
                   </button>
                 ))}
               </div>

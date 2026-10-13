@@ -61,7 +61,12 @@ export default function EylfOutcomesPage() {
           <>
             <p>The Early Years Learning Framework (V2.0) sets five learning outcomes for children from birth to five:</p>
             <ol className="mt-3 list-decimal space-y-1 pl-6 font-semibold text-ink-900">
-              {OUTCOMES.map((outcome) => <li key={outcome.n}>{outcome.title}</li>)}
+              {OUTCOMES.map((outcome) => (
+                <li key={outcome.n}>
+                  <a href={`#outcome-${outcome.n}`} className="underline decoration-clay-300 underline-offset-4 hover:text-clay-800">{outcome.title}</a>
+                  <span className="font-normal text-ink-600">, {outcome.subs.length} sub-outcomes</span>
+                </li>
+              ))}
             </ol>
             <p className="mt-3">Each has sub-outcomes, 20 in all (the framework calls them key components), listed below in the framework&apos;s own words with what each can look like in play.</p>
           </>
@@ -69,6 +74,26 @@ export default function EylfOutcomesPage() {
         image="/images/scenes/team.jpg"
         imageAlt="Three educators planning around a low table with a laptop showing StoryLoop's real example drafts"
       />
+
+      {/* The list most searchers came for ("eylf sub outcomes", "eylf outcomes
+          and sub outcomes"), before the demo. In the 28 days to 11 Oct 2026
+          this page had 771 Google impressions and no clicks, and its first
+          sub-outcome sat below the proof card and demo. */}
+      <GuideSection id="all-sub-outcomes" tone="white" kicker="Quick list" title={<>All 20 EYLF sub-outcomes <span className="italic text-clay-700">at a glance</span></>}>
+        <div className="gap-8 sm:columns-2">
+          {OUTCOMES.map((outcome) => (
+            <div key={outcome.n} className="mb-6 min-w-0 break-inside-avoid">
+              <p className="font-display text-lg font-bold text-ink-900">Outcome {outcome.n}: {outcome.short}</p>
+              <ul className="mt-2 space-y-1.5 text-sm">
+                {outcome.subs.map(({ code, text }) => (
+                  <li key={code}><span className="mr-2 font-bold tabular-nums text-clay-700">{code}</span>{text}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <p className="text-sm text-ink-600">Each one is below with an everyday example of what it can look like in play.</p>
+      </GuideSection>
 
       <GuideProof framework="AU" />
 
