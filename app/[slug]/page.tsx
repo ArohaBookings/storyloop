@@ -10,6 +10,8 @@ import PageTracker from "@/components/analytics/PageTracker";
 import GuideProof from "@/components/marketing/GuideProof";
 import InternationalTry from "@/components/marketing/InternationalTry";
 import PrintableCard from "@/components/marketing/PrintableCard";
+import { RelatedGuides } from "@/components/marketing/Guide";
+import { SLUG_PRINTABLES, relatedFor } from "@/components/marketing/guide-links";
 import { INTERNATIONAL_SLUG_FRAMEWORK } from "@/lib/seo-pages-international";
 
 // Guides a director reads. They get the founding-centre offer under the hero
@@ -192,6 +194,15 @@ export default async function SeoPage({ params }: PageProps) {
                 </>
               )}
             </div>
+            {/* The search title promises the printable, so it sits on the
+                first screen, above the tips and the photo. */}
+            {SLUG_PRINTABLES[page.slug] && (
+              <div className={`mt-7 grid gap-4 ${SLUG_PRINTABLES[page.slug].length > 1 ? "max-w-4xl md:grid-cols-2" : "max-w-xl"}`}>
+                {SLUG_PRINTABLES[page.slug].map((key) => (
+                  <PrintableCard key={key} which={key} />
+                ))}
+              </div>
+            )}
             <div className="mt-7 grid max-w-4xl gap-3 sm:grid-cols-2">
               <div className="flex min-w-0 items-start gap-3 rounded-2xl border border-clay-200 bg-white/80 p-4 shadow-soft">
                 <PenLine className="mt-0.5 h-4 w-4 shrink-0 text-clay-700" />
@@ -240,6 +251,7 @@ export default async function SeoPage({ params }: PageProps) {
           </div>
         )}
         {INTERNATIONAL_SLUG_FRAMEWORK[page.slug] && <InternationalTry framework={INTERNATIONAL_SLUG_FRAMEWORK[page.slug]} />}
+
 
         {!NO_PROOF_SLUGS.has(page.slug) && !INTERNATIONAL_SLUG_FRAMEWORK[page.slug] && (
           <GuideProof
@@ -330,6 +342,8 @@ export default async function SeoPage({ params }: PageProps) {
             </div>
           </div>
         </section>
+        {/* England and Ireland guides keep their own pages as they are. */}
+        {!INTERNATIONAL_SLUG_FRAMEWORK[page.slug] && <RelatedGuides links={relatedFor(page.slug)} />}
       </main>
       <Footer />
     </div>

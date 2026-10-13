@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import GuideProof from "@/components/marketing/GuideProof";
+import PrintableCard from "@/components/marketing/PrintableCard";
 import { GuideCta, GuideFaq, GuideFigure, GuideHero, GuidePage, GuideSection, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 import { REAL_EXAMPLES } from "@/lib/real-examples";
 import { ACCURACY_REPORT as R } from "@/lib/accuracy-report";
@@ -124,6 +125,11 @@ export default function WhatIsALearningStoryPage() {
           Many stories add the family&apos;s voice (a comment or a story from home) and the child&apos;s own view, which is
           why they work so well for families: they read as a story about their child, not a report.
         </p>
+        <p>Want the three parts on paper? A blank A4 template, free to print:</p>
+        <div className="grid gap-4 md:grid-cols-2">
+          <PrintableCard which="templateNz" compact />
+          <PrintableCard which="templateAu" compact />
+        </div>
       </GuideSection>
 
       <GuideSection id="example" tone="white" kicker="A real example" title="From a two-line note to a story">

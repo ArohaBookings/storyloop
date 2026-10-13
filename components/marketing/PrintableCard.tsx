@@ -36,16 +36,50 @@ export const PRINTABLES = {
     title: "Aistear's 4 Themes and what changed, on one page",
     alt: "A one-page printable of Aistear's four Themes and the key changes in the 2024 update",
   },
+  // Second set, 14 Oct 2026: the next pages where an AI Overview answers the
+  // search (GSC 28d to 12 Oct: /eylf-principles-and-practices 214 impressions,
+  // 0 clicks; /te-whariki-principles 227, 3) and the blank template people
+  // search for ("learning story template free" was 4 clicks from 7 impressions).
+  eylfpp: {
+    href: "/printables/eylf-principles-and-practices.pdf",
+    preview: "/printables/eylfpp-preview.png",
+    title: "The 8 EYLF principles and 7 practices, on one page",
+    alt: "A one-page printable listing the 8 principles and 7 practices of EYLF V2.0, with a plain-English line under each",
+  },
+  twps: {
+    href: "/printables/te-whariki-principles-strands-goals.pdf",
+    preview: "/printables/twps-preview.png",
+    title: "Te Whāriki's 4 principles, 5 strands and 18 goals, on one page",
+    alt: "A one-page printable of the four Te Whāriki principles and the goals of each of the five strands",
+  },
+  templateNz: {
+    href: "/printables/learning-story-template-te-whariki.pdf",
+    preview: "/printables/template-nz-preview.png",
+    title: "Blank learning story template, Te Whāriki (A4 PDF)",
+    alt: "A blank A4 learning story template with headings, prompts, lines to write on and tick boxes for the five Te Whāriki strands",
+    a4: true,
+  },
+  templateAu: {
+    href: "/printables/learning-story-template-eylf.pdf",
+    preview: "/printables/template-au-preview.png",
+    title: "Blank learning story template, EYLF V2.0 (A4 PDF)",
+    alt: "A blank A4 learning story template with headings, prompts, lines to write on and tick boxes for the five EYLF learning outcomes",
+    a4: true,
+  },
 } as const;
 
 export type PrintableKey = keyof typeof PRINTABLES;
 
 export default function PrintableCard({ which, compact = false }: { which: PrintableKey; compact?: boolean }) {
   const p = PRINTABLES[which];
+  // The blank templates are A4 portrait; the cheat sheets are 4:5.
+  const a4 = "a4" in p && p.a4;
+  const height = compact ? 90 : 120;
+  const width = Math.round(height * (a4 ? 0.707 : 0.8));
   return (
     <div className={`flex min-w-0 items-center gap-4 rounded-3xl border border-clay-200 bg-white p-4 ${compact ? "" : "md:p-5"}`}>
       <a href={p.href} download className="block shrink-0" data-track={`printable_${which}`} aria-label={`Download: ${p.title} (PDF)`}>
-        <Image src={p.preview} alt={p.alt} width={compact ? 72 : 96} height={compact ? 90 : 120} className="rounded-lg border border-clay-100 shadow-sm" />
+        <Image src={p.preview} alt={p.alt} width={width} height={height} className="rounded-lg border border-clay-100 shadow-sm" />
       </a>
       <div className="min-w-0">
         <p className="text-xs font-bold uppercase tracking-wider text-clay-700">Free printable</p>
@@ -58,7 +92,7 @@ export default function PrintableCard({ which, compact = false }: { which: Print
         >
           <Download className="h-4 w-4" /> Download the PDF
         </a>
-        <span className="ml-2 text-xs text-ink-500">No sign-up</span>
+        <span className="ml-2 inline-block whitespace-nowrap text-xs text-ink-500">No sign-up</span>
       </div>
     </div>
   );

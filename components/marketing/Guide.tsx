@@ -196,7 +196,7 @@ export function RelatedGuides({ links }: { links: { href: string; title: string;
 export const RELATED = {
   whatIs: { href: "/what-is-a-learning-story", title: "What is a learning story?", body: "Where they came from, the three parts, and how they differ from an observation." },
   eylf: { href: "/eylf-learning-outcomes", title: "The 5 EYLF learning outcomes", body: "All 20 V2.0 sub-outcomes in plain English, with what each looks like in play." },
-  template: { href: "/learning-story-template", title: "Learning story template", body: "Te Whāriki and EYLF versions to copy into Word, Canva or Storypark." },
+  template: { href: "/learning-story-template", title: "Learning story template", body: "Te Whāriki and EYLF versions to print as a PDF or copy into Word or Storypark." },
   examples: { href: "/examples", title: "12 real learning story drafts", body: "Real notes and the drafts StoryLoop wrote from them, unedited." },
   accuracy: { href: "/accuracy", title: "The accuracy report", body: "How every draft is tested, and what we are still improving." },
   safety: { href: "/safety", title: "Children's information and AI", body: "Where information goes, what the AI can and cannot do with it, and your choices." },
@@ -212,4 +212,22 @@ export const RELATED = {
   teWhariki: { href: "/te-whariki-learning-outcomes-guide", title: "Te Whāriki learning outcomes", body: "All 20 learning outcomes by strand, and how a story links to them honestly." },
   eylfV2: { href: "/eylf-v2-changes", title: "What changed in EYLF V2.0", body: "Three new principles, seven practices, and the reworded sub-outcomes." },
   teWhPdf: { href: "/te-whariki-pdf", title: "The Te Whāriki PDF", body: "Where to download the official 2017 document, and what is on which page." },
+  // Guides served by app/[slug], linked from each other so a reader (and a
+  // crawler) can move through a topic instead of bouncing back to search.
+  strands: { href: "/blog/te-whariki-strands-plain-english", title: "The 5 Te Whāriki strands", body: "Mana atua to Mana aotūroa, in plain English, with what each looks like in play." },
+  teWhStories: { href: "/te-whariki-learning-stories", title: "Te Whāriki learning stories", body: "How a story links to strands and outcomes honestly, with a real example." },
+  eylfStories: { href: "/eylf-learning-stories", title: "EYLF learning stories", body: "Writing V2.0 learning stories that link outcomes to what actually happened." },
+  planning: { href: "/eylf-planning-cycle", title: "The EYLF planning cycle", body: "From observation to response, without more paperwork." },
+  intentional: { href: "/intentional-teaching", title: "Intentional teaching", body: "Everyday strategies, with examples for babies, toddlers and preschoolers." },
+  reflection: { href: "/critical-reflection-early-childhood", title: "Critical reflection", body: "Three short examples and a ten-minute template for you or your team." },
+  nqs13: { href: "/nqs-standard-1-3-assessment-and-planning", title: "NQS Standard 1.3", body: "What assessors look for in assessment and planning, element by element." },
+  transition: { href: "/transition-to-school-statement", title: "Transition to school statements", body: "What Victoria, NSW and Queensland ask for, with example wording." },
+  tlds: { href: "/tlds-examples", title: "TLDS examples", body: "Each section of Victoria's statement, with wording you can adapt." },
+  endOfYear: { href: "/end-of-year-learning-summary", title: "End of year learning summaries", body: "Example paragraphs for the EYLF and Te Whāriki, and a simple structure." },
+  preschoolExamples: { href: "/learning-story-examples-preschool", title: "Learning story examples, ages 3 to 5", body: "Real preschool notes and the drafts written from them." },
+  nextSteps: { href: "/learning-story-next-steps-examples", title: "Next steps examples", body: "12 real “where to next” sections, and why each one works." },
+  chatgpt: { href: "/chatgpt-for-learning-stories", title: "ChatGPT for learning stories?", body: "What the NZ and Australian privacy regulators say, and a safer way." },
+  howLong: { href: "/how-long-should-a-learning-story-take", title: "How long should a story take?", body: "Why the blank page costs more than the writing, and what to do about it." },
 } as const;
+
+export type RelatedKey = keyof typeof RELATED;

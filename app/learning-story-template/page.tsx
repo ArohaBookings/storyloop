@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import CopyTemplate from "@/components/marketing/CopyTemplate";
+import PrintableCard from "@/components/marketing/PrintableCard";
 import GuideProof from "@/components/marketing/GuideProof";
 import { GuideCta, GuideFaq, GuideHero, GuidePage, GuideSection, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 
 export const metadata: Metadata = {
-  title: { absolute: "Free learning story template (Te Whāriki and EYLF)" },
+  // 14 Oct 2026: "learning story template free" is the search that converts
+  // best (4 clicks from 7 impressions), and people searching for a template
+  // usually want something to print. The page now has A4 PDFs as well.
+  title: { absolute: "Free Learning Story Template: PDF or Copy (Te Whāriki, EYLF)" },
   description:
-    "A free learning story template for Te Whāriki and EYLF V2.0, with a prompt under every heading. Copy it into Word, Google Docs, Canva or Storypark.",
+    "Free learning story templates for Te Whāriki and EYLF V2.0: print the A4 PDF, or copy the text into Word, Google Docs, Canva or Storypark. A prompt under every heading.",
   alternates: { canonical: "https://storyloop.space/learning-story-template" },
-  openGraph: { title: "Learning story template, free to copy", description: "Te Whāriki and EYLF versions with a prompt under every heading.", url: "https://storyloop.space/learning-story-template", type: "article" },
+  openGraph: { title: "Learning story template, free PDF or copy", description: "Te Whāriki and EYLF versions with a prompt under every heading.", url: "https://storyloop.space/learning-story-template", type: "article" },
 };
 
 const NZ_TEMPLATE = `[Title: a short name for the moment, e.g. "Mia and the slater"]
@@ -51,7 +55,7 @@ Family voice
 const FAQS = [
   {
     q: "Is this learning story template free?",
-    a: "Yes. Copy it, change it and use it in your service. No signup, no email.",
+    a: "Yes. Print the A4 PDF or copy the text, change it and use it in your service. No signup, no email.",
   },
   {
     q: "Can I use it in Word, Google Docs or Canva?",
@@ -93,6 +97,10 @@ export default function LearningStoryTemplatePage() {
         <div className="mt-6 flex flex-wrap gap-3">
           <a href="#nz" className="btn-primary">Te Whāriki template</a>
           <a href="#au" className="btn-secondary">EYLF template</a>
+        </div>
+        <div className="mt-6 grid max-w-4xl gap-4 md:grid-cols-2">
+          <PrintableCard which="templateNz" />
+          <PrintableCard which="templateAu" />
         </div>
       </GuideHero>
 

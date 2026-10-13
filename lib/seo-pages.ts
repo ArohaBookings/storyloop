@@ -1551,9 +1551,12 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   // the framework documents; the blog cron must not write competing posts.
   "eylf-principles-and-practices": {
     slug: "eylf-principles-and-practices",
-    title: "8 EYLF Principles and 7 Practices (V2.0), With Examples",
+    // Retitled 14 Oct 2026: 214 impressions at position 6.5 and 0 clicks in 28
+    // days, because Google's AI Overview lists the principles. The printable
+    // is the reason to click.
+    title: "8 EYLF Principles and 7 Practices (V2.0): Free Printable",
     description:
-      "All 8 EYLF V2.0 principles and 7 practices, what each looks like with children, and what changed from version 1, when there were 5 principles and 8 practices.",
+      "All 8 EYLF V2.0 principles and 7 practices in plain English, what each looks like with children, what changed from version 1, and a free one-page printable.",
     kicker: "EYLF V2.0 · Australia",
     heading: "The 8 EYLF principles and 7 practices, explained simply.",
     intro:
@@ -1733,9 +1736,11 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
   "te-whariki-principles": {
     slug: "te-whariki-principles",
-    title: "The 4 Te Whāriki principles, in plain English",
+    // Retitled 14 Oct 2026: 227 impressions at position 7 and 3 clicks in 28
+    // days; searches are "te whariki principles" and "5 strands of te whariki".
+    title: "The 4 Te Whāriki Principles and 5 Strands: Free Printable",
     description:
-      "Whakamana, Kotahitanga, Whānau tangata and Ngā hononga: the four Te Whāriki principles explained simply, and how they weave with the five strands.",
+      "Whakamana, Kotahitanga, Whānau tangata and Ngā hononga explained simply, how they weave with the five strands, and a free printable of all 18 strand goals.",
     kicker: "Te Whāriki · Aotearoa",
     heading: "The four principles of Te Whāriki, explained simply.",
     intro:

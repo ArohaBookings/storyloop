@@ -16,6 +16,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "printables/te-whariki-learning-outcomes.pdf",
     "printables/eyfs-areas-of-learning.pdf",
     "printables/aistear-themes.pdf",
+    "printables/eylf-principles-and-practices.pdf",
+    "printables/te-whariki-principles-strands-goals.pdf",
+    "printables/learning-story-template-te-whariki.pdf",
+    "printables/learning-story-template-eylf.pdf",
     ...EYLF_OUTCOMES.map((outcome) => `eylf-learning-outcomes/${outcome.slug}`),
     ...TE_WHARIKI_STRANDS.map((strand) => strand.slug),
   ];
