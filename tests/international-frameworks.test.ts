@@ -196,3 +196,16 @@ test("export packs name the right curriculum, AU and NZ unchanged", () => {
   assert.ok(labels("IE").includes("Aistear links"));
   assert.ok(!labels("UK").some((label) => /EYLF|Whāriki/.test(label)));
 });
+
+test("the England and Ireland guide drafts are real, clean and in their own curriculum", async () => {
+  const { INTERNATIONAL_EXAMPLES } = await import("../lib/international-examples");
+  for (const framework of ["UK", "IE"] as const) {
+    const example = INTERNATIONAL_EXAMPLES[framework];
+    const result = normaliseStoryResult({ storyTitle: example.title, story: example.story, outcomes: example.outcomes, curriculumLinks: example.outcomes });
+    const inspection = inspectInternationalStory(result, { framework, depth: "balanced", observations: example.note });
+    assert.deepEqual(inspection.leaks, [], framework);
+    assert.equal(inspection.checks.frameworkLinksFit, true, framework);
+    assert.equal(inspection.checks.requiredSectionsPresent, true, framework);
+    assert.ok(!example.story.includes("—"), `${framework} has an em dash`);
+  }
+});
