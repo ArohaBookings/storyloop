@@ -11,6 +11,11 @@ export const revalidate = 3600;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = ["", "about", "resources", "examples", "ai-policy", "documentation-time-calculator", "review-readiness-check", "learning-story-data", "accuracy", "privacy", "terms", "blog", "features", "what-is-a-learning-story", "eylf-learning-outcomes", "learning-story-template", "safety", "works-alongside", "for-educators", "for-families", "ai-tools-for-learning-stories",
     "te-whariki-learning-outcomes-guide",
+    // Free printables (14 Oct 2026): Google ranks PDFs for "... pdf" searches.
+    "printables/eylf-v2-outcomes-and-sub-outcomes.pdf",
+    "printables/te-whariki-learning-outcomes.pdf",
+    "printables/eyfs-areas-of-learning.pdf",
+    "printables/aistear-themes.pdf",
     ...EYLF_OUTCOMES.map((outcome) => `eylf-learning-outcomes/${outcome.slug}`),
     ...TE_WHARIKI_STRANDS.map((strand) => strand.slug),
   ];

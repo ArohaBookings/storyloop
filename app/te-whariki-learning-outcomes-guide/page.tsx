@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import GuideProof from "@/components/marketing/GuideProof";
+import PrintableCard from "@/components/marketing/PrintableCard";
 import { GuideCta, GuideFaq, GuideHero, GuidePage, GuideSection, GuideSources, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 import { OUTCOMES_LEAD, TE_WHARIKI_SOURCES, TE_WHARIKI_STRANDS, realExampleForStrand } from "@/lib/te-whariki-strands";
 
 const PAGE_URL = "https://storyloop.space/te-whariki-learning-outcomes-guide";
-const TITLE = "Te Whāriki Learning Outcomes: All 20, by Strand, With Examples";
+// 14 Oct 2026: 258 impressions, 2 clicks in 28 days; the printable is what an AI answer can't give.
+const TITLE = "Te Whāriki Learning Outcomes: All 20, Free Printable List";
 const DESCRIPTION =
-  "All 20 Te Whāriki learning outcomes in the curriculum's own words, in English and te reo Māori, by strand, with how to link a learning story honestly.";
+  "All 20 Te Whāriki learning outcomes by strand, in English and te reo Māori, on one free printable page, with what each looks like in everyday play.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -85,6 +87,7 @@ export default function TeWharikiOutcomesPage() {
           ))}
         </div>
         <p className="text-sm text-ink-600">Each strand is below with what it looks like in everyday play.</p>
+        <PrintableCard which="tw" />
       </GuideSection>
 
       <GuideProof framework="NZ" />

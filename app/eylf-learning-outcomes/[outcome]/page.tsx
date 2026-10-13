@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import GuideProof from "@/components/marketing/GuideProof";
+import PrintableCard from "@/components/marketing/PrintableCard";
 import { GuideCta, GuideFaq, GuideHero, GuidePage, GuideSection, GuideSources, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 import { EYLF_OUTCOMES, EYLF_SOURCE, eylfOutcomeBySlug, realExampleForOutcome } from "@/lib/eylf-outcomes";
 
@@ -17,8 +18,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const outcome = eylfOutcomeBySlug((await params).outcome);
   if (!outcome) return {};
   const url = `https://storyloop.space/eylf-learning-outcomes/${outcome.slug}`;
-  const title = `EYLF Outcome ${outcome.n}: ${outcome.short}, Sub-Outcomes and Examples`;
-  const description = `EYLF V2.0 Outcome ${outcome.n}, "${outcome.title}": all ${outcome.subs.length} sub-outcomes, with examples for babies, toddlers and preschoolers.`;
+  // 14 Oct 2026: these pages sat at positions 1 to 5 with almost no clicks.
+  // Name the outcome the way searchers type it and offer the printable.
+  const phrase = outcome.title.replace(/^Children (have|are) /, "");
+  const named = phrase.charAt(0).toUpperCase() + phrase.slice(1);
+  const base = `EYLF Outcome ${outcome.n}: ${named}`;
+  const title = base.length <= 52 ? `${base} (V2.0)` : base;
+  const description = `EYLF V2.0 Outcome ${outcome.n}, "${outcome.title}": all ${outcome.subs.length} sub-outcomes, what each looks like for babies, toddlers and preschoolers, and a free printable of all 20.`;
   return {
     title: { absolute: title },
     description,
@@ -85,6 +91,7 @@ export default async function EylfOutcomePage({ params }: PageProps) {
             </tbody>
           </table>
         </div>
+        <PrintableCard which="eylf" compact />
       </GuideSection>
 
       <GuideSection id="ages" tone="white" kicker="By age" title={`Outcome ${outcome.n} with babies, toddlers and preschoolers`}>

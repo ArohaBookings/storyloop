@@ -9,6 +9,7 @@ import FoundingCentreOffer from "@/components/centre/FoundingCentreOffer";
 import PageTracker from "@/components/analytics/PageTracker";
 import GuideProof from "@/components/marketing/GuideProof";
 import InternationalTry from "@/components/marketing/InternationalTry";
+import PrintableCard from "@/components/marketing/PrintableCard";
 import { INTERNATIONAL_SLUG_FRAMEWORK } from "@/lib/seo-pages-international";
 
 // Guides a director reads. They get the founding-centre offer under the hero
@@ -231,6 +232,13 @@ export default async function SeoPage({ params }: PageProps) {
         {page.slug === "pricing" && <Pricing />}
 
         {/* England and Ireland guides: the demo in their own curriculum. */}
+        {INTERNATIONAL_SLUG_FRAMEWORK[page.slug] && (
+          <div className="wide-shell pb-10">
+            <div className="max-w-xl">
+              <PrintableCard which={INTERNATIONAL_SLUG_FRAMEWORK[page.slug] === "UK" ? "eyfs" : "aistear"} />
+            </div>
+          </div>
+        )}
         {INTERNATIONAL_SLUG_FRAMEWORK[page.slug] && <InternationalTry framework={INTERNATIONAL_SLUG_FRAMEWORK[page.slug]} />}
 
         {!NO_PROOF_SLUGS.has(page.slug) && !INTERNATIONAL_SLUG_FRAMEWORK[page.slug] && (

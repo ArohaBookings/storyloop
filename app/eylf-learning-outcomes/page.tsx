@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import GuideProof from "@/components/marketing/GuideProof";
+import PrintableCard from "@/components/marketing/PrintableCard";
 import { GuideCta, GuideFaq, GuideHero, GuidePage, GuideSection, GuideSources, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 import { REAL_EXAMPLES } from "@/lib/real-examples";
 import { EYLF_OUTCOMES, EYLF_SOURCE } from "@/lib/eylf-outcomes";
@@ -11,11 +12,13 @@ const LINK_EXAMPLE = REAL_EXAMPLES.flatMap((item) => item.story.split("\n"))
   .find((line) => line.startsWith("EYLF Outcome 5:")) ?? null;
 
 export const metadata: Metadata = {
-  title: { absolute: "EYLF V2.0 Learning Outcomes and Sub-Outcomes, With Examples" },
+  // 14 Oct 2026: 820 impressions, 0 clicks in 28 days. Google answers these
+  // searches itself (AI Overview), so the title promises what it can't give.
+  title: { absolute: "EYLF Outcomes and Sub-Outcomes: Free Printable List (V2.0)" },
   description:
-    "All 5 EYLF V2.0 learning outcomes and their 20 sub-outcomes in the framework's own words, each with an everyday example and how to link it in a learning story.",
+    "All 5 EYLF V2.0 learning outcomes and 20 sub-outcomes on one page, in the framework's own words. Free printable PDF, plus an everyday example of each.",
   alternates: { canonical: "https://storyloop.space/eylf-learning-outcomes" },
-  openGraph: { title: "EYLF V2.0 learning outcomes and sub-outcomes", description: "All 20 sub-outcomes, and what each looks like in play.", url: "https://storyloop.space/eylf-learning-outcomes", type: "article" },
+  openGraph: { title: "EYLF V2.0 outcomes and sub-outcomes: free printable list", description: "All 20 sub-outcomes on one printable page, and what each looks like in play.", url: "https://storyloop.space/eylf-learning-outcomes", type: "article" },
 };
 
 // Framework wording lives in lib/eylf-outcomes.ts, shared with the five outcome pages.
@@ -46,7 +49,7 @@ const FAQS = [
   },
   {
     q: "Is there an EYLF learning outcomes cheat sheet?",
-    a: "This page is one: the table below lists every sub-outcome with an everyday example. Print it from your browser, or copy the table into your planning template.",
+    a: "Yes. There's a free one-page printable PDF of all 5 outcomes and 20 sub-outcomes at the top of this page, and the tables below add an everyday example for each sub-outcome.",
   },
 ];
 
@@ -93,6 +96,7 @@ export default function EylfOutcomesPage() {
           ))}
         </div>
         <p className="text-sm text-ink-600">Each one is below with an everyday example of what it can look like in play.</p>
+        <PrintableCard which="eylf" />
       </GuideSection>
 
       <GuideProof framework="AU" />
