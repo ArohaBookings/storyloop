@@ -1,0 +1,135 @@
+{
+ "recordedAt": "2026-10-13",
+ "systemPromptSha256": "96ef03855c5fa801cd6cb95cd3b5fa9be6295aaa4f67c719a490ebe5a85d4196",
+ "frameworksSha256": "a69a9b9eae155170684c8c204e9db5a6069ecdc58fee80b5daf272d26572b24a",
+ "cases": [
+  {
+   "id": "AU-sparse-natural-concise-balanced-rich",
+   "sha256": "4277756ee8f703bdc373e6c93ea1eef46bab90bc25f3edc44730f1453c34dbc4"
+  },
+  {
+   "id": "AU-sparse-warm-balanced-intentional_teaching-plain",
+   "sha256": "f6b4ca1e1ec34b82f275daea8fbdb9e54199eb1bf67fa2c7dda177a9ae9828df"
+  },
+  {
+   "id": "AU-sparse-professional-detailed-child_voice-rich",
+   "sha256": "f2b1a19f192271bf17520c40ff760e7243a03ff76fc21a9adfcbede591dba64c"
+  },
+  {
+   "id": "AU-sparse-simple-concise-family_partnership-plain",
+   "sha256": "68ea4681e1e68e9dda3a67e8eca522437a9396cc27176124547c250d2791edea"
+  },
+  {
+   "id": "AU-moderate-natural-balanced-working_theories-rich",
+   "sha256": "0ee7712256c6f07ce1ceaebc239732b6e74871541e75235bf6f98accf57a7624"
+  },
+  {
+   "id": "AU-moderate-warm-detailed-balanced-plain",
+   "sha256": "22ecd43b04fb0349ce4da4a75ef6cd985ee50b54155ca8827ab8d8c26aad2055"
+  },
+  {
+   "id": "AU-moderate-professional-concise-intentional_teaching-rich",
+   "sha256": "1e8678a09c1307162f977ec8af6b86c09ee620a19c6d9290a3b902167b511544"
+  },
+  {
+   "id": "AU-moderate-simple-balanced-child_voice-plain",
+   "sha256": "60cf0312dc60512c244f9647c82c40a9698d7b334f57fe744bf4e332e7dd3d6d"
+  },
+  {
+   "id": "AU-rich-natural-detailed-family_partnership-rich",
+   "sha256": "37aa407144119eb20d0d666de56f764bff9bb9eb2cb54754baf378ae5017bfe3"
+  },
+  {
+   "id": "AU-rich-warm-concise-working_theories-plain",
+   "sha256": "5f847a92dd249a7655cff7e48303e3a7b7bd70abb115946631153a82d5c412bd"
+  },
+  {
+   "id": "AU-rich-professional-balanced-balanced-rich",
+   "sha256": "dfb69e663ca96f6b5ba3fda332374ac3fc6d16f14bbae2c52a843a71f45181cb"
+  },
+  {
+   "id": "AU-rich-simple-detailed-intentional_teaching-plain",
+   "sha256": "ad29c07b35c97bd4901ff4eec59b56c2577f37c648d117be2a653efde43aa7d7"
+  },
+  {
+   "id": "AU-conflict-natural-concise-child_voice-rich",
+   "sha256": "d2f69ac57abc1f7a38b8bc068f7e85f3e638b5676fec18308712bd4b58e50931"
+  },
+  {
+   "id": "AU-conflict-warm-balanced-family_partnership-plain",
+   "sha256": "888e181c60218ebd5036853bd841f6d81d50c286adbdec46babde7e9fe2f6137"
+  },
+  {
+   "id": "AU-conflict-professional-detailed-working_theories-rich",
+   "sha256": "7f39a56770c38e706566ea9834ab23d5928e2023773254cf413c141ae1e03152"
+  },
+  {
+   "id": "AU-conflict-simple-concise-balanced-plain",
+   "sha256": "94de442c83771569d46088d0a191e163215a77bf3467e69bd8d3d8c0c1728bc7"
+  },
+  {
+   "id": "NZ-sparse-natural-balanced-intentional_teaching-rich",
+   "sha256": "ee1d0c52cda777e63c9dde56d59d186c28ab636a364c308d991d37f955fcb8f8"
+  },
+  {
+   "id": "NZ-sparse-warm-detailed-child_voice-plain",
+   "sha256": "220209bee4465adf5c0dc35f37c5cb45e9104b519765c541f7594d36e5d691e7"
+  },
+  {
+   "id": "NZ-sparse-professional-concise-family_partnership-rich",
+   "sha256": "1c68c933d9f85f7fb882636c59c8bea42ed678783918e6344a39620bf1b83c1e"
+  },
+  {
+   "id": "NZ-sparse-simple-balanced-working_theories-plain",
+   "sha256": "0dc4705053c7f47e25030deb0d9bc4429a771365a16ab5d4b2075e5efddd2366"
+  },
+  {
+   "id": "NZ-moderate-natural-detailed-balanced-rich",
+   "sha256": "5652aa8c91f32591270c83738dfd1746cfbde837f3948c701b520815ba708305"
+  },
+  {
+   "id": "NZ-moderate-warm-concise-intentional_teaching-plain",
+   "sha256": "66f6d62c550fb56be4c60faaf235f4561211bb725db58878e6e1ce486d79bf4d"
+  },
+  {
+   "id": "NZ-moderate-professional-balanced-child_voice-rich",
+   "sha256": "c63c7a186fe8ab76894dab06b232edf3429b2992d31665b7d6ae0f785183b1fb"
+  },
+  {
+   "id": "NZ-moderate-simple-detailed-family_partnership-plain",
+   "sha256": "a0da7be83962c3554cc925d7cdb0c63842384559dc7087f2f22ef4858341cacb"
+  },
+  {
+   "id": "NZ-rich-natural-concise-working_theories-rich",
+   "sha256": "807d579e8177d7250b2ea0b37caf0788a95cf845a71da30554e792727e899278"
+  },
+  {
+   "id": "NZ-rich-warm-balanced-balanced-plain",
+   "sha256": "493d9820fa49e0b8e53bb03584cbc8b3a035d71e0c25a73d8f03cf59a1ebd39f"
+  },
+  {
+   "id": "NZ-rich-professional-detailed-intentional_teaching-rich",
+   "sha256": "9be816c6747fd6b1ef9e00cd1bc9a9cd3f10d051e1dd7a89cf0b8a0231bff1be"
+  },
+  {
+   "id": "NZ-rich-simple-concise-child_voice-plain",
+   "sha256": "7cb347648391c8923e230fd453822662d4094d536c89d406b65e5cc4da4f4b7d"
+  },
+  {
+   "id": "NZ-conflict-natural-balanced-family_partnership-rich",
+   "sha256": "7c7d8ec3fc6452a75917d34bd0c991e237375280d1b2c85b1fc05e67eefabdbc"
+  },
+  {
+   "id": "NZ-conflict-warm-detailed-working_theories-plain",
+   "sha256": "80418ac83059025c4413ebb02c147adb3a51fa7bf41f55a9366b7a93a6d97afe"
+  },
+  {
+   "id": "NZ-conflict-professional-concise-balanced-rich",
+   "sha256": "c028062407505bf087550a552ff9165f1eb375d50c70b9d19c2ee7136d08f265"
+  },
+  {
+   "id": "NZ-conflict-simple-balanced-intentional_teaching-plain",
+   "sha256": "c79b4b21024bc87aeea8fcf2badf7b6177ca14ac4aaa8d47efda5363a14b9c11"
+  }
+ ]
+}
