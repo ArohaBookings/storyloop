@@ -23,7 +23,7 @@ export default function InternationalTry({ framework }: { framework: "UK" | "IE"
         <div className="max-w-3xl">
           <p className="section-title mb-3">What StoryLoop does with a note</p>
           <h2 id="try-title" className="font-display text-3xl font-bold leading-tight text-ink-900 text-balance md:text-4xl">
-            A rough note in, a {curriculum} draft out.
+            A rough note in, an {curriculum} draft out.
           </h2>
           <p className="mt-3 text-base leading-relaxed text-ink-600 md:text-lg">
             A note we wrote to test it on {written}, not about a real child, and the draft StoryLoop wrote from it, unedited, with
