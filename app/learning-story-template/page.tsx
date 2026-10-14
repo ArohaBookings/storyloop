@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   // usually want something to print. The page now has A4 PDFs as well.
   title: { absolute: "Free Learning Story Template: PDF or Copy (Te Whāriki, EYLF)" },
   description:
-    "Free learning story templates for Te Whāriki and EYLF V2.0: print the A4 PDF, or copy the text into Word, Google Docs, Canva or Storypark. A prompt under every heading.",
+    "Free learning story templates for Te Whāriki and EYLF V2.0: print the A4 PDF or copy the text into Word, Docs, Canva or Storypark. A prompt under every heading.",
   alternates: { canonical: "https://storyloop.space/learning-story-template" },
   openGraph: { title: "Learning story template, free PDF or copy", description: "Te Whāriki and EYLF versions with a prompt under every heading.", url: "https://storyloop.space/learning-story-template", type: "article" },
 };

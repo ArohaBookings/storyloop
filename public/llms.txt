@@ -1,6 +1,6 @@
 # StoryLoop
 
-> StoryLoop is an early childhood education (ECE) documentation tool that turns a real educator's observations, voice notes, or rough bullet points into polished, editable learning story drafts. It supports New Zealand's Te Whāriki and Australia's EYLF curricula, keeps every claim grounded in what was actually observed, and writes in a natural educator voice rather than generic AI phrasing. Educators stay responsible for interpretation, reflection, and final editing. Built by Aria Care.
+> StoryLoop is an early childhood education (ECE) documentation tool that turns a real educator's observations, voice notes, or rough bullet points into polished, editable learning story drafts. It supports New Zealand's Te Whāriki and Australia's EYLF V2.0, and also England's EYFS and Ireland's Aistear, keeps every claim grounded in what was actually observed, and writes in a natural educator voice rather than generic AI phrasing. Educators stay responsible for interpretation, reflection, and final editing. Built by Leo in Ōtautahi Christchurch, Aotearoa New Zealand.
 
 ## What it does
 
@@ -15,15 +15,16 @@
 
 ## Who it is for
 
-Early childhood educators and teachers in New Zealand and Australia — both new and experienced — and the centres they work in.
+Early childhood educators and teachers in New Zealand and Australia, and now England and Ireland, both new and experienced, and the centres they work in.
 
-## Pricing (AUD)
+## Pricing (NZD / AUD, per month)
 
-- Free — $0 — 3 stories and 10 Today Loop moments per month.
-- Educator — $19/month — unlimited stories and Today Loop moments, exports, Family Connection Pack, Backlog Rescue.
-- Educator Pro — $29/month — adds family reply loop, translation, child continuity, advanced quality score.
-- Centre Starter — $99/month per centre — adds centre calibration, planning board, documentation radar, admin.
-- Centre Growth — $199/month per centre — adds director ROI dashboard and multi-room analytics.
+- Free: NZ$0 / A$0. 3 stories and 10 Today Loop moments per month.
+- Educator: NZ$21 / A$19. Unlimited stories and Today Loop moments, exports, Family Connection Pack, Backlog Rescue.
+- Educator Pro: NZ$33 / A$29. Adds family reply loop, translation, child continuity, advanced quality score.
+- Centre Starter: NZ$109 / A$99 per centre, unlimited children. Adds centre calibration, planning board, documentation radar, admin.
+- Centre Growth: NZ$219 / A$199 per centre, unlimited children. Adds director ROI dashboard and multi-room analytics.
+- Current prices are always on https://storyloop.space/pricing
 
 ## Key pages
 
@@ -34,6 +35,12 @@ Early childhood educators and teachers in New Zealand and Australia — both new
 - EYLF learning stories (Australia): https://storyloop.space/australia-eylf-learning-stories
 - Learning story generator: https://storyloop.space/learning-story-generator
 - Today Loop for ECE: https://storyloop.space/today-loop-ece
+- Free printables (EYLF outcomes, EYLF principles and practices, Te Whāriki outcomes and principles, EYFS, Aistear, blank learning story templates): https://storyloop.space/eylf-learning-outcomes , https://storyloop.space/te-whariki-learning-outcomes-guide , https://storyloop.space/learning-story-template
+- Real learning story examples: https://storyloop.space/examples
+- Accuracy testing, published openly: https://storyloop.space/accuracy
+- England (EYFS): https://storyloop.space/eyfs-learning-stories
+- Ireland (Aistear): https://storyloop.space/aistear-learning-stories
+- Pricing: https://storyloop.space/pricing
 - Full topic index: https://storyloop.space/sitemap.xml
 
 ## Privacy
@@ -63,4 +70,4 @@ StoryLoop is built by Leo, founder, based in Christchurch (Ōtautahi), Aotearoa 
 - Can an educator use StoryLoop if their centre pays for something else? Yes. It requires no change to centre systems and no centre approval.
 - Does StoryLoop invent details about children? No. Quoted words are kept exactly as the educator wrote them, and anything the observation does not support is raised as an assumption to confirm rather than written as fact.
 - Who is responsible for the final story? The educator. StoryLoop produces a draft; the educator interprets, edits and decides what is shared.
-- Which curricula are supported? Te Whāriki (Aotearoa New Zealand) and the Early Years Learning Framework V2.0 (Australia).
+- Which curricula are supported? Te Whāriki (Aotearoa New Zealand), the Early Years Learning Framework V2.0 (Australia), the EYFS (England) and Aistear (Ireland).

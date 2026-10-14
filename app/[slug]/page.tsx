@@ -80,8 +80,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const page = DEDICATED_ROUTE_SLUGS.has(slug) ? undefined : SEO_PAGES[slug];
   if (!page) return {};
 
+  // Google cuts titles at about 60 characters and shows the site name on its
+  // own line, so a long guide title drops the " | StoryLoop" tail rather than
+  // losing its last words.
+  const fitsWithBrand = `${page.title} | StoryLoop`.length <= 60;
   return {
-    title: page.title,
+    title: fitsWithBrand ? page.title : { absolute: page.title },
     description: page.description,
     alternates: { canonical: `/${page.slug}` },
     openGraph: {

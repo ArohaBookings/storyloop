@@ -24,7 +24,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const named = phrase.charAt(0).toUpperCase() + phrase.slice(1);
   const base = `EYLF Outcome ${outcome.n}: ${named}`;
   const title = base.length <= 52 ? `${base} (V2.0)` : base;
-  const description = `EYLF V2.0 Outcome ${outcome.n}, "${outcome.title}": all ${outcome.subs.length} sub-outcomes, what each looks like for babies, toddlers and preschoolers, and a free printable of all 20.`;
+  // Kept under 160 characters so Google shows the printable instead of cutting
+  // it off (the earlier wording ran to 172–193).
+  const description = `EYLF Outcome ${outcome.n} (${named}): its ${outcome.subs.length} sub-outcomes for babies, toddlers and preschoolers, plus a free printable of all 20.`;
   return {
     title: { absolute: title },
     description,

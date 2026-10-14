@@ -47,7 +47,7 @@ export const INTERNATIONAL_PAGES: Record<string, SeoPage> = {
     slug: "eyfs-learning-stories",
     title: "EYFS Learning Stories and Observations (2026 Framework)",
     description:
-      "Writing EYFS observations and learning stories under the September 2026 framework: the seven areas, the three characteristics, and what you no longer have to record.",
+      "Writing EYFS observations and learning stories under the September 2026 framework: the seven areas, three characteristics and what you no longer need to record.",
     kicker: "England · EYFS 2026",
     heading: "EYFS observations worth writing, and quick to write.",
     intro:
@@ -112,7 +112,7 @@ export const INTERNATIONAL_PAGES: Record<string, SeoPage> = {
     slug: "eyfs-observation-examples",
     title: "EYFS Observation Examples Linked to the 7 Areas of Learning",
     description:
-      "Example EYFS observations for babies, toddlers and preschool children, each linked to an area of learning and a characteristic of effective teaching and learning.",
+      "Example EYFS observations for babies, toddlers and preschoolers, each linked to an area of learning and a characteristic of effective teaching and learning.",
     kicker: "England · EYFS examples",
     heading: "EYFS observation examples you can actually learn from.",
     intro:

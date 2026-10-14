@@ -43,9 +43,9 @@ export const metadata: Metadata = {
     "early childhood planning brief",
     "learning story quality check",
   ],
-  authors: [{ name: "StoryLoop by Aria Care" }],
-  creator: "StoryLoop by Aria Care",
-  publisher: "StoryLoop by Aria Care",
+  authors: [{ name: "StoryLoop" }],
+  creator: "StoryLoop",
+  publisher: "StoryLoop",
   category: "Early childhood education software",
   openGraph: {
     title: "StoryLoop — Learning stories drafted faster, without losing educator voice",
@@ -96,7 +96,8 @@ const structuredData = {
     {
       "@type": "Organization",
       "@id": "https://storyloop.space/#organization",
-      "name": "StoryLoop by Aria Care",
+      // The brand searchers and answer engines see is "StoryLoop" (14 Oct 2026).
+      "name": "StoryLoop",
       "url": "https://storyloop.space/",
       "email": "ariacareapp@gmail.com",
       // A raster logo: Google's Organization logo guidance asks for a bitmap of 112px or more.
@@ -114,10 +115,14 @@ const structuredData = {
       "areaServed": [
         { "@type": "Country", "name": "New Zealand" },
         { "@type": "Country", "name": "Australia" },
+        { "@type": "Country", "name": "United Kingdom" },
+        { "@type": "Country", "name": "Ireland" },
       ],
       "knowsAbout": [
         "Te Whāriki early childhood curriculum",
         "Early Years Learning Framework (EYLF)",
+        "Early Years Foundation Stage (EYFS)",
+        "Aistear early childhood curriculum framework",
         "Learning stories and ECE documentation",
         "Early childhood assessment for learning",
       ],
