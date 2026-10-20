@@ -12,14 +12,19 @@
  *   per section, rage clicks, form drop-off, page speed, screen size), against
  *   an id kept between visits so returning visitors are known.
  *
- * No choice yet counts as "essential": full measurement starts only after
- * "Allow". A browser sending Global Privacy Control is treated as having chosen
- * "essential" and is not asked.
+ * Where the visitor is decides the default (lib/analytics/consent-region.ts):
+ * in the EU, EEA, UK and Switzerland no choice yet counts as "essential" and
+ * full measurement starts only after "Allow"; elsewhere (New Zealand,
+ * Australia) there is no banner and no choice counts as "all", until the
+ * visitor picks "Essential only" in Cookie preferences. A browser sending
+ * Global Privacy Control is treated as having chosen "essential" and is not asked.
  *
  * The choice is a first-party cookie so the server can read it too.
  */
 
-export type ConsentChoice = "all" | "essential";
+import { effectiveConsent, parseRegion, REGION_COOKIE, type ConsentChoice, type ConsentRegion } from "./consent-region";
+
+export type { ConsentChoice } from "./consent-region";
 
 export const CONSENT_COOKIE = "sl_consent";
 export const CONSENT_CHANGED = "storyloop:consent-changed";
@@ -46,13 +51,29 @@ export function privacySignal(): boolean {
   }
 }
 
-/** Full measurement only with an explicit "Allow". */
+/** "ask" (EU, EEA, UK, Switzerland, or unknown) or "open", from the cookie middleware.ts sets. */
+export function consentRegion(): ConsentRegion {
+  if (typeof document === "undefined") return "ask";
+  try {
+    const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${REGION_COOKIE}=([a-z]+)(?:;|$)`));
+    return parseRegion(match?.[1]);
+  } catch {
+    return "ask";
+  }
+}
+
+/** The choice that applies: the visitor's own answer, or the default for where they are. */
+export function currentConsent(): ConsentChoice | null {
+  return effectiveConsent({ explicit: readConsent(), region: consentRegion(), privacySignal: privacySignal() });
+}
+
+/** Full measurement with "Allow", or by default outside the ask region. */
 export function fullTracking(): boolean {
-  return readConsent() === "all";
+  return currentConsent() === "all";
 }
 
 export function consentLevel(): ConsentChoice | "unset" {
-  return readConsent() ?? "unset";
+  return currentConsent() ?? "unset";
 }
 
 export function writeConsent(choice: ConsentChoice) {

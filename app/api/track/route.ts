@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { consumeRateLimit } from "@/lib/rate-limit";
+import { effectiveConsent, parseRegion, REGION_COOKIE } from "@/lib/analytics/consent-region";
 
 // Anonymous funnel tracking. This is deliberately minimal and privacy-safe:
 // we store an ephemeral browser-generated session id, the page, the traffic
@@ -150,9 +151,17 @@ export async function POST(request: NextRequest) {
       // Never surface analytics problems to a visitor; just accept and drop.
       return NextResponse.json({ ok: true });
     }
-    // The cookie choice: the browser's own answer, backed by the cookie.
-    const consent = body.consent === "all" && request.cookies.get("sl_consent")?.value === "all" ? "all"
-      : body.consent === "essential" || request.cookies.get("sl_consent")?.value === "essential" ? "essential"
+    // The cookie choice: the browser's own answer, backed by the cookies (the
+    // explicit choice, or the default for the visitor's region; see
+    // lib/analytics/consent-region.ts). "all" needs both to agree.
+    const savedChoice = request.cookies.get("sl_consent")?.value;
+    const serverChoice = effectiveConsent({
+      explicit: savedChoice === "all" || savedChoice === "essential" ? savedChoice : null,
+      region: parseRegion(request.cookies.get(REGION_COOKIE)?.value),
+      privacySignal: request.headers.get("sec-gpc") === "1",
+    });
+    const consent = body.consent === "all" && serverChoice === "all" ? "all"
+      : body.consent === "essential" || serverChoice === "essential" ? "essential"
       : "unset";
     if (consent !== "all" && BEHAVIOUR_EVENTS.has(eventType)) return NextResponse.json({ ok: true });
 

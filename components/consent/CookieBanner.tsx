@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Cookie } from "lucide-react";
 import { applyConsent, track } from "@/lib/analytics/client";
-import { CONSENT_OPEN, privacySignal, readConsent, writeConsent, type ConsentChoice } from "@/lib/analytics/consent";
+import { CONSENT_OPEN, consentRegion, currentConsent, privacySignal, readConsent, writeConsent, type ConsentChoice } from "@/lib/analytics/consent";
 
 /**
  * The cookie choice. A small card in the bottom corner on a computer and a
@@ -63,10 +63,12 @@ export default function CookieBanner() {
 
   useEffect(() => {
     const choice = readConsent();
-    setCurrent(choice);
+    setCurrent(currentConsent());
     let timer: ReturnType<typeof setTimeout> | undefined;
     let onScroll: (() => void) | undefined;
-    if (!choice && !privacySignal() && !notAsked) {
+    // Asked only where the law needs it (lib/analytics/consent-region.ts);
+    // everywhere else "Cookie preferences" in the footer still opens it.
+    if (!choice && !privacySignal() && !notAsked && consentRegion() === "ask") {
       if (isPhone()) {
         const ask = () => {
           if (onScroll) window.removeEventListener("scroll", onScroll);
@@ -85,7 +87,7 @@ export default function CookieBanner() {
       }
     }
     const onOpen = () => {
-      setCurrent(readConsent());
+      setCurrent(currentConsent());
       setReopened(true);
       setOpen(true);
     };

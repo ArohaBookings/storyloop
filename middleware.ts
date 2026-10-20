@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
+import { REGION_COOKIE, regionForCountry } from "@/lib/analytics/consent-region";
 
 // Campaign links (utm_*, fbclid, gclid and the like) used to be 308-redirected
 // here to the bare URL, for tidier canonical URLs. That ran on the server,
@@ -19,7 +20,19 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(canonicalUrl, 308);
   }
 
-  return updateSession(request);
+  const response = await updateSession(request);
+  // Whether this visitor is asked about cookies (lib/analytics/consent-region.ts).
+  // Vercel sets the country; without it (local runs, tests) the answer is "ask".
+  const region = regionForCountry(request.headers.get("x-vercel-ip-country"));
+  if (request.cookies.get(REGION_COOKIE)?.value !== region) {
+    response.cookies.set(REGION_COOKIE, region, {
+      path: "/",
+      sameSite: "lax",
+      secure: request.nextUrl.protocol === "https:",
+      maxAge: 60 * 60 * 24 * 30,
+    });
+  }
+  return response;
 }
 
 export const config = {
