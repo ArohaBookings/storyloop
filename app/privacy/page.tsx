@@ -28,12 +28,12 @@ export default function PrivacyPage() {
     { h: "2. What we collect", p: "Account information: your name, email address and a hashed password. Subscription information: your plan and billing status. Payments are handled by Stripe, and we never see or store your card details. The observations you write or record, the learning stories drafted from them, and the child profiles you choose to create. Usage information: which pages you visit and which features you use, so we can see what works and fix what does not. How much of this we record depends on your cookie choice (section 10)." },
     { h: "3. Children's information", p: "Anything about a child is treated as sensitive. It is stored in our database in Sydney, Australia. We ask for first names only and recommend leaving out surnames and other identifying details. We never use children's information to train AI models, and we never sell it or use it for advertising. When a child records their own words, StoryLoop does not keep the recording. Wall cards shared with families carry no names, photographs or dates. You can delete any child profile or story at any time." },
     { h: "4. AI processing", p: "To draft a story, your observation is sent to our AI provider, OpenAI or Anthropic, in the United States. A voice note is sent to OpenAI to be transcribed. Under their business terms these providers do not use what we send them to train their models, and keep it only for a limited period for safety monitoring. Every draft is yours to check and edit before it is shared anywhere." },
-    { h: "5. Who else handles information", p: "Supabase stores our database, on Amazon Web Services in Sydney, Australia. Vercel hosts the website and runs our servers. Stripe processes payments. Resend delivers our emails. OpenAI and Anthropic draft stories and transcribe voice notes. If you arrive from a Facebook or Instagram link and sign up, and we are measuring our ads at the time, we tell Meta that the sign-up happened: we send the click identifier Facebook added to that link, your browser type, and a scrambled account number, and nothing else. Nothing about the children you teach is ever sent to Meta or used for advertising." },
+    { h: "5. Who else handles information", p: "Supabase stores our database, on Amazon Web Services in Sydney, Australia. Vercel hosts the website and runs our servers. Stripe processes payments. Resend delivers our emails. OpenAI and Anthropic draft stories and transcribe voice notes. If you arrive from a Facebook or Instagram link and sign up, and we are measuring our ads at the time, we tell Meta that the sign-up happened: we send the click identifier Facebook added to that link, your browser type, and a scrambled account number, and nothing else. Nothing about the children you teach is ever sent to Meta or used for advertising. If you arrive from one of our Google ads and then sign up or start a paid plan, the Google tag on our pages tells Google Ads that it happened, so we know which ads work. Unless you choose \"Allow\" on our cookie notice it does this without cookies; with \"Allow\" it may use Google's advertising cookies to match your visit to the ad. We never send Google your name, your email or anything about the children you teach, and ad personalisation is switched off." },
     { h: "6. Information processed overseas", p: "Your stored records stay in Sydney, but some of these providers are based in, or process data in, the United States, so some of your information is handled outside Australia and New Zealand while it is being processed. We use providers bound by contract terms that require them to protect it, in line with the New Zealand Privacy Act 2020 (principle 12) and the Australian Privacy Principles (APP 8)." },
     { h: "7. Security", p: "Information is encrypted in transit and at rest. Database rules mean each account can only reach its own records. Passwords are stored as one-way hashes. Access to production systems is limited to the people who run StoryLoop." },
     { h: "8. Your rights", p: "You can ask to see, correct or delete your personal information at any time by emailing ariacareapp@gmail.com. We respond within 30 days. You can export your stories from your account whenever you like." },
     { h: "9. Keeping and deleting information", p: "If you cancel, your account and stories stay available so you can come back or export them. If you would like everything deleted, email us and we will delete your account, stories and child profiles within 30 days. Backups are overwritten on a rolling cycle after that." },
-    { id: "cookies", h: "10. Cookies and analytics", p: "The first time you visit, we ask whether we can use analytics cookies. Either answer works, and you can change it any time with \"Cookie preferences\" at the bottom of every page or the button below. We do not use advertising cookies, and there are no third-party trackers or pixels on our pages." },
+    { id: "cookies", h: "10. Cookies and analytics", p: "The first time you visit, we ask whether we can use analytics cookies. Either answer works, and you can change it any time with \"Cookie preferences\" at the bottom of every page or the button below. The one third-party tag on our pages is Google's, used only to measure whether our Google ads lead to sign-ups and paid plans (section 5). It sets advertising cookies only if you choose \"Allow\", and it is never used to show you personalised ads." },
     { h: "11. Complaints", p: "If you are unhappy with how we have handled your information, tell us first and we will try to put it right. You can also complain to the Office of the Privacy Commissioner in New Zealand or the Office of the Australian Information Commissioner." },
     { h: "12. Contact", p: "Privacy questions: ariacareapp@gmail.com. StoryLoop is part of Aria Care, based in Ōtautahi Christchurch, New Zealand." },
   ];
@@ -45,7 +45,7 @@ export default function PrivacyPage() {
         <div className="reading-shell">
           <Link href="/" className="text-sm text-clay-700 hover:underline mb-6 inline-block">← Back to home</Link>
           <h1 className="font-display text-4xl sm:text-5xl font-bold text-ink-900 mb-3">Privacy Policy</h1>
-          <p className="text-sm text-ink-500 mb-10">Last updated: 24 September 2026</p>
+          <p className="text-sm text-ink-500 mb-10">Last updated: 21 October 2026</p>
           <div className="space-y-7">
             {sections.map(s => (
               <div key={s.h} id={s.id} className="scroll-mt-28">
@@ -68,6 +68,7 @@ const COOKIE_ROWS = [
   { name: "storyloop_ref", when: "Always", what: "A colleague's referral code from their link, so they are credited when you sign up." },
   { name: "Tab id and where you came from", when: "Essential only", what: "A random id and the site or link that sent you, kept in this browser tab only and gone when you close it. Used to count visits and sign-ups." },
   { name: "storyloop_sid, storyloop_attr, storyloop_visitor", when: "Only if you allow", what: "The same, kept between visits, plus how many times you have visited." },
+  { name: "Google Ads (_gcl_…)", when: "Only if you allow", what: "Tells us whether a visit from one of our Google ads led to a sign-up or a paid plan. Never used for personalised ads." },
   { name: "Stripe", when: "At checkout", what: "Stripe sets its own cookies on its payment page to prevent fraud." },
 ];
 
@@ -94,8 +95,10 @@ function CookieDetails() {
         </div>
       </div>
       <p className="text-sm leading-relaxed text-ink-700">
-        Either way, it all stays with us: stored in Sydney, never sold, never used for advertising. Inside your
-        account we record which pages and named buttons you use, never the words of a story or a child&apos;s details.
+        Either way, what StoryLoop&apos;s own analytics record stays with us: stored in Sydney, never sold, never used
+        for advertising. The only thing Google receives is that a visit from one of our ads became a sign-up or a paid
+        plan. Inside your account we record which pages and named buttons you use, never the words of a story or a
+        child&apos;s details.
       </p>
       <div className="overflow-x-auto rounded-2xl border border-clay-100">
         <table className="w-full min-w-[520px] text-left text-sm">

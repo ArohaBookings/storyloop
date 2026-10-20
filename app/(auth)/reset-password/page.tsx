@@ -61,7 +61,7 @@ export default function ResetPasswordPage() {
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 8) { setError("Password must be at least 8 characters"); return; }
+    if (password.length < 6) { setError("Password must be at least 6 characters"); return; }
     if (password !== confirm) { setError("Passwords don't match"); return; }
     setLoading(true); setError("");
     // Refuse a password known from a data breach. If the check cannot run,
@@ -122,7 +122,7 @@ export default function ResetPasswordPage() {
           ) : (
             <>
               <h1 className="font-display text-2xl font-bold text-ink-900 mb-1">Choose a new password</h1>
-              <p className="text-sm text-ink-500 mb-6">Pick something secure — at least 8 characters.</p>
+              <p className="text-sm text-ink-500 mb-6">At least 6 characters. Something you'll remember.</p>
               <form onSubmit={handleReset} className="space-y-4">
                 <div><label className="label">New password</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8} autoComplete="new-password" className="input" /></div>
                 <div><label className="label">Confirm password</label><input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} required minLength={8} autoComplete="new-password" className="input" /></div>

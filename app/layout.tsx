@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fraunces, JetBrains_Mono, Manrope } from "next/font/google";
 import "./globals.css";
 import CookieBanner from "@/components/consent/CookieBanner";
+import GoogleAdsTag from "@/components/analytics/GoogleAdsTag";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -202,6 +203,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${fraunces.variable} ${manrope.variable} ${jetBrainsMono.variable}`}>
         {children}
         <CookieBanner />
+        {/* Google Ads conversion measurement: the live site only, never previews, local runs or tests. */}
+        {process.env.VERCEL_ENV === "production" && <GoogleAdsTag />}
       </body>
     </html>
   );

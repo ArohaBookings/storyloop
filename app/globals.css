@@ -61,7 +61,7 @@
   }
 
   .input {
-    @apply w-full bg-white border border-clay-200 rounded-xl px-4 py-3 text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-clay-400/30 focus:border-clay-400 transition-all;
+    @apply w-full bg-white border border-clay-200 rounded-xl px-4 py-3 text-base sm:text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-clay-400/30 focus:border-clay-400 transition-all;
   }
 
   .label {
@@ -233,5 +233,16 @@
        being shown a blank hero instead. */
     animation-delay: 0s !important;
     transition-delay: 0s !important;
+  }
+}
+
+/* Phones: iOS Safari zooms the whole page when someone taps a field whose text
+   is under 16px, and older educators then have to pinch back out before they
+   can see the button (21 Oct 2026). Form fields only; nothing else is scaled. */
+@media (max-width: 639px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  textarea,
+  select {
+    font-size: 16px !important;
   }
 }

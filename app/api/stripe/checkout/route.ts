@@ -210,7 +210,8 @@ export async function POST(request: NextRequest) {
         line_items: [lineItem],
         // The plan rides along so the dashboard can greet a centre's free month
         // differently from a paid upgrade, before the webhook has landed.
-        success_url: `${origin}/dashboard?upgraded=true&plan=${selectedPlan}`,
+        // {CHECKOUT_SESSION_ID} is filled in by Stripe; it de-duplicates the Google Ads conversion on reload.
+        success_url: `${origin}/dashboard?upgraded=true&plan=${selectedPlan}&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/billing?checkout=cancelled&plan=${selectedPlan}`,
         // A coupon or the promotion code box, never both: Stripe refuses the pair.
         ...checkoutDiscountParams(appliedCoupon, offer),

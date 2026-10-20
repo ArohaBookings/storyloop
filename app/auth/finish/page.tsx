@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Check, Link2, Loader2 } from "lucide-react";
 import { getAttribution, getSessionId, track } from "@/lib/analytics/client";
+import { reportSignupConversion } from "@/lib/analytics/google-ads";
 import { clearOAuthContext, readOAuthContext, type OAuthIntent } from "@/lib/auth/oauth";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 import { createClient } from "@/lib/supabase/client";
@@ -76,6 +77,7 @@ function Finish() {
       clearOAuthContext();
       if (data.isNew) {
         track("signup_completed", { plan, method: "google" });
+        await reportSignupConversion();
         if (plan !== "free") {
           const checkout = await fetch("/api/stripe/checkout", {
             method: "POST",

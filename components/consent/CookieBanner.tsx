@@ -149,12 +149,12 @@ export default function CookieBanner() {
           </h2>
           <p id="cookie-banner-body" className="text-[13px] leading-snug text-ink-700 sm:mt-1.5 sm:text-sm sm:leading-relaxed sm:text-ink-600">
             <span className="sm:hidden">
-              <strong className="font-semibold text-ink-900">Analytics cookies?</strong> They show us what helps educators. No ads, never
-              your stories.{" "}
+              <strong className="font-semibold text-ink-900">Analytics cookies?</strong> They show us what helps educators and which ads work.
+              Never your stories.{" "}
             </span>
             <span className="hidden sm:inline">
-              They show us which parts of StoryLoop help educators, like what gets read and clicked. No ads, never sold, and never
-              anything from your stories or children.{" "}
+              They show us which parts of StoryLoop help educators, like what gets read and clicked, and whether our Google ads lead
+              to sign-ups. Never sold, no personalised ads, and never anything from your stories or children.{" "}
             </span>
             <Link href="/privacy#cookies" className="font-semibold text-clay-700 underline underline-offset-2 hover:text-clay-900">
               What we collect

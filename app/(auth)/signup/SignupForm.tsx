@@ -9,6 +9,8 @@ import { suggestPassphrase } from "@/lib/passphrase";
 import { hasSignedInHint } from "@/lib/auth/signed-in-hint";
 import GoogleButton from "@/components/auth/GoogleButton";
 import { googleSignInEnabled } from "@/lib/auth/oauth";
+import { suggestEmailFix } from "@/lib/email-typo";
+import { reportSignupConversion } from "@/lib/analytics/google-ads";
 
 function normaliseCurrency(value: string | null): CurrencyCode {
   return value === "NZD" ? "NZD" : "AUD";
@@ -25,6 +27,7 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
   const [signedIn, setSignedIn] = useState(false);
   useEffect(() => setSignedIn(hasSignedInHint()), []);
   const [email, setEmail] = useState("");
+  const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [accessCode, setAccessCode] = useState("");
   // Collapsed by default. An always-visible optional code box makes the 99% of
@@ -74,8 +77,8 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     track("signup_submitted", { plan });
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
       setErrorField("password");
       track("signup_error", { code: "short_password", status: 0, plan });
       return;
@@ -99,12 +102,14 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
       if (!res.ok) {
         // A reason code and status only: never the email or the password.
         track("signup_error", { code: typeof data.code === "string" ? data.code : "unknown", status: res.status, plan });
-        setError(data.error ?? "Failed to create account");
+        setError(data.error ?? "Your account wasn't created. Please try again.");
         setErrorField(data.field === "password" ? "password" : data.code === "email_exists" ? "exists" : null);
         setLoading(false);
         return;
       }
       track("signup_completed", { plan });
+      // Tell Google Ads (if this visit came from an ad) before the page changes.
+      await reportSignupConversion();
 
       if (plan !== "free") {
         const checkoutResponse = await fetch("/api/stripe/checkout", {
@@ -130,7 +135,7 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
       window.location.replace("/generate?welcome=1");
     } catch {
       track("signup_error", { code: "network", status: 0, plan });
-      setError("Failed to create account");
+      setError("We couldn't reach StoryLoop. Check your internet connection and try again.");
       setLoading(false);
     }
   };
@@ -255,11 +260,23 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
           />
           <form onSubmit={handleSignup} className="space-y-4">
             <div><label htmlFor="signup-name" className="label">Your name</label><input id="signup-name" value={name} onChange={e => setName(e.target.value)} required autoComplete="name" className="input" placeholder="Jane Smith" /></div>
-            <div><label htmlFor="signup-email" className="label">Email</label><input id="signup-email" type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" className="input" placeholder={currency === "NZD" ? "you@centre.co.nz" : "you@centre.com.au"} /></div>
+            <div>
+              <label htmlFor="signup-email" className="label">Email</label>
+              <input id="signup-email" type="email" value={email} onChange={e => { setEmail(e.target.value); setEmailSuggestion(null); }} onBlur={() => setEmailSuggestion(suggestEmailFix(email))} required autoComplete="email" className="input" placeholder={currency === "NZD" ? "you@centre.co.nz" : "you@centre.com.au"} />
+              {/* "Did you mean …@gmail.com?" A mistyped domain loses the account's emails and sign-in links. */}
+              {emailSuggestion && (
+                <p role="status" className="mt-2 text-sm text-ink-700">
+                  Did you mean <span className="font-semibold text-ink-900">{emailSuggestion}</span>?{" "}
+                  <button type="button" onClick={() => { setEmail(emailSuggestion); setEmailSuggestion(null); }} className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900" data-track="signup_email_fix">
+                    Yes, use that
+                  </button>
+                </p>
+              )}
+            </div>
             <div>
               <label htmlFor="signup-password" className="label">Password</label>
               <div className="relative">
-                <input id="signup-password" type={showPassword ? "text" : "password"} value={password} onChange={e => { setPassword(e.target.value); if (errorField === "password") { setError(""); setErrorField(null); } }} required autoComplete="new-password" minLength={8} className="input pr-11" placeholder="At least 8 characters" aria-invalid={errorField === "password"} aria-describedby={errorField === "password" ? "signup-password-error" : undefined} />
+                <input id="signup-password" type={showPassword ? "text" : "password"} value={password} onChange={e => { setPassword(e.target.value); if (errorField === "password") { setError(""); setErrorField(null); } }} required autoComplete="new-password" className="input pr-11" placeholder="At least 6 characters" aria-invalid={errorField === "password"} aria-describedby={errorField === "password" ? "signup-password-error" : undefined} />
                 <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-ink-500 hover:text-ink-900" aria-label={showPassword ? "Hide password" : "Show password"}>
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>

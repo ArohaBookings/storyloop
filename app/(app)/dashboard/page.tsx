@@ -4,13 +4,14 @@ import Link from "next/link";
 import { AlertTriangle, ArrowRight, Brain, CheckCircle, LifeBuoy, Sparkles, Clock, BookOpen, TrendingUp, MessageCircleHeart, ClipboardList, Mic } from "lucide-react";
 import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
-import { PLAN_DEFINITIONS, normalizePlanKey } from "@/lib/plans";
+import { PLAN_DEFINITIONS, getPlanByKey, normalizePlanKey } from "@/lib/plans";
 import { headers } from "next/headers";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import ReviewPrompt from "@/components/app/ReviewPrompt";
 import DashboardInsights, { topCurriculumLinks, type DashboardInsightsData } from "@/components/app/DashboardInsights";
 import { PRO_MONTH_OFFER_ID, longDay } from "@/lib/offers";
 import TrackOnce from "@/components/analytics/TrackOnce";
+import AdsPaidConversion from "@/components/analytics/AdsPaidConversion";
 
 /** Stories, and days since the first, before StoryLoop asks for a review. */
 const REVIEW_ASK_MIN_STORIES = 4;
@@ -21,7 +22,7 @@ export const metadata = { title: "Dashboard" };
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ upgraded?: string; plan?: string }>;
+  searchParams?: Promise<{ upgraded?: string; plan?: string; session_id?: string }>;
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -125,6 +126,12 @@ export default async function DashboardPage({
   return (
     <div className="w-full max-w-none p-4 sm:p-6 md:p-8">
       {upgraded && <TrackOnce event="checkout_success_view" metadata={{ plan: params?.plan }} />}
+      {upgraded && (
+        <AdsPaidConversion
+          value={getPlanByKey(params?.plan)?.price.NZD ?? 0}
+          sessionId={typeof params?.session_id === "string" && /^cs_[A-Za-z0-9_]{6,200}$/.test(params.session_id) ? params.session_id : null}
+        />
+      )}
       {startedCentre && (
         <div className="mb-6 rounded-3xl border border-sage-200 bg-gradient-to-br from-sage-50 via-white to-cream-50 p-5 shadow-warm animate-fade-up" data-testid="centre-started">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

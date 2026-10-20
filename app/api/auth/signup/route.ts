@@ -45,8 +45,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Please add your email", code: "missing_email" }, { status: 400 });
     }
 
-    if (password.length < 8) {
-      return NextResponse.json({ error: "Password must be at least 8 characters", code: "short_password" }, { status: 400 });
+    // 6 is Supabase's own minimum (21 Oct 2026: simple for every age; the
+    // commonly leaked passwords are still refused just below).
+    if (password.length < 6) {
+      return NextResponse.json({ error: "Password must be at least 6 characters", code: "short_password" }, { status: 400 });
     }
 
     // A commonly breached password is refused (see shouldRefusePassword); an
