@@ -1,9 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
+import { redirectToLogin } from "@/lib/auth/login-redirect";
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, Brain, CheckCircle, LifeBuoy, Sparkles, Clock, BookOpen, TrendingUp, MessageCircleHeart, ClipboardList, Mic } from "lucide-react";
 import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
-import { redirect } from "next/navigation";
 import { PLAN_DEFINITIONS, normalizePlanKey } from "@/lib/plans";
 import { headers } from "next/headers";
 import { createAdminSupabase } from "@/lib/supabase/admin";
@@ -25,7 +25,7 @@ export default async function DashboardPage({
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) return redirectToLogin();
   const params = await searchParams;
 
   const [{ data: profile }, { data: recentStories, count: totalStories }] = await Promise.all([

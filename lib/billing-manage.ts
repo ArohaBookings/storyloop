@@ -39,6 +39,10 @@ export type BillingSubscription = {
   cancelAtPeriodEnd: boolean;
   /** When a scheduled cancellation takes effect. */
   endsAt: string | null;
+  /** Payments are paused (lib/billing-pause.ts). */
+  paused: boolean;
+  /** When paused payments restart by themselves, if Stripe has a date. */
+  pausedUntil: string | null;
   nextPayment: { date: string; amount: number; currency: string } | null;
 };
 
@@ -116,7 +120,10 @@ export function subscriptionView(sub: Stripe.Subscription, nextPayment: BillingS
     currentPeriodEnd: iso(end),
     cancelAtPeriodEnd: Boolean(sub.cancel_at_period_end || sub.cancel_at),
     endsAt,
-    nextPayment: endsAt ? null : nextPayment,
+    paused: Boolean(sub.pause_collection),
+    pausedUntil: sub.pause_collection ? iso(sub.pause_collection.resumes_at ?? null) : null,
+    // While paused, the invoice Stripe previews is one it will void.
+    nextPayment: endsAt || sub.pause_collection ? null : nextPayment,
   };
 }
 
@@ -147,7 +154,7 @@ async function currentCard(stripe: Stripe, customerId: string, sub: Stripe.Subsc
   return cardFrom(full.invoice_settings?.default_payment_method) ?? cardFrom(full.default_source);
 }
 
-async function nextPaymentFor(stripe: Stripe, sub: Stripe.Subscription): Promise<BillingSubscription["nextPayment"]> {
+export async function nextPaymentFor(stripe: Stripe, sub: Stripe.Subscription): Promise<BillingSubscription["nextPayment"]> {
   if (sub.cancel_at_period_end || sub.cancel_at) return null;
   try {
     const preview = await stripe.invoices.createPreview({ subscription: sub.id });

@@ -28,6 +28,28 @@ const APP_PREFIXES = [
   "/voices", "/wall",
 ];
 
+// Pages where someone is signing up, signing in or acting on an email are not
+// asked (19 Oct 2026). On a phone the sheet sat over the email and password
+// fields and the "Create free account" button, and about 2 in 3 visitors never
+// answer it, so they met a form they could not see. Without an answer nothing
+// beyond page views and funnel steps is recorded, so not asking here is the
+// privacy-safe default; the choice is still asked on the next marketing page.
+const NOT_ASKED_PREFIXES = ["/signup", "/login", "/forgot-password", "/reset-password", "/join", "/pause", "/unsubscribe"];
+
+// On a phone, wait until the visitor has started reading, so the first screen
+// (headline and buttons) is never covered on arrival.
+const PHONE_SCROLL_PX = 240;
+const PHONE_FALLBACK_MS = 12000;
+const DESKTOP_DELAY_MS = 1400;
+
+function isPhone() {
+  try {
+    return window.matchMedia("(max-width: 639px)").matches;
+  } catch {
+    return false;
+  }
+}
+
 export default function CookieBanner() {
   const pathname = usePathname() ?? "/";
   const [open, setOpen] = useState(false);
@@ -35,6 +57,7 @@ export default function CookieBanner() {
   const [current, setCurrent] = useState<ConsentChoice | null>(null);
   const [reopened, setReopened] = useState(false);
 
+  const notAsked = NOT_ASKED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
   const hidden = pathname.startsWith("/admin");
   const inApp = APP_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 
@@ -42,7 +65,25 @@ export default function CookieBanner() {
     const choice = readConsent();
     setCurrent(choice);
     let timer: ReturnType<typeof setTimeout> | undefined;
-    if (!choice && !privacySignal()) timer = setTimeout(() => setOpen(true), 1400);
+    let onScroll: (() => void) | undefined;
+    if (!choice && !privacySignal() && !notAsked) {
+      if (isPhone()) {
+        const ask = () => {
+          if (onScroll) window.removeEventListener("scroll", onScroll);
+          if (timer) clearTimeout(timer);
+          setOpen(true);
+        };
+        onScroll = () => {
+          if (window.scrollY > PHONE_SCROLL_PX) ask();
+        };
+        window.addEventListener("scroll", onScroll, { passive: true });
+        timer = setTimeout(ask, PHONE_FALLBACK_MS);
+        // Already scrolled (a #link, or the browser restoring the position): no scroll event will come.
+        onScroll();
+      } else {
+        timer = setTimeout(() => setOpen(true), DESKTOP_DELAY_MS);
+      }
+    }
     const onOpen = () => {
       setCurrent(readConsent());
       setReopened(true);
@@ -51,9 +92,12 @@ export default function CookieBanner() {
     window.addEventListener(CONSENT_OPEN, onOpen);
     return () => {
       if (timer) clearTimeout(timer);
+      if (onScroll) window.removeEventListener("scroll", onScroll);
       window.removeEventListener(CONSENT_OPEN, onOpen);
     };
-  }, []);
+    // Re-evaluated per page: an unanswered visitor moving from /signup to a
+    // guide is asked there.
+  }, [notAsked, pathname]);
 
   // Mount first, then slide in, so the transition runs.
   useEffect(() => {
@@ -74,7 +118,9 @@ export default function CookieBanner() {
     setTimeout(() => setOpen(false), 220);
   };
 
-  if (hidden || !open) return null;
+  // Opened on a guide, then the visitor tapped through to signup: step aside,
+  // unless they asked for it from "Cookie preferences".
+  if (hidden || !open || (notAsked && !reopened)) return null;
 
   return (
     <div
@@ -85,7 +131,8 @@ export default function CookieBanner() {
       data-private
       className={[
         "fixed z-40 border-clay-200 bg-paper text-ink-900 shadow-[0_18px_50px_-20px_rgba(74,52,34,0.45)]",
-        "inset-x-0 bottom-0 rounded-t-3xl border-t px-5 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]",
+        // A short strip on a phone (about 120 px, not 250): one sentence and the two answers.
+        "inset-x-0 bottom-0 rounded-t-2xl border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]",
         "sm:inset-x-auto sm:bottom-5 sm:w-[23.5rem] sm:rounded-3xl sm:border sm:p-6",
         inApp ? "sm:right-5" : "sm:left-5",
         "transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none",
@@ -97,12 +144,18 @@ export default function CookieBanner() {
           <Cookie className="h-5 w-5" strokeWidth={1.8} />
         </span>
         <div className="min-w-0">
-          <h2 id="cookie-banner-title" className="font-display text-lg font-bold leading-snug text-ink-900">
+          <h2 id="cookie-banner-title" className="sr-only font-display text-lg font-bold leading-snug text-ink-900 sm:not-sr-only">
             Can we use analytics cookies?
           </h2>
-          <p id="cookie-banner-body" className="mt-1.5 text-sm leading-relaxed text-ink-600">
-            They show us which parts of StoryLoop help educators, like what gets read and clicked. No ads, never sold,
-            and never anything from your stories or children.{" "}
+          <p id="cookie-banner-body" className="text-[13px] leading-snug text-ink-700 sm:mt-1.5 sm:text-sm sm:leading-relaxed sm:text-ink-600">
+            <span className="sm:hidden">
+              <strong className="font-semibold text-ink-900">Analytics cookies?</strong> They show us what helps educators. No ads, never
+              your stories.{" "}
+            </span>
+            <span className="hidden sm:inline">
+              They show us which parts of StoryLoop help educators, like what gets read and clicked. No ads, never sold, and never
+              anything from your stories or children.{" "}
+            </span>
             <Link href="/privacy#cookies" className="font-semibold text-clay-700 underline underline-offset-2 hover:text-clay-900">
               What we collect
             </Link>
@@ -114,7 +167,7 @@ export default function CookieBanner() {
           )}
         </div>
       </div>
-      <div className="mt-4 grid grid-cols-2 gap-2.5">
+      <div className="mt-2.5 grid grid-cols-2 gap-2 sm:mt-4 sm:gap-2.5">
         <button
           type="button"
           onClick={() => choose("essential")}

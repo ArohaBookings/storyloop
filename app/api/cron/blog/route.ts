@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { writeNextGuide } from "@/lib/ai/blog-writer";
 import { createAdminSupabase } from "@/lib/supabase/admin";
-import { submitToIndexNow } from "@/lib/indexnow";
+import { recentlyChanged, submitToIndexNow } from "@/lib/indexnow";
+import sitemap from "@/app/sitemap";
 
 // Up to two model calls per run (a rejected draft lets the next topic try).
 export const maxDuration = 300;
@@ -60,13 +61,32 @@ async function publishNext() {
   return NextResponse.json({ published: true, slug: result.slug, title: result.title, words: result.words, indexNow });
 }
 
+/**
+ * Set and forget (20 Oct 2026): every daily run also tells Bing about pages
+ * whose reviewed date changed in the last two days, so edits shipped in a
+ * deploy are submitted without a manual IndexNow ping. Never blocks publishing.
+ */
+async function submitChangedPages() {
+  try {
+    const urls = recentlyChanged(await sitemap());
+    if (!urls.length) return { submitted: 0, status: null, skipped: "nothing_changed" };
+    return await submitToIndexNow(urls);
+  } catch (error) {
+    console.error("Changed-page IndexNow check failed (publishing unaffected):", error);
+    return { submitted: 0, status: null, skipped: "error" };
+  }
+}
+
 export async function GET(request: NextRequest) {
   if (!authorised(request)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (request.nextUrl.searchParams.get("dryRun") === "1") {
     const dry = await writeNextGuide({ dryRun: true });
-    return NextResponse.json({ dryRun: dry });
+    return NextResponse.json({ dryRun: dry, changedPages: recentlyChanged(await sitemap().catch(() => [])) });
   }
-  return publishNext();
+  const response = await publishNext();
+  const changedPages = await submitChangedPages();
+  const body = await response.json().catch(() => ({}));
+  return NextResponse.json({ ...body, changedPages }, { status: response.status });
 }
 
 export async function POST(request: NextRequest) {

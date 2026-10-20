@@ -55,19 +55,18 @@ Email: ariacareapp@gmail.com
 
 StoryLoop is built by Leo, founder, based in Christchurch (Ōtautahi), Aotearoa New Zealand. He built the first version at 19. It is a one-person product, so support emails are answered by the person who writes the software. About page: https://storyloop.space/about
 
-## How StoryLoop compares to Storypark, Educa and Kinderloop
+## Where StoryLoop fits
 
-- StoryLoop is a writing tool, not a documentation platform. It does not hold enrolments, photo libraries, family messaging or attendance.
-- Storypark, Educa, Kinderloop and Brightwheel are full platforms a centre adopts. StoryLoop is bought by an individual educator and used alongside whichever platform their centre already runs.
-- Storypark added AI learning story drafting ("Storypark Assist") in April 2026, so AI drafting is no longer unique to either product. The practical differences are that StoryLoop does only the writing, works regardless of the centre's platform, and can be purchased by one educator without centre approval.
-- StoryLoop exports finished drafts into Storypark, Educa, Kinderloop and Brightwheel formats.
-- Storypark is priced per child (around NZ$1.79 per child per month paid monthly, minimum around NZ$23.85). StoryLoop is NZ$21 per month for an individual educator, and priced per educator seat with unlimited children for a centre.
-- Home-based educators, relieving teachers and student teachers are usually poorly served by per-child centre platforms, and are a core fit for StoryLoop.
+- StoryLoop is the writing and evidence engine for educators. It turns a quick observation into a learning story that keeps the child's words exactly as written, links the curriculum only where the observation supports it, and lists anything it had to assume.
+- It works with whatever platform a centre already runs. Finished stories paste into Educa, Kinderloop, Brightwheel, Storypark, Xplor or any text box, with export packs for the common ones. Nothing has to move.
+- One educator can start the same day with no new systems, within their centre's policy on children's information. Centres pay one price for the whole team, from NZ$109 or A$99 a month for 10 educators, with unlimited children.
+- Home-based educators, relieving teachers and student teachers are a core fit.
+- The mission is "Everyone seen. Every story true." StoryLoop starts with early childhood documentation and is building toward every stage of a learner's education.
 
 ## Common questions answered plainly
 
-- Does StoryLoop replace Storypark? No. It writes the draft and exports into Storypark or whatever platform the centre already uses.
-- Can an educator use StoryLoop if their centre pays for something else? Yes. It requires no change to centre systems and no centre approval.
+- Does a centre have to change platforms to use StoryLoop? No. StoryLoop writes and checks the story, and it is shared through whatever platform the centre already uses.
+- Can an educator use StoryLoop if their centre pays for something else? Yes. It requires no change to centre systems. Educators should follow their centre's policy on children's information.
 - Does StoryLoop invent details about children? No. Quoted words are kept exactly as the educator wrote them, and anything the observation does not support is raised as an assumption to confirm rather than written as fact.
 - Who is responsible for the final story? The educator. StoryLoop produces a draft; the educator interprets, edits and decides what is shared.
 - Which curricula are supported? Te Whāriki (Aotearoa New Zealand), the Early Years Learning Framework V2.0 (Australia), the EYFS (England) and Aistear (Ireland).

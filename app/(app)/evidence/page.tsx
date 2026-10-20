@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { redirectToLogin } from "@/lib/auth/login-redirect";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
@@ -38,7 +38,7 @@ export default async function EvidencePackPage({
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) return redirectToLogin();
 
   const profile = await getOrCreateProfile(user);
   const back = (

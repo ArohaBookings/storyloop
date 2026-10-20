@@ -123,7 +123,7 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
     heading: "Write a TLDS a Prep teacher will actually use.",
     intro:
       "Every funded kindergarten in Victoria has to complete a TLDS for each child starting school, by the end of Term 4. The online tool tells you which boxes to fill. It cannot tell you what to write. This guide covers what each section asks for, with example wording you can adapt from what you have already seen this year.",
-    reviewedAt: "2026-10-13",
+    reviewedAt: "2026-10-19",
     sections: [
       {
         title: "Section 1.1 in one line",
@@ -170,7 +170,7 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
       {
         question: "Can I use AI to write a TLDS?",
         answer:
-          "Not by putting a child's details into a public chatbot: Australia's privacy regulator recommends, as best practice, not entering personal information into publicly available generative AI tools. The judgement in a TLDS has to be yours. What helps is having the evidence in one place, which is what StoryLoop's transition pack does: it gathers a child's stories, their words and their family's comments onto one page to write from.",
+          "Not by pasting a child's details into a general chatbot: Australia's privacy regulator recommends, as best practice, not entering personal information into publicly available AI tools. If your service allows a purpose-built tool, one can help with the drafting. The TLDS draft at the top of this page is told to write only from the notes you give it and to leave an outcome for you when your notes show nothing, and it flags any quote it cannot find in your notes. Use a first name only; notes and drafts are not saved to any account. The judgement stays yours: you check every line and decide what goes into the online statement. Check your service's policy on children's information first.",
       },
     ],
     sources: [
@@ -394,7 +394,7 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
       {
         question: "Can I use AI to write end of year summaries?",
         answer:
-          "Do not paste a child's details into a public chatbot; both the Australian and New Zealand privacy regulators advise against it. Write the summary yourself from your own documentation. If your stories are in StoryLoop, each child's history puts a year of notes, quotes and family comments in one place to write from.",
+          "Do not paste a child's details into a general chatbot; both the Australian and New Zealand privacy regulators advise caution with personal information in public AI tools. If your service allows a purpose-built tool, the summary draft at the top of this page is told to write only from your own notes and to leave an outcome for you when they show nothing, and it flags any quote it cannot find in your notes. Use a first name only; notes and drafts are not saved to any account. You write the final summary. If your stories are in StoryLoop, each child's history puts a year of notes, quotes and family comments in one place to write from.",
       },
     ],
     sources: [
@@ -423,6 +423,37 @@ export const OCT_2026_DEEP_DIVES: Record<string, Block[]> = {
         "Wellbeing: When Mia is upset she goes quiet rather than crying. Check in with her by name after transitions such as lining up and eating time, and give her a minute before expecting an answer.",
         "Learning: Mia stays with a construction problem for thirty minutes or more. Give her open materials and time, and ask \"What will you try next?\" rather than showing her.",
         "Communication: Mia writes the M in her name and copies words she sees around the room. Give her real reasons to write, such as labels and signs, and name the letters in words that matter to her.",
+      ],
+    },
+    // 19 Oct 2026: TLDS searches ("tlds examples", "transition statements
+    // victoria", "tlds example intentional teaching") became the fastest
+    // growing Google landings (7 clicks, 193 impressions in a week), and those
+    // readers left after a few seconds. They came for example wording; one
+    // imagined child was not enough. The department's own guidance asks for a
+    // strengths-based statement, so the examples show the same child both ways.
+    {
+      heading: "The same child written two ways",
+      paragraphs: [
+        "The department asks for a strengths-based statement: what the child can do, what helps them, and what the teacher can do next. Here is a second imagined child, Arlo, written both ways. The second version of each is the one a Prep teacher can use on day one.",
+        "Identity. Instead of \"Arlo is shy and finds it hard to separate from his dad\", write: \"Arlo settles once he has a job to do. Saying goodbye at the gate and going straight to water the vegetable garden worked well this year.\" Strategy: give Arlo the same small job each morning for his first fortnight, so arriving has a routine he knows.",
+        "Community. Instead of \"Arlo doesn't join in group games\", write: \"Arlo watches a game for a few minutes before he joins, and joins easily when an adult offers him a role.\" Strategy: invite him in with a specific role (\"Can you be the one who counts?\") rather than asking \"Do you want to play?\".",
+        "Wellbeing. Instead of \"Arlo gets upset when routines change\", write: \"Arlo copes well with change when he knows about it ahead of time. A picture timetable and a two-minute warning before pack-up made transitions smooth.\" Strategy: go through the day's timetable with him each morning in his first weeks, and tell him early about excursions or a relief teacher.",
+        "Learning. Instead of \"Arlo has a short attention span\", write: \"Arlo stays with a task for twenty minutes or more when it involves building or moving things, such as ramps and marble runs.\" Strategy: bring early literacy and numeracy into construction, for example measuring his ramps or labelling what he builds.",
+        "Communication. Instead of \"Arlo's speech is unclear\", write: \"Arlo talks in short sentences and uses gesture to fill the gaps; adults who know him understand him easily.\" Strategy: give him time to answer, and say the full sentence back without correcting him (\"Yes, the truck went down the big ramp\"). If the family has shared a speech pathology report, Section 1.2 is the place for it, with their agreement.",
+      ],
+    },
+    {
+      heading: "Strategy starters a Foundation teacher can act on",
+      paragraphs: [
+        "Each strategy should name the child, what helps, and when to use it. These openers keep them specific:",
+        "\"[Child] settles best when… so in the first weeks…\"",
+        "\"When joining a group, give [child] a role such as…\"",
+        "\"Check in with [child] by name after… and give them a moment before expecting an answer.\"",
+        "\"[Child] is very interested in… Use it to introduce…\"",
+        "\"Ask [child] open questions such as 'What will you try next?' rather than showing them how.\"",
+        "\"Tell [child] about changes ahead of time, such as a relief teacher or an excursion.\"",
+        "\"If [child] is going to the same school as a friend from kinder, pair them for the first fortnight.\"",
+        "If a strategy would suit any child in the room, it is not specific enough yet. Go back to a moment you documented and ask what you did that worked.",
       ],
     },
     {

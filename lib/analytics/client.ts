@@ -257,7 +257,13 @@ export function getAttribution(): Attribution {
   }
 }
 
-export function track(event: string, metadata: Record<string, unknown> = {}) {
+/**
+ * `options.path`: the page the event belongs to, when that is not the current
+ * address. page_exit fires during an in-app navigation, after the address has
+ * already changed, so until 19 Oct 2026 time spent on a guide was recorded
+ * against the next page (a "3 s on /signup" was really time on the guide).
+ */
+export function track(event: string, metadata: Record<string, unknown> = {}, options: { path?: string } = {}) {
   if (typeof window === "undefined") return;
   const consent = consentLevel();
   if (consent !== "all" && BEHAVIOUR_EVENTS.has(event)) return;
@@ -266,7 +272,7 @@ export function track(event: string, metadata: Record<string, unknown> = {}) {
     event,
     consent,
     sessionId: getSessionId(),
-    path: window.location.pathname,
+    path: options.path ?? window.location.pathname,
     referrer: attribution.referrer ?? document.referrer ?? undefined,
     utmSource: attribution.utmSource,
     utmMedium: attribution.utmMedium,

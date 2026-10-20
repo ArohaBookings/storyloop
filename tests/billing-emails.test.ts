@@ -3,6 +3,12 @@ import test from "node:test";
 import { formatAmount, formatDate, newlyScheduledCancellation, paymentFailureNotice } from "../lib/email/billing";
 import { renderLifecycleEmail } from "../lib/email/templates";
 
+/** Where an email button lands once signed in (app links go through /login?redirect=). */
+function destination(ctaUrl: string) {
+  const url = new URL(ctaUrl);
+  return url.pathname === "/login" ? (url.searchParams.get("redirect") ?? "") : `${url.pathname}${url.search}`;
+}
+
 /**
  * These two functions produce the only numbers a customer reads in a receipt.
  * Getting a cents/dollars conversion wrong would bill someone NZ$2100.00 in
@@ -85,7 +91,7 @@ test("the final notice is transactional, branded, and states the real consequenc
   assert.match(email.html, /Hi Aroha,/);
   // Matches lib/billing-access.ts: new stories stop, saved stories stay usable.
   assert.match(email.text, /still open, read and edit every story/);
-  assert.match(email.ctaUrl, /\/billing\?/);
+  assert.match(destination(email.ctaUrl), /^\/billing\?/);
   for (const junk of ["undefined", "NaN", "null", "${"]) assert.ok(!email.html.includes(junk), `leaked ${junk}`);
 });
 
@@ -160,7 +166,7 @@ test("the cancellation save email states the real consequence and promises nothi
   // Matches lib/story-limits.ts and lib/billing-access.ts after the plan ends.
   assert.match(email.text, /free plan/);
   assert.match(email.text, /3 new stories a month/);
-  assert.match(email.ctaUrl, /\/billing\?/);
+  assert.match(destination(email.ctaUrl), /^\/billing\?/);
   assert.doesNotMatch(email.html + email.text, /pause|discount|% off/i);
   for (const bad of junk) assert.ok(!email.html.includes(bad) && !email.text.includes(bad), `leaked ${bad}`);
 
@@ -193,7 +199,7 @@ test("the win-back email offers only the discount checkout really applies", asyn
     name: "Aroha Smith",
   });
   // /api/stripe/checkout applies the activation coupon only for ?offer=activation.
-  assert.match(email.ctaUrl, /\/billing\?offer=activation/);
+  assert.match(destination(email.ctaUrl), /^\/billing\?offer=activation/);
   assert.ok(email.text.includes(ACTIVATION_OFFER_LABEL));
   assert.ok(email.subject.includes(ACTIVATION_OFFER_LABEL));
   // There has never been a 20% StoryLoop win-back coupon.

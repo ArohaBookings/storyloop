@@ -15,7 +15,7 @@ import StoryDemo from "./StoryDemo";
 const TRUST = [
   { icon: Quote, text: "Children's words kept exactly. See the test results", href: "/accuracy" },
   { icon: ShieldCheck, text: "Stored in Sydney, never used to train AI", href: "/safety" },
-  { icon: Layers, text: "Works with Storypark, Educa and Kinderloop", href: "/works-alongside" },
+  { icon: Layers, text: "Works with the platform your centre already uses", href: "/works-alongside" },
 ];
 
 /**
@@ -57,23 +57,42 @@ export default function Hero() {
               every word.
             </p>
 
-            {/* One signup label on the whole site. It used to be seven. */}
+            {/* Oct 2026: the free button says what free is, and the second
+                button invites their own note. With a monthly price as the
+                button beside "Start free", 8 of 24 educators in a persona panel
+                read free as a trial; the August hero ("Start free, 3 stories
+                included", no price button) converted Facebook visitors at
+                6.9%. Real demo runs fell from 8.4% to 3.2% of visitors once the
+                sample started playing by itself. The price stays, in one line. */}
             <div className="animate-fade-up-2 mt-7 flex flex-col items-center gap-3 sm:flex-row lg:justify-start">
-              <Link href="/signup" className="btn-primary group w-full px-8 py-3.5 text-base sm:w-auto">
-                Start free
+              <Link href="/signup" className="btn-primary group w-full px-8 py-3.5 text-base sm:w-auto" data-track="home_hero_start">
+                Start free, 3 stories a month
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
-              <Link href="/pricing" className="btn-secondary w-full px-7 py-3.5 text-base sm:w-auto">
-                Unlimited from NZ$21 / A$19 a month
-              </Link>
+              <a
+                href="#hero-demo"
+                className="btn-secondary w-full px-7 py-3.5 text-base sm:w-auto"
+                data-track="home_hero_try"
+                onClick={(event) => {
+                  // Put the cursor in the note with the example selected, so
+                  // typing replaces it. On desktop the demo is already beside
+                  // the button, so scrolling alone did nothing visible.
+                  const box = document.querySelector<HTMLTextAreaElement>("#hero-demo textarea");
+                  if (!box) return;
+                  event.preventDefault();
+                  box.scrollIntoView({ behavior: "smooth", block: "center" });
+                  box.focus({ preventScroll: true });
+                  box.select();
+                }}
+              >
+                Try it with your own note
+              </a>
             </div>
 
-            {/* Free and trial, said once and unmistakably: the panel could not
-                tell whether "free" meant a trial or three stories a month. */}
             <p className="animate-fade-up-2 mt-4 text-sm leading-relaxed text-ink-600">
-              <span className="font-semibold text-ink-800">Free forever:</span> 3 stories a month, no card.{" "}
-              <span className="font-semibold text-ink-800">Unlimited:</span> NZ$21 or A$19 a month for one educator, after a
-              7-day free trial. Centres pay one price for the whole team.
+              <span className="font-semibold text-ink-800">Free:</span> 3 stories every month, no card.{" "}
+              <span className="font-semibold text-ink-800">Unlimited:</span> NZ$21 or A$19 a month.{" "}
+              <Link href="/pricing" className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2">See all prices</Link>
             </p>
 
             <ul className="animate-fade-up-3 mt-7 grid gap-2.5 text-left sm:max-w-md lg:max-w-none" aria-label="Why educators trust it">
@@ -88,8 +107,9 @@ export default function Hero() {
             </ul>
           </div>
 
-          <div className="animate-fade-up-1 min-w-0">
-            <p className="section-title mb-3 text-center lg:text-left">Try it now, no signup</p>
+          <div id="hero-demo" className="animate-fade-up-1 min-w-0 scroll-mt-24">
+            <p className="section-title mb-1 text-center lg:text-left">Try it with your own note, no signup</p>
+            <p className="mb-3 text-center text-xs leading-relaxed text-ink-500 lg:text-left">Replace the example with something from your day (first names only), or just press the button.</p>
             <StoryDemo compact />
             <p className="mt-3 flex items-center justify-center gap-2 text-xs leading-relaxed text-ink-500 lg:justify-start">
               <ShieldCheck className="h-4 w-4 flex-none text-sage-600" />

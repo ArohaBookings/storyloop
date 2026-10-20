@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   // usually want something to print. The page now has A4 PDFs as well.
   title: { absolute: "Free Learning Story Template: PDF or Copy (Te Whāriki, EYLF)" },
   description:
-    "Free learning story templates for Te Whāriki and EYLF V2.0: print the A4 PDF or copy the text into Word, Docs, Canva or Storypark. A prompt under every heading.",
+    "Free learning story templates for Te Whāriki and EYLF V2.0: print the A4 PDF or copy into Word, Docs, Canva or any platform. A prompt under every heading.",
   alternates: { canonical: "https://storyloop.space/learning-story-template" },
   openGraph: { title: "Learning story template, free PDF or copy", description: "Te Whāriki and EYLF versions with a prompt under every heading.", url: "https://storyloop.space/learning-story-template", type: "article" },
 };
@@ -62,11 +62,11 @@ const FAQS = [
     a: "Yes. The copy button copies plain text, so it pastes cleanly anywhere. In Canva, paste each heading into its own text box on your service's story layout.",
   },
   {
-    q: "Can I use it in Storypark or Educa?",
+    q: "Can I use it in my centre's platform?",
     a: (
       <>
         Yes. The template is plain text, so it pastes into any story editor. Or let StoryLoop fill it in from your
-        note: <Link href="/storypark-alternative" className="font-semibold text-clay-700 underline">StoryLoop or Storypark?</Link>
+        note: <Link href="/works-alongside" className="font-semibold text-clay-700 underline">how StoryLoop works with your platform</Link>
       </>
     ),
   },
@@ -90,7 +90,7 @@ export default function LearningStoryTemplatePage() {
           <p>
             Two versions, one for Te Whāriki in Aotearoa New Zealand and one for the EYLF V2.0 in Australia. Each follows
             notice, recognise, respond: what happened, what learning it shows, and where to next, with a prompt under every
-            heading. Copy it into Word, Google Docs, Canva or Storypark.
+            heading. Copy it into Word, Google Docs, Canva or your centre's platform.
           </p>
         }
       >

@@ -9,7 +9,7 @@ import {
   proMonthFirstChargeDate,
 } from "../lib/offers";
 import { checkoutTermsMessage, checkoutAuthorisationMessage, cardUpdateMessages, isBrandingRefusal, CHECKOUT_BRANDING, CHECKOUT_PRESENTATION } from "../lib/stripe-branding";
-import { matchSuffix } from "../lib/pwned-passwords";
+import { matchSuffix, shouldRefusePassword, COMMON_BREACH_COUNT } from "../lib/pwned-passwords";
 import { renderLifecycleEmail } from "../lib/email/templates";
 
 const NOW = new Date("2026-09-24T00:00:00Z");
@@ -180,4 +180,13 @@ test("the free-month email never goes to an address that cannot receive it", asy
   for (const good of ["educator@gmail.com", "erica@thepark-elc.co.nz", "shannon@education.wa.edu.au", "isla@ais.com.sg", "a@yahoo.co.nz", "person@mail.com"]) {
     assert.equal(isUndeliverableEmail(good), false, good);
   }
+});
+
+test("only commonly breached passwords are refused; a rare one or an unreachable service lets the signup through", () => {
+  assert.equal(shouldRefusePassword(3861493), true); // "password123"-scale
+  assert.equal(shouldRefusePassword(COMMON_BREACH_COUNT), true);
+  assert.equal(shouldRefusePassword(COMMON_BREACH_COUNT - 1), false);
+  assert.equal(shouldRefusePassword(1), false);
+  assert.equal(shouldRefusePassword(0), false);
+  assert.equal(shouldRefusePassword(null), false);
 });

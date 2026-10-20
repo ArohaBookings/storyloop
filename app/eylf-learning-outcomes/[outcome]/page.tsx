@@ -63,6 +63,7 @@ export default async function EylfOutcomePage({ params }: PageProps) {
   return (
     <GuidePage>
       <GuideHero
+        tryNote
         kicker={`EYLF V2.0 · Learning Outcome ${outcome.n} of 5`}
         updated="6 October 2026"
         title={<>Outcome {outcome.n}: {outcome.title}</>}

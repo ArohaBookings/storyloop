@@ -79,7 +79,7 @@ export default function GuideProof({
           <p className="mt-2 max-w-3xl text-base leading-relaxed text-ink-600">
             Type what you saw today. StoryLoop writes the draft here, with{" "}
             {demo === "visitor" ? "Te Whāriki or EYLF V2.0" : demo === "NZ" ? "Te Whāriki" : "EYLF V2.0"} links, and shows you exactly what it is
-            built on.
+            built on. Use first names only: demo notes are not saved to any account and are never used to train AI.
           </p>
           <div className="mt-6">
             <StoryDemo surface="guide" framework={demo === "visitor" ? undefined : demo} />

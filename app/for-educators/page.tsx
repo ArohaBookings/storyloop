@@ -35,11 +35,11 @@ const FAQS = [
     a: "Yes. It works in the browser on any phone, tablet or computer; there is nothing to install. Record the voice memo on your phone, check the draft on your laptop later if you prefer.",
   },
   {
-    q: "My centre uses Storypark. Can I still use this?",
+    q: "My centre already uses a documentation platform. Can I still use this?",
     a: (
       <>
-        Yes. You can start on your own today, and any story exports in one tap. Many centres then move their learning
-        stories to StoryLoop as a team. See <Link href="/storypark-alternative" className="font-semibold text-clay-700 underline">StoryLoop or Storypark?</Link>
+        Yes. You can start on your own today (check your centre&apos;s policy on children&apos;s information first), and any story pastes into your centre&apos;s
+        platform in one tap. See <Link href="/works-alongside" className="font-semibold text-clay-700 underline">how it works with your platform</Link>.
       </>
     ),
   },

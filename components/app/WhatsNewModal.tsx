@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { BarChart3, BookOpen, Check, Copy, CreditCard, Gift, MessageCircleHeart, RefreshCw, ShieldCheck, Sparkles, Star, Sunrise, Users, X } from "lucide-react";
 import { WHATS_NEW_ITEMS, type WhatsNewItem } from "@/lib/whats-new";
+import { referredRewardText } from "@/lib/referrals";
 
 type State = {
   userId: string;
@@ -176,11 +177,11 @@ export default function WhatsNewModal() {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-sage-700 text-paper shadow-soft">
               <Gift className="h-7 w-7" />
             </div>
-            <h2 className="font-display text-2xl font-bold text-ink-900">Give {state.discountPercent}% off, get a month free</h2>
+            <h2 className="font-display text-2xl font-bold text-ink-900">Give {state.discountPercent >= 100 ? "a month free" : `${state.discountPercent}% off`}, get a month free</h2>
             <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-ink-600">
               Share StoryLoop with another educator. They get{" "}
-              <strong className="text-ink-800">{state.discountPercent}% off their first month</strong>. Once they
-              subscribe, you get <strong className="text-ink-800">a whole month free</strong>, up to {state.max}.
+              <strong className="text-ink-800">{referredRewardText(state.discountPercent)}</strong>. When they
+              make their first payment, you get <strong className="text-ink-800">a whole month free</strong>, up to {state.max}.
             </p>
 
             {state.shareUrl && (

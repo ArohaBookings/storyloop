@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { existsSync, readFileSync } from "node:fs";
-import { INDEXNOW_KEY, indexNowPayload, shouldSubmit, submitToIndexNow } from "../lib/indexnow";
+import { INDEXNOW_KEY, indexNowPayload, shouldSubmit, submitToIndexNow, recentlyChanged } from "../lib/indexnow";
 
 test("the key file the engines check exists and contains exactly the key", () => {
   const file = new URL(`../public/${INDEXNOW_KEY}.txt`, import.meta.url);
@@ -51,4 +51,16 @@ test("in production it posts the payload, and a network failure never throws", a
   } finally {
     console.error = originalError;
   }
+});
+
+test("the daily job submits only pages changed in the last two days, never undated ones", () => {
+  const now = Date.parse("2026-10-21T19:00:00Z");
+  const urls = recentlyChanged([
+    { url: "https://storyloop.space/changed-today", lastModified: new Date("2026-10-21T00:00:00Z") },
+    { url: "https://storyloop.space/changed-yesterday", lastModified: "2026-10-20T00:00:00.000Z" },
+    { url: "https://storyloop.space/old", lastModified: new Date("2026-10-01T00:00:00Z") },
+    { url: "https://storyloop.space/no-date" },
+    { url: "https://storyloop.space/bad-date", lastModified: "not a date" },
+  ], now);
+  assert.deepEqual(urls, ["https://storyloop.space/changed-today", "https://storyloop.space/changed-yesterday"]);
 });

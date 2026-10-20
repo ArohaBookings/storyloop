@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirectToLogin } from "@/lib/auth/login-redirect";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -41,7 +42,7 @@ export default async function TransitionPackPage({
   const query = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) return redirectToLogin();
 
   // Row level security restricts this to the educator's own child.
   const { data: child } = await supabase

@@ -21,6 +21,7 @@ export default function robots(): MetadataRoute.Robots {
         "/centre-tools",
         "/roi",
         "/billing",
+        "/pause",
         "/support",
         "/feedback",
         "/login",

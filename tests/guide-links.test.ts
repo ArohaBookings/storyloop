@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import { RELATED } from "../components/marketing/Guide";
-import { PRINTABLES } from "../components/marketing/PrintableCard";
+import { PRINTABLES } from "../lib/printables";
 import { DEFAULT_RELATED, SLUG_PRINTABLES, SLUG_RELATED, relatedFor } from "../components/marketing/guide-links";
 import { DEDICATED_ROUTE_SLUGS, SEO_PAGES, SEO_PAGE_SLUGS } from "../lib/seo-pages";
 

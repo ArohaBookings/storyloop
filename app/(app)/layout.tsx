@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { redirectToLogin } from "@/lib/auth/login-redirect";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import DashboardNav from "@/components/app/DashboardNav";
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) return redirectToLogin();
 
   const profile = await getOrCreateProfile(user);
 

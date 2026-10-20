@@ -162,6 +162,21 @@ export async function POST(request: NextRequest) {
       if (!allowed) {
         return NextResponse.json({ error: "Demo limit reached. Sign up to keep going — it's free." }, { status: 429 });
       }
+      // The no-signup demo is a public AI call. Another site could make its
+      // visitors' browsers spend it, and nothing capped the day's total
+      // (19 Oct 2026 review). Signed-in writing is not affected.
+      if (request.headers.get("sec-fetch-site") === "cross-site") {
+        return NextResponse.json({ error: "Not allowed." }, { status: 403 });
+      }
+      const underDailyCeiling = await consumeRateLimit({
+        scope: "public-demo-global",
+        key: "all",
+        limit: 300,
+        windowSeconds: 24 * 60 * 60,
+      });
+      if (!underDailyCeiling) {
+        return NextResponse.json({ error: "The free demo is busy today. Sign up to keep going — it's free." }, { status: 429 });
+      }
       const demoTeReoLevel = demoFramework === "NZ"
         ? normalizeTeReoLevel(typeof includeTeReoLevel === "string" ? includeTeReoLevel : undefined)
         : "low";

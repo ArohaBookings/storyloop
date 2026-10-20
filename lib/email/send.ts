@@ -6,15 +6,12 @@ import { oneClickUnsubscribeUrl } from "./unsubscribe";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getRuntimeSecret } from "@/lib/runtime-secrets";
 
-// The recurring "nudge" emails — the ones that can feel like spam if they
-// stack. We never send more than one of these to a user within the cooldown
-// window, so an active educator can't get several tips/reminders in a few days.
-// Time-sensitive account emails (welcome, first story, limit reached, payment)
-// are deliberately NOT in this list and always send.
 // Every template that is marketing rather than transactional. Kept in one place
 // and asserted against the rendered template's own `marketing` flag at send
 // time, so a new marketing email cannot be added and silently escape the cap.
-const NUDGE_EMAIL_TYPES: LifecycleEmailType[] = [
+// Every one of these honours the unsubscribe list. Each sent one also counts
+// toward the weekly cap for the emails that come after it.
+export const NUDGE_EMAIL_TYPES: LifecycleEmailType[] = [
   "no_first_story",
   "weekly_value",
   "feedback_request",
@@ -27,6 +24,25 @@ const NUDGE_EMAIL_TYPES: LifecycleEmailType[] = [
   "two_free_stories_used",
   "free_limit_reached",
 ];
+// The moments someone is deciding whether to pay: one story left, out of free
+// stories, left checkout. These used to sit under the weekly cap like a tip,
+// so a routine "weekly value" email sent hours earlier swallowed them. In prod
+// that happened 16 times between 15 Aug and 16 Oct 2026, including to two
+// free educators who had both used every free story. They still respect the
+// unsubscribe list and the once-only duplicate check; they are just never
+// blocked by a less important email.
+export const CAP_EXEMPT_EMAIL_TYPES: LifecycleEmailType[] = [
+  "two_free_stories_used",
+  "free_limit_reached",
+  "checkout_abandoned",
+];
+
+/** Whether the weekly marketing cap may hold this email back. */
+export function isHeldByFrequencyCap(type: LifecycleEmailType, marketing: boolean) {
+  if (CAP_EXEMPT_EMAIL_TYPES.includes(type)) return false;
+  return marketing || NUDGE_EMAIL_TYPES.includes(type);
+}
+
 // At most one marketing email per user per week. Transactional mail (receipts,
 // payment failures, trial ending, password, referral earned) is never capped,
 // because withholding those would be worse than sending them.
@@ -54,6 +70,13 @@ type SendLifecycleEmailParams = {
   force?: boolean;
   /** A one-off campaign Leo chose to send: skips the five-day nudge cap, never the unsubscribe list or the duplicate check. */
   ignoreFrequencyCap?: boolean;
+  /**
+   * For emails meant to repeat on a schedule (went_quiet every 21 days,
+   * winback every 90): only an earlier send after this time counts as a
+   * duplicate. Without it the once-ever check blocked every repeat, so a
+   * paying customer who went quiet a second time heard nothing.
+   */
+  dedupeSince?: string;
   metadata?: Record<string, unknown>;
   // Optional billing/referral values the template can weave in. The template
   // must still render correctly if this is absent.
@@ -76,13 +99,14 @@ async function isUnsubscribed(recipient: string) {
   return Boolean(data);
 }
 
-async function hasExistingEmail(type: LifecycleEmailType, userId: string, relatedStoryId?: string | null) {
+async function hasExistingEmail(type: LifecycleEmailType, userId: string, relatedStoryId?: string | null, sinceIso?: string) {
   let query = createAdminSupabase()
     .from("email_events")
     .select("id")
     .eq("user_id", userId)
     .eq("email_type", type)
     .in("delivery_status", ["sent", "skipped_unconfigured"]);
+  if (sinceIso) query = query.gte("sent_at", sinceIso);
 
   query = relatedStoryId ? query.eq("related_story_id", relatedStoryId) : query.is("related_story_id", null);
 
@@ -137,7 +161,7 @@ export async function sendLifecycleEmail(params: SendLifecycleEmailParams) {
   });
 
   if (!params.force && params.type !== "weekly_value") {
-    const duplicate = await hasExistingEmail(params.type, params.userId, params.relatedStoryId);
+    const duplicate = await hasExistingEmail(params.type, params.userId, params.relatedStoryId, params.dedupeSince);
     if (duplicate) {
       await logEmailEvent({
         type: params.type,
@@ -166,8 +190,7 @@ export async function sendLifecycleEmail(params: SendLifecycleEmailParams) {
   }
 
   // Anti-spam frequency cap: at most one "nudge" email per user per window.
-  const isMarketing = email.marketing || NUDGE_EMAIL_TYPES.includes(params.type);
-  if (!params.force && !params.ignoreFrequencyCap && isMarketing) {
+  if (!params.force && !params.ignoreFrequencyCap && isHeldByFrequencyCap(params.type, email.marketing)) {
     const since = new Date(Date.now() - NUDGE_COOLDOWN_DAYS * 24 * 60 * 60 * 1000).toISOString();
     if (await hasRecentNudgeEmail(params.userId, since)) {
       await logEmailEvent({

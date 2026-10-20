@@ -271,7 +271,7 @@ export default function AiToolsForLearningStoriesPage() {
 
       <GuideSources sources={SOURCES} />
       <GuideCta heading="Try StoryLoop free on your own note" />
-      <RelatedGuides links={[RELATED.vsStorypark, RELATED.alongside, RELATED.safety, RELATED.accuracy, RELATED.examples, RELATED.template]} />
+      <RelatedGuides links={[RELATED.educators, RELATED.alongside, RELATED.safety, RELATED.accuracy, RELATED.examples, RELATED.template]} />
     </GuidePage>
   );
 }

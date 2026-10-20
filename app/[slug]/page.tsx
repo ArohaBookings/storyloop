@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
+import { recoverMangledPath } from "@/lib/mangled-paths";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import Pricing from "@/components/landing/Pricing";
@@ -9,6 +10,8 @@ import FoundingCentreOffer from "@/components/centre/FoundingCentreOffer";
 import PageTracker from "@/components/analytics/PageTracker";
 import GuideProof from "@/components/marketing/GuideProof";
 import InternationalTry from "@/components/marketing/InternationalTry";
+import TransitionDemo from "@/components/marketing/TransitionDemo";
+import type { TransitionFramework, TransitionMode } from "@/lib/ai/transition-draft";
 import PrintableCard from "@/components/marketing/PrintableCard";
 import { RelatedGuides } from "@/components/marketing/Guide";
 import { SLUG_PRINTABLES, relatedFor } from "@/components/marketing/guide-links";
@@ -51,6 +54,42 @@ const NZ_SLUGS = new Set([
   "te-whariki-principles",
   "te-whariki-pdf",
 ]);
+// Term 4 guides whose readers came to finish one job: a TLDS, a transition
+// statement or end-of-year summaries (19 Oct 2026). They get a no-signup draft
+// of that job at the top (components/marketing/TransitionDemo), not only the
+// learning-story demo further down, which was not what they came for.
+const TRANSITION_DEMOS: Record<string, {
+  framework: TransitionFramework;
+  mode: TransitionMode;
+  choices?: TransitionFramework[];
+  button: string;
+  heading: string;
+  intro: string;
+}> = {
+  "tlds-examples": {
+    framework: "VEYLDF",
+    mode: "transition",
+    button: "Draft your TLDS outcomes from your notes, no signup",
+    heading: "Draft Section 1.1 from your own notes",
+    intro: "Paste what you have documented about one child. StoryLoop drafts a strengths-based line for each of the five VEYLDF outcomes and an intentional teaching strategy the Prep teacher can use, from your notes. It is told to write only from what you give it and to leave an outcome for you when your notes show nothing.",
+  },
+  "transition-to-school-statement": {
+    framework: "EYLF",
+    mode: "transition",
+    choices: ["VEYLDF", "EYLF", "TW"],
+    button: "Draft a transition statement from your notes, no signup",
+    heading: "Draft the outcomes from your own notes",
+    intro: "Pick where you teach and paste what you have documented about one child. StoryLoop drafts what your notes show for each outcome and a strategy the school teacher can use, from your notes. It is told to write only from what you give it and to leave an outcome for you when your notes show nothing.",
+  },
+  "end-of-year-learning-summary": {
+    framework: "EYLF",
+    mode: "summary",
+    choices: ["EYLF", "TW", "VEYLDF"],
+    button: "Draft an end-of-year summary from your notes, no signup",
+    heading: "Draft a summary from your own notes",
+    intro: "Paste a few moments you documented about one child this year. StoryLoop drafts what they show for each outcome and a next step, from your notes. It is told to write only from what you give it and to leave an outcome for you when your notes show nothing.",
+  },
+};
 // Pages with their own job: prices first, or a list of answers.
 const NO_PROOF_SLUGS = new Set(["pricing", "faq"]);
 // Regulation guides shared in educator Facebook groups. Directors read them
@@ -107,6 +146,9 @@ export default async function SeoPage({ params }: PageProps) {
   const page = DEDICATED_ROUTE_SLUGS.has(slug) ? undefined : SEO_PAGES[slug];
 
   if (!page) {
+    // A link that lost the space after it in a post (/examplesIf) goes to the page it meant.
+    const meant = recoverMangledPath(slug);
+    if (meant) permanentRedirect(meant);
     notFound();
   }
 
@@ -146,6 +188,9 @@ export default async function SeoPage({ params }: PageProps) {
     ],
   };
 
+  // The page has a "try your own note" demo (GuideProof or InternationalTry, both at #try).
+  const hasTry = !NO_PROOF_SLUGS.has(page.slug) || Boolean(INTERNATIONAL_SLUG_FRAMEWORK[page.slug]);
+
   return (
     <div className="min-h-screen bg-paper">
       {/* Every guide records its visit and where it came from. These pages had
@@ -169,10 +214,19 @@ export default async function SeoPage({ params }: PageProps) {
             {/* Buttons straight under the intro, so they are on a phone's first
                 screen. Below the tips they started at 932px on an 844px phone. */}
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              {EDUCATOR_FIRST_SLUGS.has(page.slug) ? (
+              {TRANSITION_DEMOS[page.slug] ? (
                 <>
-                  <Link href="/signup" className="btn-primary justify-center">
-                    Try it free on your own notes
+                  <Link href="#transition-try" className="btn-primary justify-center" data-track="guide_hero_transition">
+                    {TRANSITION_DEMOS[page.slug].button}
+                  </Link>
+                  <Link href="/signup" className="btn-secondary justify-center" data-track="guide_hero_start">
+                    Start free
+                  </Link>
+                </>
+              ) : EDUCATOR_FIRST_SLUGS.has(page.slug) ? (
+                <>
+                  <Link href={hasTry ? "#try" : "/signup"} className="btn-primary justify-center" data-track="guide_hero_try">
+                    {hasTry ? "Turn a note into a learning story, no signup" : "Try it free on your own notes"}
                   </Link>
                   <Link href="#founding" className="btn-secondary justify-center">
                     Setting it up for a whole centre?
@@ -185,6 +239,22 @@ export default async function SeoPage({ params }: PageProps) {
                   </Link>
                   <Link href="#founding" className="btn-secondary justify-center">
                     See the founding offer
+                  </Link>
+                </>
+              ) : hasTry ? (
+                <>
+                  {/* Search visitors came for an answer, not a form. The demo
+                      on this page lets them try a note with no signup, and
+                      demo users convert far better than readers, yet it was
+                      used 0 times in 111 guide visits (13 to 18 Oct 2026)
+                      while the button sent people to a signup form. */}
+                  <Link href="#try" className="btn-primary justify-center" data-track="guide_hero_try">
+                    {/* Says what the demo makes: on a TLDS or transition guide
+                        "try it" alone would promise a transition statement. */}
+                    Turn a note into a learning story, no signup
+                  </Link>
+                  <Link href="/signup" className="btn-secondary justify-center" data-track="guide_hero_start">
+                    Start free
                   </Link>
                 </>
               ) : (
@@ -246,6 +316,27 @@ export default async function SeoPage({ params }: PageProps) {
             who wants it after they know the price. */}
         {page.slug === "pricing" && <Pricing />}
 
+        {TRANSITION_DEMOS[page.slug] && (
+          <section id="transition-try" aria-labelledby="transition-try-title" className="scroll-mt-24 border-y border-clay-100 bg-white py-12 md:py-16">
+            <div className="wide-shell">
+              <div className="max-w-3xl">
+                <p className="section-title mb-3">No signup · first name only · not saved to an account</p>
+                <h2 id="transition-try-title" className="font-display text-3xl font-bold leading-tight text-ink-900 text-balance md:text-4xl">
+                  {TRANSITION_DEMOS[page.slug].heading}
+                </h2>
+                <p className="mt-3 text-base leading-relaxed text-ink-600 md:text-lg">{TRANSITION_DEMOS[page.slug].intro}</p>
+              </div>
+              <div className="mt-8">
+                <TransitionDemo
+                  framework={TRANSITION_DEMOS[page.slug].framework}
+                  mode={TRANSITION_DEMOS[page.slug].mode}
+                  choices={TRANSITION_DEMOS[page.slug].choices}
+                />
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* England and Ireland guides: the demo in their own curriculum. */}
         {INTERNATIONAL_SLUG_FRAMEWORK[page.slug] && (
           <div className="wide-shell pb-10">
@@ -293,6 +384,22 @@ export default async function SeoPage({ params }: PageProps) {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {hasTry && page.deepDive?.length ? (
+          // Someone who read to here is at their most interested.
+          <section className="pb-4 pt-12">
+            <div className="reading-shell">
+              <div className="flex flex-col items-start gap-4 rounded-3xl border border-clay-200 bg-cream-50 p-6 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-[15px] leading-relaxed text-ink-800">
+                  <strong>Try it on a real note from your week.</strong> StoryLoop writes the learning story, usually in under a minute, with the child&apos;s words kept exactly. No signup.
+                </p>
+                <Link href="#try" className="btn-primary shrink-0 justify-center" data-track="guide_after_read_try">
+                  Try a note
+                </Link>
               </div>
             </div>
           </section>

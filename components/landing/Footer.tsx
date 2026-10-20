@@ -30,7 +30,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-ink-300">
               <li><Link href="/features" className="hover:text-paper transition-colors">Features</Link></li>
               <li><Link href="/pricing" className="hover:text-paper transition-colors">Pricing</Link></li>
-              <li><Link href="/examples" className="hover:text-paper transition-colors">Examples</Link></li>
+              <li><Link href="/examples" className="hover:text-paper transition-colors">Learning story examples</Link></li>
               <li><Link href="/accuracy" className="hover:text-paper transition-colors">Accuracy report</Link></li>
               <li><Link href="/#live-demo" className="hover:text-paper transition-colors">Try free</Link></li>
               <li><Link href="/documentation-time-calculator" className="hover:text-paper transition-colors">Time calculator for centres</Link></li>
@@ -45,8 +45,7 @@ export default function Footer() {
               <li><Link href="/for-educators" className="hover:text-paper transition-colors">For educators</Link></li>
               <li><Link href="/for-centres" className="hover:text-paper transition-colors">For centres</Link></li>
               <li><Link href="/for-families" className="hover:text-paper transition-colors">For families</Link></li>
-              <li><Link href="/works-alongside" className="hover:text-paper transition-colors">Works with Storypark</Link></li>
-              <li><Link href="/storypark-alternative" className="hover:text-paper transition-colors">StoryLoop or Storypark?</Link></li>
+              <li><Link href="/works-alongside" className="hover:text-paper transition-colors">Works with your platform</Link></li>
               <li><Link href="/ai-tools-for-learning-stories" className="hover:text-paper transition-colors">AI tools compared</Link></li>
               <li><Link href="/safety" className="hover:text-paper transition-colors">Children&apos;s information and AI</Link></li>
               <li><Link href="/ai-policy" className="hover:text-paper transition-colors">Free AI policy for services</Link></li>
@@ -60,6 +59,11 @@ export default function Footer() {
               <li><Link href="/learning-story-template" className="hover:text-paper transition-colors">Learning story template</Link></li>
               <li><Link href="/eylf-learning-outcomes" className="hover:text-paper transition-colors">EYLF learning outcomes</Link></li>
               <li><Link href="/te-whariki-learning-outcomes-guide" className="hover:text-paper transition-colors">Te Whāriki learning outcomes</Link></li>
+              {/* Term 4 is when transition statements and end-of-year summaries
+                  are written; both pages were already pulling Google visits in
+                  October 2026, and a link from every page helps them rank. */}
+              <li><Link href="/transition-to-school-statement" className="hover:text-paper transition-colors">Transition to school statements</Link></li>
+              <li><Link href="/end-of-year-learning-summary" className="hover:text-paper transition-colors">End-of-year learning summaries</Link></li>
               <li><Link href="/te-whariki-learning-stories" className="hover:text-paper transition-colors">Te Whāriki stories</Link></li>
               <li><Link href="/eylf-learning-stories" className="hover:text-paper transition-colors">EYLF stories</Link></li>
               <li><Link href="/eyfs-learning-stories" className="hover:text-paper transition-colors">EYFS observations (England)</Link></li>

@@ -51,6 +51,7 @@ export default function TeWharikiOutcomesPage() {
   return (
     <GuidePage>
       <GuideHero
+        tryNote
         kicker="Te Whāriki · Aotearoa New Zealand"
         updated="6 October 2026"
         title={<>Te Whāriki learning outcomes, <span className="italic text-clay-700">all {TOTAL_OUTCOMES} by strand</span></>}

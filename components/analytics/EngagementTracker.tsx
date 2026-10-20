@@ -112,6 +112,8 @@ export default function EngagementTracker({ mode = "marketing" }: { mode?: "mark
     if (consent !== "all") return;
 
     const started = Date.now();
+    // Captured now, for the page this effect belongs to (see page_exit below).
+    const pagePath = pathname ?? window.location.pathname;
     let clicks = 0;
     let errors = 0;
     let maxDepth = 0;
@@ -243,20 +245,22 @@ export default function EngagementTracker({ mode = "marketing" }: { mode?: "mark
       );
       const speed = vitals?.read();
       vitals?.stop();
+      // The page being left: on an in-app navigation the address has
+      // already changed by the time this runs.
       track("page_exit", {
         seconds: Math.round((Date.now() - started) / 1000),
         max_depth: maxDepth,
         clicks,
         ...(Object.keys(sections).length ? { sections } : {}),
         ...(speed && Object.keys(speed).length ? { vitals: speed } : {}),
-      });
+      }, { path: pagePath });
       for (const [form, entry] of forms) {
         if (entry.submitted || !entry.fields.length) continue;
         track("form_abandon", {
           form: (form.id || form.getAttribute("name") || form.getAttribute("aria-label") || "form").slice(0, 40),
           fields: entry.fields.slice(0, 12),
           last: entry.last,
-        });
+        }, { path: pagePath });
       }
     };
     const onVisibility = () => {

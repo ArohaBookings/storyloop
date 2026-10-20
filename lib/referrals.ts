@@ -5,8 +5,17 @@ import { PLAN_DEFINITIONS, normalizePlanKey, type CurrencyCode, type PlanKey } f
 /** A referrer can earn at most this many free months, ever. */
 export const MAX_REFERRAL_CREDITS = 5;
 
-/** Discount the referred person gets on their first month. */
-export const REFERRED_DISCOUNT_PERCENT = 10;
+/**
+ * Discount the referred person gets on their first month. 100 = the first
+ * month free (Oct 2026, Leo: "bump the referral to a free month"; it was 10%,
+ * which nobody passes on to a colleague). Give a month, get a month.
+ */
+export const REFERRED_DISCOUNT_PERCENT = 100;
+
+/** How the referred person's reward reads in copy: "their first month free". */
+export function referredRewardText(percent: number = REFERRED_DISCOUNT_PERCENT) {
+  return percent >= 100 ? "their first month free" : `${percent}% off their first month`;
+}
 
 /**
  * Free months an educator earns when a CENTRE subscribes on their code.
@@ -33,8 +42,12 @@ export function referralCreditMonths(referredPlan: unknown): number {
   return key === "centre_starter" || key === "centre_growth" ? CENTRE_REFERRAL_MONTHS : 1;
 }
 
-/** Stripe coupon id used for that discount. Created on demand, then reused. */
-const REFERRAL_COUPON_ID = "storyloop_referral_10";
+/**
+ * Stripe coupon id used for that discount. Created on demand, then reused. A
+ * new id for the free month, so the old 10% coupon (storyloop_referral_10) can
+ * never be picked up by mistake.
+ */
+const REFERRAL_COUPON_ID = "storyloop_referral_first_month";
 
 // Deliberately excludes I, L, O, 0 and 1 so a code read aloud or written on a
 // staffroom whiteboard cannot be mistyped.
@@ -148,7 +161,7 @@ export function referralCreditCurrency(customer: Stripe.Customer | Stripe.Delete
 }
 
 /**
- * The 10%-off-first-month coupon for referred users. Created once, then reused.
+ * The first-month-free coupon for referred users. Created once, then reused.
  * `duration: "once"` means it only ever applies to the first invoice.
  */
 export async function getOrCreateReferralCoupon(stripe: Stripe) {
@@ -159,7 +172,7 @@ export async function getOrCreateReferralCoupon(stripe: Stripe) {
       id: REFERRAL_COUPON_ID,
       percent_off: REFERRED_DISCOUNT_PERCENT,
       duration: "once",
-      name: "StoryLoop referral - 10% off first month",
+      name: "StoryLoop referral - first month free",
       metadata: { app: "storyloop" },
     });
   }

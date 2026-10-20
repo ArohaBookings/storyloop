@@ -325,7 +325,7 @@ export const SEO_DEEP_DIVES: Record<string, Array<{ heading: string; paragraphs:
     {
       heading: "Where StoryLoop fits",
       paragraphs: [
-        "StoryLoop does not fill in your state's official form, and it does not write a transition statement for you. What it does is make sure the evidence is there when you need it. Through the year it turns quick notes into learning stories you edit and own, and on Educator Pro a quiet child radar shows who has not been noticed lately, skipping school holidays, so the child who never makes a fuss is not the one with an empty file in November.",
+        "StoryLoop does not fill in your state's official form. It can draft the outcome descriptions and teaching strategies from your own notes (try it at the top of this page). It is told to leave anything your notes do not show for you, and you decide what goes into the statement. Through the year it also makes sure the evidence is there when you need it: it turns quick notes into learning stories you edit and own, and on Educator Pro a quiet child radar shows who has not been noticed lately, skipping school holidays, so the child who never makes a fuss is not the one with an empty file in November.",
         "When the time comes, the transition pack on the Educator plan puts up to six moments you choose onto one printable page, next to the child's voice from those stories, what they love, languages at home, the family's own words and the next steps still open. Nothing on it is generated or rewritten. Use it as your source while you complete the official statement, or with the family's agreement, give it to the new teacher alongside it.",
       ],
     },

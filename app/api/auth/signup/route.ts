@@ -9,7 +9,7 @@ import { consumeRateLimit } from "@/lib/rate-limit";
 import { sendLifecycleEmail } from "@/lib/email/send";
 import { fbcFromClick, metaConfigured, sendMetaEvent } from "@/lib/meta-capi";
 import { SITE_URL } from "@/lib/email/config";
-import { PWNED_PASSWORD_MESSAGE, pwnedCount } from "@/lib/pwned-passwords";
+import { PWNED_PASSWORD_MESSAGE, pwnedCount, shouldRefusePassword } from "@/lib/pwned-passwords";
 
 const ALLOWED_PLANS = new Set(["free", "educator", "centre"]);
 
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       windowSeconds: 60 * 60,
     });
     if (!allowed) {
-      return NextResponse.json({ error: "Too many signup attempts. Try again later." }, { status: 429 });
+      return NextResponse.json({ error: "Too many signup attempts. Try again later.", code: "rate_limited" }, { status: 429 });
     }
 
     const body = await request.json();
@@ -38,25 +38,25 @@ export async function POST(request: NextRequest) {
     const accessCodeGrant = plan === "free" && accessCode ? await resolveAccessCode(accessCode, email) : null;
 
     if (!name) {
-      return NextResponse.json({ error: "Please add your name" }, { status: 400 });
+      return NextResponse.json({ error: "Please add your name", code: "missing_name" }, { status: 400 });
     }
 
     if (!email) {
-      return NextResponse.json({ error: "Please add your email" }, { status: 400 });
+      return NextResponse.json({ error: "Please add your email", code: "missing_email" }, { status: 400 });
     }
 
     if (password.length < 8) {
-      return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
+      return NextResponse.json({ error: "Password must be at least 8 characters", code: "short_password" }, { status: 400 });
     }
 
-    // A breached password is refused; an unreachable breach service is not a
-    // reason to refuse anyone (pwnedCount returns null then).
-    if (((await pwnedCount(password)) ?? 0) > 0) {
-      return NextResponse.json({ error: PWNED_PASSWORD_MESSAGE, field: "password" }, { status: 400 });
+    // A commonly breached password is refused (see shouldRefusePassword); an
+    // unreachable breach service is not a reason to refuse anyone (null).
+    if (shouldRefusePassword(await pwnedCount(password))) {
+      return NextResponse.json({ error: PWNED_PASSWORD_MESSAGE, field: "password", code: "pwned_password" }, { status: 400 });
     }
 
     if (accessCode && !accessCodeGrant) {
-      return NextResponse.json({ error: "That access code is invalid, expired, or already used." }, { status: 400 });
+      return NextResponse.json({ error: "That access code is invalid, expired, or already used.", code: "bad_access_code" }, { status: 400 });
     }
 
     const admin = createAdminSupabase();
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       const message = createError.message.toLowerCase();
       if (message.includes("already") || message.includes("registered")) {
         return NextResponse.json(
-          { error: "That email already has an account. Sign in instead." },
+          { error: "That email already has an account. Sign in instead.", code: "email_exists" },
           { status: 409 }
         );
       }
@@ -172,6 +172,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: "Your account was created, but we could not start your session automatically. Please sign in.",
+          code: "session_failed",
         },
         { status: 500 }
       );
@@ -200,7 +201,7 @@ export async function POST(request: NextRequest) {
     // Expected problems (email taken, weak password) are returned earlier with
     // their own specific messages and never reach here.
     return NextResponse.json(
-      { error: "We could not create your account just then. Please try again." },
+      { error: "We could not create your account just then. Please try again.", code: "server_error" },
       { status: 500 }
     );
   }

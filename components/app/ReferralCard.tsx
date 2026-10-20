@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Check, Copy, Gift, Loader2, X } from "lucide-react";
+import { referredRewardText } from "@/lib/referrals";
 
 type ReferralState = {
   code: string | null;
@@ -102,11 +103,11 @@ export default function ReferralCard({ variant = "inline" }: { variant?: "inline
             <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-sage-700 text-paper shadow-soft">
               <Gift className="h-7 w-7" />
             </div>
-            <h2 className="font-display text-2xl font-bold text-ink-900">Give 10% off, get a month free</h2>
+            <h2 className="font-display text-2xl font-bold text-ink-900">Give a month free, get a month free</h2>
             <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-ink-600">
               Share StoryLoop with another educator. They get{" "}
-              <strong className="text-ink-800">{state.discountPercent}% off their first month</strong>, and once they
-              subscribe you get <strong className="text-ink-800">a whole month free</strong>.
+              <strong className="text-ink-800">{referredRewardText(state.discountPercent)}</strong>, and when they
+              make their first payment you get <strong className="text-ink-800">a whole month free</strong>.
             </p>
           </div>
 
@@ -149,10 +150,10 @@ export default function ReferralCard({ variant = "inline" }: { variant?: "inline
         <div>
           <p className="section-title mb-1">Refer an educator</p>
           <h2 className="font-display text-xl font-bold text-ink-900">
-            They get {state.discountPercent}% off. You get a month free.
+            They get their first month free{state.discountPercent >= 100 ? "" : ` (${state.discountPercent}% off)`}. You get a month free.
           </h2>
           <p className="mt-1 text-xs leading-relaxed text-ink-600">
-            Up to {state.max} free months. The credit lands on your account automatically once they subscribe, so
+            Up to {state.max} free months. The credit lands on your account automatically when their first payment goes through, so
             there is nothing to claim.
           </p>
         </div>

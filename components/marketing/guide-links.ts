@@ -1,4 +1,4 @@
-import type { PrintableKey } from "./PrintableCard";
+import type { PrintableKey } from "@/lib/printables";
 import { RELATED, type RelatedKey } from "./Guide";
 
 /**
@@ -47,7 +47,7 @@ export const SLUG_RELATED: Record<string, RelatedKey[]> = {
   "transition-to-school-statement": ["tlds", "endOfYear", "eylf", "template", "examples", "eylfPrinciples"],
   "tlds-examples": ["transition", "endOfYear", "eylf", "intentional", "template", "examples"],
   "end-of-year-learning-summary": ["transition", "tlds", "nextSteps", "template", "examples", "eylf"],
-  pricing: ["centres", "educators", "vsStorypark", "aiTools", "accuracy", "safety"],
+  pricing: ["centres", "educators", "alongside", "aiTools", "accuracy", "safety"],
 };
 export const DEFAULT_RELATED: RelatedKey[] = ["template", "whatIs", "examples", "eylf", "teWhariki", "accuracy"];
 export function relatedFor(slug: string) {

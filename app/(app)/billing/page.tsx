@@ -116,6 +116,7 @@ export default function BillingPage() {
   const [billing, setBilling] = useState<BillingSummary | null>(null);
   const [cardNotice, setCardNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [pauseOpen, setPauseOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState<string>("");
   const [cancelComment, setCancelComment] = useState("");
   // The centre offer as it stands (founding spots counted from Stripe).
@@ -202,7 +203,7 @@ export default function BillingPage() {
     setLoading("");
   };
 
-  const changeCancellation = async (action: "cancel" | "resume") => {
+  const changeCancellation = async (action: "cancel" | "resume" | "restart_payments") => {
     setLoading(action);
     try {
       const res = await fetch("/api/stripe/subscription", {
@@ -216,7 +217,9 @@ export default function BillingPage() {
           tone: "ok",
           text: action === "cancel"
             ? `Done. Your plan stays on until ${data.subscription?.endsAt ? formatDay(data.subscription.endsAt) : "the end of this period"}, then ends. Nothing more is charged.`
-            : "Done. Your plan carries on as normal.",
+            : action === "restart_payments"
+              ? "Done. Payments have restarted, and your plan carries on as normal."
+              : "Done. Your plan carries on as normal.",
         });
         setCancelOpen(false);
         setCancelReason("");
@@ -224,6 +227,43 @@ export default function BillingPage() {
         await Promise.all([loadBilling(), loadProfile()]);
       } else {
         setCardNotice({ tone: "error", text: "That didn't go through. Please try again, or contact Support." });
+      }
+    } catch {
+      setCardNotice({ tone: "error", text: "That didn't go through. Please try again, or contact Support." });
+    } finally {
+      setLoading("");
+    }
+  };
+
+  // Pause sits beside Cancel as an option (Leo, 20 Oct 2026: offered, never pushed).
+  const pausePayments = async (months: 1 | 2 | 3) => {
+    setLoading(`pause_${months}`);
+    try {
+      const res = await fetch("/api/stripe/subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "pause", months }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data.ok) {
+        setCardNotice({
+          tone: "ok",
+          text: `Done. Payments are paused${data.pausedUntil ? ` until ${formatDay(data.pausedUntil)}` : ""}. Nothing is charged until then, and your stories stay exactly as they are.`,
+        });
+        setPauseOpen(false);
+        await Promise.all([loadBilling(), loadProfile()]);
+      } else {
+        setCardNotice({
+          tone: "error",
+          text: data.reason === "paused_recently"
+            ? "Payments were paused in the last six months, so another pause isn't available yet. You can still cancel any time."
+            : data.reason === "already_paused"
+              ? "Payments are already paused."
+              : data.reason === "nothing_due" || data.reason === "not_pausable"
+                ? "There's no payment to pause right now."
+                : "That didn't go through. Please try again, or contact Support.",
+        });
+        setPauseOpen(false);
       }
     } catch {
       setCardNotice({ tone: "error", text: "That didn't go through. Please try again, or contact Support." });
@@ -513,6 +553,8 @@ export default function BillingPage() {
               <p className="text-sm font-semibold text-ink-900">
                 {billing.subscription.endsAt
                   ? `Ends on ${formatDay(billing.subscription.endsAt)}`
+                  : billing.subscription.paused
+                    ? billing.subscription.pausedUntil ? `Payments paused until ${formatDay(billing.subscription.pausedUntil)}` : "Payments paused"
                   : billing.subscription.trialEndsAt
                     ? `Free until ${formatDay(billing.subscription.trialEndsAt)}`
                     : billing.subscription.status === "past_due" || billing.subscription.status === "unpaid"
@@ -522,6 +564,8 @@ export default function BillingPage() {
               <p className="mt-1 text-sm text-ink-600">
                 {billing.subscription.endsAt
                   ? "You've cancelled. You keep everything until then, and nothing more is charged."
+                  : billing.subscription.paused
+                    ? "Nothing is charged while payments are paused, and your account and stories stay as they are. They restart by themselves, or restart them now."
                   : billing.subscription.nextPayment
                     ? `Next payment ${formatMoney(billing.subscription.nextPayment.amount, billing.subscription.nextPayment.currency)} on ${formatDay(billing.subscription.nextPayment.date)}.`
                     : billing.subscription.trialEndsAt
@@ -535,9 +579,22 @@ export default function BillingPage() {
                     Keep my subscription
                   </button>
                 ) : (
-                  <button type="button" onClick={() => setCancelOpen(true)} disabled={Boolean(loading)} className="btn-secondary" data-testid="cancel-subscription">
-                    Cancel subscription
-                  </button>
+                  <>
+                    {billing.subscription.paused && (
+                      <button type="button" onClick={() => changeCancellation("restart_payments")} disabled={Boolean(loading)} className="btn-primary" data-testid="restart-payments">
+                        {loading === "restart_payments" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                        Restart payments now
+                      </button>
+                    )}
+                    {!billing.subscription.paused && !billing.subscription.trialEndsAt && billing.subscription.status === "active" && (billing.subscription.nextPayment?.amount ?? 0) > 0 && (
+                      <button type="button" onClick={() => setPauseOpen(true)} disabled={Boolean(loading)} className="btn-secondary" data-testid="pause-subscription">
+                        Pause payments
+                      </button>
+                    )}
+                    <button type="button" onClick={() => setCancelOpen(true)} disabled={Boolean(loading)} className="btn-secondary" data-testid="cancel-subscription">
+                      Cancel subscription
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -572,6 +629,35 @@ export default function BillingPage() {
             </div>
           )}
         </section>
+      )}
+
+      {pauseOpen && billing?.subscription && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink-950/40 p-4 sm:items-center" onClick={() => !loading && setPauseOpen(false)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="pause-title" className="w-full max-w-md rounded-3xl bg-white p-6 shadow-warm" onClick={(event) => event.stopPropagation()}>
+            <h2 id="pause-title" className="font-display text-2xl font-bold text-ink-900">Pause payments</h2>
+            <p className="mt-2 text-sm leading-relaxed text-ink-600">
+              Take a break for one, two or three months. Nothing is charged while payments are paused, your stories and children stay exactly as they are, and payments restart by themselves. You can restart them sooner from here.
+            </p>
+            <div className="mt-5 grid gap-2 sm:grid-cols-3">
+              {([1, 2, 3] as const).map((months) => (
+                <button
+                  key={months}
+                  type="button"
+                  onClick={() => pausePayments(months)}
+                  disabled={Boolean(loading)}
+                  className="btn-secondary justify-center"
+                  data-testid={`pause-${months}`}
+                >
+                  {loading === `pause_${months}` ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  {months === 1 ? "1 month" : `${months} months`}
+                </button>
+              ))}
+            </div>
+            <button type="button" onClick={() => setPauseOpen(false)} disabled={Boolean(loading)} className="mt-4 w-full text-sm font-semibold text-ink-600 hover:text-ink-900">
+              Not now
+            </button>
+          </div>
+        </div>
       )}
 
       {cancelOpen && billing?.subscription && (

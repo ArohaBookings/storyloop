@@ -60,3 +60,26 @@ export async function submitToIndexNow(
     return { submitted: 0, status: null, skipped: "request_failed" };
   }
 }
+
+/**
+ * Sitemap entries changed in the last `hours` (default 48): pages whose
+ * reviewed date or guides whose updated date falls in the window. The daily
+ * job submits these, so a deploy that edits a page (and bumps its reviewedAt)
+ * reaches Bing within a day without anyone remembering to ping. Entries with
+ * no date are never included: IndexNow wants changed URLs, not the same list
+ * every day. Pure.
+ */
+export function recentlyChanged(
+  entries: Array<{ url: string; lastModified?: string | Date }>,
+  now = Date.now(),
+  hours = 48,
+): string[] {
+  const since = now - hours * 60 * 60 * 1000;
+  return entries
+    .filter((entry) => {
+      if (!entry.lastModified) return false;
+      const at = new Date(entry.lastModified).getTime();
+      return Number.isFinite(at) && at >= since && at <= now + 60 * 60 * 1000;
+    })
+    .map((entry) => entry.url);
+}

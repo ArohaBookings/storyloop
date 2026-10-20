@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirectToLogin } from "@/lib/auth/login-redirect";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Download, FileText, Quote, Sparkles, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -21,7 +22,7 @@ export default async function LearningPassportPage({ params }: { params: Promise
   const { id } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) return redirectToLogin();
 
   const { data: child } = await supabase
     .from("child_profiles")

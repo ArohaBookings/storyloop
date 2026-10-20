@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { redirectToLogin } from "@/lib/auth/login-redirect";
 import ChildProfileManager from "@/components/app/ChildProfileManager";
 import QuietChildRadarPanel from "@/components/app/QuietChildRadarPanel";
 import type { ChildProfile } from "@/lib/children";
@@ -7,7 +8,6 @@ import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { hasFeatureAccess } from "@/lib/plans";
 import { buildQuietChildRadar } from "@/lib/quiet-radar";
 import { isMissingTermSettingsColumn, parseTermSettings } from "@/lib/term-settings";
-import { redirect } from "next/navigation";
 
 export const metadata = { title: "Child learning profiles" };
 
@@ -20,7 +20,7 @@ export default async function ChildrenPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) return redirectToLogin();
 
   const { data } = await supabase
     .from("child_profiles")

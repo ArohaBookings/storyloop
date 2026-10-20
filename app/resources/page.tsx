@@ -17,7 +17,7 @@ const GUIDES = [
     href: "/ai-tools-for-learning-stories",
     kicker: "Every educator · New",
     title: "AI tools for learning stories, compared",
-    description: "Storypark Assist, Educa Assist, One Child, Kinderloop, ChatGPT and StoryLoop: who can buy each, the published prices, and what the AI does.",
+    description: "StoryLoop, ChatGPT, Mana and the platform add-ons: who can buy each, the published prices, and what the AI really does.",
     icon: Sparkles,
   },
   {
@@ -31,7 +31,7 @@ const GUIDES = [
     href: "/learning-story-template",
     kicker: "Every educator · Free template",
     title: "Learning story template",
-    description: "Te Whāriki and EYLF versions with a prompt under every heading, to copy into Word, Canva or Storypark.",
+    description: "Te Whāriki and EYLF versions with a prompt under every heading, to copy into Word, Canva or your centre's platform.",
     icon: BookOpen,
   },
   {

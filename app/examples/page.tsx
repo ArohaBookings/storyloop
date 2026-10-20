@@ -51,8 +51,11 @@ export default function ExamplesPage() {
         <section id="examples-hero" className="border-b border-clay-100 bg-cream-50 pb-14 pt-28 md:pb-20 md:pt-32">
           <div className="wide-shell grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
             <div>
-              <p className="section-title mb-3">Examples</p>
+              {/* "Learning story examples" in the H1 (20 Oct 2026): Google was ranking
+                  a blog post and the toddler page for that search, not this page of
+                  twelve real drafts, so the phrase now heads it. */}
               <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-tight text-ink-900 text-balance md:text-6xl">
+                <span className="section-title mb-3 block font-sans text-sm not-italic tracking-wider">Learning story examples</span>
                 Twelve real notes. <span className="italic text-clay-700">Twelve real drafts.</span>
               </h1>
               <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink-700">

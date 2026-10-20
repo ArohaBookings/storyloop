@@ -33,6 +33,7 @@ export function GuideHero({
   imageAlt,
   imagePosition = "center",
   updated = GUIDE_UPDATED,
+  tryNote = false,
   children,
 }: {
   kicker: string;
@@ -43,6 +44,12 @@ export function GuideHero({
   imagePosition?: string;
   /** A page whose facts were checked on a different day (prices, say) shows that date. */
   updated?: string;
+  /**
+   * Show "Try it on your own note" on the first screen, jumping to the page's
+   * demo (#try). Only for pages that render GuideProof or InternationalTry.
+   * These heroes had no button at all, and the demo sat several screens down.
+   */
+  tryNote?: boolean;
   children?: React.ReactNode;
 }) {
   return (
@@ -54,6 +61,11 @@ export function GuideHero({
             {title}
           </h1>
           <div className="mt-5 max-w-3xl text-lg leading-relaxed text-ink-700">{answer}</div>
+          {tryNote && (
+            <a href="#try" className="btn-primary mt-6 inline-flex justify-center" data-track="guide_hero_try">
+              Turn a note into a learning story, no signup
+            </a>
+          )}
           <p className="mt-4 text-sm text-ink-500">Updated {updated} · StoryLoop, Ōtautahi Christchurch</p>
           {children}
         </div>
@@ -124,7 +136,7 @@ export function GuideFaq({ items }: { items: { q: string; a: React.ReactNode }[]
 /** The real prices, on every guide: answer engines and people both want them. */
 export function GuideCta({ heading = "Try it on your own note" }: { heading?: string }) {
   return (
-    <section id="try" className="py-14 md:py-20">
+    <section id="get-started" className="py-14 md:py-20">
       <div className="wide-shell">
         <div className="grid gap-8 rounded-[2rem] bg-ink-900 p-8 text-paper md:p-12 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
           <div>
@@ -196,16 +208,16 @@ export function RelatedGuides({ links }: { links: { href: string; title: string;
 export const RELATED = {
   whatIs: { href: "/what-is-a-learning-story", title: "What is a learning story?", body: "Where they came from, the three parts, and how they differ from an observation." },
   eylf: { href: "/eylf-learning-outcomes", title: "The 5 EYLF learning outcomes", body: "All 20 V2.0 sub-outcomes in plain English, with what each looks like in play." },
-  template: { href: "/learning-story-template", title: "Learning story template", body: "Te Whāriki and EYLF versions to print as a PDF or copy into Word or Storypark." },
-  examples: { href: "/examples", title: "12 real learning story drafts", body: "Real notes and the drafts StoryLoop wrote from them, unedited." },
+  template: { href: "/learning-story-template", title: "Learning story template", body: "Te Whāriki and EYLF versions to print as a PDF or copy into Word or your centre's platform." },
+  examples: { href: "/examples", title: "Learning story examples", body: "12 real notes and the drafts StoryLoop wrote from them, unedited." },
   accuracy: { href: "/accuracy", title: "The accuracy report", body: "How every draft is tested, and what we are still improving." },
   safety: { href: "/safety", title: "Children's information and AI", body: "Where information goes, what the AI can and cannot do with it, and your choices." },
-  alongside: { href: "/works-alongside", title: "Works with Storypark", body: "Write in StoryLoop, share wherever your families already are." },
+  alongside: { href: "/works-alongside", title: "Works with your platform", body: "Write in StoryLoop, share wherever your families already are." },
   vsStorypark: { href: "/storypark-alternative", title: "StoryLoop or Storypark?", body: "What each does, what each costs, and what switching looks like." },
   educators: { href: "/for-educators", title: "For educators", body: "From a quick note after play to a finished story, before you leave." },
   families: { href: "/for-families", title: "For families", body: "What you will see, in plain words and your own language." },
   centres: { href: "/for-centres", title: "For centres", body: "One price for the whole team, and consistent documentation." },
-  aiTools: { href: "/ai-tools-for-learning-stories", title: "AI tools for learning stories, compared", body: "Storypark Assist, Educa Assist, One Child, Kinderloop, ChatGPT and StoryLoop: who can buy each, and the prices." },
+  aiTools: { href: "/ai-tools-for-learning-stories", title: "AI tools for learning stories, compared", body: "StoryLoop, ChatGPT, Mana and the platform add-ons: who can buy each, and the prices." },
   eylfPrinciples: { href: "/eylf-principles-and-practices", title: "EYLF principles and practices", body: "All 8 principles and 7 practices of V2.0, in plain English." },
   observation: { href: "/observation-methods-early-childhood", title: "Observation methods", body: "Anecdotal and running records, jottings, learning stories: which to use when." },
   teWhPrinciples: { href: "/te-whariki-principles", title: "The 4 Te Whāriki principles", body: "Whakamana, Kotahitanga, Whānau tangata and Ngā hononga, in plain English." },

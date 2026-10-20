@@ -45,5 +45,22 @@ export function matchSuffix(body: string, suffix: string): number {
   return 0;
 }
 
+/**
+ * Refuse only passwords that are genuinely common in breaches (20 Oct 2026).
+ *
+ * From 22 Sep to 20 Oct any password seen even once was refused. Ordinary,
+ * memorable passwords very often appear somewhere in the 900M-entry list, and
+ * signup completions fell over those weeks (17 signup views, 2 accounts after
+ * 6 Oct); educators on phones met "choose another" and left. Leo: "email and
+ * password, that's it". The passwords attackers actually spray ("password123",
+ * "kindy2024") appear hundreds to millions of times, so this threshold still
+ * stops those while letting a rare, personal password through.
+ */
+export const COMMON_BREACH_COUNT = 100;
+
+export function shouldRefusePassword(breachCount: number | null): boolean {
+  return (breachCount ?? 0) >= COMMON_BREACH_COUNT;
+}
+
 export const PWNED_PASSWORD_MESSAGE =
-  "That password has appeared in a known data breach, so it is one of the first passwords attackers try. Please choose a different one.";
+  "That password is one of the most common leaked passwords (it does not mean your account was hacked), so attackers try it first. Please choose another, or let us make one for you.";

@@ -57,6 +57,7 @@ export default function EylfOutcomesPage() {
   return (
     <GuidePage>
       <GuideHero
+        tryNote
         kicker="EYLF V2.0 · Australia"
         updated="6 October 2026"
         title={<>The 5 EYLF learning outcomes, <span className="italic text-clay-700">in plain English</span></>}

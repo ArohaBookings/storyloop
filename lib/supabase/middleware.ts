@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { VISITED_PATH_HEADER } from "@/lib/auth/visited-path";
 
 type SupabaseCookie = {
   name: string;
@@ -7,10 +8,21 @@ type SupabaseCookie = {
   options: CookieOptions;
 };
 
+// The request headers server components see, plus the page that was asked
+// for, so a signed-out visit can go to sign-in and come back
+// (lib/auth/login-redirect.ts). Built fresh each time from request.headers so
+// refreshed auth cookies are always included, and always set here so a value
+// sent by the browser is overwritten.
+function forwardedHeaders(request: NextRequest) {
+  const headers = new Headers(request.headers);
+  headers.set(VISITED_PATH_HEADER, `${request.nextUrl.pathname}${request.nextUrl.search}`);
+  return headers;
+}
+
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({
     request: {
-      headers: request.headers,
+      headers: forwardedHeaders(request),
     },
   });
 
@@ -38,7 +50,7 @@ export async function updateSession(request: NextRequest) {
 
           response = NextResponse.next({
             request: {
-              headers: request.headers,
+              headers: forwardedHeaders(request),
             },
           });
 

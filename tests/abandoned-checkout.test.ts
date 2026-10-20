@@ -53,7 +53,8 @@ test("the email states the real trial terms, offers no discount, and can be unsu
   // Checkout always sets trial_period_days: 7.
   assert.match(email.text, /7-day free trial\. Nothing is charged until it ends/);
   assert.doesNotMatch(email.subject + email.text, /% off|discount/i);
-  assert.match(email.ctaUrl, /\/billing\?/);
+  const cta = new URL(email.ctaUrl);
+  assert.match(cta.pathname === "/login" ? cta.searchParams.get("redirect") ?? "" : cta.pathname + cta.search, /^\/billing\?/);
   for (const bad of ["undefined", "NaN", "null", "${"]) assert.ok(!email.html.includes(bad) && !email.text.includes(bad), `leaked ${bad}`);
 });
 

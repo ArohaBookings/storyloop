@@ -64,6 +64,15 @@ function money(plan: PlanKey, currency: CurrencyCode, share = 1) {
   return `${currency === "NZD" ? "NZ$" : "A$"}${text}`;
 }
 
+/** The same day next month (31 Jan becomes 28 Feb, never March). */
+function addMonth(date: Date) {
+  const d = new Date(date.getTime());
+  const dayOfMonth = d.getUTCDate();
+  d.setUTCMonth(d.getUTCMonth() + 1);
+  if (d.getUTCDate() < dayOfMonth) d.setUTCDate(0);
+  return d;
+}
+
 /** How the charge appears on a card statement (the account's StoryLoop descriptor). */
 export const STATEMENT_LINE = "It shows on your card statement as STORYLOOP.";
 
@@ -78,6 +87,8 @@ export function checkoutTermsMessage(input: {
   noCardNeeded: boolean;
   founding: boolean;
   offer: "pro_month" | null;
+  /** A referral's free first month (100% off the first invoice after the trial). */
+  firstMonthFree?: boolean;
   now?: Date;
 }): string {
   const now = input.now ?? new Date();
@@ -94,6 +105,10 @@ export function checkoutTermsMessage(input: {
     return `${input.trialDays} days free with no card. To keep going after ${firstCharge}, add a card in StoryLoop Billing (${then}). If you don't, the free month simply ends and nothing is charged.`;
   }
   const opener = input.offer === "pro_month" ? `Your free month of ${planName}` : `Your ${input.trialDays}-day free trial`;
+  if (input.firstMonthFree) {
+    const paidFrom = day(addMonth(new Date(now.getTime() + input.trialDays * 86_400_000)));
+    return `${opener} starts today, and your first month after it is free too, thanks to the educator who referred you. Nothing is charged until ${paidFrom}, then ${price} a month. Cancel before then in StoryLoop Billing and you pay nothing. ${STATEMENT_LINE}`;
+  }
   return `${opener} starts today. Nothing is charged until ${firstCharge}, then ${price} a month. Cancel or switch plans before then in StoryLoop Billing and you pay nothing. We'll email you 3 days before. ${STATEMENT_LINE}`;
 }
 
@@ -102,10 +117,13 @@ export function checkoutTermsMessage(input: {
  * Stripe's line (which names the account). Only when a card is being saved; a
  * no-card free month saves nothing. Pure.
  */
-export function checkoutAuthorisationMessage(input: { trialDays: number; noCardNeeded: boolean; now?: Date }): string | null {
+export function checkoutAuthorisationMessage(input: { trialDays: number; noCardNeeded: boolean; firstMonthFree?: boolean; now?: Date }): string | null {
   if (input.noCardNeeded) return null;
   const now = input.now ?? new Date();
-  const from = input.trialDays > 0 ? `from ${day(new Date(now.getTime() + input.trialDays * 86_400_000))}` : "from today";
+  const trialEnd = new Date(now.getTime() + input.trialDays * 86_400_000);
+  const from = input.firstMonthFree
+    ? `from ${day(addMonth(trialEnd))}`
+    : input.trialDays > 0 ? `from ${day(trialEnd)}` : "from today";
   return `By continuing, you authorise StoryLoop to save this card and charge it for your StoryLoop subscription each month ${from}, until you cancel in StoryLoop Billing.`;
 }
 

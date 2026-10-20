@@ -95,19 +95,14 @@ export async function POST(request: NextRequest) {
       await supabase.from("profiles").update({ stripe_customer_id: customerId }).eq("id", user.id);
     }
 
-    const activationCoupon =
-      !offer && activationOffer === true && profile.plan === "free"
-        ? await resolveActivationCoupon(
-            stripe.coupons,
-            await getRuntimeSecret("STRIPE_FIRST_MONTH_COUPON_ID", "stripe_first_month_coupon_id"),
-          )
-        : undefined;
-
-    // Someone who signed up through a referral link gets 10% off their first
-    // month. The activation offer wins if both apply, because Stripe accepts
-    // only one coupon per checkout and the activation offer is the stronger one.
+    // Someone who signed up through a referral link gets their first month
+    // free (Oct 2026; it was 10%). It beats the 15% activation offer, because
+    // Stripe accepts only one coupon per checkout and the referral is now the
+    // stronger of the two. Only on an educator plan (centres already get a
+    // free month) and only on their first StoryLoop subscription ever, so
+    // cancelling and checking out again cannot collect it twice.
     let referralCoupon: string | undefined;
-    if (!activationCoupon && !offer) {
+    if (!offer && !isCentrePlan(selectedPlan)) {
       // The admin client: row security lets only the referrer read a referral,
       // so the referred person's own client never finds it and the discount
       // silently never applied.
@@ -116,7 +111,17 @@ export async function POST(request: NextRequest) {
         .select("id")
         .eq("referred_user_id", user.id)
         .maybeSingle();
-      if (referralRow) {
+      let firstSubscription = true;
+      if (referralRow && profile?.stripe_customer_id) {
+        try {
+          const previous = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 1 });
+          firstSubscription = previous.data.length === 0;
+        } catch {
+          // Unknown history: no free month rather than a second one.
+          firstSubscription = false;
+        }
+      }
+      if (referralRow && firstSubscription) {
         try {
           const coupon = await getOrCreateReferralCoupon(stripe);
           referralCoupon = coupon.id;
@@ -126,6 +131,15 @@ export async function POST(request: NextRequest) {
         }
       }
     }
+
+    const activationCoupon =
+      !offer && !referralCoupon && activationOffer === true && profile.plan === "free"
+        ? await resolveActivationCoupon(
+            stripe.coupons,
+            await getRuntimeSecret("STRIPE_FIRST_MONTH_COUPON_ID", "stripe_first_month_coupon_id"),
+          )
+        : undefined;
+
     // Centres: a 30-day trial with no card needed, and a founding spot (50%
     // off after the free month) while any of the ten remain. A centre that has
     // had a centre subscription before is not a new centre. See
@@ -151,16 +165,16 @@ export async function POST(request: NextRequest) {
 
     const createSession = (founding: string | null, branded = true) => {
       // One coupon per checkout. The founding offer is the strongest, then the
-      // activation offer, then the referral discount.
-      const appliedCoupon = founding ?? activationCoupon ?? referralCoupon;
+      // referral's free month, then the activation offer.
+      const appliedCoupon = founding ?? referralCoupon ?? activationCoupon;
       const metadata = {
         // Marks StoryLoop's own checkouts on the shared Stripe account.
         app: "storyloop",
         user_id: user.id,
         plan: selectedPlan,
         currency: selectedCurrency,
-        activation_offer: !founding && activationCoupon ? "true" : "false",
-        referral_discount: !founding && !activationCoupon && referralCoupon ? "true" : "false",
+        activation_offer: !founding && !referralCoupon && activationCoupon ? "true" : "false",
+        referral_discount: !founding && referralCoupon ? "true" : "false",
         founding_centre: founding ? "true" : "false",
         // The terms this checkout offered, so a follow-up email can restate
         // them exactly instead of guessing.
@@ -170,7 +184,8 @@ export async function POST(request: NextRequest) {
       };
       // StoryLoop's own authorisation line, in place of Stripe's (which names the
       // shared account). Only with the presentation, since that is what hides Stripe's.
-      const authorisation = branded ? checkoutAuthorisationMessage({ trialDays: terms.trialDays, noCardNeeded: terms.noCardNeeded }) : null;
+      const firstMonthFree = !founding && Boolean(referralCoupon);
+      const authorisation = branded ? checkoutAuthorisationMessage({ trialDays: terms.trialDays, noCardNeeded: terms.noCardNeeded, firstMonthFree }) : null;
       return stripe.checkout.sessions.create({
         ...(branded ? { branding_settings: CHECKOUT_BRANDING, ...CHECKOUT_PRESENTATION } : {}),
         custom_text: {
@@ -182,6 +197,7 @@ export async function POST(request: NextRequest) {
               noCardNeeded: terms.noCardNeeded,
               founding: Boolean(founding),
               offer,
+              firstMonthFree,
             }),
           },
           ...(authorisation ? { after_submit: { message: authorisation } } : {}),

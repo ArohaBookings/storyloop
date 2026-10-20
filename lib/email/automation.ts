@@ -28,6 +28,36 @@ async function cardOnFile(customerId: string | null | undefined): Promise<boolea
   }
 }
 
+/** The referral coupon that makes the first month after the trial free (lib/referrals.ts). */
+const REFERRAL_FIRST_MONTH_COUPON = "storyloop_referral_first_month";
+
+/**
+ * Whether a trialing customer's first paid month is free because they were
+ * referred, and when the first real charge is then. Null when Stripe cannot
+ * say; the email then states the normal terms, which is what most people have.
+ */
+export async function referralFreeMonth(customerId: string | null | undefined, trialEndsAt: string | null | undefined): Promise<{ firstChargeOn: string } | null> {
+  if (!customerId || !trialEndsAt) return null;
+  try {
+    const subs = await createStripe().subscriptions.list({ customer: customerId, status: "trialing", limit: 5, expand: ["data.discounts"] });
+    const hasCoupon = subs.data.some((sub) => (sub.discounts ?? []).some((d) => {
+      if (typeof d === "string") return false;
+      const discount = d as { coupon?: { id?: string } | string; source?: { coupon?: { id?: string } | string } };
+      const coupon = discount.coupon ?? discount.source?.coupon;
+      return (typeof coupon === "string" ? coupon : coupon?.id) === REFERRAL_FIRST_MONTH_COUPON;
+    }));
+    if (!hasCoupon) return null;
+    const d = new Date(trialEndsAt);
+    const dayOfMonth = d.getUTCDate();
+    d.setUTCMonth(d.getUTCMonth() + 1);
+    if (d.getUTCDate() < dayOfMonth) d.setUTCDate(0);
+    const firstChargeOn = formatDate(Math.floor(d.getTime() / 1000));
+    return firstChargeOn ? { firstChargeOn } : null;
+  } catch {
+    return null;
+  }
+}
+
 type ProfileEmailRow = {
   id: string;
   email: string | null;
@@ -48,6 +78,9 @@ type ProfileEmailRow = {
 };
 
 const ACTIVE_PAID_STATUSES = new Set(["active", "trialing", "admin_override"]);
+
+/** The weekly tip starts after an account's first week. */
+export const WEEKLY_VALUE_MIN_AGE_DAYS = 7;
 
 // Plan keys as stored on profiles. These rules used to filter on
 // ["educator", "centre"], the plan names before Educator Pro and the two centre
@@ -95,6 +128,8 @@ async function sendIfNeeded(
     userId: row.id,
     recipient: row.email,
     name: row.full_name,
+    // A rule with a window (went_quiet every 21 days) repeats on that window.
+    dedupeSince: since,
     metadata: { automation: true },
     context,
   });
@@ -187,6 +222,10 @@ export async function runLifecycleAutomation() {
     .lte("created_at", hoursAgo(24))
     .eq("total_stories", 0)
     .is("marketing_unsubscribed_at", null)
+    // Newest first (20 Oct 2026). Unordered, the 75 slots could fill with
+    // accounts that were already nudged, and once there are more than 75 such
+    // accounts a new signup would never get this email. Production had 44.
+    .order("created_at", { ascending: false })
     .limit(75);
 
   if (noStoryError) errors.push(noStoryError.message);
@@ -201,6 +240,8 @@ export async function runLifecycleAutomation() {
     .in("subscription_status", Array.from(ACTIVE_PAID_STATUSES))
     .lte("upgraded_at", hoursAgo(48))
     .eq("total_stories", 0)
+    // Newest paying customers first, for the same reason as above.
+    .order("upgraded_at", { ascending: false })
     .limit(75);
 
   if (paidNoUsageError) errors.push(paidNoUsageError.message);
@@ -208,10 +249,14 @@ export async function runLifecycleAutomation() {
     sent.push(await sendIfNeeded(row, "paid_no_usage_checkin"));
   }
 
+  // Not in someone's first week. A weekly tip sent hours after signup used up
+  // the weekly cap and held back the "one story left" and "out of free
+  // stories" emails that mattered (a free educator, 6 Oct 2026). WEEKLY_VALUE_MIN_AGE_DAYS.
   const { data: weeklyUsers, error: weeklyError } = await sb
     .from("profiles")
     .select(baseSelect)
     .gt("total_stories", 0)
+    .lte("created_at", daysAgo(WEEKLY_VALUE_MIN_AGE_DAYS))
     .gte("last_story_at", daysAgo(30))
     .is("marketing_unsubscribed_at", null)
     .limit(120);
@@ -284,7 +329,14 @@ export async function runLifecycleAutomation() {
     // A centre's free month may have no card behind it, and "your first
     // payment will be taken" would then be untrue, so ask Stripe.
     const centre = isCentrePlan(row.plan);
-    const context = { ...trialEndingContext(row), ...(centre ? { centreTrial: true, cardOnFile: await cardOnFile(row.stripe_customer_id) } : {}) };
+    // A referred educator's first month after the trial is free: "your first
+    // payment will be taken then" would be untrue for them.
+    const referral = centre ? null : await referralFreeMonth(row.stripe_customer_id, row.trial_ends_at);
+    const context = {
+      ...trialEndingContext(row),
+      ...(centre ? { centreTrial: true, cardOnFile: await cardOnFile(row.stripe_customer_id) } : {}),
+      ...(referral ? { firstMonthFree: true, firstChargeOn: referral.firstChargeOn } : {}),
+    };
     sent.push(await sendIfNeeded(row, "trial_ending", daysAgo(14), context));
   }
 

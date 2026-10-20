@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { redirectToLogin } from "@/lib/auth/login-redirect";
 import { ArrowRight, BookOpen, Brain, CheckCircle2, Compass, RefreshCw, Sparkles, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { buildStoryInsights } from "@/lib/story-insights";
@@ -22,7 +22,7 @@ export default async function InsightsPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) return redirectToLogin();
 
   const [{ data: stories }, { data: childProfiles }] = await Promise.all([
     supabase

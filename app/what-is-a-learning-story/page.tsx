@@ -85,6 +85,7 @@ export default function WhatIsALearningStoryPage() {
   return (
     <GuidePage>
       <GuideHero
+        tryNote
         kicker="Guide for educators"
         title={<>What is a <span className="italic text-clay-700">learning story?</span></>}
         answer={

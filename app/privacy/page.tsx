@@ -78,9 +78,9 @@ function CookieDetails() {
         <div className="rounded-2xl border border-clay-100 bg-cream-50 p-5">
           <h3 className="font-display text-lg font-bold text-ink-900">Essential only</h3>
           <p className="mt-1.5 text-sm leading-relaxed text-ink-700">
-            We count page views and the steps of signing up and paying, so we know the site works and where visitors
-            come from. Nothing about what you click or read, your screen or your device, and nothing that links one
-            visit to the next.
+            We count page views, the steps of signing up and paying, whether a free printable was downloaded and whether
+            the free demo was tried, so we know the site works and where visitors come from. Nothing else about what you
+            click or read, your screen or your device, and nothing that links one visit to the next.
           </p>
         </div>
         <div className="rounded-2xl border border-clay-100 bg-cream-50 p-5">

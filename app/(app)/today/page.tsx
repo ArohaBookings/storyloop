@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { redirectToLogin } from "@/lib/auth/login-redirect";
 import TodayLoopBoard from "@/components/app/TodayLoopBoard";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
@@ -21,7 +21,7 @@ export default async function TodayPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) return redirectToLogin();
 
   const profile = await getOrCreateProfile(user);
   const [{ data: children }, { data: stories }, { data: captures }, { count }] = await Promise.all([

@@ -54,6 +54,10 @@ type TemplateInput = {
     trialLapsed?: boolean;
     /** A centre's free month (no card asked for up front). */
     centreTrial?: boolean;
+    /** trial_ending: a referral made the first month after the trial free. */
+    firstMonthFree?: boolean;
+    /** trial_ending with firstMonthFree: the date of the first real charge. */
+    firstChargeOn?: string;
     /** Whether a card is on file; null when Stripe could not say. */
     cardOnFile?: boolean | null;
     storiesThisMonth?: number;
@@ -90,6 +94,9 @@ function esc(value: string) {
 }
 
 function url(path: string, campaign: LifecycleEmailType) {
+  // A signed-out reader of an app link (/billing, /generate) is sent to sign in
+  // and brought back by the app itself (lib/auth/login-redirect.ts), so links
+  // go straight to the page.
   const separator = path.includes("?") ? "&" : "?";
   return `${SITE_URL}${path}${separator}utm_source=storyloop_email&utm_medium=lifecycle&utm_campaign=${campaign}`;
 }
@@ -318,9 +325,9 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
       const finalStoryUrl = url("/generate", "two_free_stories_used");
       const subject = "One free StoryLoop story left";
       const lines = [
-        "You've turned two quick observations into learning stories that are ready to share — that's the slow part of the week mostly handled.",
+        "You've turned two quick observations into learning stories that are ready to share. That's the slow part of the week mostly handled.",
         "You have one free story left this month. Educator unlocks unlimited stories so documentation stops being the thing you dread. Educator Pro adds family messages, translation, and a learning thread for each child.",
-        `As an early educator, your first month is ${ACTIVATION_OFFER_LABEL} through this link.`,
+        `As an early educator, you get ${ACTIVATION_OFFER_LABEL} through this link.`,
         `Or create your final free story first: ${finalStoryUrl}`,
       ];
       return {
@@ -331,18 +338,18 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
         html: layout({
           title: "You have 1 free story left",
           preview: `A quiet ${ACTIVATION_OFFER_LABEL} offer if StoryLoop is helping.`,
-          cta: `Upgrade — ${ACTIVATION_OFFER_LABEL}`,
+          cta: `Upgrade: ${ACTIVATION_OFFER_LABEL}`,
           ctaUrl,
           unsubscribe,
           secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Not ready yet? <a href="${finalStoryUrl}" style="color:#7a4f34;font-weight:800;">Create your final free story first</a>.</p>`,
-          body: `<p>You've turned two quick observations into learning stories that are ready to share — that's <strong>the slow part of the week mostly handled</strong>.</p><p>You have <strong>one free story left</strong> this month. <strong>Educator</strong> unlocks unlimited stories so documentation stops being the thing you dread. <strong>Educator Pro</strong> adds family messages, translation, and a learning thread for each child.</p><p class="sl-callout" style="padding:12px 14px;border-radius:14px;background:#f2efe5;color:#51453d;"><strong>Early-educator offer:</strong> ${esc(ACTIVATION_OFFER_LABEL)}.</p>`,
+          body: `<p>You've turned two quick observations into learning stories that are ready to share. That's <strong>the slow part of the week mostly handled</strong>.</p><p>You have <strong>one free story left</strong> this month. <strong>Educator</strong> unlocks unlimited stories so documentation stops being the thing you dread. <strong>Educator Pro</strong> adds family messages, translation, and a learning thread for each child.</p><p class="sl-callout" style="padding:12px 14px;border-radius:14px;background:#f2efe5;color:#51453d;"><strong>Early-educator offer:</strong> ${esc(ACTIVATION_OFFER_LABEL)}.</p>`,
         }),
         text: plain({ title: subject, lines, cta: `Use ${ACTIVATION_OFFER_LABEL}`, ctaUrl, unsubscribe }),
       };
     },
     free_limit_reached: () => {
       const ctaUrl = url("/billing?offer=activation", "free_limit_reached");
-      const subject = "Your free stories are used — keep the time back";
+      const subject = "Your free stories are used: keep the time back";
       const lines = [
         "You've used your 3 free StoryLoop stories this month. If each one saved you even fifteen minutes, that's your documentation backlog starting to clear.",
         "Upgrade for unlimited stories that sound like you wrote them, with Te Whāriki and EYLF links, child voice, dispositions, and practical next steps built in.",
@@ -355,11 +362,11 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
         ctaUrl,
         html: layout({
           title: "Keep the time back",
-          preview: "Your 3 free stories are used this month — upgrade for unlimited.",
-          cta: `Upgrade — ${ACTIVATION_OFFER_LABEL}`,
+          preview: "Your 3 free stories are used this month. Upgrade for unlimited.",
+          cta: `Upgrade: ${ACTIVATION_OFFER_LABEL}`,
           ctaUrl,
           unsubscribe,
-          body: `<p>You've used your <strong>3 free StoryLoop stories</strong> this month. If each one saved you even fifteen minutes, that's your <strong>documentation backlog starting to clear</strong>.</p><p>Upgrade for unlimited stories that sound like you wrote them — with Te Whāriki and EYLF links, child voice, dispositions, and practical next steps built in.</p><p class="sl-callout" style="padding:12px 14px;border-radius:14px;background:#f2efe5;color:#51453d;"><strong>Early-educator offer:</strong> ${esc(ACTIVATION_OFFER_LABEL)}.</p>`,
+          body: `<p>You've used your <strong>3 free StoryLoop stories</strong> this month. If each one saved you even fifteen minutes, that's your <strong>documentation backlog starting to clear</strong>.</p><p>Upgrade for unlimited stories that sound like you wrote them, with Te Whāriki and EYLF links, child voice, dispositions, and practical next steps built in.</p><p class="sl-callout" style="padding:12px 14px;border-radius:14px;background:#f2efe5;color:#51453d;"><strong>Early-educator offer:</strong> ${esc(ACTIVATION_OFFER_LABEL)}.</p>`,
         }),
         text: plain({ title: subject, lines, cta: "Upgrade StoryLoop", ctaUrl, unsubscribe }),
       };
@@ -557,9 +564,12 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
       // The real date when we have it; never a guessed "in 2 days".
       const when = ctx.trialEndsOn ? `on ${ctx.trialEndsOn}` : "soon";
       const subject = `Your StoryLoop trial ends ${when}`;
+      const firstPayment = ctx.firstMonthFree
+        ? `Your free trial of ${plan} ends ${when}. Your first month after it is free too, thanks to the educator who referred you, so your first payment of ${amount} is ${ctx.firstChargeOn ? `on ${ctx.firstChargeOn}` : "a month after that"}.`
+        : `Your free trial of ${plan} ends ${when}, and your first payment of ${amount} will be taken then.`;
       const lines = [
         `Hi ${name}, a quick heads-up so nothing is a surprise.`,
-        `Your free trial of ${plan} ends ${when}, and your first payment of ${amount} will be taken then.`,
+        firstPayment,
         "If StoryLoop is not right for you, you can cancel in one click before then and you will not be charged.",
       ];
       return {
@@ -569,11 +579,11 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
         ctaUrl,
         html: layout({
           title: `Your trial ends ${esc(when)}`,
-          preview: `First payment of ${esc(amount)} — cancel any time before then.`,
+          preview: ctx.firstMonthFree ? `Your first month is free too. First payment ${ctx.firstChargeOn ? `on ${esc(ctx.firstChargeOn)}` : "a month later"}.` : `First payment of ${esc(amount)} — cancel any time before then.`,
           cta: "Manage billing",
           ctaUrl,
           secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">No action needed if you want to keep going. Everything you have written stays yours either way.</p>`,
-          body: `<p>Hi ${esc(name)}, a quick heads-up so nothing is a surprise.</p><p>Your free trial of <strong>${esc(plan)}</strong> ends <strong>${esc(when)}</strong>, and your first payment of <strong>${esc(amount)}</strong> will be taken then.</p><p>If StoryLoop is not right for you, you can cancel in one click before then and you will not be charged a cent.</p>`,
+          body: `<p>Hi ${esc(name)}, a quick heads-up so nothing is a surprise.</p><p>${esc(firstPayment)}</p><p>If StoryLoop is not right for you, you can cancel in one click before then and you will not be charged a cent.</p>`,
         }),
         text: plain({ title: subject, lines, cta: "Manage billing", ctaUrl }),
       };
@@ -877,7 +887,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
           cta: "Write one story",
           ctaUrl,
           unsubscribe,
-          secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">If you are just between terms, you can pause your plan from Billing rather than cancelling.</p>`,
+          secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">If you are just between terms, reply and tell us. We can pause your payments for a month or two rather than you cancelling.</p>`,
           body: `<p>Hi ${esc(name)},</p>${
             stories
               ? `<p>You wrote <strong>${stories} learning stories</strong> and then it went quiet.</p>`
@@ -925,11 +935,11 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
     referral_invite: () => {
       const ctaUrl = url("/support", "referral_invite");
       const code = ctx.referralCode;
-      const subject = "Give an educator 10% off, get a free month";
+      const subject = "Give an educator a free month, get one yourself";
       const lines = [
         `Hi ${name}, if StoryLoop is saving you time, there is a good chance someone in your team could use it too.`,
         code ? `Your code is ${code}.` : "Your referral code is in the app.",
-        "They get 10% off their first month. You get a free month once they subscribe, up to five.",
+        "They get their first month free. You get a free month when they make their first payment, up to five.",
       ];
       return {
         emailType: "referral_invite",
@@ -937,7 +947,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
         marketing: true,
         ctaUrl,
         html: layout({
-          title: "Give 10% off, get a free month",
+          title: "Give a free month, get a free month",
           preview: "Share StoryLoop with another educator.",
           cta: "Get your referral link",
           ctaUrl,
@@ -945,7 +955,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
           secondary: code
             ? `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Your code: <strong>${esc(code)}</strong></p>`
             : undefined,
-          body: `<p>Hi ${esc(name)}, if StoryLoop is saving you time, chances are someone in your team or centre could use it too.</p><p>Share your code and <strong>they get 10% off their first month</strong>. Once they subscribe, <strong>you get a whole month free</strong>, up to five months in total.</p><p>No catch, and nothing to claim. The credit lands on your account by itself.</p>`,
+          body: `<p>Hi ${esc(name)}, if StoryLoop is saving you time, chances are someone in your team or centre could use it too.</p><p>Share your code and <strong>they get their first month free</strong>. When they make their first payment, <strong>you get a whole month free</strong>, up to five months in total.</p><p>No catch, and nothing to claim. The credit lands on your account by itself.</p>`,
         }),
         text: plain({ title: subject, lines, cta: "Get your referral link", ctaUrl, unsubscribe }),
       };

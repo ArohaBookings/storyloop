@@ -130,7 +130,7 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
       "Unlimited learning stories",
       "Voice notes and uploads",
       "Wall cards, children's own words, learning passport and pickup brief",
-      "Export packs for Storypark, Educa, Kinderloop, Brightwheel",
+      "Export packs for the main documentation platforms",
       `Quill writing assistant (${EDUCATOR_ASSISTANT_MONTHLY} refines a month)`,
     ],
     features: [
@@ -145,7 +145,7 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
       "Learning passport: a portable record a family keeps, that works without StoryLoop",
       "Pickup brief: the specific true thing to say about each child before the door opens",
       "What you came back to: the next steps you revisited and kept, gathered from your own stories",
-      "Export packs for Storypark, Educa, Kinderloop, Brightwheel",
+      "Export packs for the main documentation platforms",
       "Backlog Rescue",
       "Learning threads",
       "Basic privacy guard",

@@ -5,7 +5,10 @@ import Image from "next/image";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { safeRedirectPath } from "@/lib/safe-redirect";
+import { shouldForward } from "@/lib/auth/forward-guard";
 import SignInLinkForm from "@/components/auth/SignInLinkForm";
+import GoogleButton from "@/components/auth/GoogleButton";
+import { googleSignInEnabled } from "@/lib/auth/oauth";
 
 const DEFAULT_REDIRECT = "/dashboard";
 
@@ -17,6 +20,7 @@ export default function LoginPage() {
   const [redirect, setRedirect] = useState(DEFAULT_REDIRECT);
   const [notice, setNotice] = useState("");
   const [useLink, setUseLink] = useState(false);
+  const [googleOn, setGoogleOn] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -27,6 +31,15 @@ export default function LoginPage() {
       setNotice("That sign-in link has been used or has expired. Sign in below, or get a new link.");
       setUseLink(true);
     }
+    const oauth = params.get("oauth");
+    if (oauth === "failed") {
+      setNotice("Google sign-in didn't finish. Try again, or sign in with your email.");
+    } else if (oauth === "cancelled") {
+      setNotice("Google sign-in was cancelled. Try again, or sign in with your email.");
+    } else if (oauth === "different") {
+      setNotice("No new account was set up. Sign in with the email you used for StoryLoop, or choose that Google account.");
+    }
+    googleSignInEnabled().then(setGoogleOn).catch(() => {});
     if (params.get("disabled") === "1") {
       setNotice("This account has been disabled. Contact support if you think this is a mistake.");
     }
@@ -37,7 +50,9 @@ export default function LoginPage() {
     if (nextPath && !params.get("disabled") && !params.get("link")) {
       const target = safeRedirectPath(nextPath);
       supabase.auth.getUser().then(({ data }) => {
-        if (data.user) window.location.replace(target);
+        let storage: Storage | null = null;
+        try { storage = window.sessionStorage; } catch { storage = null; }
+        if (data.user && shouldForward(target, storage)) window.location.replace(target);
       }).catch(() => {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -48,7 +63,13 @@ export default function LoginPage() {
     setLoading(true); setError("");
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      setError(error.message);
+      // Supabase says "Invalid login credentials" for a wrong password and for
+      // an account that only ever used Google. Say what to do about both.
+      setError(
+        /invalid login credentials/i.test(error.message)
+          ? `That email and password don't match.${googleOn ? " If you signed up with Google, use Continue with Google above." : ""} Or reset your password below.`
+          : error.message,
+      );
       setLoading(false);
       return;
     }
@@ -88,6 +109,7 @@ export default function LoginPage() {
           <h1 className="font-display text-2xl font-bold text-ink-900 mb-1">Welcome back</h1>
           <p className="text-sm text-ink-500 mb-6">Sign in to keep drafting, editing, and saving learning stories.</p>
 
+          <GoogleButton intent="login" next={redirect} />
           <form onSubmit={handleLogin} className="space-y-4">
             {notice && <div className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">{notice}</div>}
             <div><label className="label" htmlFor="login-email">Email</label><input id="login-email" type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" className="input" /></div>

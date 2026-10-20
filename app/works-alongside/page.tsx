@@ -3,17 +3,17 @@ import Link from "next/link";
 import { GuideCta, GuideFaq, GuideFigure, GuideHero, GuidePage, GuideSection, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 
 export const metadata: Metadata = {
-  title: { absolute: "StoryLoop works with Storypark, Educa and Kinderloop" },
+  title: { absolute: "StoryLoop works with the platform your centre already uses" },
   description:
-    "Write and check learning stories in StoryLoop, then share them wherever your families already are: Storypark, Educa, Kinderloop or Brightwheel.",
+    "Write and check learning stories in StoryLoop, then share them through the app your families already use. Nothing has to move, and nothing changes for families.",
   alternates: { canonical: "https://storyloop.space/works-alongside" },
-  openGraph: { title: "StoryLoop works with Storypark, Educa and Kinderloop", description: "Write it in StoryLoop, share it wherever your families already are.", url: "https://storyloop.space/works-alongside", type: "article" },
+  openGraph: { title: "StoryLoop works with the platform your centre already uses", description: "Write it in StoryLoop, share it wherever your families already are.", url: "https://storyloop.space/works-alongside", type: "article" },
 };
 
 const STEPS = [
   ["Jot the note, or say it", "Straight after the moment, on your phone or a computer: a few quick points or a voice memo. Add the child's first name and age if you like."],
   ["Read the draft and make it yours", "StoryLoop writes the story, the learning, the curriculum links and where to next. Every child's quote is checked against your note, and anything it assumed is listed. Edit anything, or ask Quill to change a line."],
-  ["Copy it, or use an export pack", "Copy puts the whole story on your clipboard. On paid plans, export packs rearrange the same story into the sections Storypark, Educa, Kinderloop or Brightwheel usually use."],
+  ["Copy it, or use an export pack", "Copy puts the whole story on your clipboard. On paid plans, export packs rearrange the same story into the sections the common platforms use."],
   ["Paste it into your platform and publish", "Open a new story in your platform, paste, add your photos there, tag the child and publish exactly as you do now. Families see it where they always have."],
 ];
 
@@ -26,15 +26,16 @@ const WHERE = [
 
 const FAQS = [
   {
-    q: "Does StoryLoop connect directly to Storypark?",
+    q: "Does StoryLoop post straight into my centre's platform?",
     a: "Not directly: there is no automatic posting. That is deliberate, because nothing should publish to families without an educator reading it first. Copy and paste takes a few seconds, and export packs format it for each platform.",
   },
   {
-    q: "Is StoryLoop a Storypark alternative?",
+    q: "Do we have to switch platforms?",
     a: (
       <>
-        For learning stories, it can be: writing, checking, following each child&apos;s learning and sharing with families.
-        It does not host a family photo feed yet. See <Link href="/storypark-alternative" className="font-semibold text-clay-700 underline">StoryLoop or Storypark?</Link>
+        No. Families keep the app they already have. And if your centre wants one home for its learning stories, each
+        child&apos;s learning over time, family versions and wall cards, StoryLoop can be that too. See{" "}
+        <Link href="/for-centres" className="font-semibold text-clay-700 underline">StoryLoop for centres</Link>.
       </>
     ),
   },
@@ -44,7 +45,7 @@ const FAQS = [
   },
   {
     q: "What about Xplor, Playground, Kidsoft or another platform?",
-    a: "Anything with a text box works the same way: copy, paste, add photos, publish. Export packs are tailored to Storypark, Educa, Kinderloop and Brightwheel; for others, the plain copy works well.",
+    a: "Anything with a text box works the same way: copy, paste, add photos, publish. Export packs are tailored to Educa, Kinderloop, Brightwheel and Storypark; for others, the plain copy works well.",
   },
   {
     q: "Do families need to do anything?",
@@ -57,11 +58,11 @@ export default function WorksAlongsidePage() {
     <GuidePage>
       <GuideHero
         kicker="Works with your platform"
-        title={<>Works with <span className="italic text-clay-700">Storypark, Educa and Kinderloop</span></>}
+        title={<>Works with <span className="italic text-clay-700">the platform you already use</span></>}
         answer={
           <p>
             Write the learning story in StoryLoop from a quick note or voice memo, check it, then share it wherever your
-            families already are: Storypark, Educa, Kinderloop or Brightwheel, with your photos added there as usual. You
+            families already are, with your photos added there as usual. You
             can start on your own today, and your centre can bring its learning stories into StoryLoop whenever it is ready.
           </p>
         }
@@ -114,7 +115,7 @@ export default function WorksAlongsidePage() {
       </GuideSection>
 
       <GuideCta heading="Write this week's stories in StoryLoop, share them where your families already are" />
-      <RelatedGuides links={[RELATED.vsStorypark, RELATED.aiTools, RELATED.educators, RELATED.centres, RELATED.safety, RELATED.examples]} />
+      <RelatedGuides links={[RELATED.aiTools, RELATED.educators, RELATED.centres, RELATED.safety, RELATED.examples]} />
     </GuidePage>
   );
 }

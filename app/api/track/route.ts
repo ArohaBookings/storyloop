@@ -19,8 +19,30 @@ const ALLOWED_EVENTS = new Set([
   "demo_limit",
   "signup_view",
   "signup_submitted",
+  // Why a signup was refused (a reason code and HTTP status, never the email
+  // or password). Until Oct 2026 refusals were invisible: people reached the
+  // form and left, and nobody could say whether the form stopped them.
+  "signup_error",
   "signup_completed",
+  // "Continue with Google" (20 Oct 2026): started, failed (a stage, never an
+  // email), an existing account signed in or newly linked, and a new Google
+  // email that turned out to be the wrong account. Funnel steps.
+  "oauth_started",
+  "oauth_error",
+  "oauth_signed_in",
+  "oauth_linked",
+  "oauth_new_declined",
   "cta_click",
+  // A printable PDF was opened (metadata.which). A funnel step, so it is
+  // counted without the analytics cookie: until Oct 2026 downloads were only
+  // visible for the third of visitors who allowed it, and people who took the
+  // PDF and left looked like bounces.
+  "printable_download",
+  // The TLDS / transition / end-of-year draft on three guides (19 Oct 2026),
+  // named apart from demo_* so the learning-story demo's figures stay its own.
+  "transition_demo_started",
+  "transition_demo_completed",
+  "transition_demo_error",
   // What people do on a page, from EngagementTracker.
   "click",
   "scroll_depth",
