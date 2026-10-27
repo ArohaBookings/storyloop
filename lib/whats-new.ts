@@ -6,8 +6,30 @@
  */
 export const WHATS_NEW_VERSION = "2026-10";
 
+/**
+ * The day these notes were published (NZ). Bump it together with the version
+ * whenever the notes are rewritten.
+ */
+export const WHATS_NEW_PUBLISHED = "2026-09-23";
+
+/**
+ * How long a set of notes stays news. After this the card is not shown to
+ * anyone, however long they have been away: "What arrived in September" read
+ * in November is old news, not a welcome back. Leo, 28 Oct 2026: it should not
+ * show again unless it has been updated with the new stuff.
+ */
+export const WHATS_NEW_SHOW_DAYS = 21;
+
 /** Stories somebody must have written before a release note is worth showing. */
 export const WHATS_NEW_MIN_STORIES = 1;
+
+/** Whether the current notes are still recent enough to show. */
+export function whatsNewIsFresh(now: Date = new Date()) {
+  const published = Date.parse(`${WHATS_NEW_PUBLISHED}T00:00:00+12:00`);
+  if (Number.isNaN(published)) return false;
+  const elapsed = now.getTime() - published;
+  return elapsed >= 0 && elapsed < WHATS_NEW_SHOW_DAYS * 86_400_000;
+}
 
 /**
  * Whether to show the card.
@@ -19,10 +41,12 @@ export const WHATS_NEW_MIN_STORIES = 1;
  *
  * Re-enabled with that lesson kept rather than forgotten: a release note is
  * only shown to somebody who has actually written a story. A person who has
- * not used the product yet does not need to hear what changed in it.
+ * not used the product yet does not need to hear what changed in it. And only
+ * while the notes are recent (WHATS_NEW_SHOW_DAYS).
  */
-export function shouldShowWhatsNew(seenVersion: string | null | undefined, storiesWritten: number) {
+export function shouldShowWhatsNew(seenVersion: string | null | undefined, storiesWritten: number, now: Date = new Date()) {
   if (storiesWritten < WHATS_NEW_MIN_STORIES) return false;
+  if (!whatsNewIsFresh(now)) return false;
   return seenVersion !== WHATS_NEW_VERSION;
 }
 
