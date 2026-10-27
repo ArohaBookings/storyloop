@@ -1684,9 +1684,9 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
   "observation-methods-early-childhood": {
     slug: "observation-methods-early-childhood",
-    title: "Observation methods in early childhood, with examples",
+    title: "Observation Methods in Early Childhood: Types and Examples",
     description:
-      "Jottings, anecdotal records, running records, learning stories, photos and work samples, checklists and time samples: what each is for, with short examples.",
+      "Jottings, anecdotal records, running records, learning stories, work samples, checklists, time and event samples: what each is for, with worked examples.",
     kicker: "Observation and documentation",
     heading: "Observation methods: which one, and when.",
     intro:
@@ -1736,6 +1736,11 @@ export const SEO_PAGES: Record<string, SeoPage> = {
           "An anecdotal record is a short account of one significant moment, written after it happens. A running record captures everything, continuously, over a set time while you watch.",
       },
       {
+        question: "What does a running record look like?",
+        answer:
+          "Timed lines written while you watch, in the present tense, with the child's exact words: \"10:02 Ari stands at the edge of the sandpit holding a spade. 10:03 Walks to Jess, says 'I dig too?' Jess keeps digging. 10:04 Ari starts digging beside her.\" Interpretation goes in a separate section afterwards.",
+      },
+      {
         question: "How is a learning story different from an anecdotal record?",
         answer:
           "An anecdotal record states what happened. A learning story tells it as a story, usually to the child or family, and adds what learning you noticed and what you will do next, so it is also assessment and planning.",
@@ -1751,7 +1756,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
           "Describe what the child did and said, in order, before any interpretation: \"Sam stacked five blocks, the sixth fell, he said 'too wobbly' and moved the bottom one\" rather than \"Sam was frustrated but persistent\". Interpretation comes after, and separately.",
       },
     ],
-    reviewedAt: "2026-09-29",
+    reviewedAt: "2026-10-28",
     sources: [
       { label: "ACECQA: Standard 1.3, Assessment and planning", url: "https://www.acecqa.gov.au/national-quality-framework/guide-nqf/section-3-national-quality-standard-and-assessment-and-rating/quality-area-1-educational-program-and-practice/standard-13-assessment-and-planning" },
       { label: "Te Whāriki Online: assessment, planning and evaluation", url: "https://tewhariki.tahurangi.education.govt.nz/te-whariki-online/assessment-planning-and-evaluation/5637165598.p" },

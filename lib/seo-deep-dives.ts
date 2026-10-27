@@ -105,6 +105,23 @@ export const SEO_DEEP_DIVES: Record<string, Array<{ heading: string; paragraphs:
   ],
   "observation-methods-early-childhood": [
     {
+      heading: "One moment, three ways: jotting, anecdotal record and running record",
+      paragraphs: [
+        "Jotting, written in the moment: \"Ari, 10:02, sandpit edge, asked Jess 'I dig too?', joined after 2 min.\" A few words to jog your memory later the same day.",
+        "Anecdotal record, written soon after: \"Ari stood at the edge of the sandpit holding a spade, watching Jess dig. After about a minute he walked over and asked, 'I dig too?' Jess did not answer and kept digging. Ari waited, then started digging beside her. Two minutes later Jess passed him the bucket.\" One significant moment, in order, in the past tense, with his exact words.",
+        "Running record, written while you watch, for a set time: \"10:00 Ari at the sandpit edge, spade in right hand, watching Jess. 10:01 Moves one step closer, taps spade on the wooden edge. 10:02 Says 'I dig too?' to Jess. Jess keeps digging, no reply. 10:03 Ari squats, digs a small hole beside Jess's hole. 10:04 Jess pushes the bucket towards him. Ari fills it, says 'more sand'. 10:05 Both dig, no talk, Ari smiling.\" Everything, continuously, in the present tense. It shows a pattern the anecdotal record skips: how Ari waits and edges in before he joins.",
+        "Which to use: the anecdotal record when something significant happens, the running record when you want to understand how a child goes about something, such as joining play. Either can become a learning story later, with the learning you noticed and what you will do next.",
+      ],
+    },
+    {
+      heading: "Time sample and event sample examples",
+      paragraphs: [
+        "Time sample: note what one child is doing at set intervals, for example every 10 minutes across a morning. \"9:00 puzzles, alone. 9:10 puzzles, alone. 9:20 home corner with Mia. 9:30 home corner with Mia and Zac.\" Useful for questions like where a child spends their time and with whom.",
+        "Event sample: record each time a particular thing happens, with what came before and after. \"11:15 Snatched a car from Leo. Before: Leo took the garage. After: Leo cried, educator offered a second car.\" Useful for understanding a behaviour you want to support, because the before and after usually explain it.",
+        "Both answer a question; neither describes the whole child. Pair them with richer records such as anecdotal records or learning stories.",
+      ],
+    },
+    {
       heading: "Write what you saw before what it means",
       paragraphs: [
         "The most useful observations separate facts from interpretation. Facts are what a child did and said, in order, with their exact words in quotes. Interpretation, what learning you think it shows, comes after and separately. \"Ana poured water into three cups and said 'this one's the most'\" can be checked by anyone; \"Ana understands volume\" cannot.",
