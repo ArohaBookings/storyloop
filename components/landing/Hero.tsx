@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { ArrowRight, Layers, Quote, ShieldCheck } from "lucide-react";
 import StoryDemo from "./StoryDemo";
+import HeroProof from "./HeroProof";
 
 /**
  * The three things a 120-visitor simulated panel (scripts/site-eval, 23 Sept
@@ -52,10 +53,16 @@ export default function Hero() {
               <span className="scribble-underline italic text-clay-700">9pm</span>?
             </h1>
 
-            <p className="animate-fade-up-1 mx-auto mt-5 max-w-xl text-base leading-relaxed text-ink-600 md:text-lg lg:mx-0">
+            {/* Oct 2026: on a phone the first screen shows the result itself (a real
+                note and the real story it became) instead of describing it; half of
+                visitors left within 6 seconds without scrolling. See HeroProof. */}
+            <p className="animate-fade-up-1 mx-auto mt-5 hidden max-w-xl text-base leading-relaxed text-ink-600 md:text-lg lg:mx-0 lg:block">
               Jot a quick note after play. StoryLoop drafts the learning story, curriculum links included. You check
               every word.
             </p>
+            <div className="animate-fade-up-1 lg:hidden">
+              <HeroProof />
+            </div>
 
             {/* Oct 2026: the free button says what free is, and the second
                 button invites their own note. With a monthly price as the

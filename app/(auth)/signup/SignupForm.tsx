@@ -11,6 +11,7 @@ import GoogleButton from "@/components/auth/GoogleButton";
 import { googleSignInEnabled } from "@/lib/auth/oauth";
 import { suggestEmailFix } from "@/lib/email-typo";
 import { reportSignupConversion } from "@/lib/analytics/google-ads";
+import { takeHumanPass, warmHumanPass } from "@/lib/auth/human-pass-client";
 
 function normaliseCurrency(value: string | null): CurrencyCode {
   return value === "NZD" ? "NZD" : "AUD";
@@ -72,10 +73,15 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
     }
     captureAttribution();
     track("signup_view");
+    // The quiet check (lib/auth/human-pass.ts): earned in the background while
+    // they fill in the form, so nobody waits and nobody sees a puzzle.
+    warmHumanPass();
   }, []);
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // Read before any await: React clears currentTarget once the handler yields.
+    const website = e.currentTarget.querySelector<HTMLInputElement>('input[name="website"]')?.value ?? "";
     track("signup_submitted", { plan });
     if (password.length < 6) {
       setError("Password must be at least 6 characters");
@@ -85,26 +91,36 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
     }
     setLoading(true); setError(""); setErrorField(null);
     try {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-          plan,
-          accessCode,
-          referralCode,
-          attribution: { ...getAttribution(), sessionId: getSessionId() },
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
+      const send = async () => {
+        const human = await takeHumanPass();
+        const response = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            email,
+            password,
+            plan,
+            accessCode,
+            referralCode,
+            attribution: { ...getAttribution(), sessionId: getSessionId() },
+            ...(human ?? {}),
+            website,
+          }),
+        });
+        return { res: response, data: await response.json().catch(() => ({})) };
+      };
+      let { res, data } = await send();
+      // A pass can go stale (a laptop asleep on the signup page); a real person
+      // never sees that: earn a fresh one quietly and try once more.
+      if (!res.ok && (data.code === "human_check_failed" || data.code === "human_check_reused")) ({ res, data } = await send());
       if (!res.ok) {
         // A reason code and status only: never the email or the password.
         track("signup_error", { code: typeof data.code === "string" ? data.code : "unknown", status: res.status, plan });
         setError(data.error ?? "Your account wasn't created. Please try again.");
         setErrorField(data.field === "password" ? "password" : data.code === "email_exists" ? "exists" : null);
         setLoading(false);
+        warmHumanPass(); // ready for their next try
         return;
       }
       track("signup_completed", { plan });
@@ -258,7 +274,13 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
             referralCode={referralCode || null}
             accessCode={accessCode || null}
           />
-          <form onSubmit={handleSignup} className="space-y-4">
+          <form onSubmit={handleSignup} className="relative space-y-4">
+            {/* The quiet check's trap (lib/auth/human-pass.ts): invisible, skipped by the
+                keyboard and hidden from screen readers, so only a bot fills it. */}
+            <div aria-hidden="true" className="pointer-events-none absolute left-0 top-0 h-px w-px overflow-hidden opacity-0">
+              <label htmlFor="signup-website">Website</label>
+              <input id="signup-website" name="website" type="text" tabIndex={-1} autoComplete="off" defaultValue="" />
+            </div>
             <div><label htmlFor="signup-name" className="label">Your name</label><input id="signup-name" value={name} onChange={e => setName(e.target.value)} required autoComplete="name" className="input" placeholder="Jane Smith" /></div>
             <div>
               <label htmlFor="signup-email" className="label">Email</label>

@@ -2026,10 +2026,16 @@ for (const page of Object.values(INTERNATIONAL_PAGES)) {
   SEO_PAGES[page.slug] = { ...page, faqs: [...page.faqs, ...sharedFaqs] };
 }
 
+// AI assistant guides (Copilot, Gemini, prompt library), 27 Oct 2026.
+import { AI_ASSISTANT_DEEP_DIVES, AI_ASSISTANT_PAGES } from "./seo-pages-ai-assistants";
+for (const page of Object.values(AI_ASSISTANT_PAGES)) {
+  SEO_PAGES[page.slug] = { ...page, faqs: [...page.faqs, ...sharedFaqs] };
+}
+
 // Attach long-form bodies to the pages that have them. Kept separate so the
 // heavy prose lives in its own file and this one stays a readable index.
 import { SEO_DEEP_DIVES } from "./seo-deep-dives";
-for (const [slug, deepDive] of Object.entries({ ...SEO_DEEP_DIVES, ...OCT_2026_DEEP_DIVES, ...INTERNATIONAL_DEEP_DIVES })) {
+for (const [slug, deepDive] of Object.entries({ ...SEO_DEEP_DIVES, ...OCT_2026_DEEP_DIVES, ...INTERNATIONAL_DEEP_DIVES, ...AI_ASSISTANT_DEEP_DIVES })) {
   if (SEO_PAGES[slug]) {
     SEO_PAGES[slug].deepDive = deepDive;
   }

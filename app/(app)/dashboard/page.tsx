@@ -12,6 +12,7 @@ import DashboardInsights, { topCurriculumLinks, type DashboardInsightsData } fro
 import { PRO_MONTH_OFFER_ID, longDay } from "@/lib/offers";
 import TrackOnce from "@/components/analytics/TrackOnce";
 import AdsPaidConversion from "@/components/analytics/AdsPaidConversion";
+import QuietPayerNudge from "@/components/app/QuietPayerNudge";
 
 /** Stories, and days since the first, before StoryLoop asks for a review. */
 const REVIEW_ASK_MIN_STORIES = 4;
@@ -41,6 +42,12 @@ export default async function DashboardPage({
 
   const firstName = profile?.full_name?.split(" ")[0] ?? "there";
   const plan = profile?.plan ?? "free";
+  // A paying educator who has gone quiet gets an in-app offer of a hand (never
+  // an email): last story 14+ days ago, or none at all. See QuietPayerNudge.
+  const lastStoryAt = recentStories?.[0]?.created_at ? new Date(recentStories[0].created_at).getTime() : null;
+  const daysSinceStory = lastStoryAt === null ? null : Math.floor((Date.now() - lastStoryAt) / 86_400_000);
+  const payingNow = plan !== "free" && ["active", "trialing", "past_due"].includes(profile?.subscription_status ?? "");
+  const showQuietNudge = payingNow && (daysSinceStory === null || daysSinceStory >= 14);
   const used = profile?.stories_this_month ?? 0;
   const limit = getMonthlyStoryLimit(profile ?? {});
   const remaining = getRemainingStories(profile ?? {});
@@ -154,6 +161,7 @@ export default async function DashboardPage({
         </div>
       )}
 
+      {showQuietNudge && !upgraded && <QuietPayerNudge firstName={firstName} daysSince={daysSinceStory} />}
       {upgraded && !startedCentre && (
         <div className="mb-6 rounded-3xl border border-sage-200 bg-gradient-to-br from-sage-50 via-white to-cream-50 p-5 shadow-warm animate-fade-up">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

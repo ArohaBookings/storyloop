@@ -10,6 +10,8 @@ import { sendLifecycleEmail } from "@/lib/email/send";
 import { fbcFromClick, metaConfigured, sendMetaEvent } from "@/lib/meta-capi";
 import { SITE_URL } from "@/lib/email/config";
 import { PWNED_PASSWORD_MESSAGE, pwnedCount, shouldRefusePassword } from "@/lib/pwned-passwords";
+import { verifyPass } from "@/lib/auth/human-pass";
+import { DISPOSABLE_EMAIL_MESSAGE, isDisposableEmail } from "@/lib/auth/disposable-email";
 
 const ALLOWED_PLANS = new Set(["free", "educator", "centre"]);
 
@@ -29,6 +31,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    // The quiet check, part 1 (lib/auth/human-pass.ts): a field people never
+    // see. Only a bot filling every input puts anything in it.
+    if (typeof body.website === "string" && body.website.trim() !== "") {
+      return NextResponse.json({ error: "Your account wasn't created. Please refresh the page and try again.", code: "bot_check" }, { status: 400 });
+    }
     const name = typeof body.name === "string" ? body.name.trim() : "";
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
     const password = typeof body.password === "string" ? body.password : "";
@@ -49,6 +56,21 @@ export async function POST(request: NextRequest) {
     // commonly leaked passwords are still refused just below).
     if (password.length < 6) {
       return NextResponse.json({ error: "Password must be at least 6 characters", code: "short_password" }, { status: 400 });
+    }
+
+    if (isDisposableEmail(email)) {
+      return NextResponse.json({ error: DISPOSABLE_EMAIL_MESSAGE, field: "email", code: "disposable_email" }, { status: 400 });
+    }
+
+    // The quiet check, part 2: a pass the signup page earned in the
+    // background, signed here, with a small proof of work, used once.
+    const pass = verifyPass(body.humanPass, body.humanProof);
+    if (!pass.ok) {
+      return NextResponse.json({ error: "Your account wasn't created. Please refresh the page and try again.", code: "human_check_failed", reason: pass.reason }, { status: 400 });
+    }
+    const passUnused = await consumeRateLimit({ scope: "human-pass-used", key: pass.nonce, limit: 1, windowSeconds: 3 * 60 * 60 });
+    if (!passUnused) {
+      return NextResponse.json({ error: "Your account wasn't created. Please refresh the page and try again.", code: "human_check_reused" }, { status: 400 });
     }
 
     // A commonly breached password is refused (see shouldRefusePassword); an

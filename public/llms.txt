@@ -38,6 +38,9 @@ Early childhood educators and teachers in New Zealand and Australia, and now Eng
 - Free printables (EYLF outcomes, EYLF principles and practices, Te Whāriki outcomes and principles, EYFS, Aistear, blank learning story templates): https://storyloop.space/eylf-learning-outcomes , https://storyloop.space/te-whariki-learning-outcomes-guide , https://storyloop.space/learning-story-template
 - Real learning story examples: https://storyloop.space/examples
 - Accuracy testing, published openly: https://storyloop.space/accuracy
+- Using general AI assistants for learning stories (privacy and accuracy, with safer prompts): ChatGPT https://storyloop.space/chatgpt-for-learning-stories , Microsoft Copilot https://storyloop.space/copilot-for-learning-stories , Google Gemini https://storyloop.space/gemini-for-learning-stories
+- Copy-and-paste AI prompts for learning stories (Te Whāriki and EYLF V2.0): https://storyloop.space/ai-prompts-for-learning-stories
+- Transition to school statements (Victoria TLDS, NSW, Queensland): https://storyloop.space/transition-to-school-statement , https://storyloop.space/tlds-examples
 - England (EYFS): https://storyloop.space/eyfs-learning-stories
 - Ireland (Aistear): https://storyloop.space/aistear-learning-stories
 - Pricing: https://storyloop.space/pricing

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowDown, ArrowLeft, Sparkles } from "lucide-react";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import PageTracker from "@/components/analytics/PageTracker";
+import GuideProof from "@/components/marketing/GuideProof";
 import { getPublishedPost, listPublishedPosts, renderMarkdown, readingMinutes, plainSummary } from "@/lib/blog";
 
 export const revalidate = 300;
@@ -49,6 +50,13 @@ export default async function BlogPostPage({ params }: Params) {
   if (!post) notFound();
 
   const others = (await listPublishedPosts(4)).filter((p) => p.slug !== post.slug).slice(0, 3);
+  // Microsoft Copilot cited these posts 269 times from 1 to 24 Oct 2026 (202 of
+  // them this site's learning story examples post), yet the 61 visits that
+  // began on a post in the 60 days to 27 Oct reached signup 0 times: the post
+  // ended in a button, with no product to see. So educators get what the guides
+  // have: a real note and the real draft, then their own note, no signup. Posts
+  // written for families (tagged "parent") keep the plain ending.
+  const forFamilies = post.tags.some((tag) => /parent|famil/i.test(tag));
   const url = `https://storyloop.space/blog/${post.slug}`;
 
   // Article schema so search engines and answer engines can attribute and cite
@@ -91,6 +99,15 @@ export default async function BlogPostPage({ params }: Params) {
               <p className="mt-4 text-xs text-ink-500">
                 {formatDate(post.published_at)} · {readingMinutes(post.body_markdown)} min read · {post.author_name}
               </p>
+              {!forFamilies && (
+                <a
+                  href="#try"
+                  className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-cream-100 px-4 py-2 text-sm font-semibold text-clay-800 hover:bg-cream-200"
+                  data-track="blog_try_jump"
+                >
+                  Try it on your own note, no signup <ArrowDown className="h-3.5 w-3.5" />
+                </a>
+              )}
             </div>
 
             <div
@@ -98,33 +115,37 @@ export default async function BlogPostPage({ params }: Params) {
               dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body_markdown) }}
             />
 
-            <div className="mt-12 rounded-3xl border border-clay-200 bg-gradient-to-br from-cream-50 via-white to-sage-50 p-6 text-center md:p-8">
-              <h2 className="font-display text-2xl font-bold text-ink-900">Stop starting from a blank page.</h2>
-              <p className="mx-auto mt-2 max-w-lg text-sm text-ink-600">
-                Turn a rough note or a voice memo into an editable learning story draft with Te Whāriki or EYLF
-                links already mapped. You review and edit every word.
-              </p>
-              <Link href="/signup" className="btn-primary mt-5">
-                <Sparkles className="h-4 w-4" /> Try 3 stories free
-              </Link>
-              <p className="mt-2 text-xs text-ink-500">No credit card required.</p>
-            </div>
-
-            {others.length > 0 && (
-              <div className="mt-14">
-                <p className="section-title mb-4">Keep reading</p>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  {others.map((other) => (
-                    <Link key={other.id} href={`/blog/${other.slug}`} className="card p-4 transition-all hover:border-clay-300">
-                      <p className="mb-1 text-xl" aria-hidden="true">{other.cover_emoji ?? "📝"}</p>
-                      <p className="font-display text-sm font-bold leading-snug text-ink-900">{other.title}</p>
-                    </Link>
-                  ))}
-                </div>
+            {forFamilies && (
+              <div className="mt-12 rounded-3xl border border-clay-200 bg-gradient-to-br from-cream-50 via-white to-sage-50 p-6 text-center md:p-8">
+                <h2 className="font-display text-2xl font-bold text-ink-900">Stop starting from a blank page.</h2>
+                <p className="mx-auto mt-2 max-w-lg text-sm text-ink-600">
+                  Turn a rough note or a voice memo into an editable learning story draft with Te Whāriki or EYLF
+                  links already mapped. You review and edit every word.
+                </p>
+                <Link href="/signup" className="btn-primary mt-5">
+                  <Sparkles className="h-4 w-4" /> Try 3 stories free
+                </Link>
+                <p className="mt-2 text-xs text-ink-500">No credit card required.</p>
               </div>
             )}
           </div>
         </article>
+
+        {!forFamilies && <GuideProof framework={post.region === "AU" ? "AU" : "NZ"} demo="visitor" />}
+
+        {others.length > 0 && (
+          <div className="mx-auto w-full max-w-3xl px-4 py-14 sm:px-6">
+            <p className="section-title mb-4">Keep reading</p>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {others.map((other) => (
+                <Link key={other.id} href={`/blog/${other.slug}`} className="card p-4 transition-all hover:border-clay-300">
+                  <p className="mb-1 text-xl" aria-hidden="true">{other.cover_emoji ?? "📝"}</p>
+                  <p className="font-display text-sm font-bold leading-snug text-ink-900">{other.title}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
       <Footer />
     </div>

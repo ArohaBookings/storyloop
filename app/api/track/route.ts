@@ -60,6 +60,11 @@ const ALLOWED_EVENTS = new Set([
   "demo_evidence_opened",
   // The cookie banner answer itself, so the admin can see the allow rate.
   "consent_choice",
+  // In-app offer of a hand to quiet paying educators (components/app/QuietPayerNudge.tsx).
+  "quiet_nudge_view",
+  "quiet_nudge_write",
+  "quiet_nudge_help",
+  "quiet_nudge_dismiss",
   // Only with consent (see BEHAVIOUR_EVENTS below).
   "rage_click",
   "copy",

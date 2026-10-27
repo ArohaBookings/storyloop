@@ -240,6 +240,9 @@ export const RELATED = {
   nextSteps: { href: "/learning-story-next-steps-examples", title: "Next steps examples", body: "12 real “where to next” sections, and why each one works." },
   chatgpt: { href: "/chatgpt-for-learning-stories", title: "ChatGPT for learning stories?", body: "What the NZ and Australian privacy regulators say, and a safer way." },
   howLong: { href: "/how-long-should-a-learning-story-take", title: "How long should a story take?", body: "Why the blank page costs more than the writing, and what to do about it." },
+  copilot: { href: "/copilot-for-learning-stories", title: "Microsoft Copilot for learning stories?", body: "Personal or work account, what happens to the note, and a safer way." },
+  gemini: { href: "/gemini-for-learning-stories", title: "Google Gemini for learning stories?", body: "What Google's terms say for personal and Workspace accounts." },
+  prompts: { href: "/ai-prompts-for-learning-stories", title: "AI prompts for learning stories", body: "Seven copy-and-paste prompts for Te Whāriki and EYLF V2.0." },
 } as const;
 
 export type RelatedKey = keyof typeof RELATED;
