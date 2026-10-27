@@ -1,10 +1,10 @@
 /**
  * A responsible-AI documentation policy an early childhood service can adopt.
  *
- * Why this exists: in Storypark's own 2025 sector research, 54% of ECE
- * organisations had no AI policy at all, and the most common concern about AI
- * was not ethics or privacy but lack of training and clear guidelines. Over 60%
- * of educators were already using tools like ChatGPT, mostly quietly. A policy
+ * Why this exists: 2025 sector research found 54% of ECE organisations had no
+ * AI policy at all, and the most common concern about AI was not ethics or
+ * privacy but lack of training and clear guidelines. Over 60% of educators were
+ * already using general AI chatbots, mostly quietly. A policy
  * a director can adopt in ten minutes turns that quiet use into sanctioned use.
  *
  * DETERMINISTIC ON PURPOSE. Every sentence comes from this file. There is no

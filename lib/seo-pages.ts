@@ -43,92 +43,6 @@ const sharedFaqs = [
 ];
 
 export const SEO_PAGES: Record<string, SeoPage> = {
-  // Highest-intent query in the market and we had nothing for it. Written to
-  // be fair: Storypark is a good product and this page does not pretend
-  // otherwise. The honest position is that a centre does not have to choose,
-  // which is also the only position we can defend now that Storypark ships its
-  // own AI. Answers are kept short and self-contained so an answer engine can
-  // lift one cleanly.
-  "storypark-alternative": {
-    slug: "storypark-alternative",
-    image: { src: "/images/scenes/kitchen.jpg", alt: "An educator at home reading a StoryLoop learning story draft on her laptop", position: "62% 50%" },
-    title: "Storypark Alternative for Learning Stories",
-    description:
-      "StoryLoop and Storypark compared for learning stories in NZ and Australia: what each does, what each costs, and what switching looks like.",
-    kicker: "StoryLoop or Storypark?",
-    heading: "A Storypark alternative built around the learning story.",
-    intro:
-      "Storypark is a family communication platform that has added AI. StoryLoop is built around the learning story itself: it drafts the story from a quick note in seconds, keeps every child's words exactly, links Te Whāriki or EYLF V2.0 only where the note supports it, follows each child's learning over time, and gives families the story in plain words and their own language. Here is an honest comparison.",
-    sections: [
-      {
-        title: "What StoryLoop is built for",
-        body:
-          "The part of documentation that takes the time: turning what you saw into a story with the learning, the curriculum links and where to next. A note or a voice memo becomes a checked draft in about 16 seconds, every child's quote is checked against the note, and anything the draft assumed is listed for the educator. Every release is tested and the results are public on the accuracy report.",
-      },
-      {
-        title: "What families get",
-        body:
-          "A version of the story in plain words with a question to ask at home, wall cards beside a display that families scan at pickup and read in English or ten other languages, and on Educator Pro, translation of a family version. Wall cards carry no names, photographs or dates.",
-      },
-      {
-        title: "What StoryLoop does not do yet",
-        body:
-          "It does not host a family photo and video feed, family logins, enrolments, attendance or messaging. If your centre relies on those today, plan for them before switching everything. Any StoryLoop story exports in one tap, so nothing is ever stuck.",
-      },
-      {
-        title: "What each one costs",
-        body:
-          "Storypark is priced per child: NZ$1.79 a month per child prepaid annually or NZ$1.89 paid monthly, with a base rate for the first 15 children, so a 60-child centre pays roughly NZ$107 to NZ$113 a month (checked 13 October 2026). StoryLoop is free for 3 stories a month, NZ$21 a month for an individual educator, or NZ$109 a month for a centre team of up to 10 educators with unlimited children. Check both against your own roll.",
-      },
-      {
-        title: "Switching",
-        body:
-          "An educator can start today on their own, with no centre account and no card for the free plan. A centre can move its learning stories as a team on a Centre plan, with a free trial first. Past stories stay in Storypark's archive; new stories start in StoryLoop.",
-      },
-      {
-        title: "Both use AI now",
-        body:
-          "Storypark added AI drafting through Storypark Assist in April 2026. The difference is focus: StoryLoop's whole design is the story, from children's own words kept exactly, to a public accuracy test, to learning followed across a child's stories.",
-      },
-    ],
-    faqs: [
-      {
-        question: "Can StoryLoop replace Storypark?",
-        answer:
-          "For writing, checking and sharing learning stories, yes. It does not host a family photo and video feed, enrolments or messaging yet, so check what your centre relies on before switching everything.",
-      },
-      {
-        question: "Can I use StoryLoop if my centre already pays for Storypark?",
-        answer:
-          "Yes. An educator can use StoryLoop on their own with no change to the centre's systems, and any story exports in one tap. Many start that way before their centre moves as a team.",
-      },
-      {
-        question: "Does Storypark have AI learning stories?",
-        answer:
-          "Yes. Storypark released Storypark Assist in April 2026, which drafts and reviews learning stories inside the platform. The practical differences are focus, price model (per child versus per team) and who can buy it.",
-      },
-      {
-        question: "Which is cheaper, StoryLoop or Storypark?",
-        answer:
-          "It depends on your roll, because Storypark charges per child and StoryLoop charges per educator or per team. A 60-child centre pays roughly NZ$107 a month for Storypark; a StoryLoop Centre plan is NZ$109 a month for up to 10 educators with unlimited children. Work both out against your own numbers.",
-      },
-      {
-        question: "What is the best Storypark alternative for a home-based educator?",
-        answer:
-          "Home-based educators are usually poorly served by platforms priced per child with service minimums. StoryLoop can be bought by one educator for NZ$21 a month, or used free for 3 stories a month.",
-      },
-      {
-        question: "Will my learning stories still meet Te Whāriki or EYLF requirements?",
-        answer:
-          "The curriculum links come from your observation. StoryLoop maps drafts to Te Whāriki strands or EYLF V2.0 outcomes and names why each link fits, and the educator confirms or changes it before anything is shared.",
-      },
-    ],
-    reviewedAt: "2026-09-24",
-    sources: [
-      { label: "Storypark pricing", url: "https://main.storypark.com/pricing" },
-      { label: "AI at Storypark", url: "https://www.storypark.com/lp/ai-at-storypark" },
-    ],
-  },
 
   // Question-shaped rather than comparison-shaped on purpose. A low-authority
   // domain does not win head terms, but it can be the best passage-level answer
@@ -167,7 +81,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       {
         title: "Where StoryLoop fits",
         body:
-          "StoryLoop turns a rough note or a voice memo into an editable draft with curriculum links already mapped, so the blank page is gone and the specifics are still sharp. You review and edit every word, and the draft exports into Storypark, Educa, Kinderloop or Brightwheel rather than replacing whatever your centre already runs on. The free plan includes three stories a month with no credit card.",
+          "StoryLoop turns a rough note or a voice memo into an editable draft with curriculum links already mapped, so the blank page is gone and the specifics are still sharp. You review and edit every word, then paste it wherever your families read stories, in one tap. The free plan includes three stories a month with no credit card.",
       },
     ],
     faqs: [
@@ -271,9 +185,9 @@ export const SEO_PAGES: Record<string, SeoPage> = {
           "Not on a flat centre plan. StoryLoop centre plans cover unlimited children, so the monthly figure does not change with your roll. Platforms that bill per child do increase as you enrol.",
       },
       {
-        question: "Can StoryLoop replace Storypark or Educa for learning stories?",
+        question: "Can StoryLoop handle all of our learning stories?",
         answer:
-          "For writing, checking and sharing learning stories, yes, and it charges per team with unlimited children rather than per child. It does not host a family photo and video feed or enrolment records yet, so check what your centre relies on before switching everything.",
+          "Yes. Writing, checking, following each child's learning across stories and sharing with families, for one price per team with unlimited children rather than a fee per child.",
       },
       {
         question: "Can management read what educators write?",
@@ -661,33 +575,6 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       ...sharedFaqs,
     ],
   },
-  "storypark-educa-export-packs": {
-    slug: "storypark-educa-export-packs",
-    title: "Export Learning Stories to Storypark or Educa",
-    description:
-      "Turn one educator-reviewed learning story into copy-ready formats for Storypark, Educa, Kinderloop, and Brightwheel.",
-    kicker: "Export packs",
-    heading: "Keep your current documentation platform and improve the draft before you paste.",
-    intro:
-      "StoryLoop is designed to sit beside the systems educators already use. Export packs rearrange one story into platform-friendly sections without locking centres into a new publishing workflow.",
-    sections: [
-      {
-        title: "Built to reduce switching friction",
-        body:
-          "Educators can draft in StoryLoop, review the quality and privacy checks, then copy the structure that best fits Storypark, Educa, Kinderloop, or Brightwheel.",
-      },
-      {
-        title: "Different formats, same educator judgement",
-        body:
-          "The export pack changes section order and family wording. It does not auto-publish or bypass teacher review.",
-      },
-    ],
-    faqs: [
-      { question: "Does StoryLoop replace Storypark or Educa?", answer: "No. It can work as a drafting and quality layer before educators paste into their existing platform." },
-      { question: "Can I still edit before copying?", answer: "Yes. The story remains editable before it is copied or downloaded." },
-      ...sharedFaqs,
-    ],
-  },
   "ece-documentation-radar": {
     slug: "ece-documentation-radar",
     title: "ECE Documentation Radar for Early Childhood Centres",
@@ -908,7 +795,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       // cut to the seven questions a visitor is actually deciding on.
       { question: "Do I need to write a learning story every day?", answer: "No. A captured moment can become a story, be held for planning, or be archived. Not every observation needs formal documentation, and StoryLoop is built around that judgement." },
       { question: "What is Today Loop?", answer: "Today Loop is a daily observation inbox. It surfaces up to three prompts from your own unfinished moments, open next steps and story history, then lets you capture a real moment and decide later whether it needs a story, a planning response, or nothing." },
-      { question: "Can StoryLoop replace Storypark or Educa?", answer: "For learning stories, yes: writing, checking, following each child's learning and sharing with families. It does not replace attendance, incident, consent, billing or regulatory record systems, or host a family photo feed yet." },
+      { question: "Can StoryLoop handle all of our learning stories?", answer: "Yes: writing, checking, following each child's learning across stories and sharing with families, for one price per team with unlimited children." },
       { question: "What about children's privacy?", answer: "Your observations are not used to train AI models. StoryLoop never keeps children's voice recordings. Wall cards shared with families carry no names, photographs or dates. Nothing is shared until you choose to." },
       { question: "What does a centre plan cost?", answer: "Centre Starter covers up to 10 educators and unlimited children for NZ$109 or A$99 a month. Centre Growth covers up to 25 educators for NZ$219 or A$199. There is no per-child fee, and plans start with a 7-day free trial." },
       { question: "Will it put words in the child's mouth?", answer: "Never. A child's quoted words are kept exactly as you wrote them, spelling and all, because how a two-year-old actually said it is the evidence. If you did not record a quote, the story does not invent one." },
@@ -975,9 +862,11 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   // not verify are not described, only pointed back to their department.
   "transition-to-school-statement": {
     slug: "transition-to-school-statement",
-    title: "Transition to School Statement: Examples and Requirements",
+    // 27 Oct 2026: 583 impressions in a week at peak season; searchers type
+    // "transition statement examples 2026" and "nsw" / "qld" / "tlds".
+    title: "Transition to School Statement Examples 2026 (VIC, NSW, QLD)",
     description:
-      "Example wording for a transition to school statement, what Victoria (TLDS), NSW and Queensland require, and how New Zealand differs.",
+      "Example wording for a 2026 transition to school statement, what Victoria (TLDS), NSW and Queensland ask for, and a draft from your own notes.",
     kicker: "Educator guide · Term 4",
     heading: "Write a transition statement from a year of noticing, not a week of remembering.",
     intro:
@@ -1404,10 +1293,6 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       {
         label: "Google Search Central: Helpful, people-first content",
         url: "https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
-      },
-      {
-        label: "Storypark: Responsible AI and child data safeguards",
-        url: "https://blog.storypark.com/2025/02/how-storypark-ai-has-been-designed-to-help-educators-safeguard-childrens-data/",
       },
     ],
   },
@@ -2026,16 +1911,10 @@ for (const page of Object.values(INTERNATIONAL_PAGES)) {
   SEO_PAGES[page.slug] = { ...page, faqs: [...page.faqs, ...sharedFaqs] };
 }
 
-// AI assistant guides (Copilot, Gemini, prompt library), 27 Oct 2026.
-import { AI_ASSISTANT_DEEP_DIVES, AI_ASSISTANT_PAGES } from "./seo-pages-ai-assistants";
-for (const page of Object.values(AI_ASSISTANT_PAGES)) {
-  SEO_PAGES[page.slug] = { ...page, faqs: [...page.faqs, ...sharedFaqs] };
-}
-
 // Attach long-form bodies to the pages that have them. Kept separate so the
 // heavy prose lives in its own file and this one stays a readable index.
 import { SEO_DEEP_DIVES } from "./seo-deep-dives";
-for (const [slug, deepDive] of Object.entries({ ...SEO_DEEP_DIVES, ...OCT_2026_DEEP_DIVES, ...INTERNATIONAL_DEEP_DIVES, ...AI_ASSISTANT_DEEP_DIVES })) {
+for (const [slug, deepDive] of Object.entries({ ...SEO_DEEP_DIVES, ...OCT_2026_DEEP_DIVES, ...INTERNATIONAL_DEEP_DIVES })) {
   if (SEO_PAGES[slug]) {
     SEO_PAGES[slug].deepDive = deepDive;
   }

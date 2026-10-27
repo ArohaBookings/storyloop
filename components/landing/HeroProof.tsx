@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowDown, ArrowRight } from "lucide-react";
-import { HERO_PROOFS } from "@/lib/hero-proofs";
+import { HERO_PROOFS, heroRegionForZone, type HeroRegion } from "@/lib/hero-proofs";
 
 /**
  * The first-screen proof on a phone (27 Oct 2026).
@@ -19,15 +19,15 @@ import { HERO_PROOFS } from "@/lib/hero-proofs";
  * people stay on longest.
  *
  * Australian visitors see an EYLF example, New Zealand visitors a Te Whāriki
- * one (by the device's time zone; the card keeps the same size either way).
+ * one, England EYFS and Ireland Aistear (by the device's time zone; the card
+ * keeps the same size either way).
  */
 
 export default function HeroProof() {
-  const [region, setRegion] = useState<"AU" | "NZ">("AU");
+  const [region, setRegion] = useState<HeroRegion>("AU");
   useEffect(() => {
     try {
-      const zone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
-      if (zone === "Pacific/Auckland" || zone === "Pacific/Chatham") setRegion("NZ");
+      setRegion(heroRegionForZone(Intl.DateTimeFormat().resolvedOptions().timeZone ?? ""));
     } catch {
       /* keep the default */
     }
@@ -45,7 +45,7 @@ export default function HeroProof() {
         StoryLoop writes, in about 20 seconds
       </p>
       <Link
-        href={`/examples#${item.slug}`}
+        href={item.href}
         className="mt-2 block rounded-2xl border border-clay-200 bg-white px-4 py-3 shadow-[0_14px_30px_-22px_rgba(74,52,34,0.6)]"
         data-track="home_hero_proof"
       >

@@ -18,18 +18,28 @@ const SAMPLE =
 const FRAMEWORK_LABEL: Record<TransitionMode, Record<TransitionFramework, string>> = {
   transition: {
     VEYLDF: "Victoria (TLDS, VEYLDF outcomes)",
-    EYLF: "NSW, Queensland or other (EYLF V2.0 outcomes)",
+    EYLF: "NSW or another state (EYLF V2.0 outcomes)",
+    QKLG: "Queensland (kindergarten transition statement, QKLG areas)",
     TW: "Aotearoa (Te Whāriki strands)",
   },
   summary: {
     VEYLDF: "Victoria (VEYLDF outcomes)",
     EYLF: "Australia (EYLF V2.0 outcomes)",
+    QKLG: "Queensland (QKLG areas)",
     TW: "Aotearoa (Te Whāriki strands)",
   },
 };
 
+// The first year of school is Prep in Victoria and Queensland, Kindergarten in
+// NSW and Reception or Pre-primary elsewhere, so the EYLF label names no year.
+const STRATEGY_LABEL: Record<TransitionFramework, string> = {
+  VEYLDF: "Strategy for the Prep teacher",
+  EYLF: "Strategy for the school teacher",
+  QKLG: "Suggestion for continuity",
+  TW: "Strategy for the new entrant teacher",
+};
 const strategyLabelFor = (framework: TransitionFramework, mode: TransitionMode) =>
-  mode === "summary" ? "Next step" : framework === "TW" ? "Strategy for the new entrant teacher" : "Strategy for the Prep teacher";
+  mode === "summary" ? "Next step" : STRATEGY_LABEL[framework];
 
 export default function TransitionDemo({
   framework: initialFramework,

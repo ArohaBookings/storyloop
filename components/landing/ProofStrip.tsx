@@ -6,10 +6,7 @@ import { BookOpenCheck, Layers } from "lucide-react";
  *
  * First, that the problem is real and measured by somebody other than us: the
  * only independent, peer-reviewed number on the page (n=570, not vendor
- * research). Second, that trying StoryLoop does not mean a fight with their
- * centre: it sits beside Storypark, Educa or Kinderloop, it does not replace
- * them. Storypark shipped its own AI in April 2026, so "switch platforms" is a
- * fight worth never starting.
+ * research). Second, that it is built for their curriculum and their families.
  */
 export default function ProofStrip() {
   return (

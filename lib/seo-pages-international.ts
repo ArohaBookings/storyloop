@@ -264,7 +264,7 @@ export const INTERNATIONAL_DEEP_DIVES: Record<string, Block[]> = {
       heading: "Using StoryLoop in an English setting",
       paragraphs: [
         "Choose EYFS · England on the story page. StoryLoop writes in British English, links to the seven areas and the characteristics only where your note supports them, and flags anything it had to assume so you can check it. It will not use Australian or New Zealand framework language in an EYFS draft.",
-        "The finished text copies into whatever your setting already uses for learning journals. StoryLoop does not connect directly to Tapestry, Famly or any other app, so it is a copy and paste.",
+        "The finished text copies into whatever your setting already uses for learning journals in one tap, so there is nothing to switch and nothing to set up.",
         "Stories are stored in Sydney, Australia, and are never used to train AI models. If your setting needs records kept in the UK, check with whoever handles data protection for you before using full names.",
       ],
     },

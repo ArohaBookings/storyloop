@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { createAdminSupabase } from "@/lib/supabase/admin";
-import { GUIDE_TOPICS, autoWritableTopics, unsupportedCitations, unwrittenTopics, type GuideTopic } from "@/lib/blog-topics";
+import { GUIDE_TOPICS, autoWritableTopics, rivalNames, unsupportedCitations, unwrittenTopics, type GuideTopic } from "@/lib/blog-topics";
 import { slugify } from "@/lib/blog";
 
 const MODEL = process.env.OPENAI_BLOG_MODEL ?? "gpt-5.4-mini";
@@ -24,6 +24,7 @@ NEVER DO THIS
 - Do not open with a definition of the topic.
 - Do not end with a summary paragraph that repeats what you just said.
 - Do not mention StoryLoop more than once, and only if it is genuinely relevant. This is a guide, not an advert.
+- Never name any other product, platform, app or AI tool (no documentation platforms, no chatbots). Say "your centre's platform" or "a general AI chatbot" instead.
 - Do not invent statistics, percentages, studies, or quotes from named people. If you want to make a numeric point, phrase it as observation ("most educators we talk to") rather than fake data.
 - Do not state any law, regulation, licensing criterion, funding rule or official requirement, and do not cite an Act, section, regulation, standard or element by name or number, unless it appears in VERIFIED FACTS. Where a rule matters and none is given, tell the reader to check their regulator's current guidance.
 
@@ -137,6 +138,8 @@ Remember: no em dashes anywhere, no invented statistics, and at most one mention
   if (/[—–]/.test(body) || /[—–]/.test(title)) return { ok: false, reason: "em_dash_survived_scrub" };
   const citations = unsupportedCitations(`${title}\n${body}`, topic.facts);
   if (citations.length) return { ok: false, reason: `unsupported_citations: ${citations.slice(0, 3).join("; ")}` };
+  const rivals = rivalNames(`${title}\n${body}`);
+  if (rivals.length) return { ok: false, reason: `names_other_products: ${rivals.slice(0, 3).join("; ")}` };
 
   if (options.dryRun) {
     return { ok: true, slug: topic.slug, title, words };

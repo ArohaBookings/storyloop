@@ -39,7 +39,7 @@ const FAQS = [
     a: (
       <>
         Yes. You can start on your own today (check your centre&apos;s policy on children&apos;s information first), and any story pastes into your centre&apos;s
-        platform in one tap. See <Link href="/works-alongside" className="font-semibold text-clay-700 underline">how it works with your platform</Link>.
+        platform in one tap. Nothing has to change for anyone else, and nothing is shared until you choose.
       </>
     ),
   },
@@ -121,7 +121,7 @@ export default function ForEducatorsPage() {
       </GuideSection>
 
       <GuideCta />
-      <RelatedGuides links={[RELATED.alongside, RELATED.aiTools, RELATED.examples, RELATED.template, RELATED.whatIs, RELATED.safety]} />
+      <RelatedGuides links={[RELATED.generator, RELATED.examples, RELATED.template, RELATED.whatIs, RELATED.safety, RELATED.accuracy]} />
     </GuidePage>
   );
 }

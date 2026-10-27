@@ -24,7 +24,7 @@ function clientIp(request: NextRequest) {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? request.headers.get("x-real-ip") ?? "unknown";
 }
 
-const FRAMEWORKS = new Set<TransitionFramework>(["VEYLDF", "EYLF", "TW"]);
+const FRAMEWORKS = new Set<TransitionFramework>(["VEYLDF", "EYLF", "QKLG", "TW"]);
 // Spend ceiling for this public endpoint across everyone, per day. Real use is
 // a handful a day; this only bites if something goes wrong.
 const DAILY_LIMIT = 200;

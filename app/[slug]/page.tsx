@@ -43,6 +43,9 @@ const AU_SLUGS = new Set([
   "eylf-principles-and-practices",
   "eylf-v2-changes",
   "tlds-examples",
+  "summative-assessment-examples",
+  "nsw-transition-to-school-statement",
+  "qld-kindergarten-transition-statement",
 ]);
 // Aotearoa-only guides: their "try your own note" draft is always Te Whāriki.
 // Every other guide that is not in AU_SLUGS serves both countries, so the
@@ -76,7 +79,7 @@ const TRANSITION_DEMOS: Record<string, {
   "transition-to-school-statement": {
     framework: "EYLF",
     mode: "transition",
-    choices: ["VEYLDF", "EYLF", "TW"],
+    choices: ["VEYLDF", "EYLF", "QKLG", "TW"],
     button: "Draft a transition statement from your notes, no signup",
     heading: "Draft the outcomes from your own notes",
     intro: "Pick where you teach and paste what you have documented about one child. StoryLoop drafts what your notes show for each outcome and a strategy the school teacher can use, from your notes. It is told to write only from what you give it and to leave an outcome for you when your notes show nothing.",
@@ -88,6 +91,28 @@ const TRANSITION_DEMOS: Record<string, {
     button: "Draft an end-of-year summary from your notes, no signup",
     heading: "Draft a summary from your own notes",
     intro: "Paste a few moments you documented about one child this year. StoryLoop drafts what they show for each outcome and a next step, from your notes. It is told to write only from what you give it and to leave an outcome for you when your notes show nothing.",
+  },
+  "nsw-transition-to-school-statement": {
+    framework: "EYLF",
+    mode: "transition",
+    button: "Draft the outcomes from your notes, no signup",
+    heading: "Draft the learning and development section from your notes",
+    intro: "Paste what you have documented about one child. StoryLoop drafts what your notes show for each of the five EYLF V2.0 outcomes and a strategy the Kindergarten teacher can use, from your notes. It is told to write only from what you give it and to leave an outcome for you when your notes show nothing.",
+  },
+  "qld-kindergarten-transition-statement": {
+    framework: "QKLG",
+    mode: "transition",
+    button: "Draft the five areas from your notes, no signup",
+    heading: "Draft the five QKLG areas from your notes",
+    intro: "Paste what you have documented about one child. StoryLoop drafts what your notes show for identity, connectedness, wellbeing, active learning and communicating, with a suggestion for continuity for each, from your notes. It is told to write only from what you give it and to leave an area for you when your notes show nothing.",
+  },
+  "summative-assessment-examples": {
+    framework: "EYLF",
+    mode: "summary",
+    choices: ["EYLF", "VEYLDF"],
+    button: "Draft a summative assessment from your notes, no signup",
+    heading: "Draft a summative assessment from your own notes",
+    intro: "Paste three or four dated moments you documented about one child this term. StoryLoop drafts what they show for each outcome and a next step, from your notes. It is told to write only from what you give it and to leave an outcome for you when your notes show nothing.",
   },
 };
 // Pages with their own job: prices first, or a list of answers.

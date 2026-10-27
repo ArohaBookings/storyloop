@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BookOpen, FileCheck, School, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, FileCheck, School, ShieldCheck } from "lucide-react";
 import Navbar from "@/components/landing/Navbar";
 import PageTracker from "@/components/analytics/PageTracker";
 import Footer from "@/components/landing/Footer";
@@ -13,13 +13,6 @@ export const metadata: Metadata = {
 };
 
 const GUIDES = [
-  {
-    href: "/ai-tools-for-learning-stories",
-    kicker: "Every educator · New",
-    title: "AI tools for learning stories, compared",
-    description: "StoryLoop, ChatGPT, Mana and the platform add-ons: who can buy each, the published prices, and what the AI really does.",
-    icon: Sparkles,
-  },
   {
     href: "/what-is-a-learning-story",
     kicker: "Every educator · New",
@@ -47,13 +40,6 @@ const GUIDES = [
     title: "Learning story examples, 3 to 5 years",
     description: "Seven real notes and drafts, from waiata to marble runs, with the curriculum link and what makes each one strong.",
     icon: BookOpen,
-  },
-  {
-    href: "/chatgpt-for-learning-stories",
-    kicker: "Every educator · New",
-    title: "Can you use ChatGPT for learning stories?",
-    description: "What the NZ and Australian privacy regulators say, a safer way to use a general chatbot, and where they go wrong.",
-    icon: Sparkles,
   },
   {
     href: "/eylf-learning-outcomes",
@@ -152,6 +138,27 @@ const GUIDES = [
     title: "TLDS examples",
     description: "What each section of the Transition Learning and Development Statement asks for, with intentional teaching strategies for all five outcomes.",
     icon: School,
+  },
+  {
+    href: "/nsw-transition-to-school-statement",
+    kicker: "NSW · Term 4",
+    title: "NSW Transition to School Statement",
+    description: "Each section of the digital statement, example wording for every EYLF outcome, and a draft of yours from your notes.",
+    icon: School,
+  },
+  {
+    href: "/qld-kindergarten-transition-statement",
+    kicker: "Queensland · November",
+    title: "QLD kindergarten transition statement",
+    description: "Consent forms 1 and 2, the KTS app, the five QKLG areas with example wording, and a draft of yours from your notes.",
+    icon: School,
+  },
+  {
+    href: "/summative-assessment-examples",
+    kicker: "Australia · Term 4",
+    title: "Summative assessment examples",
+    description: "Three worked examples built from dated observations, a structure to copy, and a draft of yours from your notes.",
+    icon: FileCheck,
   },
   {
     href: "/end-of-year-learning-summary",

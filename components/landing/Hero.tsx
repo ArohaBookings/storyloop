@@ -8,7 +8,7 @@ import HeroProof from "./HeroProof";
  * The three things a 120-visitor simulated panel (scripts/site-eval, 23 Sept
  * 2026) said stopped them trusting the page in the first ten seconds: will it
  * change what children said, what happens to children's data, and does it
- * mean leaving Storypark. Each answered in one line, with the proof one click
+ * mean a fight with the centre's systems. Each answered in one line, with the proof one click
  * away. "Built by Leo, 20" was the single most repeated hesitation at the
  * decision point, so the founder story moved to its own section further down,
  * where it reads as a reason to trust rather than a reason to doubt.
@@ -16,7 +16,7 @@ import HeroProof from "./HeroProof";
 const TRUST = [
   { icon: Quote, text: "Children's words kept exactly. See the test results", href: "/accuracy" },
   { icon: ShieldCheck, text: "Stored in Sydney, never used to train AI", href: "/safety" },
-  { icon: Layers, text: "Works with the platform your centre already uses", href: "/works-alongside" },
+  { icon: Layers, text: "Pastes into the app your centre already uses", href: "/features#families" },
 ];
 
 /**

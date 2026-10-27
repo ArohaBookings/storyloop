@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { autoWritableTopics, GUIDE_TOPICS, unsupportedCitations } from "../lib/blog-topics";
+import { autoWritableTopics, GUIDE_TOPICS, rivalNames, unsupportedCitations } from "../lib/blog-topics";
 
 test("the scheduled writer never takes regulatory or already-covered topics", () => {
   const slugs = autoWritableTopics([]).map((t) => t.slug);
@@ -53,4 +53,16 @@ test("the blog cron is scheduled and publishes on GET, which is how Vercel calls
   const route = readFileSync(new URL("../app/api/cron/blog/route.ts", import.meta.url), "utf8");
   assert.match(route, /export async function GET[\s\S]*publishNext\(\)/);
   assert.match(route, /dryRun/);
+});
+
+test("a draft that names another product or an AI chatbot is never published", () => {
+  assert.deepEqual(rivalNames("Paste it into Storypark or ChatGPT."), ["storypark", "chatgpt"]);
+  assert.deepEqual(rivalNames("Try Microsoft Copilot, Google Gemini or Story Park."), ["copilot", "gemini", "story park"]);
+  assert.deepEqual(rivalNames("Your centre's platform, a general AI chatbot, Te Whāriki and the EYLF."), []);
+  // Ordinary words that only look close are fine.
+  assert.deepEqual(rivalNames("The playground, educators, education and a park visit."), []);
+  // Nothing in the backlog asks for a comparison or a guide to another tool.
+  for (const topic of GUIDE_TOPICS) {
+    assert.deepEqual(rivalNames(`${topic.title} ${topic.angle} ${topic.keywords.join(" ")}`), [], topic.slug);
+  }
 });

@@ -38,9 +38,8 @@ Early childhood educators and teachers in New Zealand and Australia, and now Eng
 - Free printables (EYLF outcomes, EYLF principles and practices, Te Whāriki outcomes and principles, EYFS, Aistear, blank learning story templates): https://storyloop.space/eylf-learning-outcomes , https://storyloop.space/te-whariki-learning-outcomes-guide , https://storyloop.space/learning-story-template
 - Real learning story examples: https://storyloop.space/examples
 - Accuracy testing, published openly: https://storyloop.space/accuracy
-- Using general AI assistants for learning stories (privacy and accuracy, with safer prompts): ChatGPT https://storyloop.space/chatgpt-for-learning-stories , Microsoft Copilot https://storyloop.space/copilot-for-learning-stories , Google Gemini https://storyloop.space/gemini-for-learning-stories
-- Copy-and-paste AI prompts for learning stories (Te Whāriki and EYLF V2.0): https://storyloop.space/ai-prompts-for-learning-stories
-- Transition to school statements (Victoria TLDS, NSW, Queensland): https://storyloop.space/transition-to-school-statement , https://storyloop.space/tlds-examples
+- Transition to school statements, with a free draft from your own notes (Victoria TLDS, NSW, Queensland): https://storyloop.space/transition-to-school-statement , https://storyloop.space/tlds-examples , https://storyloop.space/nsw-transition-to-school-statement , https://storyloop.space/qld-kindergarten-transition-statement
+- Summative assessment examples (EYLF V2.0), with a free draft from your own notes: https://storyloop.space/summative-assessment-examples
 - England (EYFS): https://storyloop.space/eyfs-learning-stories
 - Ireland (Aistear): https://storyloop.space/aistear-learning-stories
 - Pricing: https://storyloop.space/pricing
@@ -61,7 +60,7 @@ StoryLoop is built by Leo, founder, based in Christchurch (Ōtautahi), Aotearoa 
 ## Where StoryLoop fits
 
 - StoryLoop is the writing and evidence engine for educators. It turns a quick observation into a learning story that keeps the child's words exactly as written, links the curriculum only where the observation supports it, and lists anything it had to assume.
-- It works with whatever platform a centre already runs. Finished stories paste into Educa, Kinderloop, Brightwheel, Storypark, Xplor or any text box, with export packs for the common ones. Nothing has to move.
+- Finished stories paste into the app a centre already uses in one tap, with export layouts ready made. Nothing has to move, and one educator can start today.
 - One educator can start the same day with no new systems, within their centre's policy on children's information. Centres pay one price for the whole team, from NZ$109 or A$99 a month for 10 educators, with unlimited children.
 - Home-based educators, relieving teachers and student teachers are a core fit.
 - The mission is "Everyone seen. Every story true." StoryLoop starts with early childhood documentation and is building toward every stage of a learner's education.

@@ -15,10 +15,21 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/examplesIf", destination: "/examples", permanent: true },
-      { source: "/ai-tools-for-learning-storiesFull", destination: "/ai-tools-for-learning-stories", permanent: true },
+      { source: "/ai-tools-for-learning-storiesFull", destination: "/learning-story-generator", permanent: true },
       { source: "/learning-story-templateStoryLoop", destination: "/learning-story-template", permanent: true },
       { source: "/observation-methods-early-childhoodThere:rest(.*)", destination: "/observation-methods-early-childhood", permanent: true },
       { source: "/ero-early-childhood-regulation-2026Disclosure", destination: "/ero-early-childhood-regulation-2026", permanent: true },
+      // Retired 27 Oct 2026. StoryLoop's pages sell StoryLoop: no guides to other
+      // AI tools, no comparisons, no "works alongside" a rival. Anyone arriving
+      // from an old link or search result lands on what StoryLoop does instead.
+      { source: "/chatgpt-for-learning-stories", destination: "/learning-story-generator", permanent: true },
+      { source: "/copilot-for-learning-stories", destination: "/learning-story-generator", permanent: true },
+      { source: "/gemini-for-learning-stories", destination: "/learning-story-generator", permanent: true },
+      { source: "/ai-prompts-for-learning-stories", destination: "/learning-story-generator", permanent: true },
+      { source: "/ai-tools-for-learning-stories", destination: "/learning-story-generator", permanent: true },
+      { source: "/works-alongside", destination: "/for-educators", permanent: true },
+      { source: "/storypark-alternative", destination: "/for-centres", permanent: true },
+      { source: "/storypark-educa-export-packs", destination: "/features", permanent: true },
     ];
   },
   async headers() {

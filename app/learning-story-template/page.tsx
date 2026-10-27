@@ -66,7 +66,7 @@ const FAQS = [
     a: (
       <>
         Yes. The template is plain text, so it pastes into any story editor. Or let StoryLoop fill it in from your
-        note: <Link href="/works-alongside" className="font-semibold text-clay-700 underline">how StoryLoop works with your platform</Link>
+        note: <Link href="/learning-story-generator" className="font-semibold text-clay-700 underline">turn a quick note into a full learning story</Link>
       </>
     ),
   },

@@ -224,14 +224,6 @@ export const GUIDE_TOPICS: GuideTopic[] = [
     intent: "commercial", region: "both", category: "article",
     keywords: ["ai learning stories", "ai early childhood documentation", "is ai ethical education"],
   },
-  {
-    slug: "storypark-alternatives-comparison",
-    title: "Storypark, Educa and Kinderloop: what each is actually for",
-    angle: "A genuinely fair comparison including where each competitor is stronger. Fairness is what makes it rank and what makes it trusted.",
-    intent: "commercial", region: "both", category: "article",
-    keywords: ["storypark alternative", "educa vs storypark", "kinderloop comparison"],
-    manualOnly: "Covered by the hand-written /storypark-alternative page, and competitor prices must never be guessed.",
-  },
 ];
 
 /** Topics that have not been published yet. */
@@ -267,4 +259,14 @@ export function unsupportedCitations(body: string, facts: string[] = []): string
     }
   }
   return [...found];
+}
+
+/**
+ * Other products named in a draft. StoryLoop's pages sell StoryLoop: a guide
+ * that names a rival platform or a general AI chatbot sends the reader to it
+ * (Leo, 27 Oct 2026). Any match blocks publishing.
+ */
+const RIVAL_NAMES = /\b(story ?park|educa|kinderloop|xplor|playground app|brightwheel|famly|tapestry|kindiecloud|makemana|loveheart|little narratives|kidsoft|qikkids|lillio|hikidz|chat ?gpt|openai|copilot|gemini|claude|perplexity|grok|deepseek|magicschool)\b/gi;
+export function rivalNames(text: string): string[] {
+  return Array.from(new Set((text.match(RIVAL_NAMES) ?? []).map((name) => name.toLowerCase())));
 }

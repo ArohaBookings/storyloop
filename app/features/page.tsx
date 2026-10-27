@@ -203,7 +203,7 @@ export default function FeaturesPage() {
       </section>
 
       <GuideCta />
-      <RelatedGuides links={[RELATED.educators, RELATED.centres, RELATED.aiTools, RELATED.accuracy, RELATED.safety, RELATED.alongside]} />
+      <RelatedGuides links={[RELATED.educators, RELATED.centres, RELATED.generator, RELATED.accuracy, RELATED.safety, RELATED.examples]} />
     </GuidePage>
   );
 }

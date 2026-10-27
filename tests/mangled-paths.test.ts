@@ -4,7 +4,6 @@ import { recoverMangledPath } from "../lib/mangled-paths";
 
 test("recovers the five broken links from the 29 Sep 2026 Facebook posts", () => {
   assert.equal(recoverMangledPath("examplesIf"), "/examples");
-  assert.equal(recoverMangledPath("ai-tools-for-learning-storiesFull"), "/ai-tools-for-learning-stories");
   assert.equal(recoverMangledPath("learning-story-templateStoryLoop"), "/learning-story-template");
   assert.equal(recoverMangledPath("observation-methods-early-childhoodThere's"), "/observation-methods-early-childhood");
   assert.equal(recoverMangledPath("observation-methods-early-childhoodThere%27s"), "/observation-methods-early-childhood");

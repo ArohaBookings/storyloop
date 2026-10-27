@@ -4,7 +4,7 @@ Drop real photo files into THIS folder with these exact names. The site already
 references them. Until a file exists, that slot shows a warm branded placeholder,
 so nothing looks broken while you gather images.
 
-Each photo is chosen to MATCH the text beside it, the way Storypark does it.
+Each photo is chosen to MATCH the text beside it.
 
 | Filename                | Where it appears            | What it should show                                             |
 |-------------------------|-----------------------------|----------------------------------------------------------------|

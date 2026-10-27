@@ -45,8 +45,7 @@ export default function Footer() {
               <li><Link href="/for-educators" className="hover:text-paper transition-colors">For educators</Link></li>
               <li><Link href="/for-centres" className="hover:text-paper transition-colors">For centres</Link></li>
               <li><Link href="/for-families" className="hover:text-paper transition-colors">For families</Link></li>
-              <li><Link href="/works-alongside" className="hover:text-paper transition-colors">Works with your platform</Link></li>
-              <li><Link href="/ai-tools-for-learning-stories" className="hover:text-paper transition-colors">AI tools compared</Link></li>
+              <li><Link href="/learning-story-generator" className="hover:text-paper transition-colors">Learning story generator</Link></li>
               <li><Link href="/safety" className="hover:text-paper transition-colors">Children&apos;s information and AI</Link></li>
               <li><Link href="/ai-policy" className="hover:text-paper transition-colors">Free AI policy for services</Link></li>
             </ul>
@@ -64,6 +63,7 @@ export default function Footer() {
                   October 2026, and a link from every page helps them rank. */}
               <li><Link href="/transition-to-school-statement" className="hover:text-paper transition-colors">Transition to school statements</Link></li>
               <li><Link href="/end-of-year-learning-summary" className="hover:text-paper transition-colors">End-of-year learning summaries</Link></li>
+              <li><Link href="/summative-assessment-examples" className="hover:text-paper transition-colors">Summative assessment examples</Link></li>
               <li><Link href="/te-whariki-learning-stories" className="hover:text-paper transition-colors">Te Whāriki stories</Link></li>
               <li><Link href="/eylf-learning-stories" className="hover:text-paper transition-colors">EYLF stories</Link></li>
               <li><Link href="/eyfs-learning-stories" className="hover:text-paper transition-colors">EYFS observations (England)</Link></li>

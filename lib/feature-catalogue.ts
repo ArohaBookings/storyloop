@@ -88,7 +88,7 @@ export const FEATURE_CATALOGUE: CatalogueGroup[] = [
       { key: "familyConnectionPack", name: "Family Connection Pack", body: "A family message, a question to ask at home, a photo caption and a pickup line, from the saved story." },
       { key: "wallCards", name: "Wall cards", body: "A code beside a display that families scan at pickup to read the learning, in English or ten other languages. No names, photos or dates." },
       { key: "pickupBrief", name: "Pickup brief", body: "The specific true thing to say about each child before the door opens, from what you wrote down." },
-      { key: "exportPacks", name: "Export packs", body: "The same story arranged for Storypark, Educa, Kinderloop or Brightwheel, ready to paste." },
+      { key: "exportPacks", name: "Export packs", body: "The same story arranged for the app your centre uses, ready to paste in one tap." },
       { key: "translationReadability", name: "Family translation", body: "A plain-words family version translated for families who read another language." },
       { key: "familyReplyLoop", name: "Family Reply Loop", body: "What families say back becomes context for the next story." },
     ],

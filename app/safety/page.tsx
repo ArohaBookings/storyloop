@@ -29,8 +29,8 @@ const COMMITMENTS = [
 
 const FAQS = [
   {
-    q: "Is StoryLoop just ChatGPT?",
-    a: "No. StoryLoop uses models from OpenAI or Anthropic through their business services, not the ChatGPT app, with its own instructions and checks around every draft: quotes checked against the note, the right curriculum for your country, a privacy check, and a list of what the draft assumed. Under those business terms, what we send is not used to train their models.",
+    q: "Is StoryLoop just a chatbot with a prompt?",
+    a: "No. StoryLoop uses models from OpenAI or Anthropic through their business services, never a public chat app, with its own instructions and checks around every draft: quotes checked against the note, the right curriculum for your country, a privacy check, and a list of what the draft assumed. Under those business terms, what we send is not used to train their models.",
   },
   {
     q: "Is it safe to use children's names?",
@@ -160,7 +160,7 @@ export default function SafetyPage() {
         { label: "Office of the Australian Information Commissioner, Australian Privacy Principles", url: "https://www.oaic.gov.au/" },
       ]} />
       <GuideCta heading="See how careful it is on your own note" />
-      <RelatedGuides links={[RELATED.accuracy, RELATED.aiTools, RELATED.families, RELATED.centres, RELATED.alongside, RELATED.whatIs]} />
+      <RelatedGuides links={[RELATED.accuracy, RELATED.generator, RELATED.families, RELATED.centres, RELATED.examples, RELATED.whatIs]} />
     </GuidePage>
   );
 }

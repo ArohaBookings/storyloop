@@ -18,7 +18,7 @@ import { StoryWriterUnavailableError, callAI, offlineWriterAllowed, parseJSON } 
 import { runPrivacyGuardian, type PrivacyGuardianResult } from "@/lib/privacy-guardian";
 import { aiFailureReason } from "@/lib/ai-health";
 
-export type TransitionFramework = "VEYLDF" | "EYLF" | "TW";
+export type TransitionFramework = "VEYLDF" | "EYLF" | "QKLG" | "TW";
 export type TransitionMode = "transition" | "summary";
 
 export const TRANSITION_OUTCOMES: Record<TransitionFramework, readonly string[]> = {
@@ -31,6 +31,9 @@ export const TRANSITION_OUTCOMES: Record<TransitionFramework, readonly string[]>
     "Outcome 4: Learning",
     "Outcome 5: Communication",
   ],
+  // Queensland's kindergarten transition statement summarises the five QKLG
+  // learning and development areas (QCAA, checked 27 Oct 2026).
+  QKLG: ["Identity", "Connectedness", "Wellbeing", "Active learning", "Communicating"],
   TW: [
     "Mana atua | Wellbeing",
     "Mana whenua | Belonging",
@@ -71,6 +74,10 @@ const STATEMENT: Record<TransitionFramework, Record<TransitionMode, string>> = {
   EYLF: {
     transition: "a transition to school statement (for example NSW or Queensland) against the five EYLF V2.0 learning outcomes, with strategies for the school teacher",
     summary: "an end-of-year learning summary against the five EYLF V2.0 learning outcomes, with a next step for each",
+  },
+  QKLG: {
+    transition: "Queensland's kindergarten transition statement: a strengths-based, point-in-time summary across the five QKLG learning and development areas, with suggestions for continuity the Prep teacher can act on",
+    summary: "an end-of-year learning summary against the five QKLG learning and development areas, with a next step for each",
   },
   TW: {
     transition: "a transition to school summary against the five Te Whāriki strands, with strategies for the new entrant teacher",
@@ -174,6 +181,7 @@ export function guardDiagnosisWords(text: string, notes: string, checks: Set<str
 const OUTCOME_TOKENS: Record<TransitionFramework, string[][]> = {
   VEYLDF: [["identity"], ["community", "connected", "contribute"], ["wellbeing"], ["learning", "learner"], ["communicat"]],
   EYLF: [["identity", "outcome 1"], ["community", "connected", "contribute", "outcome 2"], ["wellbeing", "outcome 3"], ["learning", "learner", "outcome 4"], ["communicat", "outcome 5"]],
+  QKLG: [["identity"], ["connected", "community"], ["wellbeing"], ["active learning", "learning", "learner"], ["communicat"]],
   TW: [["wellbeing", "mana atua"], ["belonging", "mana whenua"], ["contribution", "mana tangata"], ["communicat", "mana reo"], ["exploration", "mana aoturoa"]],
 };
 

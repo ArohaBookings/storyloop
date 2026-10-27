@@ -182,7 +182,7 @@ export const CHANNELS: Channel[] = [
     medium: "directory",
     url: "https://alternativeto.net",
     rules:
-      "Free, and genuinely worth it because \"Storypark alternative\" and \"Educa alternative\" are high-intent searches. StoryLoop's honest position there is companion, not replacement.",
+      "Free, and worth it: people searching for a new learning story tool browse it. List StoryLoop as the learning story tool, on its own merits.",
   },
   {
     key: "capterra",
@@ -234,7 +234,6 @@ export const CHANNELS: Channel[] = [
  */
 export const LINK_TARGETS: { path: string; label: string }[] = [
   { path: "/", label: "Home (demo in hero)" },
-  { path: "/storypark-alternative", label: "Storypark alternative" },
   { path: "/learning-story-generator", label: "Learning story generator" },
   { path: "/signup", label: "Signup" },
   { path: "/about", label: "About Leo" },

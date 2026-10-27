@@ -23,7 +23,7 @@ const FAQS = [
     a: "If any educator uses AI to help write documentation about children, yes. Many already do without one, which leaves both the educator and the service exposed. A short written policy sets out which tools are allowed, what information never goes into a general AI tool, and that a person reviews everything before it is shared.",
   },
   {
-    q: "Can educators put children's names into ChatGPT?",
+    q: "Can educators put children's names into a free AI chatbot?",
     a: "They should not use a general, publicly available AI tool for identifying information about children. In Australia the privacy regulator's guidance recommends, as best practice, not entering personal information, particularly sensitive information, into publicly available generative AI tools. In New Zealand the Privacy Commissioner's guidance asks organisations to understand how a tool handles personal information before using it.",
   },
   {

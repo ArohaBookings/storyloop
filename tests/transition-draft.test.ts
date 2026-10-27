@@ -143,3 +143,23 @@ test("the request names the statement, the outcomes and the notes", () => {
   assert.match(summary, /Mana atua/);
   assert.match(summary, /end-of-year/);
 });
+
+test("Queensland drafts use the five QKLG areas, matched by name even out of order", () => {
+  assert.deepEqual([...TRANSITION_OUTCOMES.QKLG], ["Identity", "Connectedness", "Wellbeing", "Active learning", "Communicating"]);
+  const qld = normaliseTransitionDraft(
+    {
+      outcomes: [
+        { outcome: "Connectedness", seen: "C.", strategy: "s", gap: "" },
+        { outcome: "Identity", seen: "I.", strategy: "s", gap: "" },
+        { outcome: "Wellbeing", seen: "W.", strategy: "s", gap: "" },
+        { outcome: "Communicating", seen: "M.", strategy: "s", gap: "" },
+        { outcome: "Active learning", seen: "A.", strategy: "s", gap: "" },
+      ],
+    },
+    { ...params, framework: "QKLG" },
+  );
+  assert.deepEqual(qld.outcomes.map((o) => o.seen), ["I.", "C.", "W.", "A.", "M."]);
+  const message = buildTransitionUserMessage({ ...params, framework: "QKLG" });
+  assert.match(message, /Queensland's kindergarten transition statement/);
+  assert.match(message, /Identity; Connectedness; Wellbeing; Active learning; Communicating/);
+});

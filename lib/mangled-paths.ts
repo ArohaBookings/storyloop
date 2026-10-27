@@ -11,11 +11,11 @@ import { SEO_PAGE_SLUGS } from "@/lib/seo-pages";
 
 // Top-level pages that are their own routes rather than [slug] guides.
 const ROUTE_PAGES = [
-  "about", "accuracy", "ai-policy", "ai-tools-for-learning-stories", "blog", "documentation-time-calculator", "examples",
+  "about", "accuracy", "ai-policy", "blog", "documentation-time-calculator", "examples",
   "eylf-learning-outcomes", "features", "for-educators", "for-families", "learning-story-data", "learning-story-template",
   "mana-aoturoa-exploration", "mana-atua-wellbeing", "mana-reo-communication", "mana-tangata-contribution",
   "mana-whenua-belonging", "privacy", "resources", "review-readiness-check", "safety", "te-whariki-learning-outcomes-guide",
-  "terms", "try", "what-is-a-learning-story", "works-alongside", "signup", "login",
+  "terms", "try", "what-is-a-learning-story", "signup", "login",
 ];
 
 const KNOWN = Array.from(new Set([...ROUTE_PAGES, ...SEO_PAGE_SLUGS]))
