@@ -1,21 +1,25 @@
 "use client";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useState } from "react";
 import { Sparkles, Loader2, Copy, Check, HelpCircle, ListChecks, Quote } from "lucide-react";
 import Link from "next/link";
 import GeneratingIndicator from "@/components/app/GeneratingIndicator";
 import { track } from "@/lib/analytics/client";
 
-const PLACEHOLDER = `• Noah (3yo) filled a bucket with damp sand
+const PLACEHOLDER = `For example:
+• Noah (3yo) filled a bucket with damp sand
 • Turned it over carefully and tapped the sides
 • Built a tower beside Amelia, then swapped the spade when she asked
 • Said "I'm making a castle for the dragon"
 • When one side collapsed, he packed more sand around the base and tried again`;
 
 /**
- * Pre-filled on load. An empty textarea is where intent dies: half our traffic
- * is on a phone, arriving mid-scroll from a Facebook group, and asking them to
- * type before they have seen anything is the single largest drop in the funnel
- * (649 page views produced only 45 demo starts).
+ * The example note, one tap away rather than pre-filled.
+ *
+ * 28 Oct 2026: the box starts empty again, the way it was in July and August.
+ * Pre-filling it and writing the example on by itself (16 Sep) took real tries
+ * from 7.4% of sessions to 0.5-3%, and people who try their own note sign up
+ * about three times as often. Phones still see a real note and its real story
+ * in the first screen (HeroProof), so the proof did not go away.
  */
 const SAMPLE = `Noah (3yo) filled a bucket with damp sand, turned it over carefully and tapped the sides. He built a tower beside Amelia, then swapped the spade when she asked. He said "I'm making a castle for the dragon". When one side collapsed, he packed more sand around the base and tried again.`;
 
@@ -23,8 +27,8 @@ const SAMPLE = `Noah (3yo) filled a bucket with damp sand, turned it over carefu
  * The real draft StoryLoop wrote for the note above, exactly as the production
  * pipeline returned it in the story evaluation run of 24 September 2026
  * (scripts/story-eval: pipeline quality 100, independent judge fidelity 9/10,
- * no invented speech). Shown at rest so the promise is proven before anyone
- * lifts a finger, and replayed when someone runs the example unchanged.
+ * no invented speech). Played when someone asks to see the example, or runs
+ * the example note unchanged.
  *
  * Running the unchanged example does NOT call the model: it is the same note,
  * and this is the draft the model wrote for it, so a second call would cost
@@ -174,7 +178,7 @@ export default function StoryDemo({
   framework?: "NZ" | "AU" | "UK" | "IE";
 }) {
   const guide = surface === "guide";
-  const [input, setInput] = useState(guide ? "" : SAMPLE);
+  const [input, setInput] = useState("");
   const [touched, setTouched] = useState(false);
   const [output, setOutput] = useState("");
   const [outputNote, setOutputNote] = useState("");
@@ -189,19 +193,30 @@ export default function StoryDemo({
 
   const isUnchangedExample = !guide && input.trim() === SAMPLE.trim();
 
+  const playExample = async () => {
+    setInput(SAMPLE); setTouched(false);
+    setLoading(true); setError(""); setOutput(""); setClarify(null);
+    track("demo_example_played");
+    await new Promise((resolve) => setTimeout(resolve, EXAMPLE_WRITE_MS));
+    setOutput(EXAMPLE_OUTPUT);
+    setOutputNote(SAMPLE);
+    setEvidence(EXAMPLE_EVIDENCE);
+    setLoading(false);
+  };
+
   const handleGenerate = async (proceedWithoutClarification = false) => {
-    if (!input.trim()) { setError("Add a few observations first"); return; }
+    if (!input.trim()) {
+      // The button stays pressable on an empty box: a disabled button that
+      // looks ready reads as broken. Say what to do and put them in the box.
+      setError(guide ? "Type a few lines about one child first." : "Type a few lines first, or tap \"Use an example\".");
+      document.getElementById(guide ? "guide-demo-note" : "demo-note")?.focus();
+      return;
+    }
 
     // The unchanged example: the real draft for this exact note, shown after
     // a short write. No model call, no cost, and it does not use the free try.
     if (isUnchangedExample) {
-      setLoading(true); setError(""); setOutput(""); setClarify(null);
-      track("demo_example_played");
-      await new Promise((resolve) => setTimeout(resolve, EXAMPLE_WRITE_MS));
-      setOutput(EXAMPLE_OUTPUT);
-      setOutputNote(SAMPLE);
-      setEvidence(EXAMPLE_EVIDENCE);
-      setLoading(false);
+      await playExample();
       return;
     }
 
@@ -255,45 +270,6 @@ export default function StoryDemo({
   };
 
   const rows = compact ? 5 : 8;
-  const showingExample = !guide && !output && !loading && !clarify;
-
-  /**
-   * Write the example draft on when it scrolls into view.
-   *
-   * 604 of 649 visitors never touched the demo, and the simulation says
-   * stacking more things to click barely moves that: clicking is a fixed
-   * budget. What reaches the people who will never press anything is showing
-   * the draft appearing without asking them to act. No model call is involved,
-   * so this costs nothing per visitor however much traffic arrives.
-   *
-   * Fails safe in every direction: the lines are visible by default in CSS,
-   * so if the observer never fires, JS is off, or the visitor asked for
-   * reduced motion, the whole draft is simply there.
-   */
-  const exampleRef = useRef<HTMLDivElement | null>(null);
-  const hasWritten = useRef(false);
-  const [writing, setWriting] = useState(false);
-
-  useEffect(() => {
-    if (!showingExample || hasWritten.current) return;
-    const node = exampleRef.current;
-    if (!node || typeof IntersectionObserver === "undefined") return;
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) return;
-        hasWritten.current = true;
-        setWriting(true);
-        observer.disconnect();
-      },
-      { threshold: 0.25 },
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [showingExample]);
-
-  const exampleLines = EXAMPLE_OUTPUT.split("\n");
 
   return (
     <div className={compact ? "grid min-w-0 gap-4" : "grid min-w-0 gap-5 lg:grid-cols-2"}>
@@ -301,15 +277,20 @@ export default function StoryDemo({
       <div className="card min-w-0 p-5 sm:p-6">
         <div className="mb-1.5 flex items-center justify-between gap-3">
           <label htmlFor={guide ? "guide-demo-note" : "demo-note"} className="label mb-0">
-            {guide ? "Your note, as rough as you like" : "A real observation"}
+            Your note, as rough as you like
           </label>
           {!guide && (
             <button
               type="button"
-              onClick={() => { setInput(SAMPLE); setTouched(false); setError(""); setClarify(null); }}
+              onClick={() => {
+                if (isUnchangedExample) { setInput(""); setTouched(true); }
+                else { setInput(SAMPLE); setTouched(false); track("demo_example_loaded"); }
+                setError(""); setClarify(null);
+              }}
               className="text-xs font-bold text-clay-700 hover:text-clay-900"
+              data-track={isUnchangedExample ? "demo_clear_example" : "demo_use_example"}
             >
-              Reset example
+              {isUnchangedExample ? "Clear it" : "Use an example"}
             </button>
           )}
         </div>
@@ -317,23 +298,21 @@ export default function StoryDemo({
         <textarea
           id={guide ? "guide-demo-note" : "demo-note"}
           value={input}
-          onChange={(e) => { setInput(e.target.value); setTouched(true); if (clarify) setClarify(null); }}
+          onChange={(e) => { setInput(e.target.value); setTouched(true); if (clarify) setClarify(null); if (error) setError(""); }}
           rows={rows}
           placeholder={guide ? SAMPLE : PLACEHOLDER}
-          className="input resize-none font-mono text-sm leading-relaxed"
+          className="input resize-none font-mono text-sm leading-relaxed placeholder:text-ink-300"
         />
 
         <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-ink-500">
             {isUnchangedExample
               ? "Edit it, or run it as it is."
-              : guide
-                ? "No signup for your first try. Use a first name or initial only."
-                : "Your words stay exactly as you wrote them."}
+              : "No signup for your first try. Use a first name or initial only."}
           </p>
           <button
             onClick={() => handleGenerate()}
-            disabled={loading || !input.trim()}
+            disabled={loading}
             className="btn-primary w-full flex-shrink-0 text-sm sm:w-auto"
             data-track={isUnchangedExample ? "demo_run_example" : guide ? "guide_demo_run" : "demo_run_own"}
           >
@@ -351,9 +330,7 @@ export default function StoryDemo({
       <div className="story-safe card-warm relative flex min-w-0 max-w-full flex-col overflow-hidden p-5 sm:p-6"
            style={{ minHeight: compact ? 240 : 300 }}>
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <label className="section-title">
-            {showingExample ? "The draft" : "Your learning story"}
-          </label>
+          <label className="section-title">Your learning story</label>
           {output && (
             <button onClick={handleCopy} className="btn-ghost px-3 py-1 text-xs">
               {copied ? <Check className="h-3.5 w-3.5 text-sage-600" /> : <Copy className="h-3.5 w-3.5" />}
@@ -416,7 +393,7 @@ export default function StoryDemo({
               <Link href="/signup" className="btn-primary px-4 py-2 text-xs" data-track={guide ? "guide_demo_signup" : "demo_signup"}>Start free</Link>
             </div>
           </div>
-        ) : guide ? (
+        ) : (
           <div className="flex min-w-0 flex-1 flex-col justify-center text-center">
             <Sparkles className="mx-auto h-6 w-6 text-clay-400" />
             <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-ink-600">
@@ -426,37 +403,16 @@ export default function StoryDemo({
             <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-ink-400">
               Tip: what the child did, one thing they said, and what happened next. Three lines is plenty.
             </p>
-          </div>
-        ) : (
-          /* At rest: show a real draft so the promise is proven before any effort. */
-          <div className="story-safe flex min-w-0 flex-1 flex-col">
-            <p className="mb-2 text-xs text-ink-500">
-              {touched ? "The draft StoryLoop wrote for the original note." : "What StoryLoop wrote from the note above."}
-            </p>
-            {/* Capped in the hero so a full-length draft cannot push the button
-                below the fold on a phone. The scroll is the point: it shows
-                there is more story than fits, which a short excerpt cannot. */}
-            <div
-              ref={exampleRef}
-              tabIndex={0}
-              role="region"
-              aria-label="The learning story draft"
-              className={`story-safe prose prose-sm min-w-0 max-w-full flex-1 overflow-y-auto rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-clay-500 whitespace-pre-wrap break-words font-display font-normal italic leading-relaxed text-ink-500 ${compact ? "max-h-[15rem]" : ""} ${writing ? "is-writing" : ""}`}
-            >
-              {exampleLines.map((line, index) => (
-                <span
-                  key={`${index}-${line.slice(0, 12)}`}
-                  className="demo-line block"
-                  style={writing ? { animationDelay: `${Math.min(index * 70, 1400)}ms` } : undefined}
-                >
-                  {line ? <HighlightedStory text={line} note={SAMPLE} /> : " "}
-                </span>
-              ))}
-            </div>
-            <EvidencePanel evidence={EXAMPLE_EVIDENCE} onOpen={() => track("demo_evidence_opened", { example: true, at_rest: true })} />
-            <p className="mt-2.5 text-xs leading-relaxed text-ink-400">
-              Change the note and press the button: yours is written fresh, usually in under a minute.
-            </p>
+            {!guide && (
+              <button
+                type="button"
+                onClick={() => playExample()}
+                className="mx-auto mt-4 text-sm font-bold text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900"
+                data-track="demo_see_example"
+              >
+                Or watch it write one from an example note
+              </button>
+            )}
           </div>
         )}
       </div>

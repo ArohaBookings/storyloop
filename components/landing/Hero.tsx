@@ -26,9 +26,9 @@ const TRUST = [
  * stock photo. A factorial simulation over seven layout levers (864
  * combinations, calibrated to the observed 6.93% demo-start rate) put the
  * biggest single gain on removing the typing, then on proof at the decision
- * point, then on positioning against the incumbent. This layout keeps that
- * result: a problem-led headline, a pre-filled note, its real draft visible at
- * rest, and a real person behind it.
+ * point. This layout keeps the demo beside the headline. Since 28 Oct 2026 the
+ * box starts empty for the educator's own note, with the example one tap away
+ * (see StoryDemo), and phones get the real note and story card instead.
  *
  * What changed in September 2026 is subtraction. The hero had grown to nine
  * separate text elements, including "no credit card" twice in consecutive
@@ -116,7 +116,7 @@ export default function Hero() {
 
           <div id="hero-demo" className="animate-fade-up-1 min-w-0 scroll-mt-24">
             <p className="section-title mb-1 text-center lg:text-left">Try it with your own note, no signup</p>
-            <p className="mb-3 text-center text-xs leading-relaxed text-ink-500 lg:text-left">Replace the example with something from your day (first names only), or just press the button.</p>
+            <p className="mb-3 text-center text-xs leading-relaxed text-ink-500 lg:text-left">Type a few lines from your day (first names only), or tap &ldquo;Use an example&rdquo;.</p>
             <StoryDemo compact />
             <p className="mt-3 flex items-center justify-center gap-2 text-xs leading-relaxed text-ink-500 lg:justify-start">
               <ShieldCheck className="h-4 w-4 flex-none text-sage-600" />

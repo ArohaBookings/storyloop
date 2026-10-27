@@ -2,7 +2,8 @@ import { BookOpenCheck, Layers } from "lucide-react";
 
 /**
  * The two things a sceptical educator needs to believe before signing up, in
- * one band directly under the hero.
+ * one band under the hero and prices. It sits on the page's paper rather than
+ * cream since the cream prices section moved directly above it (28 Oct 2026).
  *
  * First, that the problem is real and measured by somebody other than us: the
  * only independent, peer-reviewed number on the page (n=570, not vendor
@@ -10,7 +11,7 @@ import { BookOpenCheck, Layers } from "lucide-react";
  */
 export default function ProofStrip() {
   return (
-    <section aria-label="Why educators try StoryLoop" className="border-y border-clay-100 bg-cream-50/70">
+    <section aria-label="Why educators try StoryLoop" className="border-b border-clay-100">
       <div className="wide-shell grid gap-8 py-10 md:grid-cols-2 md:gap-12 md:py-12">
         <div className="flex gap-4">
           <BookOpenCheck className="mt-1 h-6 w-6 flex-none text-clay-700" strokeWidth={1.75} />
