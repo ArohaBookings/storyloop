@@ -154,6 +154,13 @@ const GUIDES = [
     icon: School,
   },
   {
+    href: "/transition-statement-consent-form",
+    kicker: "NSW · QLD · VIC",
+    title: "Transition statement consent forms",
+    description: "What the NSW form and Queensland forms 1 and 2 ask families, Victoria's opt-out, and what to do when a form has not come back.",
+    icon: School,
+  },
+  {
     href: "/summative-assessment-examples",
     kicker: "Australia · Term 4",
     title: "Summative assessment examples",

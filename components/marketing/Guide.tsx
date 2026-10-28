@@ -235,6 +235,7 @@ export const RELATED = {
   tlds: { href: "/tlds-examples", title: "TLDS examples", body: "Each section of Victoria's statement, with wording you can adapt." },
   nswTransition: { href: "/nsw-transition-to-school-statement", title: "NSW Transition to School Statement", body: "Each section of the digital statement, with example wording for every outcome." },
   qldTransition: { href: "/qld-kindergarten-transition-statement", title: "QLD kindergarten transition statement", body: "Consent forms, the KTS app and the five QKLG areas, with example wording." },
+  consent: { href: "/transition-statement-consent-form", title: "Transition statement consent forms", body: "The NSW form, Queensland forms 1 and 2, and Victoria's opt-out, explained." },
   endOfYear: { href: "/end-of-year-learning-summary", title: "End of year learning summaries", body: "Example paragraphs for the EYLF and Te Whāriki, and a simple structure." },
   summative: { href: "/summative-assessment-examples", title: "Summative assessment examples", body: "Three worked examples built from dated observations, outcome by outcome." },
   preschoolExamples: { href: "/learning-story-examples-preschool", title: "Learning story examples, ages 3 to 5", body: "Real preschool notes and the drafts written from them." },

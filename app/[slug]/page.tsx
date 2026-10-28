@@ -46,6 +46,7 @@ const AU_SLUGS = new Set([
   "summative-assessment-examples",
   "nsw-transition-to-school-statement",
   "qld-kindergarten-transition-statement",
+  "transition-statement-consent-form",
 ]);
 // Aotearoa-only guides: their "try your own note" draft is always Te Whāriki.
 // Every other guide that is not in AU_SLUGS serves both countries, so the
@@ -113,6 +114,14 @@ const TRANSITION_DEMOS: Record<string, {
     button: "Draft a summative assessment from your notes, no signup",
     heading: "Draft a summative assessment from your own notes",
     intro: "Paste three or four dated moments you documented about one child this term. StoryLoop drafts what they show for each outcome and a next step, from your notes. It is told to write only from what you give it and to leave an outcome for you when your notes show nothing.",
+  },
+  "transition-statement-consent-form": {
+    framework: "EYLF",
+    mode: "transition",
+    choices: ["EYLF", "QKLG", "VEYLDF"],
+    button: "Draft a transition statement from your notes, no signup",
+    heading: "Consent sorted? Draft the outcomes from your notes",
+    intro: "Pick where you teach and paste what you have documented about one child. StoryLoop drafts what your notes show for each outcome and a strategy the school teacher can use, from your notes. It is told to write only from what you give it and to leave an outcome for you when your notes show nothing.",
   },
 };
 // Pages with their own job: prices first, or a list of answers.

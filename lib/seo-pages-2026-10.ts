@@ -536,6 +536,93 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
       { label: "QCAA: Queensland kindergarten learning guideline (QKLG) 2024", url: "https://www.qcaa.qld.edu.au/kindergarten/qklg" },
     ],
   },
+
+  // 29 Oct 2026: "transition to school statement consent form (2026)" and
+  // "transition to school consent form" sit at positions 5 to 10 in Term 4.
+  // Facts checked on 29 Oct 2026 against the NSW Department of Education's
+  // statement page, its consent form (2025/2026) and its digital statement FAQs,
+  // QCAA's KTS app pages and FAQs (updated 18 and 19 August 2026), and the
+  // Victorian Government's TLDS page. We link to the official forms and never
+  // host them.
+  "transition-statement-consent-form": {
+    slug: "transition-statement-consent-form",
+    title: "Transition to School Statement Consent Form 2026: NSW, QLD",
+    description:
+      "What the NSW and Queensland transition statement consent forms ask, what to do when one is missing, Victoria's opt-out, and a draft from your notes.",
+    kicker: "NSW · Queensland · Victoria · Term 4 2026",
+    heading: "Transition statement consent forms, state by state.",
+    intro:
+      "Before you write a single line of a transition statement, you need the right permission from the family. NSW and Queensland each publish their own consent form, and Victoria works differently: families can opt out of the TLDS being shared with the school. This guide explains what each form asks, what to do when a form has not come back, and how to explain it to a family in plain words. Then the draft box turns your notes into the outcomes section, with no signup.",
+    reviewedAt: "2026-10-29",
+    sections: [
+      {
+        title: "NSW: one form, two choices",
+        body:
+          "Families say yes or no to sharing the statement itself, and separately to sharing other relevant information, such as a follow-up call with the school. They can agree to either, both or neither.",
+      },
+      {
+        title: "Queensland: form 1 to create, form 2 to share",
+        body:
+          "Consent form 1 comes before you enter a child's details in the KTS app. Consent form 2 comes after the family has read the draft, and lets you share it with the school.",
+      },
+      {
+        title: "Victoria: a choice about sharing",
+        body:
+          "Every child going to school in a funded kindergarten program has a TLDS. The family gets the secure link to the finished statement and must be given the chance to opt out of it being shared with the school.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Where do I get the NSW Transition to School Statement consent form?",
+        answer:
+          "From the NSW Department of Education's Transition to School Digital Statement page, under Resources. The family signs it, and you upload the signed form to the digital statement platform. The department's FAQs say the decision should be recorded before a statement is started.",
+      },
+      {
+        question: "What if a NSW family does not give consent?",
+        answer:
+          "You cannot create a Transition to School Statement for that child. If your service receives Start Strong funding, keep the signed form that records the family's choice for funding compliance. The form tells families that taking part is voluntary, that they can collect the information from the service and give it to the school themselves, and that they can withdraw consent at any time by contacting the service.",
+      },
+      {
+        question: "We already have Start Strong consent. Do we need this form too?",
+        answer:
+          "Yes. The department's FAQs say additional consent must be obtained for the Transition to School Digital Statement. The Start Strong declaration is about fee relief and enrolment details; the Transition to School parent consent form is the one you upload to the platform.",
+      },
+      {
+        question: "What is the difference between Queensland consent form 1 and form 2?",
+        answer:
+          "Form 1, consent to create, gives the kindergarten permission to write the statement in the KTS app in the QCAA Portal, and you need it before you start. Form 2, consent to share, lets the kindergarten share the finished statement with the child's school. Without form 1, use the QCAA kindergarten transition statement template instead of the app.",
+      },
+      {
+        question: "Can I submit a Queensland statement if consent form 2 has not come back?",
+        answer:
+          "Yes. QCAA's FAQs say to submit the statement and select no for each consent option. When the family returns form 2, you can edit the consent information in the KTS app. Consent is the only thing you can change after a statement is submitted.",
+      },
+      {
+        question: "How long do I keep the Queensland consent forms?",
+        answer:
+          "QCAA says the kindergarten should keep a copy of each consent form with the transition statement for three years after the child has left the service.",
+      },
+      {
+        question: "Is there a TLDS consent form in Victoria?",
+        answer:
+          "The Victorian Government's TLDS page does not describe a form to create the statement. Every child transitioning to school from a funded kindergarten program has a TLDS. The family must be given the secure link to the completed statement and the chance to opt out of it being shared with the school, and a family with concerns is encouraged to talk with the child's early childhood teacher.",
+      },
+      {
+        question: "Can I use AI to write the statement?",
+        answer:
+          "Do not paste a child's details into a general chatbot. The draft box on this page writes a line for each outcome and a strategy for the school teacher only from the notes you paste, leaves an outcome for you when your notes show nothing, and is not saved to any account. Use a first name only. You review every word, collect the family's consent, and complete the official statement yourself.",
+      },
+    ],
+    sources: [
+      { label: "NSW Department of Education: The Transition to School Digital Statement", url: "https://education.nsw.gov.au/early-childhood-education/ecec-resource-library/transition-to-school/transition-to-school-digital-statement" },
+      { label: "NSW Department of Education: Transition to School Digital Statement consent form (PDF)", url: "https://education.nsw.gov.au/content/dam/main-education/early-childhood-education/working-in-early-childhood-education/media/documents/transition-to-school/Transition_to_School_Digital_Statement_consent_form.pdf" },
+      { label: "NSW Department of Education: Transition to School Digital Statement FAQs (PDF)", url: "https://education.nsw.gov.au/content/dam/main-education/early-childhood-education/working-in-early-childhood-education/media/documents/transition-to-school/Transition_to_School_Digital_Statement_FAQs.pdf" },
+      { label: "QCAA: Using the KTS app to create transition statements (consent forms 1 and 2)", url: "https://www.qcaa.qld.edu.au/kindergarten/creating-transition-statements/using-kts-app" },
+      { label: "QCAA: Kindergarten Transition Statement application FAQs", url: "https://www.qcaa.qld.edu.au/kindergarten/creating-transition-statements/faqs" },
+      { label: "Victorian Government: Transition Learning and Development Statements", url: "https://www.vic.gov.au/transition-learning-and-development-statements" },
+      { label: "Victorian Government: Transition statement privacy and information sharing", url: "https://www.vic.gov.au/transition-statement-privacy-and-information-sharing" },
+    ],
+  },
 };
 
 export const OCT_2026_DEEP_DIVES: Record<string, Block[]> = {
@@ -804,6 +891,58 @@ export const OCT_2026_DEEP_DIVES: Record<string, Block[]> = {
       paragraphs: [
         "Collect consent forms early, so the app is open to you when you are ready to write. For each child, pull the year's observations and stories, their own words and what the family has told you, then pick two or three dated moments for each area. Paste those into the draft box on this page: StoryLoop drafts a line and a suggestion for each QKLG area from them, and leaves an area for you when your notes show nothing.",
         "If your stories are already in StoryLoop, each child's history keeps dated stories, quotes and family comments in one place, and the Transition pack puts up to six chosen moments on one printable page for a child starting school.",
+      ],
+    },
+  ],
+  "transition-statement-consent-form": [
+    {
+      heading: "The NSW consent form, part by part",
+      paragraphs: [
+        "The department's form explains, in family-friendly language, what is shared and why. The statement can include the child's name, date of birth, behaviour and attendance, whether any court orders are in place, health information such as allergies, disability, specialist support or an NDIS plan, and educators' observations about the child's feelings about school and their learning and development.",
+        "Then come two choices. The first is consent for your service to share the information in the child's statement with the department, which uses it if the child is going to a NSW government school or passes it to the non-government school the child will attend. The second is consent to share relevant information that is not in the statement, such as what comes up in a phone call or email between your service and the school.",
+        "The second choice links to a required question in Section Two of the statement: \"Would making a call to the Early Learning and Care Service help to support the child's transition?\" Families can agree to either, both or neither, then sign and date the form. Upload the signed form to the platform before you start the statement.",
+      ],
+    },
+    {
+      heading: "Queensland: forms 1 and 2, in the order you need them",
+      paragraphs: [
+        "Form 1 first. Under Queensland's privacy laws, a parent or carer completes Transition statement consent form 1 before you enter any of the child's personal details into the KTS app. If a family does not give it, write the statement on the QCAA kindergarten transition statement template instead.",
+        "Write the statement. Then form 2: before you submit, the family reads the draft. They can add their own perspective on the move to school, ask for any wrong personal details to be fixed, and give written permission to share the statement with the school. They can also name the school on form 2 if they know it.",
+        "Give the family a copy of the submitted statement, and keep both forms with the statement for three years after the child leaves your service.",
+      ],
+    },
+    {
+      heading: "Victoria: no form to create, a choice about sharing",
+      paragraphs: [
+        "A TLDS is a kindergarten funding requirement for every child going to school, and the Victorian Government's TLDS page does not describe a form to create one. What it does require: the family must get the secure link to the finished statement and the chance to opt out of it going to the school. Section 3 of the TLDS is the family's own section, and Section 2 is the child's, completed with an adult's help.",
+        "Unless the family has opted out, the statement goes to the school online through the Insight Assessment Platform, by secure email if the school is not listed in the online tool, or printed for the family to hand to the school themselves.",
+      ],
+    },
+    {
+      heading: "Explaining consent to a family: words you can adapt",
+      paragraphs: [
+        "Families sign more readily when they know what the statement is for. The NSW department suggests explaining the purpose and benefits, and showing the consent form video. Something like this works at pick-up or in a note home.",
+        "NSW example: \"Before Zoe starts Kindergarten, we write a short statement about her strengths, her interests and how she learns best, and send it to her new school so her teacher can get to know her. The form asks two things: whether we can share the statement, and whether we can talk to the school if that would help her settle. You can say yes or no to each, and change your mind later.\"",
+        "Queensland example: \"We would like to write Mila's transition statement in QCAA's online KTS app. Form 1 lets us start it. When it is written, we will show it to you first. You can add your own thoughts, and then form 2 lets us send it to her school.\"",
+        "Victoria example: \"Arlo's TLDS is ready. Here is the secure link so you can read it. Unless you tell us you would rather it was not shared, we will send it to his school.\"",
+      ],
+    },
+    {
+      heading: "Situations that come up",
+      paragraphs: [
+        "A child goes to two services (NSW). Only the child's primary service, the one receiving Start Strong funding, has to complete the statement, but the department encourages the second service to contribute.",
+        "The child is going to a non-government or interstate school (NSW). Only NSW public schools can open the digital statement. Save it as a PDF and share it yourself.",
+        "Parents are separated (Queensland). QCAA leaves it to each service to decide how to manage consent to share for its own situation.",
+        "A second year of kindergarten (Queensland). Submit the statement with no consent to share with a school, then write a new one at the end of the second year.",
+        "Cultural information (NSW). The department recommends getting the family's permission before sharing specific cultural information with the school.",
+      ],
+    },
+    {
+      heading: "A Term 4 order of jobs",
+      paragraphs: [
+        "Send consent forms out early, so you are never waiting on paperwork when you have time to write. The NSW department recommends finalising statements by early December, and Queensland kindergartens complete theirs in November.",
+        "While the forms come back, pull together each child's year: dated observations and stories, the child's own words about school, and what the family has told you. Paste two or three moments into the draft box on this page, and StoryLoop drafts a line and a strategy for each outcome from them, leaving an outcome for you when your notes show nothing.",
+        "If your stories are already in StoryLoop, each child's history keeps dated stories, quotes and family comments in one place, and the Transition pack puts up to six chosen moments on one printable page for a child starting school, ready to draw on when you complete the official statement.",
       ],
     },
   ],
