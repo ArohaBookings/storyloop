@@ -7,6 +7,9 @@ import { ArrowRight } from "lucide-react";
  * is a real StoryLoop page put onto the device afterwards
  * (scripts/brand/composite_scenes.py), never a drawn interface, and children
  * are only ever shown from behind, the way centres photograph them for families.
+ * The fourth card ("Children", the classroom photograph) moved up into the hero
+ * on 28 Oct 2026; its promise, children's words kept exactly, now sits under
+ * the demo.
  */
 const AUDIENCES = [
   {
@@ -39,16 +42,6 @@ const AUDIENCES = [
     alt: "A parent smiling at a StoryLoop wall card on her phone while her toddler, seen from behind, leans on her arm",
     position: "50% 28%",
   },
-  {
-    who: "Children",
-    title: "Their words, exactly as they said them.",
-    body: "Every quote is checked against the educator's note, and walls show the learning without names, photos or dates.",
-    href: "/safety",
-    cta: "How children are protected",
-    image: "/images/scenes/classroom.jpg",
-    alt: "Two toddlers, seen from behind, building a block tower while an educator holds an iPad with a learning story",
-    position: "70% 45%",
-  },
 ];
 
 export default function Audiences() {
@@ -63,7 +56,7 @@ export default function Audiences() {
             The educator writes it, the centre stands behind it, the family reads it, and the child is at the heart of it.
           </p>
         </div>
-        <ul className="mt-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <ul className="mt-10 grid gap-5 md:grid-cols-3">
           {AUDIENCES.map((audience) => (
             <li key={audience.who}>
               <Link
@@ -75,7 +68,7 @@ export default function Audiences() {
                     src={audience.image}
                     alt={audience.alt}
                     fill
-                    sizes="(min-width: 1280px) 24vw, (min-width: 640px) 48vw, 100vw"
+                    sizes="(min-width: 768px) 32vw, 100vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none"
                     style={{ objectPosition: audience.position }}
                   />

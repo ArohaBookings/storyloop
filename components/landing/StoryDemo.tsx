@@ -18,8 +18,9 @@ const PLACEHOLDER = `For example:
  * 28 Oct 2026: the box starts empty again, the way it was in July and August.
  * Pre-filling it and writing the example on by itself (16 Sep) took real tries
  * from 7.4% of sessions to 0.5-3%, and people who try their own note sign up
- * about three times as often. Phones still see a real note and its real story
- * in the first screen (HeroProof), so the proof did not go away.
+ * about three times as often. Every screen still shows a real result in the
+ * first screen (the proof chip on the hero photograph), so the proof did not go
+ * away.
  */
 const SAMPLE = `Noah (3yo) filled a bucket with damp sand, turned it over carefully and tapped the sides. He built a tower beside Amelia, then swapped the spade when she asked. He said "I'm making a castle for the dragon". When one side collapsed, he packed more sand around the base and tried again.`;
 

@@ -1,5 +1,5 @@
 /**
- * The real examples on the phone hero (components/landing/HeroProof.tsx).
+ * The real examples on the hero photograph's proof chip (components/landing/Hero.tsx).
  * Kept here, small, so the homepage does not ship lib/real-examples.ts (39 KB
  * of stories) to every phone. tests/hero-proofs.test.ts checks every field
  * against the real drafts, so this can never drift from what StoryLoop wrote.

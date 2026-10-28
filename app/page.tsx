@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
+import HomeDemo from "@/components/landing/HomeDemo";
 import ProofStrip from "@/components/landing/ProofStrip";
 import HowItWorks from "@/components/landing/HowItWorks";
 import Examples from "@/components/landing/Examples";
@@ -52,7 +53,9 @@ export default function LandingPage() {
             homepage had too much text and dozens named that section as what
             buried the core story tool. */}
         {/* The order answers the questions in the order a visitor asks them:
-            what is it (hero, demo), what does it cost (prices, straight after
+            what is it (hero: a headline, one line and a photograph, minimal on
+            every screen since 28 Oct 2026; then the demo, one scroll down),
+            what does it cost (prices, straight after
             the demo since 28 Oct 2026: in July they were the 6th section and
             the instant buyers clicked a plan card; by October they were 9th),
             is the problem real and does it fit how I work (proof strip, how it
@@ -61,6 +64,7 @@ export default function LandingPage() {
             then questions. Reviews renders nothing until a real review is
             published. */}
         <Hero />
+        <HomeDemo />
         <Pricing audience="individuals" />
         <ProofStrip />
         <HowItWorks />
