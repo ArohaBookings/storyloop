@@ -161,6 +161,13 @@ const GUIDES = [
     icon: School,
   },
   {
+    href: "/eylf-observation-examples",
+    kicker: "Australia · EYLF V2.0",
+    title: "EYLF observation examples",
+    description: "Six rough notes from a baby to a four year old, the observation written from each, its V2.0 link, a next step and the story.",
+    icon: FileCheck,
+  },
+  {
     href: "/summative-assessment-examples",
     kicker: "Australia · Term 4",
     title: "Summative assessment examples",

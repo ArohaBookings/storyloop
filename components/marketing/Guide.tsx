@@ -217,6 +217,7 @@ export const RELATED = {
   families: { href: "/for-families", title: "For families", body: "What you will see, in plain words and your own language." },
   centres: { href: "/for-centres", title: "For centres", body: "One price for the whole team, and consistent documentation." },
   eylfPrinciples: { href: "/eylf-principles-and-practices", title: "EYLF principles and practices", body: "All 8 principles and 7 practices of V2.0, in plain English." },
+  eylfObservations: { href: "/eylf-observation-examples", title: "EYLF observation examples", body: "Six notes, the observations written from them and the V2.0 link for each." },
   observation: { href: "/observation-methods-early-childhood", title: "Observation methods", body: "Anecdotal and running records, jottings, learning stories: which to use when." },
   teWhPrinciples: { href: "/te-whariki-principles", title: "The 4 Te Whāriki principles", body: "Whakamana, Kotahitanga, Whānau tangata and Ngā hononga, in plain English." },
   teWhariki: { href: "/te-whariki-learning-outcomes-guide", title: "Te Whāriki learning outcomes", body: "All 20 learning outcomes by strand, and how a story links to them honestly." },

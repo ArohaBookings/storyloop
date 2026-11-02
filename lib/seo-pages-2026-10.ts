@@ -623,6 +623,85 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
       { label: "Victorian Government: Transition statement privacy and information sharing", url: "https://www.vic.gov.au/transition-statement-privacy-and-information-sharing" },
     ],
   },
+  // 3 Nov 2026: "observation examples" (position 6) and "learning observation
+  // examples" in Search Console, with no Australian page that shows the note,
+  // the observation and the V2.0 link side by side. Facts checked on 3 Nov 2026
+  // against ACECQA's online EYLF V2.0 (learning outcomes, each key component's
+  // "This is evident when children, for example" list, and the planning cycle).
+  "eylf-observation-examples": {
+    slug: "eylf-observation-examples",
+    title: "EYLF Observation Examples Linked to V2.0 Outcomes",
+    description:
+      "Six EYLF observation examples from a baby to a four year old: the rough note, the observation, the V2.0 outcome it shows, a next step and the story.",
+    kicker: "Educator guide · EYLF V2.0",
+    heading: "EYLF observation examples, from the rough note to the learning story.",
+    intro:
+      "Six short examples, from a baby to a child about to start school. Each one shows the note an educator might jot down in the moment, the observation written from it, the EYLF V2.0 outcome and key component it shows, a next step, and the learning story paragraph it becomes. The children are imagined, to show the shape. Yours should come from what you saw today.",
+    reviewedAt: "2026-11-03",
+    sections: [
+      {
+        title: "Write what you saw, then link it",
+        body:
+          "Start with what the child did and said. Choose the outcome afterwards. An observation written to fill an outcome reads like it, and families can tell.",
+      },
+      {
+        title: "One key component is usually enough",
+        body:
+          "Most moments show one or two of the 20 key components clearly. Name those and say why in a sentence that points at the child's actions. Ticking five outcomes for one moment at the sandpit tells nobody anything.",
+      },
+      {
+        title: "Keep the child's exact words",
+        body:
+          "Write what the child said exactly as they said it, not tidied up. It is the strongest evidence you have for Outcome 5 and for their thinking, and it is the line families remember.",
+      },
+    ],
+    faqs: [
+      {
+        question: "What should an EYLF observation include?",
+        answer:
+          "The date, the child's first name and age, what they did and said (with their exact words), and the setting. Then a short link to the outcome the moment shows and why, and a next step you can act on. The EYLF planning cycle starts with observing, listening and collecting information, and ACECQA's planning cycle page says documentation happens at every stage of the cycle.",
+      },
+      {
+        question: "What are the EYLF V2.0 sub-outcomes?",
+        answer:
+          "The EYLF V2.0 has five learning outcomes, and each is broken into key components of learning, which many educators call sub-outcomes and number 1.1, 1.2 and so on. There are 20 in all: four for identity, four for connection with their world, three for wellbeing, four for confident and involved learners and five for effective communicators. Each one comes with examples of what you might see, under the heading \"This is evident when children, for example\".",
+      },
+      {
+        question: "How many outcomes should one observation link to?",
+        answer:
+          "As many as the moment clearly shows, which is usually one or two. Explain each link in the child's actions and words rather than listing every outcome the activity could touch.",
+      },
+      {
+        question: "Do I have to use the framework's examples word for word?",
+        answer:
+          "No. ACECQA's EYLF pages say there will be many other ways children show learning within and across the outcomes, and that educators can list their own examples that fit each child and setting. Use the framework's examples to check your link, then describe what this child actually did.",
+      },
+      {
+        question: "What is the difference between an observation and a learning story?",
+        answer:
+          "An observation records what happened, often in a few factual lines. A learning story tells the same moment as a short narrative, usually written to the child and family, with what it shows and what comes next. Each example on this page shows both, so you can see how one becomes the other.",
+      },
+      {
+        question: "How do I keep an observation objective?",
+        answer:
+          "Write what you could see and hear: actions, words, how long, how many times. Leave out guesses about feelings unless the child told you or showed you clearly, and words like \"enjoyed\" or \"was good\" that could describe any child. Save your interpretation for the link and the next step.",
+      },
+      {
+        question: "Can StoryLoop write these from my notes?",
+        answer:
+          "Yes. Type your rough note and StoryLoop drafts the learning story with the EYLF V2.0 outcomes the moment actually shows, keeps the child's words exactly as you wrote them and suggests a next step. You can try it on this page without signing up, and you check and edit every word before anything is shared.",
+      },
+    ],
+    sources: [
+      { label: "ACECQA: (EYLF) Learning outcomes", url: "https://www.acecqa.gov.au/belonging-being-becoming-early-years-learning-framework/eylf-learning-outcomes" },
+      { label: "ACECQA: (EYLF) Learning outcome 1", url: "https://www.acecqa.gov.au/belonging-being-becoming-early-years-learning-framework/eylf-learning-outcomes/eylf-learning-outcome-1" },
+      { label: "ACECQA: (EYLF) Learning outcome 2", url: "https://www.acecqa.gov.au/belonging-being-becoming-early-years-learning-framework/eylf-learning-outcomes/eylf-learning-outcome-2" },
+      { label: "ACECQA: (EYLF) Learning outcome 3", url: "https://www.acecqa.gov.au/belonging-being-becoming-early-years-learning-framework/eylf-learning-outcomes/eylf-learning-outcome-3" },
+      { label: "ACECQA: (EYLF) Learning outcome 4", url: "https://www.acecqa.gov.au/belonging-being-becoming-early-years-learning-framework/eylf-learning-outcomes/eylf-learning-outcome-4" },
+      { label: "ACECQA: (EYLF) Learning outcome 5", url: "https://www.acecqa.gov.au/belonging-being-becoming-early-years-learning-framework/eylf-learning-outcomes/eylf-learning-outcome-5" },
+      { label: "ACECQA: (EYLF) The Early Years Learning Framework Planning Cycle", url: "https://www.acecqa.gov.au/belonging-being-becoming-early-years-learning-framework/eylf-early-years-learning-framework-planning-cycle" },
+    ],
+  },
 };
 
 export const OCT_2026_DEEP_DIVES: Record<string, Block[]> = {
@@ -943,6 +1022,97 @@ export const OCT_2026_DEEP_DIVES: Record<string, Block[]> = {
         "Send consent forms out early, so you are never waiting on paperwork when you have time to write. The NSW department recommends finalising statements by early December, and Queensland kindergartens complete theirs in November.",
         "While the forms come back, pull together each child's year: dated observations and stories, the child's own words about school, and what the family has told you. Paste two or three moments into the draft box on this page, and StoryLoop drafts a line and a strategy for each outcome from them, leaving an outcome for you when your notes show nothing.",
         "If your stories are already in StoryLoop, each child's history keeps dated stories, quotes and family comments in one place, and the Transition pack puts up to six chosen moments on one printable page for a child starting school, ready to draw on when you complete the official statement.",
+      ],
+    },
+  ],
+  "eylf-observation-examples": [
+    {
+      heading: "How the V2.0 outcomes help you link an observation",
+      paragraphs: [
+        "The EYLF V2.0 has five learning outcomes: children have a strong sense of identity; are connected with and contribute to their world; have a strong sense of wellbeing; are confident and involved learners; and are effective communicators. ACECQA describes them as broad and observable.",
+        "Each outcome is broken into key components of learning, 20 in all, and each key component lists examples of evidence under \"This is evident when children, for example\". Those lists are the quickest way to check a link: if what you saw is close to one of them, or plainly the same kind of learning, the link is honest.",
+        "The framework also says children will show learning in many other ways, so the lists are a guide, not a checklist. Describe what the child did first, then find the key component it fits.",
+      ],
+    },
+    {
+      heading: "Baby room: Ava, 10 months (example)",
+      paragraphs: [
+        "The note: \"New reliever came in. Ava crawled straight to Jess, held her leg, watched reliever for ages. Then crawled back to blocks, looked back at Jess twice.\"",
+        "The observation: When a reliever Ava had not met came into the room, Ava crawled to Jess and held onto her leg while she watched. After a few minutes she crawled back to the blocks, stopping twice to look back at Jess.",
+        "The EYLF V2.0 link: Outcome 1, children feel safe, secure and supported. Ava used Jess, a familiar educator, as a safe base and went back to play once she felt secure. ACECQA's examples for this key component include children who build secure attachments with one and then other familiar educators, and who seek out adults they trust for comfort.",
+        "Next step: keep Jess as the first person Ava sees at arrival this week, and have the reliever join Jess for songs on the mat so Ava can get to know them with Jess close by.",
+        "As a learning story: Ava, when someone new walked into the room today, you knew just where to go. You crawled to Jess and held on tight while you had a good look. When you were ready you went back to your blocks, checking twice that Jess was still there. That is what feeling safe looks like, and it is what lets you explore.",
+      ],
+    },
+    {
+      heading: "Toddler room: Noah, 18 months (example)",
+      paragraphs: [
+        "The note: \"Noah up the 3 steps of the low A-frame, stood at top, looked down, turned round and came down backwards on tummy. 5 times. Clapped for himself.\"",
+        "The observation: Noah climbed the three steps of the low A-frame and stood at the top. He looked down, turned around and came down backwards on his tummy. He did this five times and clapped for himself at the bottom.",
+        "The EYLF V2.0 link: Outcome 3, children become strong in their physical learning and wellbeing. Noah is developing the movement and gross motor skills to manage the climbing frame, and he worked out a safe way down for himself. ACECQA's examples for this key component include children who develop movement patterns, mobility and gross motor skills to manage and explore the physical environment.",
+        "Next step: add a low plank to the A-frame so Noah can try a new way up and down, and describe what he is doing as he does it (\"feet first\", \"hold on\") rather than lifting him down.",
+        "As a learning story: Noah, you climbed all the way to the top of the A-frame today. You stopped, had a look down and decided the best way was backwards on your tummy. Up and down you went, five times, and you clapped for yourself every time. You worked it out, and you knew it.",
+      ],
+    },
+    {
+      heading: "Toddler room: Mia, 2 years 3 months (example)",
+      paragraphs: [
+        "The note: \"Playdough. Mia pointed at rolling pin, 'me turn'. Sam kept rolling. Mia: 'Sam, me turn please.' Waited. Sam passed it. Mia: 'thank you.'\"",
+        "The observation: At the playdough table Mia pointed to the rolling pin Sam was using and said \"me turn\". When Sam kept rolling, she said \"Sam, me turn please\" and waited. Sam passed it to her and she said \"thank you\".",
+        "The EYLF V2.0 link: Outcome 5, children interact verbally and non-verbally with others for a range of purposes. Mia used a gesture and then words to ask for what she wanted, and changed her words when the first try did not work. ACECQA's examples include children who convey and construct messages with purpose and confidence. Waiting for her turn also links to Outcome 1, where children initiate negotiating and sharing behaviours.",
+        "Next step: model the next phrase for her during play, such as \"Can I have it when you're finished?\", and set out two rolling pins for three children next time so turn-taking comes up again.",
+        "As a learning story: Mia, you really wanted a turn with the rolling pin today. First you pointed and said \"me turn\". Sam was still busy, so you tried again: \"Sam, me turn please.\" And you waited. When Sam passed it over you said \"thank you\". You found the words that worked, and you were patient while they did.",
+      ],
+    },
+    {
+      heading: "Preschool room: Oliver, 3 years 5 months (example)",
+      paragraphs: [
+        "The note: \"Oliver found worm under pot. Called others over, 'gentle, he's a baby'. Carried it on a leaf to garden bed. 'He needs dirt to live.'\"",
+        "The observation: Oliver found a worm under a pot plant and called three friends over, telling them \"gentle, he's a baby\". He slid it onto a leaf, carried it to the garden bed and put it on the soil, saying \"he needs dirt to live\".",
+        "The EYLF V2.0 link: Outcome 2, children become socially responsible and show respect for the environment. Oliver cared for a living thing and explained what it needs. ACECQA's examples for this key component include children who explore the basic needs of living things and how to protect them, and who use play to investigate and explore nature.",
+        "Next step: ask Oliver what else he thinks worms need, and look for the answer together in a book or with a magnifying glass in the garden bed. Invite his family to share whether they garden at home.",
+        "As a learning story: Oliver, you found a tiny worm today and you knew it needed looking after. \"Gentle, he's a baby,\" you told your friends. You carried it on a leaf all the way to the garden, because \"he needs dirt to live\". You were kind to a small creature, and you taught your friends to be kind too.",
+      ],
+    },
+    {
+      heading: "Preschool room: Zara, 4 years 2 months (example)",
+      paragraphs: [
+        "The note: \"Zara car down plank on 1 block, rolled to tape line. Added 2nd block, 'it'll go faster'. Went past line, hit wall. Moved tape further. 'Higher is faster!'\"",
+        "The observation: Zara rolled a car down a plank resting on one block, and it stopped near the tape line on the floor. She added a second block under the plank and said \"it'll go faster\". The car rolled past the line and hit the wall. She moved the tape further away and said \"higher is faster!\"",
+        "The EYLF V2.0 link: Outcome 4, children develop a range of learning and thinking skills and processes such as problem solving, inquiry, experimentation, hypothesising, researching and investigating. Zara predicted what would happen, tested it and changed her setup when the result surprised her. ACECQA's examples include children who develop and test theories to solve problems.",
+        "Next step: offer planks with different surfaces, such as carpet and cardboard, ask \"What do you think will happen?\" before each run, and help Zara record her predictions with marks or drawings.",
+        "As a learning story: Zara, you had a theory today: \"It'll go faster.\" You added another block to make your ramp higher and tested it. The car went so fast it flew past the line and hit the wall, so you moved the line. \"Higher is faster!\" That is how scientists work: guess, test, look, and try again.",
+      ],
+    },
+    {
+      heading: "Preschool room: Lucas, 4 years 7 months (example)",
+      paragraphs: [
+        "The note: \"Lucas making sign for block road. Copied STOP from the bike track sign, S backwards. 'This says stop so the cars stop.' Taped it to a block.\"",
+        "The observation: Lucas made a sign for the road he had built in the block area. He walked to the bike track sign, came back and wrote STOP, with the S backwards. \"This says stop so the cars stop,\" he said, and taped it to a block at the corner.",
+        "The EYLF V2.0 link: Outcome 5, children begin to understand how symbols and pattern systems work. Lucas knew the sign carried a message and used print for a real purpose in his play. ACECQA's examples include children who use symbols in play to represent and make meaning, and who begin to identify the different purposes of text types, such as environmental print.",
+        "Next step: leave card, markers and tape in the block area for signs, and on the next walk point out the signs around the centre and ask Lucas what each one tells people to do. Deal with the backwards S inside real writing, not with a worksheet.",
+        "As a learning story: Lucas, your block road needed a sign today, so you went and looked at the real one on the bike track. You came back and wrote STOP yourself. \"This says stop so the cars stop,\" you told me. You know that writing tells people things, and you used it to keep your road safe.",
+      ],
+    },
+    {
+      heading: "Writing the link in one honest sentence",
+      paragraphs: [
+        "Compare \"Outcome 4\" with \"Outcome 4, as Zara predicted the car would go faster on a higher ramp, tested it and moved the line when it did.\" The second tells a family what happened and tells a colleague why it matters. It also gives an assessor the evidence behind the link.",
+        "A simple pattern works for most observations: the outcome and key component, then \"as\" or \"because\", then what the child did. If you cannot finish the sentence with something you saw, the link is probably not there.",
+      ],
+    },
+    {
+      heading: "Words that weaken an observation",
+      paragraphs: [
+        "\"Enjoyed the activity.\" \"Played nicely.\" \"Was very engaged.\" These could be written about any child on any day, so they show nothing. Replace each with what this child did: how many times, what they said, what they changed.",
+        "Leave out labels you cannot back with what you saw, and deficit words such as \"can't\" or \"struggles\" without what helped. Describe what the child does and what supports them.",
+      ],
+    },
+    {
+      heading: "From your note to a learning story in a couple of minutes",
+      paragraphs: [
+        "The rough note is the part only you can write, because only you were there. Turning it into an observation, a link and a story is where the evening goes.",
+        "Type your note into the box on this page and StoryLoop drafts the learning story with the EYLF V2.0 outcomes the moment actually shows and a next step, keeping the child's words exactly as you wrote them. Use a first name only. You check and edit every word before anything is shared with a family.",
       ],
     },
   ],
