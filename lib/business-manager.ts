@@ -73,13 +73,15 @@ export function requiredWeeklyGrowth(mrrNzd: number, goalNzd = MRR_GOAL_NZD, wee
 }
 
 /**
- * How many guides to publish this week: two while search is growing slower
- * than the target (or there is not yet enough data to say), one when it is on
- * target, none when the backlog is empty. Pure.
+ * How many guides to publish this week: two while search (SEO) or AI answers
+ * (AEO/GEO) grow slower than the target, or there is not yet enough data to
+ * say; one when both are on target; none when the backlog is empty. Pure.
+ * (4 Nov 2026, Leo: "8% growth per week on seo, aeo and geo".)
  */
-export function blogPostsTarget(input: { searchGrowth: number | null; topicsLeft: number }): 0 | 1 | 2 {
+export function blogPostsTarget(input: { searchGrowth: number | null; aiGrowth?: number | null; topicsLeft: number }): 0 | 1 | 2 {
   if (input.topicsLeft <= 0) return 0;
-  const behind = input.searchGrowth === null || input.searchGrowth < SEARCH_GROWTH_TARGET;
+  const behindOn = (growth: number | null) => growth === null || growth < SEARCH_GROWTH_TARGET;
+  const behind = behindOn(input.searchGrowth) || ("aiGrowth" in input && behindOn(input.aiGrowth ?? null));
   return behind && input.topicsLeft >= 2 ? 2 : 1;
 }
 
@@ -91,6 +93,8 @@ export type WeeklyMetrics = {
   weekEnding: string;
   visits: { thisWeek: ChannelCounts; lastWeek: ChannelCounts; last28: ChannelCounts; previous28: ChannelCounts };
   search: { thisWeek: number; lastWeek: number; weeklyGrowth: number | null; trendWeeklyGrowth: number | null; target: number; onTarget: boolean | null };
+  /** Visits from AI assistants (AEO/GEO), held to the same weekly target. */
+  ai: { thisWeek: number; lastWeek: number; weeklyGrowth: number | null; trendWeeklyGrowth: number | null; target: number; onTarget: boolean | null };
   signups: { thisWeek: number; lastWeek: number; bySource: Partial<ChannelCounts> };
   firstStories: number;
   stories: { thisWeek: number; lastWeek: number };
@@ -141,6 +145,11 @@ export async function collectWeeklyMetrics(now = new Date()): Promise<WeeklyMetr
   const week = weeklyGrowth(searchThis, searchLast);
   // The four-week trend decides "on target"; one week alone is too noisy.
   const growthForTarget = trend ?? week;
+  // AI answers (AEO/GEO) are measured the same way. Too few visits to measure
+  // counts as behind, so the guides keep coming until they are measurable.
+  const aiWeek = weeklyGrowth(visits.thisWeek.ai, visits.lastWeek.ai);
+  const aiTrend = trendWeeklyGrowth(visits.last28.ai, visits.previous28.ai);
+  const aiForTarget = aiTrend ?? aiWeek;
 
   const [signupRows, firstStoryCount, storiesThis, storiesLast, emailRows, unsubCount, blogRows, reports] = await Promise.all([
     allRows<{ created_at: string; signup_source: string | null; signup_referrer_host: string | null; signup_campaign: string | null; is_internal: boolean | null }>((from, to) =>
@@ -221,24 +230,41 @@ export async function collectWeeklyMetrics(now = new Date()): Promise<WeeklyMetr
       target: SEARCH_GROWTH_TARGET,
       onTarget: growthForTarget === null ? null : growthForTarget >= SEARCH_GROWTH_TARGET,
     },
+    ai: {
+      thisWeek: visits.thisWeek.ai,
+      lastWeek: visits.lastWeek.ai,
+      weeklyGrowth: aiWeek,
+      trendWeeklyGrowth: aiTrend,
+      target: SEARCH_GROWTH_TARGET,
+      onTarget: aiForTarget === null ? null : aiForTarget >= SEARCH_GROWTH_TARGET,
+    },
     signups,
     firstStories: firstStoryCount.count ?? 0,
     stories: { thisWeek: storiesThis.count ?? 0, lastWeek: storiesLast.count ?? 0 },
     revenue,
     email: emails,
-    blog: { publishedThisWeek, topicsLeft, targetNextWeek: blogPostsTarget({ searchGrowth: growthForTarget, topicsLeft }) },
+    blog: { publishedThisWeek, topicsLeft, targetNextWeek: blogPostsTarget({ searchGrowth: growthForTarget, aiGrowth: aiForTarget, topicsLeft }) },
     aiCalls: { storiesThisWeek: storiesThis.count ?? 0, managerCallsThisWeek: (reports.data ?? []).filter((r) => (r.details as { ai?: { used?: boolean } } | null)?.ai?.used).length },
   };
 }
 
 const pct = (value: number | null | undefined) => (value === null || value === undefined ? "not enough data yet" : `${value >= 0 ? "+" : ""}${Math.round(value * 1000) / 10}%`);
+/** "+37.8%; four-week trend +47.1% a week, target +8%", or plainly too few to measure. Pure. */
+const growthText = (week: number | null | undefined, trend: number | null | undefined) =>
+  (week === null || week === undefined) && (trend === null || trend === undefined)
+    ? "too few to measure yet; target +8% a week"
+    : `${pct(week)}; four-week trend ${trend === null || trend === undefined ? "not measurable yet" : `${pct(trend)} a week`}, target +8%`;
 const money = (value: number | null | undefined) => (value === null || value === undefined ? "unknown" : `NZ$${value.toLocaleString("en-NZ", { maximumFractionDigits: 2 })}`);
 
 export type Rundown = { headline: string; summary: string; actions: string[] };
 
 /** The rundown written by code, used when the model is unavailable. Pure. */
 export function plainRundown(m: WeeklyMetrics): Rundown {
-  const searchLine = `Search visits ${m.search.thisWeek} this week against ${m.search.lastWeek} last week (${pct(m.search.weeklyGrowth)}; four-week trend ${pct(m.search.trendWeeklyGrowth)} a week, target +8%).`;
+  const searchLine = `Search visits ${m.search.thisWeek} this week against ${m.search.lastWeek} last week (${growthText(m.search.weeklyGrowth, m.search.trendWeeklyGrowth)}).`;
+  // Reports stored before 4 Nov 2026 have no AI line.
+  const aiLine = m.ai
+    ? `AI answers (ChatGPT, Copilot, Gemini, Perplexity) sent ${m.ai.thisWeek} visits against ${m.ai.lastWeek} (${growthText(m.ai.weeklyGrowth, m.ai.trendWeeklyGrowth)}).`
+    : "";
   const ai = m.visits.thisWeek.ai;
   const fb = m.visits.thisWeek.facebook;
   const revenueLine = m.revenue.ready
@@ -246,12 +272,19 @@ export function plainRundown(m: WeeklyMetrics): Rundown {
     : "Stripe could not be read this week, so revenue is not included.";
   const actions: string[] = [];
   if (m.search.onTarget === false) actions.push("Search is behind the 8% target: two guides go out this week, and the newest pages should be submitted for indexing.");
-  if (m.signups.thisWeek > 0 && m.firstStories < m.signups.thisWeek) actions.push(`${m.signups.thisWeek - m.firstStories} of this week's signups have not written a first story yet; the getting-started emails will reach them.`);
+  if (m.ai && m.ai.onTarget !== true) actions.push(m.ai.onTarget === false
+    ? "AI answers are behind the 8% target: two guides go out this week. Check Bing's AI Performance report for the pages Copilot cites and keep those fresh."
+    : "AI answers are still too few to measure against 8%: two guides go out this week. Check Bing's AI Performance report for the pages Copilot cites.");
   if (m.blog.topicsLeft < 4) actions.push(`Only ${m.blog.topicsLeft} guide topics are left in the backlog: add more before it runs out.`);
+  if (m.signups.thisWeek > 0 && m.firstStories < m.signups.thisWeek) actions.push(`${m.signups.thisWeek - m.firstStories} of this week's signups have not written a first story yet; the getting-started emails will reach them.`);
   if (!actions.length) actions.push("Nothing urgent: keep the pages and posts going.");
   return {
-    headline: m.search.onTarget === false ? "Search is behind the 8% target" : m.search.onTarget ? "Search is on target" : "Not enough search data yet to call the target",
-    summary: [searchLine, `Google ${m.visits.thisWeek.google}, Bing ${m.visits.thisWeek.bing}, AI assistants ${ai}, Facebook ${fb}.`, `Signups ${m.signups.thisWeek} (last week ${m.signups.lastWeek}); first stories ${m.firstStories}; stories written ${m.stories.thisWeek}.`, revenueLine].join(" "),
+    headline: m.search.onTarget === false
+      ? "Search is behind the 8% target"
+      : m.search.onTarget
+        ? (!m.ai || m.ai.onTarget ? (m.ai ? "Search and AI answers are on target" : "Search is on target") : "Search is on target; AI answers are not yet")
+        : "Not enough search data yet to call the target",
+    summary: [searchLine, aiLine, `Google ${m.visits.thisWeek.google}, Bing ${m.visits.thisWeek.bing}, AI assistants ${ai}, Facebook ${fb}.`, `Signups ${m.signups.thisWeek} (last week ${m.signups.lastWeek}); first stories ${m.firstStories}; stories written ${m.stories.thisWeek}.`, revenueLine].filter(Boolean).join(" "),
     actions: actions.slice(0, 3),
   };
 }
@@ -262,7 +295,7 @@ You are given this week's numbers as JSON. Write a short, blunt rundown Leo can 
 
 RULES
 - Use only the numbers given. Never invent a number, a cause you cannot see in the data, or a competitor.
-- Say plainly whether search is on the +8% a week target (use the four-week trend when it exists) and whether revenue is on track for the NZ$10k MRR goal (compare actual movement to requiredWeeklyGrowth).
+- Say plainly whether search (SEO) and AI-assistant visits (AEO/GEO, the "ai" numbers) are each on the +8% a week target (use the four-week trends when they exist; null means too few to measure) and whether revenue is on track for the NZ$10k MRR goal (compare actual movement to requiredWeeklyGrowth).
 - Name the channels: Google, Bing, AI assistants (AEO/GEO), Facebook, direct.
 - At most three actions, each one concrete and doable this week by one person. No paid tools.
 - Plain New Zealand English. No em dashes or en dashes. No hype words.
@@ -326,6 +359,7 @@ function reportEmail(report: WeeklyReport) {
   const rows: Array<[string, string]> = [
     ["Search visits (Google, Bing, others)", `${m.search.thisWeek} (last week ${m.search.lastWeek}, ${pct(m.search.weeklyGrowth)})`],
     ["Four-week search trend", `${pct(m.search.trendWeeklyGrowth)} a week (target +8%)`],
+    ...(m.ai ? [["AI answers (AEO/GEO)", `${m.ai.thisWeek} (last week ${m.ai.lastWeek}; ${growthText(m.ai.weeklyGrowth, m.ai.trendWeeklyGrowth)})`] as [string, string]] : []),
     ["Google / Bing / AI assistants / Facebook", `${m.visits.thisWeek.google} / ${m.visits.thisWeek.bing} / ${m.visits.thisWeek.ai} / ${m.visits.thisWeek.facebook}`],
     ["Signups", `${m.signups.thisWeek} (last week ${m.signups.lastWeek})`],
     ["First stories / stories written", `${m.firstStories} / ${m.stories.thisWeek}`],

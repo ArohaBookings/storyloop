@@ -38,7 +38,7 @@ export default async function BusinessManagerPage() {
         <h1 className="font-display text-3xl font-bold text-ink-900">Business manager</h1>
       </div>
       <p className="text-sm text-ink-600">
-        Every Monday morning: search (Google, Bing and others), AI assistants, Facebook, signups and Stripe revenue, against the {Math.round(SEARCH_GROWTH_TARGET * 100)}% a week search target and the NZ$10k MRR goal. Counted in code; one model call a week writes the summary. It also sets the blog to two guides a week while search is behind target.
+        Every Monday morning: search (Google, Bing and others), AI assistants, Facebook, signups and Stripe revenue, against the {Math.round(SEARCH_GROWTH_TARGET * 100)}% a week growth target for search (SEO) and for AI answers (AEO/GEO), and the NZ$10k MRR goal. Counted in code; one model call a week writes the summary. It also sets the blog to two guides a week while either is behind target.
       </p>
 
       {!latest && <div className="card p-5 text-sm text-ink-600">No report yet. The first one is written on Monday morning.</div>}
@@ -78,7 +78,7 @@ export default async function BusinessManagerPage() {
                   <td>{r.metrics.search.thisWeek} ({pct(r.metrics.search.weeklyGrowth)})</td>
                   <td className={r.metrics.search.onTarget === false ? "text-red-700" : r.metrics.search.onTarget ? "text-sage-700" : ""}>{pct(r.metrics.search.trendWeeklyGrowth)}</td>
                   <td>{r.metrics.visits.thisWeek.google} / {r.metrics.visits.thisWeek.bing}</td>
-                  <td>{r.metrics.visits.thisWeek.ai}</td>
+                  <td className={r.metrics.ai?.onTarget === true ? "text-sage-700" : ""}>{r.metrics.visits.thisWeek.ai} ({pct(r.metrics.ai?.weeklyGrowth)})</td>
                   <td>{r.metrics.visits.thisWeek.facebook}</td>
                   <td>{r.metrics.signups.thisWeek}</td>
                   <td>{money(r.metrics.revenue.mrrNzd)}</td>

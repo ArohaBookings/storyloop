@@ -773,6 +773,32 @@ export default function GeneratePage() {
     dismissFirstStoryWizard();
   };
 
+  // The welcome card's two buttons (4 Nov 2026). All three people who signed up
+  // from Facebook on 3-4 Nov tapped around this card on a phone and left without
+  // finding Generate, two screens further down; and "Write my own" left the
+  // example in the box with its "this is an example" label gone. Each button now
+  // takes them to the next step: the Generate button, or an empty box to type in.
+  const tryExampleFromWelcome = () => {
+    setMode("story");
+    resetClarification();
+    setObservations(SAMPLE_OBSERVATION);
+    setInputMethod("sample");
+    dismissFirstStoryWizard();
+    window.requestAnimationFrame(() => document.getElementById("gen-generate")?.scrollIntoView({ block: "center", behavior: "smooth" }));
+  };
+
+  const writeOwnFromWelcome = () => {
+    setMode("story");
+    resetClarification();
+    if (observationsRef.current.trim() === SAMPLE_OBSERVATION.trim()) setObservations("");
+    setInputMethod("typed");
+    dismissFirstStoryWizard();
+    // Focus inside the tap so a phone opens its keyboard; scroll once the card is gone.
+    const box = document.getElementById("gen-observations") as HTMLTextAreaElement | null;
+    box?.focus({ preventScroll: true });
+    window.requestAnimationFrame(() => box?.scrollIntoView({ block: "center", behavior: "smooth" }));
+  };
+
   const parsePhraseList = (value: string) =>
     value
       .split(",")
@@ -1139,10 +1165,10 @@ export default function GeneratePage() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={useSampleObservation} className="btn-primary text-sm">
+            <button type="button" onClick={tryExampleFromWelcome} className="btn-primary text-sm">
               Try an example
             </button>
-            <button type="button" onClick={() => { setMode("story"); setInputMethod("typed"); dismissFirstStoryWizard(); }} className="btn-secondary text-sm">
+            <button type="button" onClick={writeOwnFromWelcome} className="btn-secondary text-sm">
               Write my own
             </button>
             <button type="button" onClick={dismissFirstStoryWizard} className="btn-ghost text-sm" aria-label="Hide first story tips">
@@ -1553,6 +1579,7 @@ export default function GeneratePage() {
             ) : (
               <div>
                 <button
+                  id="gen-generate"
                   type="button"
                   onClick={() => handleGenerate()}
                   disabled={loading || transcribing || observations.trim().length < MIN_STORY_OBSERVATION_CHARACTERS}

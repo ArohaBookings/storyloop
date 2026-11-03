@@ -55,7 +55,12 @@ test("the weekly growth needed to reach NZ$10k MRR in a year", () => {
   assert.equal(requiredWeeklyGrowth(0), null);
 });
 
-test("the blog's pace: two guides a week while search is behind, one when on target", () => {
+test("the blog's pace: two guides a week while search or AI answers are behind, one when both are on target", () => {
+  // Leo, 4 Nov 2026: "8% growth per week on seo, aeo and geo".
+  assert.equal(blogPostsTarget({ searchGrowth: 0.09, aiGrowth: 0.1, topicsLeft: 10 }), 1);
+  assert.equal(blogPostsTarget({ searchGrowth: 0.09, aiGrowth: 0.05, topicsLeft: 10 }), 2, "AI answers behind");
+  assert.equal(blogPostsTarget({ searchGrowth: 0.09, aiGrowth: null, topicsLeft: 10 }), 2, "AI answers too few to measure");
+  assert.equal(blogPostsTarget({ searchGrowth: 0.02, aiGrowth: 0.2, topicsLeft: 10 }), 2, "search behind");
   assert.equal(blogPostsTarget({ searchGrowth: 0.02, topicsLeft: 10 }), 2);
   assert.equal(blogPostsTarget({ searchGrowth: null, topicsLeft: 10 }), 2, "no data yet counts as behind");
   assert.equal(blogPostsTarget({ searchGrowth: 0.09, topicsLeft: 10 }), 1);
@@ -81,6 +86,7 @@ const METRICS: WeeklyMetrics = {
     previous28: { google: 200, bing: 30, other_search: 5, ai: 6, facebook: 60, email: 0, ads: 0, direct: 200, other: 4 },
   },
   search: { thisWeek: 134, lastWeek: 101, weeklyGrowth: 0.327, trendWeeklyGrowth: 0.17, target: 0.08, onTarget: true },
+  ai: { thisWeek: 4, lastWeek: 3, weeklyGrowth: null, trendWeeklyGrowth: null, target: 0.08, onTarget: null },
   signups: { thisWeek: 3, lastWeek: 2, bySource: { google: 2, facebook: 1 } },
   firstStories: 1,
   stories: { thisWeek: 40, lastWeek: 35 },
@@ -92,7 +98,15 @@ const METRICS: WeeklyMetrics = {
 
 test("without the model, the report still says what happened, in plain numbers", () => {
   const rundown = plainRundown(METRICS);
-  assert.equal(rundown.headline, "Search is on target");
+  assert.equal(rundown.headline, "Search is on target; AI answers are not yet");
+  assert.match(rundown.summary, /AI answers \(ChatGPT, Copilot, Gemini, Perplexity\) sent 4 visits against 3/);
+  assert.match(rundown.actions.join(" "), /AI answers are still too few to measure against 8%: two guides go out this week/);
+  const both = plainRundown({ ...METRICS, ai: { ...METRICS.ai, weeklyGrowth: 0.2, trendWeeklyGrowth: 0.1, onTarget: true } });
+  assert.equal(both.headline, "Search and AI answers are on target");
+  // A report stored before AI answers were measured still reads.
+  const old = plainRundown({ ...METRICS, ai: undefined } as unknown as WeeklyMetrics);
+  assert.equal(old.headline, "Search is on target");
+  assert.doesNotMatch(old.summary, /AI answers \(/);
   assert.match(rundown.summary, /Search visits 134 this week against 101 last week/);
   assert.match(rundown.summary, /Google 107, Bing 18, AI assistants 4, Facebook 122/);
   assert.match(rundown.summary, /MRR NZ\$168 from 8 payers/);
