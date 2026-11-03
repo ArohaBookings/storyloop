@@ -5,6 +5,8 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import PageTracker from "@/components/analytics/PageTracker";
+import TrustStatement from "@/components/marketing/TrustStatement";
+import ExitFeedback from "@/components/landing/ExitFeedback";
 
 export const metadata: Metadata = {
   title: { absolute: "About StoryLoop: who builds it, and why" },
@@ -189,6 +191,8 @@ export default function AboutPage() {
           </div>
         </section>
 
+        <TrustStatement />
+
         <section className="py-16 md:py-24">
           <div className="wide-shell">
             <div className="mx-auto max-w-3xl space-y-6 text-[17px] leading-relaxed text-ink-700">
@@ -237,6 +241,15 @@ export default function AboutPage() {
                   </dd>
                 </div>
               </dl>
+            </div>
+          </div>
+        </section>
+
+        {/* Visitors' own reasons (lib/exit-feedback.ts), here rather than on the homepage, guides or signup. */}
+        <section className="pb-12 md:pb-16">
+          <div className="wide-shell">
+            <div className="mx-auto max-w-3xl">
+              <ExitFeedback surface="about" />
             </div>
           </div>
         </section>

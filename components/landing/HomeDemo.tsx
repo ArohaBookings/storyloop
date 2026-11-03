@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { FileText, Layers, Quote, ShieldCheck } from "lucide-react";
 import StoryDemo from "./StoryDemo";
-import ExitFeedback from "./ExitFeedback";
 
 /**
  * Three answers a sceptical educator needs before typing a note about a child:
@@ -57,9 +56,6 @@ export default function HomeDemo() {
             <Link href="/transition-to-school-statement#transition-try" className="btn-secondary flex-none px-4 py-2 text-sm" data-track="home_wedge_try">
               Try it on a statement
             </Link>
-          </div>
-          <div className="mt-6">
-            <ExitFeedback surface="home" intent />
           </div>
         </div>
       </div>

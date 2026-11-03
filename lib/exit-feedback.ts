@@ -1,8 +1,8 @@
 /**
- * "Not for you today? One tap tells us why" (3 Nov 2026). Real visitors' own
- * reasons for leaving, recorded as an exit_feedback event (app/api/track). Until
- * now the only evidence was what people did; this asks the people themselves.
- * The labels never name another product.
+ * "What's stopping you from trying it?" (3 Nov 2026), on /about only. Real
+ * visitors' own reasons, recorded as an exit_feedback event (app/api/track).
+ * Until now the only evidence was what people did; this asks the people
+ * themselves. The labels never name another product.
  */
 export const EXIT_REASONS = [
   { key: "only_needed_resource", label: "I only needed the example or template" },
@@ -17,11 +17,11 @@ export const EXIT_REASONS = [
 ] as const;
 
 export type ExitReason = (typeof EXIT_REASONS)[number]["key"];
-export type ExitSurface = "home" | "guide" | "signup";
+export type ExitSurface = "about";
 export const EXIT_TEXT_MAX = 300;
 
 const KEYS = new Set<string>(EXIT_REASONS.map((r) => r.key));
-const SURFACES = new Set<string>(["home", "guide", "signup"]);
+const SURFACES = new Set<string>(["about"]);
 
 /** What may be recorded: a known reason, a known surface and a short note with emails and long digit runs blanked. */
 export function cleanExitFeedback(raw: { reason?: unknown; surface?: unknown; text?: unknown }) {

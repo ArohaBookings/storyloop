@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDown, ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowDown, ArrowRight } from "lucide-react";
 import { HERO_PROOFS, heroRegionForZone, type HeroRegion } from "@/lib/hero-proofs";
 
 /**
@@ -20,8 +20,11 @@ import { HERO_PROOFS, heroRegionForZone, type HeroRegion } from "@/lib/hero-proo
  * word count. Visitors were leaving before they saw what the product does (the
  * Meta ad's visitors in a second or two, search visitors in under a minute),
  * and the shopper simulation put "the first screen shows the result" ahead of
- * every other change. "Stored in Sydney. Never used to train AI." moved up from
- * under the demo and grew, at Leo's request.
+ * every other change.
+ *
+ * Nothing else goes in the hero without asking Leo first. "Stored in Sydney.
+ * Never used to train AI." was tried here on 3 Nov and taken out the same day
+ * at his request: it lives, large and bold, on /features and /about.
  */
 function Excerpt({ text, quote }: { text: string; quote: string }) {
   const at = text.indexOf(quote);
@@ -91,12 +94,6 @@ export default function Hero() {
                 or try it with your own note <ArrowDown className="h-3.5 w-3.5" />
               </a>
             </div>
-
-            {/* One line on a phone: 16px from 390px wide, 15px on the 375px phones, larger from tablets up. */}
-            <p className="animate-fade-up-2 mt-5 inline-flex items-center gap-2 rounded-2xl border border-sage-200 bg-sage-50/80 px-3 py-2 text-[15px] font-semibold text-sage-900 min-[390px]:text-base sm:mt-6 sm:gap-2.5 sm:rounded-full sm:px-4 md:text-lg" data-testid="hero-trust">
-              <ShieldCheck className="h-5 w-5 flex-none text-sage-700 md:h-6 md:w-6" strokeWidth={2.2} />
-              Stored in Sydney. Never used to train AI.
-            </p>
           </div>
 
           <figure className="animate-fade-up-1 relative mx-auto w-full min-w-0 max-w-xl lg:max-w-none">

@@ -33,13 +33,15 @@ test("the kept story's title and curriculum come from the draft itself", () => {
 });
 
 test("exit feedback keeps a known reason and a short note, never contact details", () => {
-  assert.deepEqual(cleanExitFeedback({ reason: "price", surface: "home", text: "" }), { reason: "price", surface: "home", text: "" });
-  assert.equal(cleanExitFeedback({ reason: "made-up", surface: "home" }), null);
+  assert.deepEqual(cleanExitFeedback({ reason: "price", surface: "about", text: "" }), { reason: "price", surface: "about", text: "" });
+  assert.equal(cleanExitFeedback({ reason: "made-up", surface: "about" }), null);
+  // Only the About page asks (3 Nov 2026): the homepage, guides and signup no longer do.
+  for (const gone of ["home", "guide", "signup"]) assert.equal(cleanExitFeedback({ reason: "price", surface: gone }), null, gone);
   assert.equal(cleanExitFeedback({ reason: "price", surface: "elsewhere" }), null);
-  const cleaned = cleanExitFeedback({ reason: "something_else", surface: "guide", text: "email me at jo@example.com or 021 555 1234 please" });
+  const cleaned = cleanExitFeedback({ reason: "something_else", surface: "about", text: "email me at jo@example.com or 021 555 1234 please" });
   assert.ok(cleaned);
   assert.ok(!cleaned.text.includes("@") && !cleaned.text.includes("555"), cleaned.text);
-  assert.equal(cleanExitFeedback({ reason: "too_busy", surface: "signup", text: "x".repeat(900) })?.text.length, 300);
+  assert.equal(cleanExitFeedback({ reason: "too_busy", surface: "about", text: "x".repeat(900) })?.text.length, 300);
   // The labels people see never name another product.
   const rivals = /\b(story ?park|educa|chat ?gpt|openai|claude|gemini|grok|copilot|perplexity)\b/i;
   for (const reason of EXIT_REASONS) assert.ok(!rivals.test(reason.label), reason.label);

@@ -13,7 +13,6 @@ import { suggestEmailFix } from "@/lib/email-typo";
 import { reportSignupConversion } from "@/lib/analytics/google-ads";
 import { takeHumanPass, warmHumanPass } from "@/lib/auth/human-pass-client";
 import { readKeptStory } from "@/lib/keep-story";
-import ExitFeedback from "@/components/landing/ExitFeedback";
 
 function normaliseCurrency(value: string | null): CurrencyCode {
   return value === "NZD" ? "NZD" : "AUD";
@@ -385,10 +384,6 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
             <p className="text-xs text-ink-500 text-center">By signing up you agree to our <Link href="/terms" className="text-clay-700 underline underline-offset-2">Terms</Link> and <Link href="/privacy" className="text-clay-700 underline underline-offset-2">Privacy Policy</Link></p>
           </form>
         </div>
-        <details className="mt-4 rounded-2xl text-sm text-ink-600">
-          <summary className="cursor-pointer text-center text-xs font-semibold text-ink-500 hover:text-ink-800">Not signing up today? Tell us why</summary>
-          <div className="mt-3"><ExitFeedback surface="signup" /></div>
-        </details>
         <p className="text-center text-sm text-ink-500 mt-5">Already have an account? <Link href="/login" className="text-clay-700 font-semibold hover:underline">Sign in</Link></p>
       </div>
     </div>

@@ -8,6 +8,7 @@ import { FEATURE_CATALOGUE } from "@/lib/feature-catalogue";
 import { EDUCATOR_ASSISTANT_MONTHLY, hasFeatureAccess, minimumPlanFor, PLAN_DEFINITIONS, PLAN_ORDER, type PlanKey } from "@/lib/plans";
 import { ACCURACY_REPORT as R } from "@/lib/accuracy-report";
 import { WALL_LANGUAGES } from "@/lib/wall-languages";
+import TrustStatement from "@/components/marketing/TrustStatement";
 
 export const metadata: Metadata = {
   title: { absolute: "Every StoryLoop feature, and which plan it is on" },
@@ -78,6 +79,8 @@ export default function FeaturesPage() {
           <Link href="/signup" className="btn-secondary">Start free</Link>
         </div>
       </GuideHero>
+
+      <TrustStatement />
 
       {/* The engine: what runs on every draft. */}
       <section id="engine" className="bg-ink-900 py-16 text-paper md:py-20">
