@@ -11,7 +11,7 @@ import { checkoutDiscountParams } from "@/lib/checkout-discount";
 import { resolveVerifiedPriceId } from "@/lib/stripe-prices";
 import { checkoutTerms, foundingCouponId, foundingSpotsLeft, isCentrePlan, isCouponRefusal } from "@/lib/centre-offer";
 import { CHECKOUT_BRANDING, CHECKOUT_PRESENTATION, checkoutAuthorisationMessage, checkoutTermsMessage, isBrandingRefusal } from "@/lib/stripe-branding";
-import { OFFER_REASON_COPY, PRO_MONTH_OFFER_ID, PRO_MONTH_PLAN, PRO_MONTH_TRIAL_DAYS, proMonthEligibility } from "@/lib/offers";
+import { OFFER_REASON_COPY, PRO_MONTH_OFFER_ID, PRO_MONTH_PLAN, PRO_MONTH_TRIAL_DAYS, WINBACK_OFFER_ID, ensureWinbackCoupon, proMonthEligibility, winbackEligibility } from "@/lib/offers";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { recordServerEvent } from "@/lib/analytics/server";
 
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { currency, activationOffer } = body;
-    const offer = body.offer === "pro_month" ? "pro_month" : null;
+    const offer = body.offer === "pro_month" ? "pro_month" : body.offer === "winback" ? "winback" : null;
     const browserSession = typeof body.sessionId === "string" ? body.sessionId.slice(0, 60) : null;
     const selectedCurrency = normaliseCurrency(currency);
     // The free-month offer is always Educator Pro, whatever the page sent.
@@ -80,6 +80,27 @@ export async function POST(request: NextRequest) {
       const eligibility = proMonthEligibility({ profile, grant, isCentreMember: Boolean(memberships?.length) });
       if (!eligibility.eligible) {
         return NextResponse.json({ error: OFFER_REASON_COPY[eligibility.reason], reason: eligibility.reason }, { status: 409 });
+      }
+      offerGrantId = grant?.id ?? null;
+    }
+    // Welcome back (lib/offers.ts): half price for two months, only for the
+    // account the email went to, before it expires, once, and never on a centre plan.
+    let winbackCoupon: string | undefined;
+    if (offer === "winback") {
+      if (isCentrePlan(selectedPlan)) {
+        return NextResponse.json({ error: "The welcome-back offer is for Educator and Educator Pro.", reason: "centre_plan" }, { status: 409 });
+      }
+      const { data: grant } = await admin.from("offer_grants").select("id, expires_at, redeemed_at").eq("user_id", user.id).eq("offer_id", WINBACK_OFFER_ID).maybeSingle();
+      const eligibility = winbackEligibility({ profile, grant });
+      if (!eligibility.eligible) {
+        return NextResponse.json({ error: OFFER_REASON_COPY[eligibility.reason], reason: eligibility.reason }, { status: 409 });
+      }
+      try {
+        winbackCoupon = await ensureWinbackCoupon(stripe.coupons as never);
+      } catch (error) {
+        // Never charge full price to someone promised half: stop and say so.
+        console.error("Welcome-back coupon unavailable:", error);
+        return NextResponse.json({ error: "The welcome-back discount could not be applied just now. Nothing was charged. Try again in a minute.", reason: "coupon_unavailable" }, { status: 503 });
       }
       offerGrantId = grant?.id ?? null;
     }
@@ -155,7 +176,10 @@ export async function POST(request: NextRequest) {
     }
     const terms = offer === "pro_month"
       ? { trialDays: PRO_MONTH_TRIAL_DAYS, noCardNeeded: false, foundingCoupon: null }
-      : checkoutTerms({
+      : offer === "winback"
+        // They know StoryLoop: no second trial, the discount starts today.
+        ? { trialDays: 0, noCardNeeded: false, foundingCoupon: null }
+        : checkoutTerms({
           plan: selectedPlan,
           spotsLeft: isCentrePlan(selectedPlan) ? await foundingSpotsLeft(stripe) : null,
           hadCentreBefore,
@@ -166,7 +190,7 @@ export async function POST(request: NextRequest) {
     const createSession = (founding: string | null, branded = true) => {
       // One coupon per checkout. The founding offer is the strongest, then the
       // referral's free month, then the activation offer.
-      const appliedCoupon = founding ?? referralCoupon ?? activationCoupon;
+      const appliedCoupon = founding ?? winbackCoupon ?? referralCoupon ?? activationCoupon;
       const metadata = {
         // Marks StoryLoop's own checkouts on the shared Stripe account.
         app: "storyloop",
@@ -181,6 +205,7 @@ export async function POST(request: NextRequest) {
         trial_days: String(terms.trialDays),
         no_card: terms.noCardNeeded ? "true" : "false",
         ...(offer === "pro_month" ? { offer_id: PRO_MONTH_OFFER_ID } : {}),
+        ...(offer === "winback" ? { offer_id: WINBACK_OFFER_ID } : {}),
       };
       // StoryLoop's own authorisation line, in place of Stripe's (which names the
       // shared account). Only with the presentation, since that is what hides Stripe's.
@@ -196,7 +221,8 @@ export async function POST(request: NextRequest) {
               trialDays: terms.trialDays,
               noCardNeeded: terms.noCardNeeded,
               founding: Boolean(founding),
-              offer,
+              offer: offer === "pro_month" ? "pro_month" : null,
+              winback: offer === "winback",
               firstMonthFree,
             }),
           },

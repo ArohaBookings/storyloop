@@ -1,3 +1,4 @@
+import { WINBACK_MONTHS, WINBACK_PERCENT_OFF } from "@/lib/offers";
 import type Stripe from "stripe";
 import { SITE_URL } from "@/lib/email/config";
 import { getPlanByKey, type CurrencyCode, type PlanKey } from "@/lib/plans";
@@ -89,11 +90,17 @@ export function checkoutTermsMessage(input: {
   offer: "pro_month" | null;
   /** A referral's free first month (100% off the first invoice after the trial). */
   firstMonthFree?: boolean;
+  /** The welcome-back offer (lib/offers.ts): no trial, half price for the first months. */
+  winback?: boolean;
   now?: Date;
 }): string {
   const now = input.now ?? new Date();
   const price = money(input.plan, input.currency);
   const planName = getPlanByKey(input.plan).name;
+  if (input.winback) {
+    const share = 1 - WINBACK_PERCENT_OFF / 100;
+    return `Welcome back: ${planName} is ${WINBACK_PERCENT_OFF === 50 ? "half price" : `${WINBACK_PERCENT_OFF}% off`} for your first ${WINBACK_MONTHS} months, ${money(input.plan, input.currency, share)} a month, then ${price} a month. Cancel any time in StoryLoop Billing. ${STATEMENT_LINE}`;
+  }
   if (input.trialDays <= 0) {
     return `${planName}, ${price} a month. Cancel any time in StoryLoop Billing. ${STATEMENT_LINE}`;
   }

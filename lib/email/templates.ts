@@ -1,4 +1,5 @@
 import { ACTIVATION_OFFER_LABEL, EMAIL_REPLY_TO, SITE_URL } from "./config";
+import { WINBACK_CLAIM_DAYS, WINBACK_LABEL } from "@/lib/offers";
 import { unsubscribeUrl } from "./unsubscribe";
 import { renderProMonthOfferEmail } from "./offer-email";
 
@@ -32,6 +33,7 @@ export type LifecycleEmailType =
   | "winback_offer"
   | "went_quiet"
   | "referral_earned"
+  | "referral_joined"
   | "referral_invite"
   // "Pro free for a month", sent once to free educators. See lib/offers.ts.
   | "pro_month_offer";
@@ -65,6 +67,10 @@ type TemplateInput = {
     referralCode?: string;
     referralsEarned?: number;
     creditLabel?: string;
+    /** referral_joined: whether the referrer pays now, so the credit comes off an invoice rather than waiting. */
+    referrerPaying?: boolean;
+    /** winback_offer: the last day to claim, from the account's offer grant. */
+    offerExpires?: string;
     offerCode?: string;
     /** checkout_abandoned: the trial length that checkout offered, when known. */
     trialDays?: number;
@@ -246,7 +252,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
   const templates: Record<LifecycleEmailType, () => RenderedEmail> = {
     welcome: () => {
       const ctaUrl = url("/generate", "welcome");
-      const subject = "Welcome to StoryLoop — create your first story";
+      const subject = "Welcome to StoryLoop: create your first story";
       const lines = [
         `Hi ${name}, thanks for joining StoryLoop.`,
         "The fastest way to test it is simple: paste 3-5 rough bullet points or record a quick voice note from one real observation.",
@@ -307,17 +313,18 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
       return {
         emailType: "first_story_created",
         subject,
-        marketing: false,
+        marketing: true,
         ctaUrl,
         html: layout({
           title: "How did that first draft feel?",
           preview: "One quick feedback question.",
           cta: "Create another story",
           ctaUrl,
+          unsubscribe,
           secondary: feedbackButtons,
           body: `<p>You created your first StoryLoop draft.</p><p><strong>Did it sound like something you would actually edit/use, or did anything feel off?</strong></p><p>Reply with one line, or create another story while the workflow is fresh.</p>`,
         }),
-        text: plain({ title: subject, lines, cta: "Create another story", ctaUrl }),
+        text: plain({ title: subject, lines, cta: "Create another story", ctaUrl, unsubscribe }),
       };
     },
     two_free_stories_used: () => {
@@ -382,16 +389,17 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
       return {
         emailType: "paid_no_usage_checkin",
         subject,
-        marketing: false,
+        marketing: true,
         ctaUrl,
         html: layout({
           title: "Quick StoryLoop check-in",
           preview: "A short note to help you get value from your plan.",
           cta: "Create a story",
           ctaUrl,
+          unsubscribe,
           body: `<p>Just checking in to see how you are finding StoryLoop so far.</p><p>The quickest test is still one real observation: paste it in, generate a draft, then edit the parts that need your voice.</p><p>If anything feels confusing or missing, reply and tell me.</p>`,
         }),
-        text: plain({ title: subject, lines, cta: "Create a story", ctaUrl }),
+        text: plain({ title: subject, lines, cta: "Create a story", ctaUrl, unsubscribe }),
       };
     },
     weekly_value: () => {
@@ -505,18 +513,19 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
       return {
         emailType: "story_quality_upgrade",
         subject,
-        // Service notice about the educator's own stories — not a promotion.
-        marketing: false,
+        // A tip about the writer, so it carries the unsubscribe link (3 Nov 2026).
+        marketing: true,
         ctaUrl,
         html: layout({
           title: "Your learning stories just got a serious upgrade",
-          preview: "We rebuilt the StoryLoop writer — your stories now read like a real educator wrote them.",
+          preview: "We rebuilt the StoryLoop writer. Your stories now read like a real educator wrote them.",
           cta: "See the difference",
           ctaUrl,
+          unsubscribe,
           secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Nothing you saved was changed or deleted. This only affects new stories you generate from here.</p>`,
-          body: `<p>Hi ${esc(name)}, a short and honest note.</p><p>You were one of the first educators to use StoryLoop, and some of your early drafts came out <strong>flatter and more generic</strong> than the moment you actually described. That is on us, not on your observations.</p><p>We have rebuilt the part of StoryLoop that writes your stories. Drafts now read like a thoughtful educator wrote them: they <strong>tidy your rough notes into real prose</strong>, stay <strong>specific to the child</strong> in front of you, and respect the tone and depth you choose.</p><p>If you have a spare minute, open one of your observations and generate it again — we think you will see the difference straight away.</p><p>Thank you for giving StoryLoop an early go.</p>`,
+          body: `<p>Hi ${esc(name)}, a short and honest note.</p><p>You were one of the first educators to use StoryLoop, and some of your early drafts came out <strong>flatter and more generic</strong> than the moment you actually described. That is on us, not on your observations.</p><p>We have rebuilt the part of StoryLoop that writes your stories. Drafts now read like a thoughtful educator wrote them: they <strong>tidy your rough notes into real prose</strong>, stay <strong>specific to the child</strong> in front of you, and respect the tone and depth you choose.</p><p>If you have a spare minute, open one of your observations and generate it again. We think you will see the difference straight away.</p><p>Thank you for giving StoryLoop an early go.</p>`,
         }),
-        text: plain({ title: subject, lines, cta: "See the difference", ctaUrl }),
+        text: plain({ title: subject, lines, cta: "See the difference", ctaUrl, unsubscribe }),
       };
     },
 
@@ -579,7 +588,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
         ctaUrl,
         html: layout({
           title: `Your trial ends ${esc(when)}`,
-          preview: ctx.firstMonthFree ? `Your first month is free too. First payment ${ctx.firstChargeOn ? `on ${esc(ctx.firstChargeOn)}` : "a month later"}.` : `First payment of ${esc(amount)} — cancel any time before then.`,
+          preview: ctx.firstMonthFree ? `Your first month is free too. First payment ${ctx.firstChargeOn ? `on ${esc(ctx.firstChargeOn)}` : "a month later"}.` : `First payment of ${esc(amount)}. Cancel any time before then.`,
           cta: "Manage billing",
           ctaUrl,
           secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">No action needed if you want to keep going. Everything you have written stays yours either way.</p>`,
@@ -620,7 +629,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
             stories
               ? `<p>You turned <strong>${stories} observations</strong> into finished learning stories this month. That is real evenings back.</p>`
               : `<p>Your stories are ready whenever you are.</p>`
-          }<p>Thank you for backing a small New Zealand product. If anything is getting in your way, just reply to this email — it comes straight to us.</p>`,
+          }<p>Thank you for backing a small New Zealand product. If anything is getting in your way, just reply to this email. It comes straight to us.</p>`,
         }),
         text: plain({ title: subject, lines, cta: "Write a story", ctaUrl }),
       };
@@ -647,7 +656,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
           cta: "Update payment method",
           ctaUrl,
           secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Your stories are safe. Nothing has been deleted and nothing will be.</p>`,
-          body: `<p>Hi ${esc(name)}, your latest StoryLoop payment could not be processed.</p><p>This is almost always an <strong>expired card or a bank block</strong>, not a problem with your account. Updating your card takes about thirty seconds and everything carries on as normal.</p><p>If you would rather stop instead, that is completely fine — no need to reply, it will simply lapse.</p>`,
+          body: `<p>Hi ${esc(name)}, your latest StoryLoop payment could not be processed.</p><p>This is almost always an <strong>expired card or a bank block</strong>, not a problem with your account. Updating your card takes about thirty seconds and everything carries on as normal.</p><p>If you would rather stop instead, that is completely fine. No need to reply; it will simply lapse.</p>`,
         }),
         text: plain({ title: subject, lines, cta: "Update payment method", ctaUrl }),
       };
@@ -796,14 +805,18 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
       return { emailType: "pro_month_offer", subject: email.subject, marketing: true, ctaUrl, html: email.html, text: email.text };
     },
 
+    // Half price for two months back (lib/offers.ts WINBACK_*), granted to
+    // this account before the email is sent and applied at checkout from the
+    // link. Every number here comes from the same constants checkout uses.
     winback_offer: () => {
-      const ctaUrl = url("/billing?offer=activation", "winback_offer");
-      const offer = ACTIVATION_OFFER_LABEL;
-      const subject = `${name}, come back to StoryLoop with ${offer}`;
+      const ctaUrl = url("/billing?offer=winback", "winback_offer");
+      const offer = WINBACK_LABEL;
+      const until = ctx.offerExpires ? `until ${ctx.offerExpires}` : `for the next ${WINBACK_CLAIM_DAYS} days`;
+      const subject = `${name}, ${offer} if you come back to StoryLoop`;
       const lines = [
         `Hi ${name}, StoryLoop has moved on since you left.`,
-        "Stories are sharper, they keep the child's own words, and there is now an assistant that rewrites any line you highlight.",
-        `If the documentation is piling up again, restart from Billing and you get ${offer}. Your old stories are all still there.`,
+        "Stories keep the child's own words exactly, there is an assistant that rewrites any line you highlight, and each child's saved stories now draft their transition statement or end-of-year summary.",
+        `If the documentation is piling up again, restart from this link and you get ${offer}, ${until}. No code needed. Your old stories are all still there.`,
         "No pressure either way.",
       ];
       return {
@@ -812,13 +825,13 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
         marketing: true,
         ctaUrl,
         html: layout({
-          title: "Come back when you are ready",
-          preview: `StoryLoop has changed since you left. Restart with ${offer}.`,
+          title: "Come back at half price",
+          preview: `${offer.charAt(0).toUpperCase() + offer.slice(1)}, ${until}.`,
           cta: "Restart StoryLoop",
           ctaUrl,
           unsubscribe,
-          secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">The discount is applied at checkout when you restart from this email. No code needed.</p>`,
-          body: `<p>Hi ${esc(name)}, StoryLoop has moved on since you left.</p><p>Stories are <strong>sharper and more specific</strong>, they keep <strong>the child's own words</strong> exactly as you wrote them, and there is now an assistant that rewrites any line you highlight without touching the rest.</p><p>If the documentation is piling up again, restart from Billing and you get <strong>${esc(offer)}</strong>. Your old stories are all still there.</p><p>No pressure either way, and thank you for having given it a go.</p>`,
+          secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">The discount is applied at checkout when you restart from this email, ${esc(until)}. No code needed. Cancel any time in Billing.</p>`,
+          body: `<p>Hi ${esc(name)}, StoryLoop has moved on since you left.</p><p>Stories keep <strong>the child's own words</strong> exactly as you wrote them, there is an assistant that rewrites any line you highlight, and each child's saved stories now draft their <strong>transition statement or end-of-year summary</strong> in one step.</p><p>If the documentation is piling up again, restart from this email and you get <strong>${esc(offer)}</strong>, ${esc(until)}. Your old stories are all still there.</p><p>No pressure either way, and thank you for having given it a go.</p>`,
         }),
         text: plain({ title: subject, lines, cta: "Restart StoryLoop", ctaUrl, unsubscribe }),
       };
@@ -902,6 +915,37 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
     // Referral
     // ---------------------------------------------------------------------
 
+    // Someone signed up with this educator's link (3 Nov 2026). Says exactly
+    // what the reward is and when it lands, per lib/referrals.ts: a month (three
+    // for a centre plan) once they pay, up to five, off the next invoice or
+    // kept until the referrer starts a plan.
+    referral_joined: () => {
+      const ctaUrl = url("/support", "referral_joined");
+      const subject = "An educator just joined StoryLoop with your link";
+      const reward = ctx.referrerPaying
+        ? "It comes straight off your next invoice."
+        : "It is kept for you and used up as soon as you start a plan.";
+      const lines = [
+        `Hi ${name}, an educator just signed up to StoryLoop with your link.`,
+        `When they start a paid plan you get a free month of StoryLoop, or three if it is a centre plan. ${reward}`,
+        "Nothing for you to do. Thank you for passing it on.",
+      ];
+      return {
+        emailType: "referral_joined",
+        subject,
+        marketing: false,
+        ctaUrl,
+        html: layout({
+          title: "Someone joined with your link",
+          preview: "When they start a paid plan, you get a free month.",
+          cta: "See your referrals",
+          ctaUrl,
+          body: `<p>Hi ${esc(name)}, an educator just signed up to StoryLoop with your link.</p><p>When they start a paid plan you get <strong>a free month of StoryLoop</strong>, or three if it is a centre plan. ${esc(reward)}</p><p>Nothing for you to do. Thank you for passing it on; it genuinely matters at our size.</p>`,
+        }),
+        text: plain({ title: subject, lines, cta: "See your referrals", ctaUrl }),
+      };
+    },
+
     referral_earned: () => {
       const ctaUrl = url("/billing", "referral_earned");
       const credit = ctx.creditLabel ?? "a free month";
@@ -910,7 +954,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
       const subject = `You just earned ${credit}`;
       const lines = [
         `Hi ${name}, someone you referred just became a paying StoryLoop member.`,
-        `${credit} has been credited to your account automatically — it comes off your next invoice.`,
+        `${credit} has been credited to your account automatically. It comes off your next invoice.`,
         remaining > 0 ? `You can earn ${remaining} more free ${remaining === 1 ? "month" : "months"}.` : "That is all five free months earned. Thank you.",
       ];
       return {

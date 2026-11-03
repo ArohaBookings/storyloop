@@ -53,7 +53,8 @@ export type OfferIneligibleReason =
   | "centre_member"
   | "no_offer"
   | "redeemed"
-  | "expired";
+  | "expired"
+  | "never_paid";
 
 export type OfferEligibility = { eligible: true } | { eligible: false; reason: OfferIneligibleReason };
 
@@ -141,4 +142,67 @@ export const OFFER_REASON_COPY: Record<OfferIneligibleReason, string> = {
   no_offer: "This offer went by email to educators who already had a StoryLoop account, and it is not on this one. You can still try any paid plan free for 7 days.",
   redeemed: "You have already started your free month. It is all in Billing.",
   expired: "This offer has ended. You can still try any paid plan free for 7 days.",
+  never_paid: "This welcome-back offer is for educators who have had a StoryLoop plan before. Start free, or choose a plan below.",
 };
+
+
+/**
+ * The welcome-back offer (3 Nov 2026): half price for the first two months back,
+ * for an educator who paid before and cancelled. A discount simulation
+ * (storyloop-ops/sim/discount_sim.py) put "50% off 2 months" ahead of today's
+ * 15% off one month for lapsed payers in every plausible world, with the most
+ * people coming back. Every number the email, the billing page and checkout
+ * show comes from these constants, and checkout refuses a coupon that does not
+ * match them, so what the email promises is exactly what is charged.
+ */
+export const WINBACK_OFFER_ID = "winback_half_2m_2026_11";
+export const WINBACK_COUPON_ID = "storyloop_winback_50_2m";
+export const WINBACK_PERCENT_OFF = 50;
+export const WINBACK_MONTHS = 2;
+export const WINBACK_CLAIM_DAYS = 14;
+export const WINBACK_LABEL = `${WINBACK_PERCENT_OFF}% off your first ${WINBACK_MONTHS} months back`;
+
+export function winbackEligibility(input: { profile: OfferProfile | null; grant: OfferGrantRow | null; now?: Date }): OfferEligibility {
+  const { profile, grant } = input;
+  const now = input.now ?? new Date();
+  if (!profile || profile.is_active === false) return { eligible: false, reason: "inactive" };
+  if (profile.is_internal) return { eligible: false, reason: "internal" };
+  if (isPayingAccount(profile)) return { eligible: false, reason: "already_paid" };
+  if ((profile.subscription_status ?? "").toLowerCase() !== "cancelled") return { eligible: false, reason: "never_paid" };
+  if (!grant) return { eligible: false, reason: "no_offer" };
+  if (grant.redeemed_at) return { eligible: false, reason: "redeemed" };
+  if (Date.parse(grant.expires_at) <= now.getTime()) return { eligible: false, reason: "expired" };
+  return { eligible: true };
+}
+
+type CouponApi = {
+  retrieve: (id: string) => Promise<{ id: string; percent_off?: number | null; duration?: string | null; duration_in_months?: number | null; valid?: boolean | null; deleted?: boolean }>;
+  create: (params: Record<string, unknown>) => Promise<{ id: string; percent_off?: number | null; duration?: string | null; duration_in_months?: number | null; valid?: boolean | null }>;
+};
+
+/** True only for a coupon that is exactly the welcome-back terms. */
+export function isWinbackCoupon(coupon: { percent_off?: number | null; duration?: string | null; duration_in_months?: number | null; valid?: boolean | null; deleted?: boolean } | null | undefined) {
+  return Boolean(coupon && !coupon.deleted && coupon.valid !== false && coupon.percent_off === WINBACK_PERCENT_OFF && coupon.duration === "repeating" && coupon.duration_in_months === WINBACK_MONTHS);
+}
+
+/**
+ * The welcome-back coupon, made on first use. Throws rather than ever applying
+ * a coupon with different terms from the email.
+ */
+export async function ensureWinbackCoupon(coupons: CouponApi) {
+  let coupon: Awaited<ReturnType<CouponApi["retrieve"]>> | null = null;
+  try {
+    coupon = await coupons.retrieve(WINBACK_COUPON_ID);
+  } catch {
+    coupon = await coupons.create({
+      id: WINBACK_COUPON_ID,
+      percent_off: WINBACK_PERCENT_OFF,
+      duration: "repeating",
+      duration_in_months: WINBACK_MONTHS,
+      name: `StoryLoop welcome back - ${WINBACK_PERCENT_OFF}% off ${WINBACK_MONTHS} months`,
+      metadata: { app: "storyloop", purpose: "winback", offer_id: WINBACK_OFFER_ID },
+    });
+  }
+  if (!isWinbackCoupon(coupon)) throw new Error(`Coupon ${WINBACK_COUPON_ID} does not match the welcome-back terms`);
+  return coupon!.id;
+}

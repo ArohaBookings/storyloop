@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { createStripe } from "@/lib/stripe-client";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { normalizePlanKey } from "@/lib/plans";
-import { creditEarnedReferrals, grantReferralCreditForPayment } from "@/lib/referrals";
+import { creditEarnedReferrals, grantReferralCreditForPayment, notifyReferrer } from "@/lib/referrals";
 import { newlyScheduledCancellation, paymentFailureNotice, sendBillingEmail } from "@/lib/email/billing";
 import { cancellationFeedbackMetadata } from "@/lib/churn-reasons";
 import { metaConfigured, sendMetaEvent } from "@/lib/meta-capi";
@@ -154,6 +154,8 @@ async function grantReferralRewardIfEarned(
         amountCents: result.amountCents,
         currency: result.currency,
       });
+      // The referrer hears about it (the email existed but was never sent until 3 Nov 2026).
+      await notifyReferrer(result.referrerId, { kind: "earned", months: result.months, balanceTransactionId: result.balanceTransactionId });
     }
 
     // And pay out anything THIS payer earned back when they had no plan of

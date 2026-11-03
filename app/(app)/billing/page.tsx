@@ -114,6 +114,16 @@ export default function BillingPage() {
   // StoryLoop's own billing management (card, cancel or keep, receipts). Stripe's
   // portal is never used: it shows the shared Stripe account's business name.
   const [billing, setBilling] = useState<BillingSummary | null>(null);
+  // The welcome-back offer, shown only once the server confirms this account holds it (lib/offers.ts).
+  const wantsWinback = searchParams.get("offer") === "winback";
+  const [winback, setWinback] = useState<{ eligible: boolean; label?: string; expiresOn?: string | null; message?: string } | null>(null);
+  useEffect(() => {
+    if (!wantsWinback) return;
+    fetch("/api/offers/winback", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => setWinback(data))
+      .catch(() => setWinback({ eligible: false }));
+  }, [wantsWinback]);
   const [cardNotice, setCardNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [pauseOpen, setPauseOpen] = useState(false);
@@ -182,7 +192,13 @@ export default function BillingPage() {
     track("checkout_click", { plan, currency, from: "billing" });
     const res = await fetch("/api/stripe/checkout", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan, currency, activationOffer: searchParams.get("offer") === "activation", sessionId: getSessionId() }),
+      body: JSON.stringify({
+        plan,
+        currency,
+        activationOffer: searchParams.get("offer") === "activation",
+        ...(winback?.eligible && !plan.startsWith("centre") ? { offer: "winback" } : {}),
+        sessionId: getSessionId(),
+      }),
     });
     const data = await res.json();
     if (data.url) window.location.href = data.url;
@@ -464,6 +480,19 @@ export default function BillingPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {wantsWinback && winback?.eligible && currentPlan === "free" && (
+        <div className="mb-8 rounded-3xl border border-clay-200 bg-gradient-to-br from-cream-100 via-white to-sage-50 p-5 shadow-warm" data-testid="winback-offer">
+          <p className="section-title mb-2">Welcome back</p>
+          <h2 className="font-display text-2xl font-bold text-ink-900">{(winback.label ?? "").charAt(0).toUpperCase() + (winback.label ?? "").slice(1)}, ready at checkout.</h2>
+          <p className="mt-1 text-sm text-ink-600">
+            Choose Educator or Educator Pro below and it is applied automatically. No code needed{winback.expiresOn ? `. Until ${winback.expiresOn}` : ""}.
+          </p>
+        </div>
+      )}
+      {wantsWinback && winback && !winback.eligible && winback.message && currentPlan === "free" && (
+        <p className="mb-6 rounded-2xl border border-clay-100 bg-cream-50 px-4 py-3 text-sm text-ink-700" data-testid="winback-unavailable">{winback.message}</p>
       )}
 
       {searchParams.get("offer") === "activation" && currentPlan === "free" && (

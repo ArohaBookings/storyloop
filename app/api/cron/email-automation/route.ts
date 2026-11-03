@@ -4,6 +4,9 @@ import { runLifecycleAutomation } from "@/lib/email/automation";
 import { settleAllFoundingDiscounts } from "@/lib/centre-offer";
 import { createStripe } from "@/lib/stripe-client";
 
+// The run now also asks Resend about recent emails (lib/email/delivery-sync.ts, about 10s).
+export const maxDuration = 60;
+
 export async function GET(request: Request) {
   try {
     const auth = request.headers.get("authorization");

@@ -655,16 +655,19 @@ test("internal and comp accounts are excluded from all revenue maths", () => {
 
 // Marketing email frequency. An educator getting several sales emails in a week
 // unsubscribes, and then we cannot reach them even for billing.
-test("every marketing template is covered by the weekly frequency cap", () => {
+// 3 Nov 2026: the email brain (lib/email/brain.ts) caps every one of these at two a
+// month; the first-story, paid-but-quiet and writer-update emails became marketing
+// (with an unsubscribe link) and the friend-joined email is account email.
+test("every marketing template is covered by the email brain's cap", () => {
   const MARKETING_TYPES = [
     "no_first_story", "weekly_value", "feedback_request", "family_pack_prompt",
     "centre_planning_prompt", "went_quiet", "winback_offer", "referral_invite",
     "two_free_stories_used", "free_limit_reached", "checkout_abandoned",
+    "first_story_created", "paid_no_usage_checkin", "story_quality_upgrade", "pro_month_offer",
   ] as const;
   const TRANSACTIONAL_TYPES = [
-    "welcome", "first_story_created", "paid_no_usage_checkin", "story_quality_upgrade",
-    "trial_ending", "payment_succeeded", "payment_failed", "payment_failed_final",
-    "cancellation_scheduled", "subscription_cancelled", "referral_earned",
+    "welcome", "trial_ending", "payment_succeeded", "payment_failed", "payment_failed_final",
+    "cancellation_scheduled", "subscription_cancelled", "referral_earned", "referral_joined",
   ] as const;
 
   for (const type of MARKETING_TYPES) {

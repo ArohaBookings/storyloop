@@ -8,6 +8,10 @@ import { formatDate } from "./billing";
 import { createStripe } from "@/lib/stripe-client";
 import { abandonedCheckoutCandidates, stillAbandoned } from "@/lib/abandoned-checkout";
 import { isCentrePlan } from "@/lib/centre-offer";
+import { WINBACK_CLAIM_DAYS, WINBACK_OFFER_ID, longDay } from "@/lib/offers";
+import { EMAIL_CLASS, HOLDS_EVERYTHING, inFreeDecisionWindow, orderCandidates } from "./brain";
+import { loadCampaignStats } from "./brain-state";
+import { syncDeliveryStatus } from "./delivery-sync";
 
 /**
  * Whether a trialing customer has a card on file, asked of Stripe. Only needed
@@ -75,6 +79,7 @@ type ProfileEmailRow = {
   is_internal?: boolean | null;
   trial_ends_at?: string | null;
   stripe_customer_id?: string | null;
+  story_preferences?: { defaultFramework?: string | null } | null;
 };
 
 const ACTIVE_PAID_STATUSES = new Set(["active", "trialing", "admin_override"]);
@@ -117,22 +122,27 @@ async function sendIfNeeded(
   type: LifecycleEmailType,
   since?: string,
   context?: Parameters<typeof sendLifecycleEmail>[0]["context"],
-) {
+  metadata: Record<string, unknown> = {},
+  prepare?: Parameters<typeof sendLifecycleEmail>[0]["prepare"],
+): Promise<{ type: LifecycleEmailType; status: string; reason?: string; detail?: string }> {
   if (!row.email) return { type, status: "missing_email" };
   // Founder/staff/comp accounts are real accounts, but lifecycle nudges aimed at
   // customers should not go to them.
   if (row.is_internal) return { type, status: "skipped_internal" };
   if (await sentRecently(row.id, type, since)) return { type, status: "already_sent" };
-  return sendLifecycleEmail({
+  const result = await sendLifecycleEmail({
     type,
     userId: row.id,
     recipient: row.email,
     name: row.full_name,
     // A rule with a window (went_quiet every 21 days) repeats on that window.
     dedupeSince: since,
-    metadata: { automation: true },
+    metadata: { automation: true, ...metadata },
     context,
+    prepare,
+    defaultFramework: row.story_preferences?.defaultFramework ?? null,
   });
+  return { type, ...result };
 }
 
 /**
@@ -165,7 +175,11 @@ export async function sendStoryMilestoneEmails({
   const results = [];
   const limit = getMonthlyStoryLimit(profile);
 
-  if ((profile.total_stories ?? 0) === 0) {
+  // The first-story feedback ask is a tip: a free educator who has just used one
+  // of three free stories is deciding whether to pay, so it would only take the
+  // slot "one story left" and "out of free stories" need (lib/email/brain.ts).
+  const freeDeciding = inFreeDecisionWindow({ plan: profile.plan, storiesThisMonth: storiesUsedThisMonth, monthlyLimit: limit });
+  if ((profile.total_stories ?? 0) === 0 && !freeDeciding) {
     results.push(
       await sendLifecycleEmail({
         type: "first_story_created",
@@ -174,6 +188,8 @@ export async function sendStoryMilestoneEmails({
         name: profile.full_name,
         relatedStoryId: storyId,
         metadata: { trigger: "first_story" },
+        triggeredByUser: true,
+        defaultFramework: profile.story_preferences?.defaultFramework ?? null,
       })
     );
   }
@@ -188,6 +204,8 @@ export async function sendStoryMilestoneEmails({
           name: profile.full_name,
           relatedStoryId: storyId,
           metadata: { trigger: "two_free_stories_used" },
+          triggeredByUser: true,
+          defaultFramework: profile.story_preferences?.defaultFramework ?? null,
         })
       );
     }
@@ -200,6 +218,8 @@ export async function sendStoryMilestoneEmails({
           name: profile.full_name,
           relatedStoryId: storyId,
           metadata: { trigger: "free_limit_reached" },
+          triggeredByUser: true,
+          defaultFramework: profile.story_preferences?.defaultFramework ?? null,
         })
       );
     }
@@ -208,13 +228,56 @@ export async function sendStoryMilestoneEmails({
   return results;
 }
 
+/**
+ * Grants (or renews, if it lapsed unused) this account's welcome-back offer and
+ * returns its claim-by date. Null if they already used it or the grant failed.
+ */
+async function grantWinback(userId: string): Promise<string | null> {
+  const sb = createAdminSupabase();
+  const { data: existing } = await sb.from("offer_grants").select("expires_at, redeemed_at").eq("user_id", userId).eq("offer_id", WINBACK_OFFER_ID).maybeSingle();
+  if (existing?.redeemed_at) return null;
+  const keep = existing && Date.parse(existing.expires_at) > Date.now() + 3 * 86_400_000;
+  const expiresAt = keep ? existing.expires_at : new Date(Date.now() + WINBACK_CLAIM_DAYS * 86_400_000).toISOString();
+  const { error } = await sb.from("offer_grants").upsert(
+    { user_id: userId, offer_id: WINBACK_OFFER_ID, expires_at: expiresAt, email_sent_at: new Date().toISOString(), email_status: "sending" },
+    { onConflict: "user_id,offer_id" },
+  );
+  return error ? null : expiresAt;
+}
+
+/** One email a rule thinks this person should get; the brain decides which (if any) goes. */
+type Candidate = {
+  row: ProfileEmailRow;
+  type: LifecycleEmailType;
+  since?: string;
+  context?: Parameters<typeof sendLifecycleEmail>[0]["context"];
+  /** Work only worth doing once this one is cleared to go (a referral code, an offer grant). */
+  prepare?: Parameters<typeof sendLifecycleEmail>[0]["prepare"];
+  metadata?: Record<string, unknown>;
+};
+
 export async function runLifecycleAutomation() {
   const sb = createAdminSupabase();
-  const sent = [];
-  const errors = [];
+  const sent: Array<{ type: LifecycleEmailType; status: string; reason?: string }> = [];
+  const errors: string[] = [];
+  const candidates: Candidate[] = [];
+  const consider = (row: ProfileEmailRow, type: LifecycleEmailType, since?: string, extra: Partial<Candidate> = {}) => {
+    // Tips wait while a free educator is deciding whether to pay (lib/email/brain.ts).
+    if (EMAIL_CLASS[type] === "engagement" && inFreeDecisionWindow({ plan: row.plan, storiesThisMonth: row.stories_this_month, monthlyLimit: getMonthlyStoryLimit(row) })) return;
+    candidates.push({ row, type, since, ...extra });
+  };
+
+  // First, what Resend says happened to the last few days' emails: bounces and
+  // complaints are suppressed before anything new is decided (lib/email/delivery-sync.ts).
+  let delivery: Awaited<ReturnType<typeof syncDeliveryStatus>> | { error: string };
+  try {
+    delivery = await syncDeliveryStatus();
+  } catch (error) {
+    delivery = { error: error instanceof Error ? error.message : "delivery sync failed" };
+  }
 
   const baseSelect =
-    "id, email, full_name, plan, subscription_status, total_stories, stories_this_month, monthly_story_limit_override, applied_access_code, created_at, upgraded_at, last_story_at, marketing_unsubscribed_at, is_internal";
+    "id, email, full_name, plan, subscription_status, total_stories, stories_this_month, monthly_story_limit_override, applied_access_code, created_at, upgraded_at, last_story_at, marketing_unsubscribed_at, is_internal, story_preferences";
 
   const { data: noStoryUsers, error: noStoryError } = await sb
     .from("profiles")
@@ -230,7 +293,7 @@ export async function runLifecycleAutomation() {
 
   if (noStoryError) errors.push(noStoryError.message);
   for (const row of (noStoryUsers ?? []) as ProfileEmailRow[]) {
-    sent.push(await sendIfNeeded(row, "no_first_story"));
+    consider(row, "no_first_story");
   }
 
   const { data: paidNoUsageUsers, error: paidNoUsageError } = await sb
@@ -246,7 +309,7 @@ export async function runLifecycleAutomation() {
 
   if (paidNoUsageError) errors.push(paidNoUsageError.message);
   for (const row of (paidNoUsageUsers ?? []) as ProfileEmailRow[]) {
-    sent.push(await sendIfNeeded(row, "paid_no_usage_checkin"));
+    consider(row, "paid_no_usage_checkin");
   }
 
   // Not in someone's first week. A weekly tip sent hours after signup used up
@@ -263,7 +326,7 @@ export async function runLifecycleAutomation() {
 
   if (weeklyError) errors.push(weeklyError.message);
   for (const row of (weeklyUsers ?? []) as ProfileEmailRow[]) {
-    sent.push(await sendIfNeeded(row, "weekly_value", daysAgo(7)));
+    consider(row, "weekly_value", daysAgo(7));
   }
 
   const { data: feedbackUsers, error: feedbackError } = await sb
@@ -276,7 +339,7 @@ export async function runLifecycleAutomation() {
 
   if (feedbackError) errors.push(feedbackError.message);
   for (const row of (feedbackUsers ?? []) as ProfileEmailRow[]) {
-    sent.push(await sendIfNeeded(row, "feedback_request"));
+    consider(row, "feedback_request");
   }
 
   const { data: familyPackUsers, error: familyPackError } = await sb
@@ -290,7 +353,7 @@ export async function runLifecycleAutomation() {
 
   if (familyPackError) errors.push(familyPackError.message);
   for (const row of (familyPackUsers ?? []) as ProfileEmailRow[]) {
-    sent.push(await sendIfNeeded(row, "family_pack_prompt"));
+    consider(row, "family_pack_prompt");
   }
 
   const { data: centrePlanningUsers, error: centrePlanningError } = await sb
@@ -304,7 +367,7 @@ export async function runLifecycleAutomation() {
 
   if (centrePlanningError) errors.push(centrePlanningError.message);
   for (const row of (centrePlanningUsers ?? []) as ProfileEmailRow[]) {
-    sent.push(await sendIfNeeded(row, "centre_planning_prompt"));
+    consider(row, "centre_planning_prompt");
   }
 
   // --- Retention triggers -------------------------------------------------
@@ -355,7 +418,7 @@ export async function runLifecycleAutomation() {
 
   if (quietError) errors.push(quietError.message);
   for (const row of (quietUsers ?? []) as ProfileEmailRow[]) {
-    sent.push(await sendIfNeeded(row, "went_quiet", daysAgo(21)));
+    consider(row, "went_quiet", daysAgo(21));
   }
 
   // 3. Win-back. Sent a fortnight after cancelling, when the next block of
@@ -374,7 +437,14 @@ export async function runLifecycleAutomation() {
   if (winbackError) errors.push(winbackError.message);
   for (const row of (winbackUsers ?? []) as ProfileEmailRow[]) {
     // Once per quarter at most. A win-back that nags is just spam.
-    sent.push(await sendIfNeeded(row, "winback_offer", daysAgo(90)));
+    // The offer is granted to this account just before the email goes, so the
+    // email can never promise a discount checkout would not give (lib/offers.ts).
+    consider(row, "winback_offer", daysAgo(90), {
+      prepare: async () => {
+        const expiresAt = await grantWinback(row.id);
+        return expiresAt ? { offerExpires: longDay(new Date(expiresAt)) } : null;
+      },
+    });
   }
 
   // 4. Monthly referral reminder. Once a month, remind active members who have
@@ -403,18 +473,14 @@ export async function runLifecycleAutomation() {
     if (await sentRecently(row.id, "referral_invite", daysAgo(30))) { sent.push({ type: "referral_invite" as const, status: "already_sent" }); continue; }
 
     // Put the real code and a working link in the email itself, so the reader
-    // does not have to go hunting for it.
-    const code = await getOrCreateReferralCode(row.id);
-    sent.push(
-      await sendLifecycleEmail({
-        type: "referral_invite",
-        userId: row.id,
-        recipient: row.email,
-        name: row.full_name,
-        metadata: { automation: true },
-        context: code ? { referralCode: code, referralsEarned: earned ?? 0 } : undefined,
-      })
-    );
+    // does not have to go hunting for it. Made only if this is the email chosen.
+    consider(row, "referral_invite", daysAgo(30), {
+      prepare: async () => {
+        const code = await getOrCreateReferralCode(row.id);
+        // No code, no invite: an invite without a working link is worse than none.
+        return code ? { referralCode: code, referralsEarned: earned ?? 0 } : null;
+      },
+    });
   }
 
   // 5. Abandoned checkout. Someone chose a plan, reached Stripe Checkout and
@@ -442,30 +508,48 @@ export async function runLifecycleAutomation() {
           sent.push({ type: "checkout_abandoned" as const, status: "already_sent" });
           continue;
         }
-        sent.push(
-          await sendLifecycleEmail({
-            type: "checkout_abandoned",
-            userId: profile.id,
-            recipient: profile.email as string,
-            name: profile.full_name,
-            force: true,
-            metadata: { automation: true, checkout_session: candidate.sessionId, plan: candidate.plan },
-            context: {
-              planLabel: getPlanByKey(candidate.plan).name,
-              // Older sessions carry no terms; individual plans were 7 days then.
-              trialDays: candidate.trialDays ?? (candidate.plan.startsWith("centre") ? undefined : 7),
-              centreTrial: candidate.noCard,
-              offerCode: candidate.offer ?? undefined,
-            },
-          })
-        );
+        // Once per person ever (checked above). It used to skip every cap; it
+        // now counts toward Leo's two a month like everything else, first in line.
+        consider(profile, "checkout_abandoned", undefined, {
+          metadata: { checkout_session: candidate.sessionId, plan: candidate.plan },
+          context: {
+            planLabel: getPlanByKey(candidate.plan).name,
+            // Older sessions carry no terms; individual plans were 7 days then.
+            trialDays: candidate.trialDays ?? (candidate.plan.startsWith("centre") ? undefined : 7),
+            centreTrial: candidate.noCard,
+            offerCode: candidate.offer ?? undefined,
+          },
+        });
       }
     }
   } catch (error) {
     errors.push(`abandoned checkout: ${error instanceof Error ? error.message : "failed"}`);
   }
 
-  return { success: errors.length === 0, sent, errors };
+  // The brain: each person gets at most the single most valuable email they
+  // qualify for this run, and only if it may go (lib/email/brain.ts).
+  const { stats } = await loadCampaignStats();
+  const byUser = new Map<string, Candidate[]>();
+  for (const c of candidates) byUser.set(c.row.id, [...(byUser.get(c.row.id) ?? []), c]);
+  for (const list of byUser.values()) {
+    for (const c of orderCandidates(list, stats)) {
+      try {
+        const result = await sendIfNeeded(c.row, c.type, c.since, c.context, c.metadata, c.prepare);
+        sent.push({ type: c.type, status: result.status, ...(result.reason ? { reason: result.reason } : {}) });
+        if (result.status === "sent" || result.status === "skipped_unconfigured") break;
+        if (result.status === "skipped_frequency_cap" && result.reason && HOLDS_EVERYTHING.has(result.reason as never)) break;
+      } catch (error) {
+        errors.push(`${c.type}: ${error instanceof Error ? error.message : "failed"}`);
+      }
+    }
+  }
+
+  const summary: Record<string, number> = {};
+  for (const r of sent) {
+    const key = r.reason ? `${r.status}:${r.reason}` : r.status;
+    summary[key] = (summary[key] ?? 0) + 1;
+  }
+  return { success: errors.length === 0, summary, sent, errors, delivery };
 }
 
 export async function sendManualLifecycleEmail(userId: string, emailType: LifecycleEmailType) {

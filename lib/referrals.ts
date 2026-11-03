@@ -127,7 +127,59 @@ export async function recordReferralSignup(referredUserId: string, code: string)
   if (error) return false;
 
   await admin.from("profiles").update({ referred_by: referrerId }).eq("id", referredUserId);
+  await notifyReferrer(referrerId, { kind: "joined", referredUserId });
   return true;
+}
+
+/**
+ * Tells the referrer what happened (3 Nov 2026): someone joined with their
+ * link, or their free month has been credited. The "earned" email existed but
+ * was never sent. Never allowed to break a signup or a webhook.
+ */
+export async function notifyReferrer(
+  referrerId: string,
+  event: { kind: "joined"; referredUserId: string } | { kind: "earned"; months: number; balanceTransactionId: string },
+) {
+  try {
+    const admin = createAdminSupabase();
+    const { data: referrer } = await admin
+      .from("profiles")
+      .select("id, email, full_name, plan, subscription_status, is_internal, story_preferences")
+      .eq("id", referrerId)
+      .maybeSingle();
+    if (!referrer?.email) return;
+    const { sendLifecycleEmail } = await import("@/lib/email/send");
+    const framework = (referrer.story_preferences as { defaultFramework?: string } | null)?.defaultFramework ?? null;
+    if (event.kind === "joined") {
+      const paying = normalizePlanKey(referrer.plan) !== "free" && ["active", "trialing", "past_due", "admin_override"].includes(String(referrer.subscription_status ?? ""));
+      await sendLifecycleEmail({
+        type: "referral_joined",
+        userId: referrer.id,
+        recipient: referrer.email,
+        name: referrer.full_name,
+        force: true,
+        idempotencyKey: `referral_joined-${event.referredUserId}`,
+        metadata: { referred_user_id: event.referredUserId },
+        context: { referrerPaying: paying },
+        defaultFramework: framework,
+      });
+    } else {
+      const earned = await countCreditedReferrals(referrerId);
+      await sendLifecycleEmail({
+        type: "referral_earned",
+        userId: referrer.id,
+        recipient: referrer.email,
+        name: referrer.full_name,
+        force: true,
+        idempotencyKey: `referral_earned-${event.balanceTransactionId}`,
+        metadata: { balance_transaction: event.balanceTransactionId, months: event.months },
+        context: { creditLabel: event.months > 1 ? `${event.months} free months` : "a free month", referralsEarned: earned },
+        defaultFramework: framework,
+      });
+    }
+  } catch (error) {
+    console.error("Referral email failed (nothing else affected):", error);
+  }
 }
 
 /** How many free months this referrer has already been granted. */
