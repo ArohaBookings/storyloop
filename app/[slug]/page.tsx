@@ -60,6 +60,7 @@ const NZ_SLUGS = new Set([
   "ero-early-childhood-regulation-2026",
   "te-whariki-principles",
   "te-whariki-pdf",
+  "learning-story-examples-nz",
 ]);
 // Term 4 guides whose readers came to finish one job: a TLDS, a transition
 // statement or end-of-year summaries (19 Oct 2026). They get a no-signup draft

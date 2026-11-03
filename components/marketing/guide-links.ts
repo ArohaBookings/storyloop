@@ -18,6 +18,7 @@ export const SLUG_PRINTABLES: Record<string, PrintableKey[]> = {
   "te-whariki-pdf": ["twps", "tw"],
   "te-whariki-learning-stories": ["templateNz", "tw"],
   "nz-learning-stories": ["templateNz", "tw"],
+  "learning-story-examples-nz": ["templateNz", "tw"],
 };
 // "Keep reading" links at the foot of each guide, by topic. Guides had no links
 // to their neighbours, so a reader who finished one had nowhere to go but back
@@ -35,9 +36,10 @@ export const SLUG_RELATED: Record<string, RelatedKey[]> = {
   "acecqa-documentation-guidance": ["nqs13", "planning", "eylf", "observation", "template", "safety"],
   "assessment-and-rating-evidence": ["nqs", "nqs13", "planning", "reflection", "eylf", "centres"],
   "te-whariki-principles": ["teWhariki", "strands", "teWhStories", "teWhPdf", "template", "examples"],
-  "te-whariki-learning-stories": ["teWhariki", "teWhPrinciples", "strands", "template", "examples", "nextSteps"],
+  "te-whariki-learning-stories": ["nzExamples", "teWhariki", "teWhPrinciples", "strands", "template", "nextSteps"],
   "te-whariki-pdf": ["teWhariki", "teWhPrinciples", "strands", "teWhStories", "template", "examples"],
-  "nz-learning-stories": ["teWhStories", "teWhariki", "teWhPrinciples", "template", "examples", "generator"],
+  "nz-learning-stories": ["nzExamples", "teWhStories", "teWhariki", "teWhPrinciples", "template", "generator"],
+  "learning-story-examples-nz": ["teWhStories", "teWhariki", "strands", "nextSteps", "template", "examples"],
   "ero-early-childhood-regulation-2026": ["teWhStories", "teWhariki", "teWhPrinciples", "template", "safety", "centres"],
   "observation-methods-early-childhood": ["whatIs", "eylfObservations", "template", "examples", "preschoolExamples", "nextSteps"],
   "eylf-observation-examples": ["eylf", "observation", "eylfStories", "nextSteps", "planning", "template"],

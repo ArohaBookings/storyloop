@@ -771,6 +771,83 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
       { label: "ACECQA: (EYLF) The Early Years Learning Framework Planning Cycle", url: "https://www.acecqa.gov.au/belonging-being-becoming-early-years-learning-framework/eylf-early-years-learning-framework-planning-cycle" },
     ],
   },
+  // 4 Nov 2026: "learning story examples nz" and "learning stories ece nz
+  // examples" in Search Console at positions 6 to 24, with no NZ page that
+  // shows worked examples (the NZ guides describe StoryLoop, not stories).
+  // Facts checked on 4 Nov 2026 in Te Whāriki Online: the strands, goals and
+  // learning outcomes section (pages 22 to 25 of Te Whāriki, outcome names
+  // quoted exactly), the assessment, planning and evaluation section (pages 63
+  // to 65) and the assessment resources page (Kei Tua o te Pae).
+  "learning-story-examples-nz": {
+    slug: "learning-story-examples-nz",
+    title: "Learning Story Examples NZ, Linked to Te Whāriki",
+    description:
+      "Six NZ learning story examples from a 9 month old to a 4 year old: the note, the story, the Te Whāriki strand and learning outcome, and what comes next.",
+    kicker: "Kaiako guide · Te Whāriki",
+    heading: "Learning story examples for Aotearoa, from the quick note to the story.",
+    intro:
+      "Six short examples, from an infant to a child about to start school. Each one shows the note a kaiako might jot down in the moment, the learning story written from it, the Te Whāriki strand and learning outcome it shows, and how you might respond. The tamariki are imagined, to show the shape. Yours should come from what you noticed today.",
+    reviewedAt: "2026-11-04",
+    sections: [
+      {
+        title: "Notice, recognise, respond",
+        body:
+          "Te Whāriki says narrative assessment such as learning stories may use a formative sequence: noticing, recognising, responding, recording and revisiting valued learning. Each example below follows it.",
+      },
+      {
+        title: "Name the strand and the outcome",
+        body:
+          "Mana aotūroa | Exploration is a strand. \"Te wero ā-tinana | moving confidently and challenging themselves physically\" is a learning outcome. A clear link names the outcome and says, in one sentence, what the child did that shows it.",
+      },
+      {
+        title: "Leave room for whānau",
+        body:
+          "Te Whāriki sees parents and whānau as experts on their children's interests. End with a question they can answer from home, and their reply becomes part of the story.",
+      },
+    ],
+    faqs: [
+      {
+        question: "What does a good learning story look like in New Zealand?",
+        answer:
+          "It tells one real moment, usually written to the child, in words the whānau will understand. It says what the kaiako noticed, what learning it shows with a Te Whāriki strand and learning outcome, and what will happen next. Te Whāriki describes this as noticing, recognising, responding, recording and revisiting valued learning.",
+      },
+      {
+        question: "How many Te Whāriki learning outcomes are there?",
+        answer:
+          "Twenty, across the five strands: three for Mana atua | Wellbeing, four for Mana whenua | Belonging, three for Mana tangata | Contribution, six for Mana reo | Communication and four for Mana aotūroa | Exploration. Each has a Māori and an English name, such as \"te rangahau me te mātauranga | making sense of their worlds by generating and refining working theories\".",
+      },
+      {
+        question: "Do learning stories have to follow a set format?",
+        answer:
+          "No. Te Whāriki names learning stories as one narrative form of assessment and says portfolios may include them alongside photos, children's art, recordings and kaiako observations. Many services use a short story, a \"what learning is happening here\" paragraph and a \"where to next\" paragraph, but the format is a choice for your service.",
+      },
+      {
+        question: "Should I write the story to the child or about the child?",
+        answer:
+          "Most kaiako in Aotearoa write to the child (\"Aroha, today you...\"), because the story is read with the child and their whānau and revisited later. Te Whāriki says opportunities for children to revisit their portfolios invite learning conversations. Writing about the child is also fine if that suits your service.",
+      },
+      {
+        question: "How do I use te reo Māori in a learning story?",
+        answer:
+          "Use the words your service and the whānau already use, spelled with their macrons: kaiako, tamariki, whānau, kai, waiata. Write the strand and learning outcome names in both languages, as Te Whāriki does. A few words used well read better than phrases dropped in for show.",
+      },
+      {
+        question: "What is the difference between a learning disposition and a working theory?",
+        answer:
+          "Te Whāriki describes learning dispositions as tendencies to respond to situations in particular ways, such as courage and curiosity, trust and playfulness, perseverance, confidence and responsibility. Working theories are the evolving ideas children develop as they use what they know to make sense of new experiences. The worm example on this page shows both.",
+      },
+      {
+        question: "Can StoryLoop write these from my notes?",
+        answer:
+          "Yes. Type your quick note and StoryLoop drafts the learning story with the Te Whāriki strand and learning outcome the moment actually shows, keeps the child's words exactly as you wrote them and suggests a next step. You can choose how much te reo Māori it uses, try it on this page without signing up, and check every word before anything is shared.",
+      },
+    ],
+    sources: [
+      { label: "Te Whāriki Online: Strands, goals and learning outcomes (Te Whāriki pages 22 to 25)", url: "https://tewhariki.tahurangi.education.govt.nz/te-whariki-online/taumata-whakahirahira-strands-goals-and-learning-outcomes/5637166612.p" },
+      { label: "Te Whāriki Online: Assessment, planning and evaluation (Te Whāriki pages 63 to 65)", url: "https://tewhariki.tahurangi.education.govt.nz/te-whariki-online/assessment-planning-and-evaluation/5637165598.p" },
+      { label: "Te Whāriki Online: Aromatawai | Assessment resources", url: "https://tewhariki.tahurangi.education.govt.nz/te-whariki/te-aromatawai-assessment-for-learning/aromatawai-assessment/5637145211.c" },
+    ],
+  },
 };
 
 export const OCT_2026_DEEP_DIVES: Record<string, Block[]> = {
@@ -1244,6 +1321,77 @@ export const OCT_2026_DEEP_DIVES: Record<string, Block[]> = {
       paragraphs: [
         "The rough note is the part only you can write, because only you were there. Turning it into an observation, a link and a story is where the evening goes.",
         "Type your note into the box on this page and StoryLoop drafts the learning story with the EYLF V2.0 outcomes the moment actually shows and a next step, keeping the child's words exactly as you wrote them. Use a first name only. You check and edit every word before anything is shared with a family.",
+      ],
+    },
+  ],
+  "learning-story-examples-nz": [
+    {
+      heading: "How each example is laid out",
+      paragraphs: [
+        "The note is what a kaiako might scribble or say into their phone in the moment. The story is what it becomes, written to the child. Then comes the learning: the strand and the learning outcome, written with both names as Te Whāriki gives them, and a sentence on why the moment fits. Last is the response: what you will do next, and a question for whānau.",
+        "Te Whāriki says identifying the learning, progress to date, possible next steps and whether additional support is required are the core elements of formative assessment. A short story that does those four things is enough.",
+      ],
+    },
+    {
+      heading: "Infant: Mila, 9 months (example)",
+      paragraphs: [
+        "The note: \"Nappy change. I covered my face with the cloth, Mila pulled it off, laughed. Then she put it over her own face and waited. Did it 6 or 7 times.\"",
+        "The story: Mila, at nappy change today I hid behind the cloth and you pulled it away with a big laugh. Then you took the cloth, put it over your own face and waited for me to find you. We played it again and again, six or seven times, and each time you waited a little longer before you pulled it off. You were leading the game.",
+        "The learning: Mana reo | Communication, \"he kōrero ā-tinana | using gesture and movement to express themselves\". Mila used the cloth and her own movement to start the game and take her turn, without words. The game also shows trust and playfulness, one of the learning dispositions Te Whāriki names.",
+        "Responding: keep nappy change unhurried so there is time for her games, and add a light scarf to the floor basket so she can start peekaboo with other kaiako. For whānau: does Mila play hiding games at home, and what does she do to start them?",
+      ],
+    },
+    {
+      heading: "Infant: Tama, 14 months (example)",
+      paragraphs: [
+        "The note: \"Tama pulled up on the low shelf, cruised along to the end to get the red ball. Let go, stood 2-3 seconds on his own, sat down. Back up again straight away.\"",
+        "The story: Tama, the red ball was at the far end of the shelf today, and you went to get it. You pulled yourself up, stepped along the shelf hand over hand, and when you got to the end you let go and stood all by yourself for a moment. Down you sat, and straight back up you came to try again.",
+        "The learning: Mana aotūroa | Exploration, \"te wero ā-tinana | moving confidently and challenging themselves physically\". Tama set himself a goal and kept at it, standing without holding on for the first time we have seen. Getting straight back up shows perseverance.",
+        "Responding: move the push trolley near the shelf and leave a gap between the shelf and the couch so he can try a step across. For whānau: is Tama standing on his own at home yet? Tell us what you see.",
+      ],
+    },
+    {
+      heading: "Toddler: Ana, 2 years (example)",
+      paragraphs: [
+        "The note: \"Kaiako said 'time to go outside'. Ana went to the hooks, got her own pōtae, put it on back to front, went to the door. Told Leo 'pōtae!' and pointed to his.\"",
+        "The story: Ana, when we said it was time to go outside, you knew just what to do. You went to your hook, found your pōtae and put it on all by yourself, then went and waited by the door. When you saw Leo without his, you pointed to his hook and told him, \"Pōtae!\"",
+        "The learning: Mana whenua | Belonging, \"te mārama ki te āhua o ngā whakahaere me te mōhio ki te panoni | understanding how things work here and adapting to change\". Ana knows the routine for going outside and helped a friend with it too. It also connects with Mana atua | Wellbeing, \"te oranga nui | keeping themselves healthy and caring for themselves\", because sunhats keep her safe in the sun.",
+        "Responding: give Ana the job of the pōtae reminder this week, and add a photo of each child's hat to their hook. For whānau: what does Ana help with at home before you go out?",
+      ],
+    },
+    {
+      heading: "Toddler: Sione, 2 years 8 months (example)",
+      paragraphs: [
+        "The note: \"New girl Mere standing at the sandpit edge. Sione walked over, gave her the blue spade, said 'you dig here' and patted the sand next to him. They dug side by side 10 mins.\"",
+        "The story: Sione, Mere was new today and she stood at the edge of the sandpit, watching. You walked over, gave her the blue spade and said, \"You dig here,\" patting the sand right next to you. The two of you dug side by side for about ten minutes. You made sure Mere had a place to play.",
+        "The learning: Mana tangata | Contribution, \"te ngākau makuru | treating others fairly and including them in play\". Sione noticed someone on the outside of the play and invited her in, with a tool and a place beside him. It shows manaakitanga, which Te Whāriki, drawing on Te Whatu Pōkeka, names among the learning dispositions valued in te ao Māori.",
+        "Responding: tell Sione what we saw, and ask him to show Mere the hooks and the bathroom tomorrow. For whānau: Sione looked after a new friend today. Who does he look after at home?",
+      ],
+    },
+    {
+      heading: "Young child: Ruby, 3 years 10 months (example)",
+      paragraphs: [
+        "The note: \"After rain, lots of worms on the path. Ruby: 'They come up 'cause their house is full of water and they can't breathe.' Moved 4 worms back onto the grass with a leaf. 'Now they can go home.'\"",
+        "The story: Ruby, after the rain the path was covered in worms, and you had an idea about why. \"They come up because their house is full of water and they can't breathe,\" you told me. Then you used a leaf to lift four worms back onto the grass, very gently. \"Now they can go home.\"",
+        "The learning: Mana aotūroa | Exploration, \"te rangahau me te mātauranga | making sense of their worlds by generating and refining working theories\". Ruby used what she knows to explain something new, which is how Te Whāriki describes a working theory. Moving the worms gently also links to Mana whenua | Belonging, \"te manaaki i te taiao | taking part in caring for this place\".",
+        "Responding: do not tell Ruby whether she is right. Find a book about worms with her, and set up a clear container of soil and water so she can test her idea. For whānau: has Ruby been talking about the worms at home? What other questions does she ask about animals?",
+      ],
+    },
+    {
+      heading: "Young child: Aroha, 4 years 6 months (example)",
+      paragraphs: [
+        "The note: \"Mat time. Aroha asked to sing the waiata her koro sings with her. Sang the first verse on her own, then taught the actions. Most of the group joined in. Mum at pick up: koro taught her on the weekend.\"",
+        "The story: Aroha, at mat time today you asked if you could share the waiata your koro sings with you. You stood up and sang the first verse on your own, then showed everyone the actions. By the end most of your friends were singing with you. Your mum told us koro taught you on the weekend, and you have brought it here to share with us all.",
+        "The learning: Mana whenua | Belonging, \"te waihanga hononga | making connections between people, places, and things in their world\". Aroha connected her home and her koro with her friends here. Leading the group also shows confidence, one of the learning dispositions Te Whāriki names, and links with Mana reo | Communication, \"he kōrero ā-tinana | using gesture and movement to express themselves\".",
+        "Responding: invite Aroha to lead the waiata again this week, and ask her whānau whether koro would like to visit and sing it with the group. For whānau: is there a story behind this waiata that Aroha could share?",
+      ],
+    },
+    {
+      heading: "What makes these examples work",
+      paragraphs: [
+        "Each one is a single moment, not a summary of the week. The child's own words are kept exactly. The learning outcome is named in full and explained by what the child did, so a reader can see why it fits. And each ends with something a kaiako will actually do, plus one question whānau can answer.",
+        "Te Whāriki says assessment should be mana-enhancing for children, parents and whānau. Read your story as the child's whānau would: does it show their child at their best, in words they would want to keep?",
+        "The note is the part only you can write. Type it into the box on this page and StoryLoop drafts the learning story with the Te Whāriki strand and learning outcome the moment shows and a next step, keeping the child's words exactly as you wrote them. Use a first name only, and check every word before anything is shared.",
       ],
     },
   ],
