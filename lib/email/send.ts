@@ -7,7 +7,7 @@ import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getRuntimeSecret } from "@/lib/runtime-secrets";
 import { randomUUID } from "crypto";
 import { gateEmail, isMarketing, timezoneFor, type HoldReason } from "./brain";
-import { loadGlobalEmailState, loadUserHistory, noteMarketingSent } from "./brain-state";
+import { loadGlobalEmailState, loadUsage, loadUserHistory, noteMarketingSent } from "./brain-state";
 import { withTracking } from "./tracking";
 
 // Which emails count as marketing, how many may go and when, is decided by the
@@ -166,7 +166,7 @@ export async function sendLifecycleEmail(params: SendLifecycleEmailParams) {
   // nothing while bounces or complaints are high (lib/email/brain.ts).
   if (marketing && !params.force) {
     const now = new Date();
-    const [global, history] = await Promise.all([loadGlobalEmailState(now), loadUserHistory(params.userId, now)]);
+    const [global, history, usage] = await Promise.all([loadGlobalEmailState(now), loadUserHistory(params.userId, now), loadUsage(params.userId, now)]);
     if (!history) return { status: "skipped_frequency_cap" as const, reason: "monthly_cap" as HoldReason, detail: "Email history could not be read." };
     const gate = gateEmail({
       type: params.type,
@@ -175,6 +175,7 @@ export async function sendLifecycleEmail(params: SendLifecycleEmailParams) {
       now,
       timeZone: timezoneFor(params.defaultFramework),
       triggeredByUser: params.triggeredByUser,
+      usage,
     });
     const overridable = params.ignoreFrequencyCap && !gate.allow && (gate.reason === "too_soon" || gate.reason === "quiet_hours");
     if (!gate.allow && !overridable) return { status: "skipped_frequency_cap" as const, reason: gate.reason, detail: gate.detail };

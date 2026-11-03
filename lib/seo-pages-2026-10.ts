@@ -112,6 +112,75 @@ function preschoolBlocks(): Block[] {
 }
 
 export const OCT_2026_PAGES: Record<string, SeoPage> = {
+  // 3 Nov 2026: Google Trends (Australia, 90 days) shows "nqs standards" and
+  // "nqs pdf" as breakout searches, because the NQS was revised from 1 January
+  // 2026. StoryLoop had pages for Standard 1.3 and for assessment and rating but
+  // nothing on the whole standard. Every standard and element below was checked
+  // on 3 Nov 2026 against ACECQA's own pages for each quality area, and the
+  // change note against ACECQA's news item of 31 March 2026. The descriptions
+  // are our plain-words summaries; the official wording is linked.
+  "nqs-standards": {
+    slug: "nqs-standards",
+    title: "NQS Standards 2026: All 7 Quality Areas and 40 Elements",
+    description:
+      "The revised National Quality Standard from 1 January 2026 in plain words: all 7 quality areas, 15 standards and 40 elements, and what changed for child safety.",
+    kicker: "Australia · NQS 2026",
+    heading: "The National Quality Standard in plain words, revised for 2026.",
+    intro:
+      "The National Quality Standard (NQS) is the benchmark Australian early childhood and outside school hours care services are assessed and rated against. It has 7 quality areas, 15 standards and 40 elements, and every service gets a rating for each quality area and an overall rating. It was revised from 1 January 2026 to strengthen child safety in Quality Areas 2 and 7. This page lists every standard and element with what it means in practice, and where your documentation counts.",
+    reviewedAt: "2026-11-03",
+    sections: [
+      {
+        title: "7 quality areas, 15 standards, 40 elements",
+        body:
+          "Each quality area holds two or three standards, and each standard holds two or three elements. Quality Area 1 has three standards; the other six have two each. Assessors look for evidence at the element level, so knowing the element names helps you see where your everyday work already counts.",
+      },
+      {
+        title: "What changed on 1 January 2026",
+        body:
+          "ACECQA says the changes that began on 1 January 2026 strengthened the child safety focus in Quality Areas 2 and 7. Element 2.2.3 is now called Child safety and protection, and Standard 7.1 and Element 7.1.2 now speak of a quality service that is child safe. ACECQA updated its Guide to the NQF on 5 March 2026 to match.",
+      },
+      {
+        title: "Where documentation counts",
+        body:
+          "Learning stories and observations are evidence for more than Quality Area 1. They show a child-centred program (1.1.2), the assessment and planning cycle (1.3.1), critical reflection (1.3.2), information for families (1.3.3), families sharing decisions about learning (6.1.2) and shared information at transitions (6.2.1).",
+      },
+    ],
+    faqs: [
+      {
+        question: "How many NQS standards are there in 2026?",
+        answer:
+          "There are 15 standards across 7 quality areas, with 40 elements in total. Quality Area 1 (Educational program and practice) has three standards: 1.1 Program, 1.2 Practice and 1.3 Assessment and planning. Quality Areas 2 to 7 have two standards each. We counted these on ACECQA's quality area pages on 3 November 2026.",
+      },
+      {
+        question: "What changed in the NQS in 2026?",
+        answer:
+          "From 1 January 2026, the NQS was revised to strengthen the child safety focus in Quality Areas 2 and 7, as part of the national child safety reforms. Element 2.2.3 became Child safety and protection, and Standard 7.1 (Governance) and Element 7.1.2 (Management systems) now refer to a quality service that is child safe. Other changes to the National Law and Regulations started on other dates, most of them on 27 February 2026. Check ACECQA's child safety pages for the full list.",
+      },
+      {
+        question: "Where can I download the NQS PDF?",
+        answer:
+          "From ACECQA. Its National Quality Standard page has the 2026 National Quality Standard A4 poster, which shows the components of the revised NQS from 1 January 2026, and each quality area has its own page and posters. The Guide to the NQF, updated on 5 March 2026, explains every element in detail. Download them from ACECQA so you always have the current version, not a copy from before 2026.",
+      },
+      {
+        question: "Which NQS elements do learning stories cover?",
+        answer:
+          "Mostly Quality Area 1. A learning story built from a real observation, with what it shows and a next step, is evidence of Element 1.3.1 (the assessment and planning cycle), and sharing it with families supports 1.3.3 (information for families). Stories that start from a child's interests show 1.1.2 (child-centred), and a family's reply can show 6.1.2 (parent views are respected). ACECQA says there is no one way to meet documentation requirements.",
+      },
+      {
+        question: "Does New Zealand use the NQS?",
+        answer:
+          "No. The NQS is part of Australia's National Quality Framework. Early childhood services in Aotearoa New Zealand work to their own regulations and Te Whāriki, and are reviewed by ERO.",
+      },
+    ],
+    sources: [
+      { label: "ACECQA: National Quality Standard", url: "https://www.acecqa.gov.au/nqf/national-quality-standard" },
+      { label: "ACECQA: Quality Area 1, Educational program and practice", url: "https://www.acecqa.gov.au/nqf/national-quality-standard/quality-area-1-educational-program-and-practice" },
+      { label: "ACECQA: Quality Area 2, Children's health and safety", url: "https://www.acecqa.gov.au/nqf/national-quality-standard/quality-area-2-childrens-health-and-safety" },
+      { label: "ACECQA: Quality Area 7, Governance and leadership", url: "https://www.acecqa.gov.au/nqf/national-quality-standard/quality-area-7-governance-and-leadership" },
+      { label: "ACECQA: Continued implementation of the NQF Child Safety Reforms (31 March 2026)", url: "https://www.acecqa.gov.au/latest-news/continued-implementation-nqf-child-safety-reforms" },
+    ],
+  },
   "tlds-examples": {
     slug: "tlds-examples",
     title: "TLDS Examples 2026: Writing a Victorian Transition Statement",
@@ -705,6 +774,68 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
 };
 
 export const OCT_2026_DEEP_DIVES: Record<string, Block[]> = {
+  "nqs-standards": [
+    {
+      heading: "Quality Area 1: Educational program and practice",
+      paragraphs: [
+        "Standard 1.1 Program. The program is built on the approved learning framework and on each child, and makes the most of every part of the day, routines included. Elements: 1.1.1 Approved learning framework, 1.1.2 Child-centred, 1.1.3 Program learning opportunities.",
+        "Standard 1.2 Practice. Educators teach on purpose, pick up children's ideas and extend them, and give children real choices. Elements: 1.2.1 Intentional teaching, 1.2.2 Responsive teaching and scaffolding, 1.2.3 Child directed learning.",
+        "Standard 1.3 Assessment and planning. A planned, reflective cycle for each child: observe, analyse, document, plan, act and reflect, and keep families informed. Elements: 1.3.1 Assessment and planning cycle, 1.3.2 Critical reflection, 1.3.3 Information for families.",
+      ],
+    },
+    {
+      heading: "Quality Area 2: Children's health and safety",
+      paragraphs: [
+        "Standard 2.1 Health. Each child's wellbeing, rest, health practices, healthy eating and physical activity are looked after. Elements: 2.1.1 Wellbeing and comfort, 2.1.2 Health practices and procedures, 2.1.3 Healthy lifestyle.",
+        "Standard 2.2 Safety. Each child is protected: supervision, planned and practised responses to incidents and emergencies, and everyone knowing their part in keeping children safe. Elements: 2.2.1 Supervision, 2.2.2 Incident and emergency management, 2.2.3 Child safety and protection.",
+        "New from 1 January 2026: Element 2.2.3 is about child safety as well as protection. Management, educators and staff need to know their roles in child safety, including identifying and responding to any child at risk of abuse or neglect.",
+      ],
+    },
+    {
+      heading: "Quality Area 3: Physical environment",
+      paragraphs: [
+        "Standard 3.1 Design. Buildings, spaces and equipment suit their purpose, support every child's access, and are safe, clean and well kept. Elements: 3.1.1 Fit for purpose, 3.1.2 Upkeep.",
+        "Standard 3.2 Use. Spaces are inclusive and adapted so every child can take part, resources support play-based learning, and the service cares for the environment and helps children do the same. Elements: 3.2.1 Inclusive environment, 3.2.2 Resources support play-based learning, 3.2.3 Environmentally responsible.",
+      ],
+    },
+    {
+      heading: "Quality Area 4: Staffing arrangements",
+      paragraphs: [
+        "Standard 4.1 Staffing arrangements. The way educators are organised supports children's learning, and children see the same educators wherever possible. Elements: 4.1.1 Organisation of educators, 4.1.2 Continuity of staff.",
+        "Standard 4.2 Professionalism. A respectful, collaborative and ethical team that learns from each other and works to professional standards. Elements: 4.2.1 Professional collaboration, 4.2.2 Professional standards.",
+      ],
+    },
+    {
+      heading: "Quality Area 5: Relationships with children",
+      paragraphs: [
+        "Standard 5.1 Relationships between educators and children. Warm, responsive interactions that help each child feel secure, confident and included, and respect for every child's dignity and rights. Elements: 5.1.1 Positive educator to child interactions, 5.1.2 Dignity and rights of the child.",
+        "Standard 5.2 Relationships between children. Children learn with and from each other, and are supported to manage their own behaviour and sort out conflicts. Elements: 5.2.1 Collaborative learning, 5.2.2 Self-regulation.",
+      ],
+    },
+    {
+      heading: "Quality Area 6: Collaborative partnerships with families and communities",
+      paragraphs: [
+        "Standard 6.1 Supportive relationships with families. Families are involved from enrolment, their knowledge, culture and values shape decisions about their child, and they can find information and support. Elements: 6.1.1 Engagement with the service, 6.1.2 Parent views are respected, 6.1.3 Families are supported.",
+        "Standard 6.2 Collaborative partnerships. Shared information supports continuity and transitions, partnerships support every child's inclusion, and the service is part of its community. Elements: 6.2.1 Transitions, 6.2.2 Access and participation, 6.2.3 Community engagement.",
+      ],
+    },
+    {
+      heading: "Quality Area 7: Governance and leadership",
+      paragraphs: [
+        "Standard 7.1 Governance. The philosophy guides the service, systems manage risk, and roles are clear, all supporting a quality service that is child safe. Elements: 7.1.1 Service philosophy and purpose, 7.1.2 Management systems, 7.1.3 Roles and responsibilities.",
+        "Standard 7.2 Leadership. Honest self-assessment and quality improvement, an educational leader who is supported to lead the program and the assessment and planning cycle, and regular review and learning plans for staff. Elements: 7.2.1 Continuous improvement, 7.2.2 Educational leadership, 7.2.3 Development of professionals.",
+        "New from 1 January 2026: Standard 7.1 and Element 7.1.2 now name a service that is child safe, so child safety is part of how the service is governed and managed, not only how children are supervised.",
+      ],
+    },
+    {
+      heading: "What this means for your documentation",
+      paragraphs: [
+        "Assessors look at what you do, what you say and what you have written. Your documentation does not need its own NQS paperwork. A learning story written from a real observation already shows the cycle in Element 1.3.1: what you saw, what it shows, and what you will do next.",
+        "Write the child's own words down exactly, link the outcome to what the child actually did, and add a next step you will really try. Share it with the family and note what they say back. That one story now speaks to 1.1.2, 1.3.1, 1.3.3 and 6.1.2.",
+        "The note is the part only you can write. Type it into the box on this page and StoryLoop drafts the learning story with the EYLF V2.0 outcomes the moment shows and a next step, keeping the child's words exactly as you wrote them. Use a first name only, and check every word before anything is shared.",
+      ],
+    },
+  ],
   "tlds-examples": [
     {
       heading: "What a Prep teacher reads first",

@@ -232,6 +232,7 @@ export const RELATED = {
   intentional: { href: "/intentional-teaching", title: "Intentional teaching", body: "Everyday strategies, with examples for babies, toddlers and preschoolers." },
   reflection: { href: "/critical-reflection-early-childhood", title: "Critical reflection", body: "Three short examples and a ten-minute template for you or your team." },
   nqs13: { href: "/nqs-standard-1-3-assessment-and-planning", title: "NQS Standard 1.3", body: "What assessors look for in assessment and planning, element by element." },
+  nqs: { href: "/nqs-standards", title: "The NQS in plain words (2026)", body: "All 7 quality areas, 15 standards and 40 elements, and what changed for child safety." },
   transition: { href: "/transition-to-school-statement", title: "Transition to school statements", body: "What Victoria, NSW and Queensland ask for, with example wording." },
   tlds: { href: "/tlds-examples", title: "TLDS examples", body: "Each section of Victoria's statement, with wording you can adapt." },
   nswTransition: { href: "/nsw-transition-to-school-statement", title: "NSW Transition to School Statement", body: "Each section of the digital statement, with example wording for every outcome." },

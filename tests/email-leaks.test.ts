@@ -185,3 +185,57 @@ test("tips wait while a free educator is deciding whether to pay, and the more r
   const forCentre = orderCandidates([{ type: "family_pack_prompt" as const }, { type: "weekly_value" as const }, { type: "centre_planning_prompt" as const }]);
   assert.equal(forCentre[0].type, "centre_planning_prompt");
 });
+
+// Leo, 3 Nov 2026: "if they're using a lot of it, then don't send as much… maybe
+// only send one", "signed up, not subscribed, and they're using a lot, then send
+// a couple… give them an offer", "not using it at all… give them some tips".
+test("how someone uses StoryLoop decides how much email they get", async () => {
+  const { usageSegment, REGULAR_STORIES_30D } = await import("../lib/email/brain");
+  assert.equal(REGULAR_STORIES_30D, 4);
+  assert.equal(usageSegment({ paying: true, storiesLast30: 6 }), "regular_payer");
+  assert.equal(usageSegment({ paying: true, storiesLast30: 2 }), "other");
+  assert.equal(usageSegment({ paying: false, storiesLast30: 2 }), "deciding");
+  assert.equal(usageSegment({ paying: false, storiesLast30: 0 }), "not_using");
+  assert.equal(usageSegment({ paying: true, storiesLast30: 0 }), "not_using");
+  assert.equal(usageSegment(null), null);
+  assert.equal(usageSegment({ paying: true, storiesLast30: Number.NaN }), null);
+
+  const withUsage = (type: LifecycleEmailType, history: SentEmail[], usage: { paying: boolean; storiesLast30: number } | null) =>
+    gateEmail({ type, history, global: OPEN, now: NOW, timeZone: "Australia/Sydney", usage });
+
+  // A payer writing every week hears from us once a month at most.
+  const regular = { paying: true, storiesLast30: 8 };
+  assert.equal(withUsage("referral_invite", [], regular).allow, true);
+  const heldRegular = withUsage("family_pack_prompt", [sent("referral_invite", 12)], regular);
+  assert.equal(heldRegular.allow, false);
+  assert.equal(!heldRegular.allow && heldRegular.reason, "monthly_cap");
+  // The same history for a light payer is still within the usual two.
+  assert.equal(withUsage("went_quiet", [sent("referral_invite", 12)], { paying: true, storiesLast30: 1 }).allow, true);
+
+  // A free educator who is writing: both slots stay for the paying moments and the offer.
+  const deciding = { paying: false, storiesLast30: 2 };
+  assert.equal(withUsage("two_free_stories_used", [], deciding).allow, true);
+  assert.equal(withUsage("free_limit_reached", [sent("two_free_stories_used", 6)], deciding).allow, true);
+  assert.equal(withUsage("feedback_request", [sent("two_free_stories_used", 25)], deciding).allow, false);
+
+  // Not using it at all: getting-started help, then a tip may be the second email.
+  const idle = { paying: false, storiesLast30: 0 };
+  assert.equal(withUsage("usage_tips", [], idle).allow, true);
+  assert.equal(withUsage("feedback_request", [sent("usage_tips", 22)], idle).allow, true);
+  assert.equal(withUsage("feedback_request", [sent("usage_tips", 10)], idle).allow, false, "tips still wait 21 days after the last email");
+  assert.equal(withUsage("weekly_value", [sent("usage_tips", 25), sent("no_first_story", 22)], idle).allow, false, "and never a third in 30 days");
+
+  // Unknown usage changes nothing: two a month, tips only when nothing else went.
+  assert.equal(withUsage("family_pack_prompt", [sent("referral_invite", 12)], null).allow, false);
+  assert.equal(withUsage("went_quiet", [sent("referral_invite", 12)], null).allow, true);
+});
+
+test("the usage tips email is practical, carries an unsubscribe link and offers nothing", () => {
+  const email = renderLifecycleEmail({ type: "usage_tips", userId: "u", recipient: "a@b.com", name: "Sam" });
+  assert.equal(EMAIL_CLASS.usage_tips, "activation");
+  assert.equal(email.marketing, true);
+  assert.ok(email.html.includes("unsubscribe"));
+  assert.match(email.text, /Talk instead of typing/);
+  assert.doesNotMatch(email.html + email.text, /% off|discount|offer=/i);
+  assert.doesNotMatch(email.html + email.text, /—/, "no em dashes");
+});

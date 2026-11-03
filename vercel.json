@@ -7,6 +7,7 @@
   "crons": [
     { "path": "/api/cron/reset-usage", "schedule": "0 0 1 * *" },
     { "path": "/api/cron/email-automation", "schedule": "0 */6 * * *" },
-    { "path": "/api/cron/blog", "schedule": "0 19 * * *" }
+    { "path": "/api/cron/blog", "schedule": "0 19 * * *" },
+    { "path": "/api/cron/business-manager", "schedule": "0 20 * * 0" }
   ]
 }

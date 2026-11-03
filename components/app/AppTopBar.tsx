@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, CreditCard, LifeBuoy, LogOut } from "lucide-react";
+import { ChevronDown, CreditCard, Gift, LifeBuoy, LogOut } from "lucide-react";
 import NotificationBell from "@/components/app/NotificationBell";
 import { createClient } from "@/lib/supabase/client";
 
@@ -72,6 +72,9 @@ export default function AppTopBar({ userName, planLabel }: { userName: string; p
             <div className="py-1.5">
               <Link role="menuitem" href="/billing" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-700 hover:bg-cream-50">
                 <CreditCard className="h-4 w-4 text-ink-500" /> Billing and plan
+              </Link>
+              <Link role="menuitem" href="/support#refer" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-700 hover:bg-cream-50">
+                <Gift className="h-4 w-4 text-ink-500" /> Refer an educator
               </Link>
               <Link role="menuitem" href="/support" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-700 hover:bg-cream-50">
                 <LifeBuoy className="h-4 w-4 text-ink-500" /> Help and support

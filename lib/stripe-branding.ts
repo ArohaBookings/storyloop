@@ -1,4 +1,5 @@
 import { WINBACK_MONTHS, WINBACK_PERCENT_OFF } from "@/lib/offers";
+import { ACTIVATION_MONTHS, ACTIVATION_PERCENT_OFF } from "@/lib/activation-offer";
 import type Stripe from "stripe";
 import { SITE_URL } from "@/lib/email/config";
 import { getPlanByKey, type CurrencyCode, type PlanKey } from "@/lib/plans";
@@ -92,6 +93,8 @@ export function checkoutTermsMessage(input: {
   firstMonthFree?: boolean;
   /** The welcome-back offer (lib/offers.ts): no trial, half price for the first months. */
   winback?: boolean;
+  /** The early-educator offer (lib/activation-offer.ts): the first paid months after the trial at a discount. */
+  activation?: boolean;
   now?: Date;
 }): string {
   const now = input.now ?? new Date();
@@ -115,6 +118,11 @@ export function checkoutTermsMessage(input: {
   if (input.firstMonthFree) {
     const paidFrom = day(addMonth(new Date(now.getTime() + input.trialDays * 86_400_000)));
     return `${opener} starts today, and your first month after it is free too, thanks to the educator who referred you. Nothing is charged until ${paidFrom}, then ${price} a month. Cancel before then in StoryLoop Billing and you pay nothing. ${STATEMENT_LINE}`;
+  }
+  if (input.activation) {
+    const share = 1 - ACTIVATION_PERCENT_OFF / 100;
+    const discounted = ACTIVATION_PERCENT_OFF === 50 ? "half price" : `${ACTIVATION_PERCENT_OFF}% off`;
+    return `${opener} starts today. Nothing is charged until ${firstCharge}. Your first ${ACTIVATION_MONTHS} months are then ${discounted}, ${money(input.plan, input.currency, share)} a month, then ${price} a month. Cancel or switch plans before ${firstCharge} in StoryLoop Billing and you pay nothing. We'll email you 3 days before. ${STATEMENT_LINE}`;
   }
   return `${opener} starts today. Nothing is charged until ${firstCharge}, then ${price} a month. Cancel or switch plans before then in StoryLoop Billing and you pay nothing. We'll email you 3 days before. ${STATEMENT_LINE}`;
 }

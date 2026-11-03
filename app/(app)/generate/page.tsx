@@ -42,6 +42,7 @@ import {
 import { FRAMEWORK_LABELS, normalizeAnyFramework, type AnyFrameworkId } from "@/lib/international-frameworks";
 import type { PrivacyGuardianResult } from "@/lib/privacy-guardian";
 import { MIN_STORY_OBSERVATION_CHARACTERS } from "@/lib/story-clarification";
+import { ACTIVATION_OFFER_LABEL } from "@/lib/activation-offer";
 
 const PLACEHOLDERS = [
   "Example only - replace this with your real notes:\nRuby (2yo) built a block tower. It fell twice, then she tried again with a wider base and clapped when it stayed up.",
@@ -140,6 +141,8 @@ export default function GeneratePage() {
   const [educatorNames, setEducatorNames] = useState("");
   const [ageGroup, setAgeGroup] = useState("");
   const [tone, setTone] = useState<StoryTone>("natural");
+  // "To the child" (3 Nov 2026): off unless the educator chooses it, for this story only.
+  const [speakToChild, setSpeakToChild] = useState(false);
   const [depth, setDepth] = useState<StoryDepth>("balanced");
   const [location, setLocation] = useState<AnyFrameworkId>("AU");
   const [includeTeReoLevel, setIncludeTeReoLevel] = useState<TeReoLevel>("low");
@@ -507,6 +510,7 @@ export default function GeneratePage() {
           educatorNames: parseEducatorNames(educatorNames),
           clarificationAnswers: submittedClarificationAnswers,
           proceedWithoutClarification,
+          ...(speakToChild && (location === "NZ" || location === "AU") ? { speakToChild: true } : {}),
         }),
       });
       const data = await res.json();
@@ -1063,6 +1067,7 @@ export default function GeneratePage() {
     `${depth.charAt(0).toUpperCase()}${depth.slice(1)}`,
     focusLabel,
     location === "NZ" ? `Te reo ${includeTeReoLevel}` : null,
+    speakToChild && (location === "NZ" || location === "AU") ? "Written to the child" : null,
     educatorNames.trim() ? `Educators: ${educatorNames.trim()}` : null,
   ].filter(Boolean).join(" · ");
   const storyAction =
@@ -1373,6 +1378,22 @@ export default function GeneratePage() {
                       ))}
                     </div>
                   </div>
+                  {(location === "NZ" || location === "AU") && (
+                    <div>
+                      <p className="label">Write the story</p>
+                      <div className="grid grid-cols-2 gap-2" role="group" aria-label="Write the story">
+                        <button type="button" aria-pressed={!speakToChild} onClick={() => setSpeakToChild(false)} className={segment(!speakToChild)}>
+                          About the child
+                        </button>
+                        <button type="button" aria-pressed={speakToChild} onClick={() => setSpeakToChild(true)} className={segment(speakToChild)} data-testid="speak-to-child">
+                          To the child
+                        </button>
+                      </div>
+                      <p className="mt-1.5 text-xs text-ink-500">
+                        {speakToChild ? "Reads like: “Ruby, you poured the water into three cups…” Good for reading with the child." : "Reads like: “Ruby poured the water into three cups…”"}
+                      </p>
+                    </div>
+                  )}
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
                       <label htmlFor="gen-pedagogy-focus" className="label">Focus</label>
@@ -1616,11 +1637,11 @@ export default function GeneratePage() {
                   </p>
                   <p className="text-sm text-ink-700">
                     {upgradePromptKind === "one_left"
-                      ? "You can use your final free story or upgrade with the first-month activation offer when you are ready."
+                      ? `You can use your final free story, or upgrade with ${ACTIVATION_OFFER_LABEL} when you are ready.`
                       : "Try one more real observation while the workflow is fresh. If it keeps saving time, the Educator plan removes the monthly story limit."}
                   </p>
                   <Link href="/billing?offer=activation" className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-clay-700 hover:text-clay-900">
-                    {upgradePromptKind === "one_left" ? "View activation offer" : "See plan options"} <ArrowRight className="w-3 h-3" />
+                    {upgradePromptKind === "one_left" ? "See the offer" : "See plan options"} <ArrowRight className="w-3 h-3" />
                   </Link>
                 </div>
                 <button

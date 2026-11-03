@@ -38,3 +38,18 @@ test("AU and NZ still resolve exactly as before", () => {
   assert.equal(normalizeFramework(undefined), "AU");
   assert.equal(normalizeFramework(null), "AU");
 });
+
+// "Speak to the child" (3 Nov 2026): off (or not passed) changes nothing; on adds
+// one block just before the final line and nothing else.
+test("'speak to the child' off leaves every prompt byte-identical; on adds one block only", () => {
+  for (const c of auNzPromptCases()) {
+    const args = [c.observations, c.ageGroup, c.childName, c.tone, c.framework, c.preferences, c.childContext, c.educatorNames] as const;
+    const before = buildUserMessage(...args);
+    assert.equal(buildUserMessage(...args, false), before, `${c.id}: false must change nothing`);
+    assert.equal(buildUserMessage(...args, undefined), before, `${c.id}: undefined must change nothing`);
+    const on = buildUserMessage(...args, true);
+    assert.ok(on.includes("SPEAK TO THE CHILD") && on.includes('using "you"'), c.id);
+    // Removing the block gives back exactly the original message.
+    assert.equal(on.replace(/\nSPEAK TO THE CHILD[\s\S]*?as usual\.\n/, ""), before, `${c.id}: nothing but the block may differ`);
+  }
+});

@@ -145,12 +145,52 @@ export type RoomPlanningBrief = {
 // still giving the model room to structure a strong story.
 const OPENAI_STORY_MODEL = process.env.OPENAI_STORY_MODEL?.trim() || "gpt-5.5";
 const OPENAI_REASONING_EFFORT = process.env.OPENAI_REASONING_EFFORT?.trim() || "low";
+// A second OpenAI model, tried once when the first fails fast (an outage, a
+// model being retired) before the Anthropic backup (3 Nov 2026, Leo: "if the
+// AI is down… maybe go for a different version"). gpt-5.4 is the same family
+// and request shape; with gpt-5.5 "down" it wrote the hardest published note
+// properly in 29s. OPENAI_FALLBACK_MODEL overrides.
+//
+// Also tried on 3 Nov as the main writer: gpt-6.1-sol (newer, cheaper per
+// token) took ~44s a story and 4 of 5 published notes fell to the safety-net
+// template, so gpt-5.5 stays the main writer.
+const OPENAI_FALLBACK_MODEL = process.env.OPENAI_FALLBACK_MODEL?.trim() || "gpt-5.4";
 
-// GPT-5 family and the o-series use the newer request contract:
+// GPT-5 and GPT-6 families and the o-series use the newer request contract:
 // `max_completion_tokens` instead of `max_tokens`, no custom `temperature`
 // (only the default is accepted), and an optional `reasoning_effort`.
-function usesReasoningContract(model: string) {
-  return /^(gpt-5|o\d)/i.test(model);
+export function usesReasoningContract(model: string) {
+  return /^(gpt-5|gpt-6|o\d)/i.test(model);
+}
+
+async function openAiStory(model: string, systemPrompt: string, userContent: string, timeoutMs: number): Promise<string> {
+  // Bounded timeout so a slow generation can never hold the serverless
+  // function open past its limit. No auto-retry: a retried call doubles
+  // latency and can blow the route's 60s budget — we'd rather fall through.
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: timeoutMs, maxRetries: 0 });
+  const messages = [
+    { role: "system" as const, content: systemPrompt },
+    { role: "user" as const, content: userContent },
+  ];
+  const params = usesReasoningContract(model)
+    ? {
+        model,
+        max_completion_tokens: 5000,
+        reasoning_effort: OPENAI_REASONING_EFFORT,
+        response_format: { type: "json_object" as const },
+        messages,
+      }
+    : {
+        model,
+        max_tokens: 3200,
+        temperature: 0.7,
+        response_format: { type: "json_object" as const },
+        messages,
+      };
+  // Cast: older SDK typings predate the GPT-5 reasoning params, but the
+  // wire request carries them through correctly.
+  const res = await client.chat.completions.create(params as Parameters<typeof client.chat.completions.create>[0]);
+  return "choices" in res ? res.choices[0]?.message?.content ?? "" : "";
 }
 
 export async function callAI(systemPrompt: string, userContent: string, opts: { timeoutMs?: number } = {}): Promise<string> {
@@ -162,45 +202,36 @@ export async function callAI(systemPrompt: string, userContent: string, opts: { 
   // OpenAI primary
   if (process.env.OPENAI_API_KEY) {
     try {
-      // Bounded timeout so a slow generation can never hold the serverless
-      // function open past its limit. No auto-retry: a retried call doubles
-      // latency and can blow the route's 60s budget — we'd rather fall through.
-      const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: timeoutMs, maxRetries: 0 });
-      const model = OPENAI_STORY_MODEL;
-      const messages = [
-        { role: "system" as const, content: systemPrompt },
-        { role: "user" as const, content: userContent },
-      ];
-      const params = usesReasoningContract(model)
-        ? {
-            model,
-            max_completion_tokens: 5000,
-            reasoning_effort: OPENAI_REASONING_EFFORT,
-            response_format: { type: "json_object" as const },
-            messages,
-          }
-        : {
-            model,
-            max_tokens: 3200,
-            temperature: 0.7,
-            response_format: { type: "json_object" as const },
-            messages,
-          };
-      // Cast: older SDK typings predate the GPT-5 reasoning params, but the
-      // wire request carries them through correctly.
-      const res = await client.chat.completions.create(params as Parameters<typeof client.chat.completions.create>[0]);
-      const content = "choices" in res ? res.choices[0]?.message?.content ?? "" : "";
+      const content = await openAiStory(OPENAI_STORY_MODEL, systemPrompt, userContent, timeoutMs);
       if (content.trim()) return content;
       console.error("OpenAI returned empty content, falling back.");
     } catch (e) {
       console.error("OpenAI failed, falling back:", e);
       openAiFailure = e;
       // If OpenAI consumed most of our window before failing, do NOT also wait
-      // on Anthropic — that cascade is what blows the 60s limit. Throw so the
-      // caller drops to its instant grounded fallback instead.
+      // on another model — that cascade is what blows the 60s limit. Throw so
+      // the caller drops to its instant grounded fallback instead.
       if (Date.now() - started > 25_000) {
         throw e instanceof Error ? e : new Error("AI draft failed late");
       }
+    }
+    // The other OpenAI model, once, only when the first failed fast and there is
+    // time for a whole story (it stops by 40s, so the route's 60s still holds).
+    const elapsed = Date.now() - started;
+    if (OPENAI_FALLBACK_MODEL && OPENAI_FALLBACK_MODEL !== OPENAI_STORY_MODEL && elapsed < 15_000) {
+      try {
+        const content = await openAiStory(OPENAI_FALLBACK_MODEL, systemPrompt, userContent, Math.min(timeoutMs, 40_000 - elapsed));
+        if (content.trim()) {
+          console.warn(`Story written by the fallback model ${OPENAI_FALLBACK_MODEL}.`);
+          return content;
+        }
+      } catch (e) {
+        console.error("OpenAI fallback model failed too:", e);
+        if (!openAiFailure) openAiFailure = e;
+      }
+    }
+    if (Date.now() - started > 25_000) {
+      throw openAiFailure instanceof Error ? openAiFailure : new Error("AI draft failed late");
     }
   }
 
@@ -534,6 +565,7 @@ async function runStoryRescueRewrite(
     childContext?: string;
     childName?: string;
     ageGroup?: string;
+    speakToChild?: boolean;
   },
   reasons: string[]
 ) {
@@ -550,6 +582,7 @@ async function runStoryRescueRewrite(
       childName: params.childName ?? "",
       ageGroup: params.ageGroup ?? "",
       childContext: params.childContext || "",
+      ...(params.speakToChild === true ? { voice: "The educator asked for the story to be written to the child, using \"you\". Keep that voice." } : {}),
       currentDraft: current,
     }),
     // The rescue only runs when the first draft was fast (<=22s). Cap it at 30s
@@ -641,6 +674,8 @@ export async function generateLearningStory(params: {
   childContext?: string;
   preferences?: StoryPreferences;
   educatorNames?: string[];
+  /** "Speak to the child": write the story to the child ("you"). Off unless the educator turns it on. */
+  speakToChild?: boolean;
 }): Promise<StoryResult> {
   const observations = params.observations
     .slice(0, 3000)
@@ -679,6 +714,7 @@ export async function generateLearningStory(params: {
     childName: params.childName,
     ageGroup: params.ageGroup,
     educatorNames: params.educatorNames,
+    speakToChild: params.speakToChild,
   };
 
   const userContent = buildUserMessage(
@@ -689,7 +725,8 @@ export async function generateLearningStory(params: {
     framework,
     preferences,
     params.childContext,
-    params.educatorNames
+    params.educatorNames,
+    params.speakToChild
   );
 
   const startedAt = Date.now();

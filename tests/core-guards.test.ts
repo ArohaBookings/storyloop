@@ -663,7 +663,7 @@ test("every marketing template is covered by the email brain's cap", () => {
     "no_first_story", "weekly_value", "feedback_request", "family_pack_prompt",
     "centre_planning_prompt", "went_quiet", "winback_offer", "referral_invite",
     "two_free_stories_used", "free_limit_reached", "checkout_abandoned",
-    "first_story_created", "paid_no_usage_checkin", "story_quality_upgrade", "pro_month_offer",
+    "first_story_created", "paid_no_usage_checkin", "story_quality_upgrade", "pro_month_offer", "usage_tips",
   ] as const;
   const TRANSACTIONAL_TYPES = [
     "welcome", "trial_ending", "payment_succeeded", "payment_failed", "payment_failed_final",

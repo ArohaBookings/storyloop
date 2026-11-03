@@ -191,9 +191,21 @@ export function buildUserMessage(
   framework: StoryFrameworkId,
   preferences: StoryPreferences,
   childContext?: string,
-  educatorNames?: string[]
+  educatorNames?: string[],
+  // "Speak to the child" (3 Nov 2026): only when the educator turns it on. Off,
+  // the message is byte-identical to before (tests/au-nz-unchanged.test.ts).
+  speakToChild?: boolean
 ) {
   const config = STORY_FRAMEWORKS[framework];
+  const speakToChildBlock = speakToChild === true
+    ? `
+SPEAK TO THE CHILD (the educator turned this on):
+- Write the story to the child, using "you", the way many educators write learning stories for the child to hear. Name the child once near the start, for example: "Ruby, you poured the water into three cups and stopped at the line each time."
+- Keep the child's own words exactly, in quotes, for example: you said, "all full now".
+- Keep it warm and simple enough to read aloud to the child. Keep the same sections. The curriculum links stay written for the educator.
+- Every other field (learningSummary, educatorChecks, nextSteps, familyQuestion and the rest) stays written for the educator, as usual.
+`
+    : "";
   const depth = preferences.depthPreference ?? "balanced";
   const preferredStoryLength = preferences.preferredStoryLength ?? depth;
   const teReoLevel = preferences.includeTeReoLevel ?? "low";
@@ -356,6 +368,6 @@ FIELD GUIDANCE:
 - familyQuestion: ask one open, family-friendly question only when it could deepen understanding. Do not ask families to validate a developmental judgement.
 - followUpPrompt: identify one observable action, strategy, relationship, phrase, or working theory to notice next time.
 - nextSteps: practical teaching moves, not big theory.
-
+${speakToChildBlock}
 Write the JSON now.`;
 }

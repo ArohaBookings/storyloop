@@ -9,6 +9,7 @@ import { createStripe } from "@/lib/stripe-client";
 import { abandonedCheckoutCandidates, stillAbandoned } from "@/lib/abandoned-checkout";
 import { isCentrePlan } from "@/lib/centre-offer";
 import { WINBACK_CLAIM_DAYS, WINBACK_OFFER_ID, longDay } from "@/lib/offers";
+import { ACTIVATION_COUPON_ID, ACTIVATION_MONTHS, ACTIVATION_PERCENT_OFF } from "@/lib/activation-offer";
 import { EMAIL_CLASS, HOLDS_EVERYTHING, inFreeDecisionWindow, orderCandidates } from "./brain";
 import { loadCampaignStats } from "./brain-state";
 import { syncDeliveryStatus } from "./delivery-sync";
@@ -36,27 +37,34 @@ async function cardOnFile(customerId: string | null | undefined): Promise<boolea
 const REFERRAL_FIRST_MONTH_COUPON = "storyloop_referral_first_month";
 
 /**
- * Whether a trialing customer's first paid month is free because they were
- * referred, and when the first real charge is then. Null when Stripe cannot
- * say; the email then states the normal terms, which is what most people have.
+ * The discount on someone's trial that the trial-ending email must restate: a
+ * referral's free first month (the first charge moves a month later), or the
+ * early-educator offer (the first paid months are discounted). Null when there
+ * is neither or Stripe cannot say; the email then states the plain terms.
  */
-export async function referralFreeMonth(customerId: string | null | undefined, trialEndsAt: string | null | undefined): Promise<{ firstChargeOn: string } | null> {
+export async function trialDiscount(
+  customerId: string | null | undefined,
+  trialEndsAt: string | null | undefined,
+): Promise<{ firstMonthFree: true; firstChargeOn: string } | { discountedMonths: number; discountPercent: number } | null> {
   if (!customerId || !trialEndsAt) return null;
   try {
     const subs = await createStripe().subscriptions.list({ customer: customerId, status: "trialing", limit: 5, expand: ["data.discounts"] });
-    const hasCoupon = subs.data.some((sub) => (sub.discounts ?? []).some((d) => {
-      if (typeof d === "string") return false;
+    const couponIds = new Set(subs.data.flatMap((sub) => (sub.discounts ?? []).map((d) => {
+      if (typeof d === "string") return null;
       const discount = d as { coupon?: { id?: string } | string; source?: { coupon?: { id?: string } | string } };
       const coupon = discount.coupon ?? discount.source?.coupon;
-      return (typeof coupon === "string" ? coupon : coupon?.id) === REFERRAL_FIRST_MONTH_COUPON;
-    }));
-    if (!hasCoupon) return null;
-    const d = new Date(trialEndsAt);
-    const dayOfMonth = d.getUTCDate();
-    d.setUTCMonth(d.getUTCMonth() + 1);
-    if (d.getUTCDate() < dayOfMonth) d.setUTCDate(0);
-    const firstChargeOn = formatDate(Math.floor(d.getTime() / 1000));
-    return firstChargeOn ? { firstChargeOn } : null;
+      return (typeof coupon === "string" ? coupon : coupon?.id) ?? null;
+    })));
+    if (couponIds.has(REFERRAL_FIRST_MONTH_COUPON)) {
+      const d = new Date(trialEndsAt);
+      const dayOfMonth = d.getUTCDate();
+      d.setUTCMonth(d.getUTCMonth() + 1);
+      if (d.getUTCDate() < dayOfMonth) d.setUTCDate(0);
+      const firstChargeOn = formatDate(Math.floor(d.getTime() / 1000));
+      return firstChargeOn ? { firstMonthFree: true, firstChargeOn } : null;
+    }
+    if (couponIds.has(ACTIVATION_COUPON_ID)) return { discountedMonths: ACTIVATION_MONTHS, discountPercent: ACTIVATION_PERCENT_OFF };
+    return null;
   } catch {
     return null;
   }
@@ -245,6 +253,9 @@ async function grantWinback(userId: string): Promise<string | null> {
   return error ? null : expiresAt;
 }
 
+/** At most this many of a campaign per six-hourly run (others wait for the next run). */
+const PER_RUN_LIMIT: Partial<Record<LifecycleEmailType, number>> = { usage_tips: 8 };
+
 /** One email a rule thinks this person should get; the brain decides which (if any) goes. */
 type Candidate = {
   row: ProfileEmailRow;
@@ -392,13 +403,14 @@ export async function runLifecycleAutomation() {
     // A centre's free month may have no card behind it, and "your first
     // payment will be taken" would then be untrue, so ask Stripe.
     const centre = isCentrePlan(row.plan);
-    // A referred educator's first month after the trial is free: "your first
-    // payment will be taken then" would be untrue for them.
-    const referral = centre ? null : await referralFreeMonth(row.stripe_customer_id, row.trial_ends_at);
+    // A referred educator's first month after the trial is free, and the
+    // early-educator offer halves the first months: "your first payment of
+    // the plan price will be taken then" would be untrue for either.
+    const discount = centre ? null : await trialDiscount(row.stripe_customer_id, row.trial_ends_at);
     const context = {
       ...trialEndingContext(row),
       ...(centre ? { centreTrial: true, cardOnFile: await cardOnFile(row.stripe_customer_id) } : {}),
-      ...(referral ? { firstMonthFree: true, firstChargeOn: referral.firstChargeOn } : {}),
+      ...(discount ?? {}),
     };
     sent.push(await sendIfNeeded(row, "trial_ending", daysAgo(14), context));
   }
@@ -419,6 +431,36 @@ export async function runLifecycleAutomation() {
   if (quietError) errors.push(quietError.message);
   for (const row of (quietUsers ?? []) as ProfileEmailRow[]) {
     consider(row, "went_quiet", daysAgo(21));
+  }
+
+  // 2b. Not using it at all (3 Nov 2026, Leo: "give them some tips"): wrote a
+  //     story and then nothing for three weeks, or signed up over ten days ago
+  //     and never wrote one. Three practical tips, at most once in 60 days.
+  //     A payer who was busy until recently gets "Still there?" instead.
+  const usageTipsWindow = [daysAgo(90), daysAgo(21), daysAgo(10)] as const;
+  const [{ data: stoppedUsers, error: stoppedError }, { data: neverUsers, error: neverError }] = await Promise.all([
+    sb.from("profiles").select(baseSelect)
+      .gt("total_stories", 0)
+      .gte("last_story_at", usageTipsWindow[0])
+      .lte("last_story_at", usageTipsWindow[1])
+      .is("marketing_unsubscribed_at", null)
+      .order("last_story_at", { ascending: false })
+      .limit(75),
+    sb.from("profiles").select(baseSelect)
+      .eq("total_stories", 0)
+      .gte("created_at", usageTipsWindow[0])
+      .lte("created_at", usageTipsWindow[2])
+      .is("marketing_unsubscribed_at", null)
+      .order("created_at", { ascending: false })
+      .limit(75),
+  ]);
+  if (stoppedError) errors.push(stoppedError.message);
+  if (neverError) errors.push(neverError.message);
+  for (const row of [...(stoppedUsers ?? []), ...(neverUsers ?? [])] as ProfileEmailRow[]) {
+    const payingRegular = ACTIVE_PAID_STATUSES.has(row.subscription_status ?? "") && (row.total_stories ?? 0) >= 3;
+    const wentQuietCovers = payingRegular && Boolean(row.last_story_at) && Date.parse(row.last_story_at as string) >= Date.parse(daysAgo(45));
+    if (wentQuietCovers) continue;
+    consider(row, "usage_tips", daysAgo(60));
   }
 
   // 3. Win-back. Sent a fortnight after cancelling, when the next block of
@@ -531,12 +573,20 @@ export async function runLifecycleAutomation() {
   const { stats } = await loadCampaignStats();
   const byUser = new Map<string, Candidate[]>();
   for (const c of candidates) byUser.set(c.row.id, [...(byUser.get(c.row.id) ?? []), c]);
+  const sentThisRun = new Map<LifecycleEmailType, number>();
   for (const list of byUser.values()) {
     for (const c of orderCandidates(list, stats)) {
+      // A new campaign to a quiet list goes out a few at a time, so a bad
+      // address list shows up in bounces before it reaches everyone.
+      const limit = PER_RUN_LIMIT[c.type];
+      if (limit !== undefined && (sentThisRun.get(c.type) ?? 0) >= limit) continue;
       try {
         const result = await sendIfNeeded(c.row, c.type, c.since, c.context, c.metadata, c.prepare);
         sent.push({ type: c.type, status: result.status, ...(result.reason ? { reason: result.reason } : {}) });
-        if (result.status === "sent" || result.status === "skipped_unconfigured") break;
+        if (result.status === "sent" || result.status === "skipped_unconfigured") {
+          sentThisRun.set(c.type, (sentThisRun.get(c.type) ?? 0) + 1);
+          break;
+        }
         if (result.status === "skipped_frequency_cap" && result.reason && HOLDS_EVERYTHING.has(result.reason as never)) break;
       } catch (error) {
         errors.push(`${c.type}: ${error instanceof Error ? error.message : "failed"}`);

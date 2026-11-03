@@ -182,6 +182,13 @@ const GUIDES = [
     icon: FileCheck,
   },
   {
+    href: "/nqs-standards",
+    kicker: "Australia · 2026",
+    title: "The NQS in plain words",
+    description: "All 7 quality areas, 15 standards and 40 elements of the revised 2026 National Quality Standard, and what changed for child safety.",
+    icon: FileCheck,
+  },
+  {
     href: "/nqs-standard-1-3-assessment-and-planning",
     kicker: "Directors · Australia",
     title: "NQS Standard 1.3 documentation",

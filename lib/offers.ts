@@ -199,7 +199,7 @@ export async function ensureWinbackCoupon(coupons: CouponApi) {
       percent_off: WINBACK_PERCENT_OFF,
       duration: "repeating",
       duration_in_months: WINBACK_MONTHS,
-      name: `StoryLoop welcome back - ${WINBACK_PERCENT_OFF}% off ${WINBACK_MONTHS} months`,
+      name: `Welcome back: ${WINBACK_PERCENT_OFF}% off ${WINBACK_MONTHS} months`, // Stripe allows 40 characters
       metadata: { app: "storyloop", purpose: "winback", offer_id: WINBACK_OFFER_ID },
     });
   }

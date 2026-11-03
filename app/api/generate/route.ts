@@ -109,6 +109,7 @@ export async function POST(request: NextRequest) {
       educatorNames,
       clarificationAnswers,
       proceedWithoutClarification,
+      speakToChild,
       demo,
     } = body;
 
@@ -403,6 +404,8 @@ export async function POST(request: NextRequest) {
       childContext,
       preferences: requestPreferences,
       educatorNames: resolvedEducatorNames,
+      // "Speak to the child" (3 Nov 2026), only when the educator turned it on.
+      ...(speakToChild === true ? { speakToChild: true } : {}),
     });
     if (result.aiUnavailable) await noteFallback(result.aiUnavailable, user.id, false);
 

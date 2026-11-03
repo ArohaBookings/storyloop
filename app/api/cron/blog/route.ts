@@ -3,14 +3,18 @@ import { writeNextGuide } from "@/lib/ai/blog-writer";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { recentlyChanged, submitToIndexNow } from "@/lib/indexnow";
 import sitemap from "@/app/sitemap";
+import { currentBlogTarget } from "@/lib/business-manager";
 
 // Up to two model calls per run (a rejected draft lets the next topic try).
 export const maxDuration = 300;
 
 /**
  * Publishes the next guide from the backlog. Checked daily in vercel.json (a
- * weekly schedule stopped firing after July 2026); MINIMUM_DAYS_BETWEEN_POSTS
- * still limits it to one guide a week.
+ * weekly schedule stopped firing after July 2026). The pace comes from the
+ * weekly business report (lib/business-manager.ts, Leo 3 Nov 2026: "1 to 2 blog
+ * posts a week just to keep Google SEO active"): two guides a week, at least
+ * three days apart, while search is behind its 8% target; one a week, six days
+ * apart, when on target or before the first report.
  *
  * Vercel Cron calls this with GET, so GET is the publishing path; add
  * ?dryRun=1 to check the backlog and gates without publishing. It writes ONE
@@ -21,7 +25,7 @@ export const maxDuration = 300;
  * need verified official facts are skipped, and a draft citing a law or
  * regulation its verified facts do not support is never published.
  */
-const MINIMUM_DAYS_BETWEEN_POSTS = 6;
+const daysBetweenPosts = (perWeek: number) => (perWeek >= 2 ? 3 : 6);
 
 function authorised(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
@@ -32,6 +36,16 @@ function authorised(request: NextRequest) {
 
 async function publishNext() {
   const admin = createAdminSupabase();
+  const perWeek = await currentBlogTarget();
+  if (perWeek === 0) return NextResponse.json({ skipped: true, reason: "no topics left in the backlog" });
+  const { count: lastSevenDays } = await admin
+    .from("blog_posts")
+    .select("id", { count: "exact", head: true })
+    .eq("published", true)
+    .gte("published_at", new Date(Date.now() - 7 * 86_400_000).toISOString());
+  if ((lastSevenDays ?? 0) >= perWeek) {
+    return NextResponse.json({ skipped: true, reason: `${lastSevenDays} published in the last 7 days, this week's pace is ${perWeek}` });
+  }
   const { data: latest } = await admin
     .from("blog_posts")
     .select("published_at")
@@ -42,10 +56,11 @@ async function publishNext() {
 
   if (latest?.published_at) {
     const daysSince = (Date.now() - new Date(latest.published_at).getTime()) / 86_400_000;
-    if (daysSince < MINIMUM_DAYS_BETWEEN_POSTS) {
+    const minimum = daysBetweenPosts(perWeek);
+    if (daysSince < minimum) {
       return NextResponse.json({
         skipped: true,
-        reason: `last post was ${daysSince.toFixed(1)} days ago, minimum is ${MINIMUM_DAYS_BETWEEN_POSTS}`,
+        reason: `last post was ${daysSince.toFixed(1)} days ago, minimum is ${minimum}`,
       });
     }
   }

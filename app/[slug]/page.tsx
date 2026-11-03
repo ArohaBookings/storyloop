@@ -28,6 +28,7 @@ const CENTRE_SLUGS = new Set([
   "room-planning-brief-early-childhood",
   "acecqa-documentation-guidance",
   "nqs-standard-1-3-assessment-and-planning",
+  "nqs-standards",
   "ero-early-childhood-regulation-2026",
 ]);
 // Every guide shows a real note and the real draft written from it, right under
@@ -39,6 +40,7 @@ const AU_SLUGS = new Set([
   "eylf-planning-cycle",
   "acecqa-documentation-guidance",
   "nqs-standard-1-3-assessment-and-planning",
+  "nqs-standards",
   "assessment-and-rating-evidence",
   "eylf-principles-and-practices",
   "eylf-v2-changes",
@@ -135,6 +137,7 @@ const EDUCATOR_FIRST_SLUGS = new Set([
   "ero-early-childhood-regulation-2026",
   "acecqa-documentation-guidance",
   "nqs-standard-1-3-assessment-and-planning",
+  "nqs-standards",
 ]);
 import { DEDICATED_ROUTE_SLUGS, SEO_PAGES, SEO_PAGE_SLUGS } from "@/lib/seo-pages";
 import { PenLine, ShieldCheck } from "lucide-react";

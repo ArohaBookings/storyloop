@@ -4,9 +4,8 @@ import { createStripe } from "@/lib/stripe-client";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { getPlanByKey, normalizePlanKey, type CurrencyCode, type PlanKey } from "@/lib/plans";
-import { getRuntimeSecret } from "@/lib/runtime-secrets";
 import { getOrCreateReferralCoupon } from "@/lib/referrals";
-import { resolveActivationCoupon } from "@/lib/activation-offer";
+import { ensureActivationCoupon } from "@/lib/activation-offer";
 import { checkoutDiscountParams } from "@/lib/checkout-discount";
 import { resolveVerifiedPriceId } from "@/lib/stripe-prices";
 import { checkoutTerms, foundingCouponId, foundingSpotsLeft, isCentrePlan, isCouponRefusal } from "@/lib/centre-offer";
@@ -117,9 +116,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Someone who signed up through a referral link gets their first month
-    // free (Oct 2026; it was 10%). It beats the 15% activation offer, because
-    // Stripe accepts only one coupon per checkout and the referral is now the
-    // stronger of the two. Only on an educator plan (centres already get a
+    // free (Oct 2026; it was 10%). It goes ahead of the early-educator offer,
+    // because Stripe accepts only one coupon per checkout and the referral is
+    // also what earns the referrer their month. Only on an educator plan (centres already get a
     // free month) and only on their first StoryLoop subscription ever, so
     // cancelling and checking out again cannot collect it twice.
     let referralCoupon: string | undefined;
@@ -153,13 +152,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const activationCoupon =
-      !offer && !referralCoupon && activationOffer === true && profile.plan === "free"
-        ? await resolveActivationCoupon(
-            stripe.coupons,
-            await getRuntimeSecret("STRIPE_FIRST_MONTH_COUPON_ID", "stripe_first_month_coupon_id"),
-          )
-        : undefined;
+    // The early-educator offer (lib/activation-offer.ts): half price for the
+    // first two months of Educator or Educator Pro, for a free account. Like
+    // welcome back, it stops rather than charging full price to someone an
+    // email promised half.
+    let activationCoupon: string | undefined;
+    if (!offer && !referralCoupon && activationOffer === true && profile.plan === "free" && !isCentrePlan(selectedPlan)) {
+      try {
+        activationCoupon = await ensureActivationCoupon(stripe.coupons as never);
+      } catch (error) {
+        console.error("Early-educator coupon unavailable:", error);
+        return NextResponse.json({ error: "The early-educator discount could not be applied just now. Nothing was charged. Try again in a minute.", reason: "coupon_unavailable" }, { status: 503 });
+      }
+    }
 
     // Centres: a 30-day trial with no card needed, and a founding spot (50%
     // off after the free month) while any of the ten remain. A centre that has
@@ -223,6 +228,7 @@ export async function POST(request: NextRequest) {
               founding: Boolean(founding),
               offer: offer === "pro_month" ? "pro_month" : null,
               winback: offer === "winback",
+              activation: !founding && Boolean(activationCoupon),
               firstMonthFree,
             }),
           },

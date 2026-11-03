@@ -37,6 +37,7 @@ const NAV = [
   ["Trends", "/admin/trends"],
   ["Economics", "/admin/economics"],
   ["System", "/admin/system"],
+  ["Manager", "/admin/manager"],
   ["Email", "/admin/email"],
   ["Links", "/admin/links"],
   ["Reviews", "/admin/reviews"],

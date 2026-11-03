@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { AlertTriangle, Check, Loader2, CreditCard, ExternalLink, FileText, LifeBuoy, ShieldCheck } from "lucide-react";
 import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
-import { ACTIVATION_OFFER_LABEL } from "@/lib/email/config";
+import { ACTIVATION_OFFER_LABEL } from "@/lib/activation-offer";
 import { canOfferInAppSwitch } from "@/lib/plan-change";
 import { formatDay } from "@/lib/notifications";
 import { CANCELLATION_REASONS, type BillingSummary } from "@/lib/billing-manage";
@@ -497,10 +497,10 @@ export default function BillingPage() {
 
       {searchParams.get("offer") === "activation" && currentPlan === "free" && (
         <div className="mb-8 rounded-3xl border border-clay-200 bg-gradient-to-br from-cream-100 via-white to-sage-50 p-5 shadow-warm">
-          <p className="section-title mb-2">Activation offer</p>
+          <p className="section-title mb-2">Early-educator offer</p>
           <h2 className="font-display text-2xl font-bold text-ink-900">{ACTIVATION_OFFER_LABEL.charAt(0).toUpperCase() + ACTIVATION_OFFER_LABEL.slice(1)}, ready at checkout.</h2>
           <p className="mt-1 text-sm text-ink-600">
-            Choose a plan below and the discount is applied automatically. No code needed.
+            Choose Educator or Educator Pro below and it is applied automatically, after your free trial. No code needed.
           </p>
         </div>
       )}

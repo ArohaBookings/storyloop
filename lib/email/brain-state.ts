@@ -1,6 +1,7 @@
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import type { LifecycleEmailType } from "./templates";
-import { EMAIL_CLASS, deliverabilityGuard, isMarketing, type CampaignStats, type GlobalEmailState, type SentEmail } from "./brain";
+import { EMAIL_CLASS, deliverabilityGuard, isMarketing, type CampaignStats, type GlobalEmailState, type SentEmail, type Usage } from "./brain";
+import { normalizePlanKey } from "@/lib/plans";
 
 /**
  * What the email brain (lib/email/brain.ts) reads from the database: how much
@@ -87,6 +88,21 @@ export async function loadUserHistory(userId: string, now = new Date()): Promise
     clicked: Boolean(r.clicked_at),
     providerStatus: (r.metadata?.provider_status as string | undefined) ?? null,
   }));
+}
+
+/**
+ * How this person uses StoryLoop, for usageSegment: on a paid plan or not, and
+ * how many stories they wrote in the last 30 days. Null when either read
+ * fails, which leaves the usual rules in place.
+ */
+export async function loadUsage(userId: string, now = new Date()): Promise<Usage | null> {
+  const sb = createAdminSupabase();
+  const [profile, stories] = await Promise.all([
+    sb.from("profiles").select("plan").eq("id", userId).maybeSingle(),
+    sb.from("stories").select("id", { count: "exact", head: true }).eq("user_id", userId).gte("created_at", new Date(now.getTime() - 30 * DAY).toISOString()),
+  ]);
+  if (profile.error || !profile.data || stories.error || typeof stories.count !== "number") return null;
+  return { paying: normalizePlanKey(profile.data.plan) !== "free", storiesLast30: stories.count };
 }
 
 /**

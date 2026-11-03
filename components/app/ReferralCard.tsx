@@ -12,6 +12,9 @@ type ReferralState = {
   max: number;
   remaining: number;
   discountPercent: number;
+  /** Months earned while this person had no plan to credit; they come off their first invoice. */
+  bankedMonths?: number;
+  bankedReferrals?: number;
   showIntro: boolean;
   wasReferred: boolean;
 };
@@ -141,8 +144,14 @@ export default function ReferralCard({ variant = "inline" }: { variant?: "inline
   }
   if (!state?.shareUrl) return null;
 
+  // A friend who paid while this person was on Free has earned them a month
+  // that waits for their first invoice: it counts, and it is shown.
+  const banked = state.bankedReferrals ?? 0;
+  const bankedMonths = state.bankedMonths ?? 0;
+  const earnedTotal = Math.min(state.max, state.earned + banked);
+
   return (
-    <section className="card p-5 md:p-6">
+    <section id="refer" className="card scroll-mt-24 p-5 md:p-6">
       <div className="mb-4 flex items-start gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-sage-700 text-paper">
           <Gift className="h-5 w-5" />
@@ -163,16 +172,21 @@ export default function ReferralCard({ variant = "inline" }: { variant?: "inline
         <div className="mb-2 flex items-center justify-between text-xs">
           <span className="font-bold text-ink-800">Free months earned</span>
           <span className="text-ink-500">
-            {state.earned} of {state.max}
+            {earnedTotal} of {state.max}
             {state.pending > 0 && ` · ${state.pending} waiting to subscribe`}
           </span>
         </div>
-        <Progress earned={state.earned} max={state.max} />
+        <Progress earned={earnedTotal} max={state.max} />
+        {bankedMonths > 0 && (
+          <p className="mt-2 text-xs text-sage-800" data-testid="referral-banked">
+            {bankedMonths === 1 ? "1 free month is" : `${bankedMonths} free months are`} saved for you. They come off your first payment when you start a plan.
+          </p>
+        )}
       </div>
 
       <ShareRow shareUrl={state.shareUrl} />
 
-      {state.remaining === 0 && (
+      {earnedTotal >= state.max && (
         <p className="mt-3 rounded-xl border border-sage-200 bg-sage-50 px-3 py-2 text-xs text-sage-800">
           You have earned all {state.max} free months. Thank you for spreading the word.
         </p>

@@ -16,5 +16,6 @@ export const SITE_URL =
     ? "https://storyloop.space"
     : configuredSiteUrl;
 
-export const ACTIVATION_OFFER_LABEL =
-  process.env.STRIPE_FIRST_MONTH_COUPON_LABEL ?? "15% off your first month";
+// From the same constants as the coupon checkout applies (lib/activation-offer.ts),
+// so the wording can never drift from the discount. It used to be an env setting.
+export { ACTIVATION_OFFER_LABEL } from "../activation-offer";

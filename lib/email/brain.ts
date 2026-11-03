@@ -39,6 +39,7 @@ export const EMAIL_CLASS: Record<LifecycleEmailType, EmailClass> = {
   no_first_story: "activation",
   paid_no_usage_checkin: "activation",
   went_quiet: "activation",
+  usage_tips: "activation",
   // Tips and asks: only when nothing better is due and the person is reading.
   // "How did your first story feel?" is a feedback ask, so it waits behind the paying moments.
   first_story_created: "engagement",
@@ -54,6 +55,33 @@ export const isMarketing = (type: LifecycleEmailType) => EMAIL_CLASS[type] !== "
 
 /** Leo's rule: never more than two non-billing emails to one person in 30 days. */
 export const MARKETING_PER_30_DAYS = 2;
+/**
+ * How someone uses StoryLoop decides how much they hear (Leo, 3 Nov 2026): "if
+ * they're using a lot of it, then don't send as much… maybe only send one",
+ * "signed up, not subscribed, and they're using a lot, then send a couple…
+ * give them an offer", and "not using it at all… give them some tips".
+ *
+ * - A payer writing about a story a week or more is getting value: one email
+ *   a month at most.
+ * - A free educator who is writing stories gets the paying moments and the
+ *   offer first; tips wait (inFreeDecisionWindow).
+ * - Someone who has written nothing in 30 days gets getting-started help, and
+ *   a tip may be their second email that month.
+ * Unknown usage (the read failed) changes nothing: the usual two a month.
+ */
+export type Usage = { paying: boolean; storiesLast30: number };
+export type UsageSegment = "regular_payer" | "deciding" | "not_using" | "other";
+/** About one story a week. */
+export const REGULAR_STORIES_30D = 4;
+export const REGULAR_PAYER_PER_30_DAYS = 1;
+
+export function usageSegment(usage: Usage | null | undefined): UsageSegment | null {
+  if (!usage || !Number.isFinite(usage.storiesLast30)) return null;
+  if (usage.paying && usage.storiesLast30 >= REGULAR_STORIES_30D) return "regular_payer";
+  if (usage.storiesLast30 <= 0) return "not_using";
+  return usage.paying ? "other" : "deciding";
+}
+
 /** Days since that person's last non-billing email before each kind may go. */
 export const MIN_DAYS_SINCE_LAST: Record<Exclude<EmailClass, "transactional">, number> = {
   moment: 3,
@@ -142,6 +170,8 @@ export function gateEmail(input: {
   timeZone: string;
   /** Sent because of something the person just did (wrote a story, hit the limit): they are awake. */
   triggeredByUser?: boolean;
+  /** How they use StoryLoop (usageSegment); null when it could not be read. */
+  usage?: Usage | null;
 }): GateResult {
   const cls = EMAIL_CLASS[input.type];
   if (cls === "transactional") return { allow: true };
@@ -155,11 +185,17 @@ export function gateEmail(input: {
   const marketing = history.filter((e) => isMarketing(e.type)).map((e) => Date.parse(e.sentAt)).filter(Number.isFinite).sort((a, b) => b - a);
   const in30 = marketing.filter((t) => now.getTime() - t < 30 * DAY).length;
   const notReading = isNotReading(history, global.trackingSince, now);
-  const cap = notReading ? 1 : MARKETING_PER_30_DAYS;
-  if (in30 >= cap) return { allow: false, reason: "monthly_cap", detail: `${in30} in the last 30 days (limit ${cap}).` };
+  const segment = usageSegment(input.usage);
+  const cap = notReading || segment === "regular_payer" ? Math.min(REGULAR_PAYER_PER_30_DAYS, MARKETING_PER_30_DAYS) : MARKETING_PER_30_DAYS;
+  if (in30 >= cap) {
+    const why = segment === "regular_payer" && !notReading ? ", a regular payer" : "";
+    return { allow: false, reason: "monthly_cap", detail: `${in30} in the last 30 days (limit ${cap}${why}).` };
+  }
   // Tips take a slot only when nothing else has gone out in 30 days, so one
   // always stays free for "one story left", "out of free stories" or an offer.
-  if (cls === "engagement" && in30 > 0) {
+  // Someone not using StoryLoop at all will not hit those moments, so for them
+  // a tip may be the second email.
+  if (cls === "engagement" && in30 > 0 && segment !== "not_using") {
     return { allow: false, reason: "too_soon", detail: "Tips only go when no other email has been sent in 30 days." };
   }
   if (notReading && (cls === "engagement" || cls === "activation")) {
