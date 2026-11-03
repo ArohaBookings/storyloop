@@ -106,11 +106,17 @@ function isFamilyReadable(story: string) {
   return average <= 28 && longest <= 52;
 }
 
-function keepsFocusChild(story: string, childName?: string) {
+function keepsFocusChild(story: string, childName?: string, speakToChild?: boolean) {
   const child = childName?.trim();
   if (!child) return true;
   const escaped = child.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return (story.match(new RegExp(`\\b${escaped}\\b`, "gi")) ?? []).length >= 2;
+  const mentions = (story.match(new RegExp(`\\b${escaped}\\b`, "gi")) ?? []).length;
+  // "To the child" (4 Nov 2026): the story names the child and then speaks to
+  // them as "you", so one mention and steady "you" is just as centred. Live, a
+  // story that named the child once was rejected for this and replaced by the
+  // safety-net template. Off, the rule is exactly what it was.
+  if (speakToChild === true && mentions >= 1 && (story.match(/\byour?\b/gi) ?? []).length >= 3) return true;
+  return mentions >= 2;
 }
 
 /**
@@ -138,6 +144,8 @@ export function inspectStoryQuality(
     depth: StoryDepth;
     observations: string;
     childName?: string;
+    /** "To the child": the story speaks to the child as "you" (keepsFocusChild). */
+    speakToChild?: boolean;
   }
 ) {
   const actualWords = countWords(result.story);
@@ -169,7 +177,7 @@ export function inspectStoryQuality(
       !META_COMMENTARY_PATTERN.test(result.story) &&
       getMetaCommentaryIssues(result.story).length === 0,
     noAiDashPunctuation: !AI_DASH_PUNCTUATION_PATTERN.test(outputText),
-    focusChildMaintained: keepsFocusChild(result.story, params.childName),
+    focusChildMaintained: keepsFocusChild(result.story, params.childName, params.speakToChild),
     // If the educator recorded the child's exact words, losing them (or
     // polishing the spelling) throws away the best evidence in the note.
     childVoicePreserved: childQuotePreserved(result.story, params.observations) !== false,

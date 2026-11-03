@@ -53,3 +53,35 @@ test("'speak to the child' off leaves every prompt byte-identical; on adds one b
     assert.equal(on.replace(/\nSPEAK TO THE CHILD[\s\S]*?as usual\.\n/, ""), before, `${c.id}: nothing but the block may differ`);
   }
 });
+
+// 4 Nov 2026: live, a "To the child" story that named the child once and then
+// said "you" was rejected by the centring check (name at least twice) and
+// replaced by the safety-net template. With the choice on, one mention and
+// steady "you" now counts as centred; off, the check is exactly what it was.
+test("'to the child' stories are not rejected for naming the child once; off, the centring check is unchanged", async () => {
+  const { inspectStoryQuality } = await import("../lib/ai/quality-guards");
+  const base = {
+    storyTitle: "Your turn",
+    outcomes: [], curriculumLinks: ["Mana tangata | Contribution"], learningSummary: "Turn taking.", childVoice: "your turn",
+    learningDispositions: [], socialEmotionalLinks: [], culturalConnections: [], whanauConnection: "", assumptions: [],
+    evidenceAnchors: ["She rolled it again and gave it to Hemi: 'your turn'"],
+    educatorChecks: [], pedagogyLinks: [], frameworkEvidence: [], familyQuestion: "", followUpPrompt: "",
+    nextSteps: ["Offer more playdough turns."], wordCount: 30,
+  };
+  const params = { framework: "NZ" as const, depth: "balanced" as const, observations: "Mere rolled a snake, squashed it flat, then gave it to Hemi: 'your turn'.", childName: "Mere" };
+  const once = { ...base, story: "Mere, you rolled a long snake and squashed it flat. Then you gave it to Hemi and said \"your turn\". You took turns three times, and you waited each time." };
+  const twice = { ...base, story: "Mere rolled a long snake and squashed it flat. Then Mere gave it to Hemi and said \"your turn\"." };
+  const never = { ...base, story: "You rolled a long snake and squashed it flat. You gave it to Hemi. You took turns three times, and you waited." };
+  const barelyYou = { ...base, story: "Mere rolled a long snake and squashed it flat. Then she gave it to Hemi. You could see the turn taking." };
+
+  // Off: exactly the old rule (name at least twice).
+  assert.equal(inspectStoryQuality(once, params).focusChildMaintained, false);
+  assert.equal(inspectStoryQuality(twice, params).focusChildMaintained, true);
+  assert.equal(inspectStoryQuality(never, params).focusChildMaintained, false);
+  assert.equal(inspectStoryQuality(once, { ...params, speakToChild: false }).focusChildMaintained, false);
+  // On: named once and spoken to as "you" is centred; never named, or barely "you", is not.
+  assert.equal(inspectStoryQuality(once, { ...params, speakToChild: true }).focusChildMaintained, true);
+  assert.equal(inspectStoryQuality(twice, { ...params, speakToChild: true }).focusChildMaintained, true);
+  assert.equal(inspectStoryQuality(never, { ...params, speakToChild: true }).focusChildMaintained, false);
+  assert.equal(inspectStoryQuality(barelyYou, { ...params, speakToChild: true }).focusChildMaintained, false);
+});

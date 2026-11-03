@@ -409,7 +409,7 @@ export function normaliseStoryResult(result: Partial<StoryResult>): StoryResult 
 // safety), and the model handles tone/voice/specificity natively.
 function computeStoryQuality(
   result: StoryResult,
-  params: { framework: StoryFrameworkId; depth: StoryDepth; observations: string; childName?: string },
+  params: { framework: StoryFrameworkId; depth: StoryDepth; observations: string; childName?: string; speakToChild?: boolean },
   stage: "first" | "revised" | "fallback"
 ): NonNullable<StoryResult["storyQuality"]> {
   const remaining = getStoryRescueReasons(result, params);
@@ -466,7 +466,7 @@ function computeStoryQuality(
 
 function getStoryRescueReasons(
   result: StoryResult,
-  params: { framework: StoryFrameworkId; depth: StoryDepth; observations: string; childName?: string }
+  params: { framework: StoryFrameworkId; depth: StoryDepth; observations: string; childName?: string; speakToChild?: boolean }
 ) {
   const reasons: string[] = [];
   const minimumWords = getMinimumStoryWords(params.depth);
@@ -611,6 +611,7 @@ async function finalizeStory(
     childName?: string;
     ageGroup?: string;
     educatorNames?: string[];
+    speakToChild?: boolean;
   },
   startedAt: number
 ): Promise<StoryResult> {
@@ -619,6 +620,8 @@ async function finalizeStory(
     depth: params.depth,
     observations: params.observations,
     childName: params.childName,
+    // Only when the educator chose "To the child"; off, the guards are unchanged.
+    ...(params.speakToChild === true ? { speakToChild: true } : {}),
   };
   const reasons = getStoryRescueReasons(draft, guardParams);
   if (reasons.length === 0) {
