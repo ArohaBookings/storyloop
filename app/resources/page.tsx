@@ -98,6 +98,13 @@ const GUIDES = [
     icon: BookOpen,
   },
   {
+    href: "/learning-story-examples-nz",
+    kicker: "Aotearoa · New",
+    title: "NZ learning story examples",
+    description: "Six stories from an infant to a four year old: the note, the story, the Te Whāriki learning outcome and what comes next.",
+    icon: FileCheck,
+  },
+  {
     href: "/te-whariki-pdf",
     kicker: "Aotearoa · New",
     title: "The Te Whāriki PDF, page by page",
