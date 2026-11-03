@@ -12,6 +12,8 @@ import { googleSignInEnabled } from "@/lib/auth/oauth";
 import { suggestEmailFix } from "@/lib/email-typo";
 import { reportSignupConversion } from "@/lib/analytics/google-ads";
 import { takeHumanPass, warmHumanPass } from "@/lib/auth/human-pass-client";
+import { readKeptStory } from "@/lib/keep-story";
+import ExitFeedback from "@/components/landing/ExitFeedback";
 
 function normaliseCurrency(value: string | null): CurrencyCode {
   return value === "NZD" ? "NZD" : "AUD";
@@ -45,6 +47,9 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
   const [showPassword, setShowPassword] = useState(false);
   const [suggested, setSuggested] = useState(false);
   const [plan, setPlan] = useState<PlanKey>(() => normalizePlanKey(initialPlan));
+  // A story written in the demo before signing up, waiting to be saved (lib/keep-story.ts).
+  const [keptWaiting, setKeptWaiting] = useState(false);
+  useEffect(() => setKeptWaiting(Boolean(readKeptStory())), []);
   const [currency, setCurrency] = useState<CurrencyCode>("AUD");
   const [referralCode, setReferralCode] = useState("");
 
@@ -203,6 +208,11 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
           {notice && (
             <p role="status" className="mb-4 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-xs text-amber-700">{notice}</p>
           )}
+          {keptWaiting && (
+            <p role="status" className="mb-4 rounded-xl border border-sage-200 bg-sage-50 px-3 py-2 text-sm text-ink-800" data-testid="kept-story-waiting">
+              Your story is waiting. Create your account and it goes straight into your stories, free.
+            </p>
+          )}
           {signedIn && (
             <p role="status" className="mb-4 rounded-xl border border-sage-200 bg-sage-50 px-3 py-2 text-sm text-ink-800">
               You&apos;re already signed in on this device.{" "}
@@ -261,6 +271,15 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
                   </button>
                 ))}
               </div>
+            )}
+            {isPaidPlan && !isCentre && (
+              <p className="mt-3 text-xs text-ink-600">
+                Not ready to pay?{" "}
+                <button type="button" onClick={() => setPlan("free")} className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900" data-track="signup_switch_free">
+                  Start free instead
+                </button>
+                : 3 stories a month, no card.
+              </p>
             )}
           </div>
           )}
@@ -351,6 +370,11 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
                   <Link href="/forgot-password" className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900">
                     Reset your password
                   </Link>
+                  {" "}or{" "}
+                  <Link href="/login?email_link=1" className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900" data-track="signup_exists_email_link">
+                    email me a sign-in link
+                  </Link>
+                  .
                 </p>
               </div>
             )}
@@ -361,6 +385,10 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
             <p className="text-xs text-ink-500 text-center">By signing up you agree to our <Link href="/terms" className="text-clay-700 underline underline-offset-2">Terms</Link> and <Link href="/privacy" className="text-clay-700 underline underline-offset-2">Privacy Policy</Link></p>
           </form>
         </div>
+        <details className="mt-4 rounded-2xl text-sm text-ink-600">
+          <summary className="cursor-pointer text-center text-xs font-semibold text-ink-500 hover:text-ink-800">Not signing up today? Tell us why</summary>
+          <div className="mt-3"><ExitFeedback surface="signup" /></div>
+        </details>
         <p className="text-center text-sm text-ink-500 mt-5">Already have an account? <Link href="/login" className="text-clay-700 font-semibold hover:underline">Sign in</Link></p>
       </div>
     </div>

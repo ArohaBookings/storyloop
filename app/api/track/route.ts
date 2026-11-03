@@ -65,6 +65,15 @@ const ALLOWED_EVENTS = new Set([
   "quiet_nudge_write",
   "quiet_nudge_help",
   "quiet_nudge_dismiss",
+  // 3 Nov 2026: keep the demo story when signing up (lib/keep-story.ts), the
+  // one-tap "why not today?" (lib/exit-feedback.ts) and a child's statement
+  // drafted from their saved stories (lib/child-statement.ts).
+  "keep_story_clicked",
+  "keep_story_saved",
+  "exit_feedback",
+  "statement_drafted",
+  "statement_error",
+  "demo_example_panel",
   // Only with consent (see BEHAVIOUR_EVENTS below).
   "rage_click",
   "copy",

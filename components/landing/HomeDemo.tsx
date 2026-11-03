@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Layers, Quote, ShieldCheck } from "lucide-react";
+import { FileText, Layers, Quote, ShieldCheck } from "lucide-react";
 import StoryDemo from "./StoryDemo";
+import ExitFeedback from "./ExitFeedback";
 
 /**
  * Three answers a sceptical educator needs before typing a note about a child:
@@ -39,13 +40,27 @@ export default function HomeDemo() {
           <ul className="mt-6 grid gap-2.5 sm:justify-center md:flex md:flex-wrap md:gap-x-6" aria-label="Why educators trust it">
             {TRUST.map((item) => (
               <li key={item.text}>
-                <Link href={item.href} className="group inline-flex items-start gap-2.5 text-sm font-medium leading-relaxed text-ink-700 hover:text-clay-800">
+                <Link href={item.href} className="group inline-flex items-start gap-2.5 text-base font-semibold leading-relaxed text-ink-800 hover:text-clay-800">
                   <item.icon className="mt-0.5 h-4 w-4 flex-none text-sage-700" strokeWidth={2} />
                   <span className="underline decoration-clay-200 underline-offset-4 group-hover:decoration-clay-500">{item.text}</span>
                 </Link>
               </li>
             ))}
           </ul>
+          {/* The end-of-year job no general AI chat can do: it has no record of the child's year (lib/child-statement.ts). */}
+          <div className="mt-8 flex flex-col items-start gap-3 rounded-2xl border border-clay-100 bg-paper p-5 sm:flex-row sm:items-center">
+            <FileText className="h-6 w-6 flex-none text-clay-600" />
+            <p className="min-w-0 flex-1 text-sm leading-relaxed text-ink-700 md:text-base">
+              <span className="font-semibold text-ink-900">End of the year?</span> StoryLoop turns each child&apos;s saved stories into their
+              transition statement or end-of-year summary in one step, with their own words kept.
+            </p>
+            <Link href="/transition-to-school-statement#transition-try" className="btn-secondary flex-none px-4 py-2 text-sm" data-track="home_wedge_try">
+              Try it on a statement
+            </Link>
+          </div>
+          <div className="mt-6">
+            <ExitFeedback surface="home" intent />
+          </div>
         </div>
       </div>
     </section>

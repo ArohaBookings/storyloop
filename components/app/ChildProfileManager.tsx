@@ -238,8 +238,8 @@ export default function ChildProfileManager({ initialChildren }: { initialChildr
                 <Link href={`/children/${encodeURIComponent(child.id)}/term`} className="btn-secondary px-4 py-2 text-xs">
                   Term report
                 </Link>
-                <Link href={`/children/${encodeURIComponent(child.id)}/transition`} className="btn-secondary px-4 py-2 text-xs">
-                  Transition pack
+                <Link href={`/children/${encodeURIComponent(child.id)}/transition#draft`} className="btn-secondary px-4 py-2 text-xs">
+                  Statement and summary
                 </Link>
                 <Link href={`/children/${encodeURIComponent(child.id)}/passport`} className="btn-secondary px-4 py-2 text-xs">
                   Learning passport

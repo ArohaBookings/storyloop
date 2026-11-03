@@ -9,6 +9,7 @@ import WhatsNewModal from "@/components/app/WhatsNewModal";
 import AppTopBar from "@/components/app/AppTopBar";
 import { PLAN_DEFINITIONS, normalizePlanKey } from "@/lib/plans";
 import EngagementTracker from "@/components/analytics/EngagementTracker";
+import KeepStoryImporter from "@/components/app/KeepStoryImporter";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -51,6 +52,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <div className="flex min-w-0 flex-1 flex-col">
         <AppTopBar userName={userName} planLabel={planLabel} />
         <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden pt-14 md:pt-0">{children}</main>
+        <KeepStoryImporter />
       </div>
       {/* One-time welcome card: what changed, then the referral offer.
           Renders nothing once dismissed. */}

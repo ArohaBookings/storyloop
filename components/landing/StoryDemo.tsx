@@ -4,6 +4,7 @@ import { Sparkles, Loader2, Copy, Check, HelpCircle, ListChecks, Quote } from "l
 import Link from "next/link";
 import GeneratingIndicator from "@/components/app/GeneratingIndicator";
 import { track } from "@/lib/analytics/client";
+import { frameworkFromStory, rememberStory } from "@/lib/keep-story";
 
 const PLACEHOLDER = `For example:
 • Noah (3yo) filled a bucket with damp sand
@@ -191,6 +192,8 @@ export default function StoryDemo({
   const [usage, setUsage] = useState(0);
   // The AI could not write this one and the basic writer did (see /api/generate).
   const [basicDraft, setBasicDraft] = useState(false);
+  // The free try is used: offer to keep what they wrote rather than a dead end.
+  const [limitHit, setLimitHit] = useState(false);
 
   const isUnchangedExample = !guide && input.trim() === SAMPLE.trim();
 
@@ -222,7 +225,8 @@ export default function StoryDemo({
     }
 
     if (usage >= 1) {
-      setError("You've used your free demo. Sign up to keep going with editable story history.");
+      setError("");
+      setLimitHit(true);
       track("demo_limit");
       return;
     }
@@ -264,6 +268,12 @@ export default function StoryDemo({
       track("demo_error", { message: e instanceof Error ? e.message.slice(0, 120) : "unknown" });
     } finally { setLoading(false); }
   };
+
+  const keepThis = () => {
+    rememberStory(outputNote, output, framework ?? frameworkFromStory(output));
+    track("keep_story_clicked", { surface });
+  };
+  const ownDraft = Boolean(output) && !(outputNote === SAMPLE && output === EXAMPLE_OUTPUT);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(output);
@@ -324,6 +334,14 @@ export default function StoryDemo({
 
         {error && (
           <div className="mt-3 rounded-lg border border-clay-200 bg-clay-50 px-3 py-2 text-xs text-clay-700">{error}</div>
+        )}
+        {limitHit && (
+          <div className="mt-3 rounded-xl border border-sage-200 bg-sage-50 px-3 py-3 text-sm text-ink-800" data-testid="demo-limit">
+            <p>That was your free try here. Keep {ownDraft ? "the story you wrote" : "going"} and write 3 stories a month free, no card.</p>
+            <Link href="/signup?keep=1" onClick={() => { if (ownDraft) keepThis(); }} className="btn-primary mt-2 inline-flex px-4 py-2 text-xs" data-track="demo_limit_keep">
+              {ownDraft ? "Keep my story" : "Start free"}
+            </Link>
+          </div>
         )}
       </div>
 
@@ -390,31 +408,57 @@ export default function StoryDemo({
             </p>
             <EvidencePanel evidence={evidence} onOpen={() => track("demo_evidence_opened", { example: outputNote === SAMPLE })} />
             <div className="mt-4 border-t border-clay-200 pt-4 text-center">
-              <p className="mb-2 text-xs text-ink-600">Save it, edit it and write your own. Three stories a month are free.</p>
-              <Link href="/signup" className="btn-primary px-4 py-2 text-xs" data-track={guide ? "guide_demo_signup" : "demo_signup"}>Start free</Link>
+              {ownDraft ? (
+                <>
+                  <p className="mb-2 text-xs text-ink-600">Keep this story. It goes straight into your free account, with 3 more every month. No card.</p>
+                  <Link href="/signup?keep=1" onClick={keepThis} className="btn-primary px-4 py-2 text-xs" data-track={guide ? "guide_demo_keep" : "demo_keep"}>Keep this story</Link>
+                </>
+              ) : (
+                <>
+                  <p className="mb-2 text-xs text-ink-600">That was a real note and the draft StoryLoop wrote from it. Now try yours: no signup for your first try.</p>
+                  <button
+                    type="button"
+                    onClick={() => { setInput(""); setTouched(true); setOutput(""); setError(""); document.getElementById(guide ? "guide-demo-note" : "demo-note")?.focus(); }}
+                    className="btn-primary px-4 py-2 text-xs"
+                    data-track="demo_try_mine"
+                  >
+                    Write mine
+                  </button>
+                </>
+              )}
             </div>
           </div>
         ) : (
-          <div className="flex min-w-0 flex-1 flex-col justify-center text-center">
-            <Sparkles className="mx-auto h-6 w-6 text-clay-400" />
-            <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-ink-600">
-              Your draft appears here, with {framework === "NZ" ? "Te Whāriki" : framework === "AU" ? "EYLF V2.0" : framework === "UK" ? "EYFS" : framework === "IE" ? "Aistear" : "curriculum"} links that
-              only claim what your note shows, usually in under a minute.
-            </p>
-            <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-ink-400">
-              Tip: what the child did, one thing they said, and what happened next. Three lines is plenty.
-            </p>
-            {!guide && (
-              <button
-                type="button"
-                onClick={() => playExample()}
-                className="mx-auto mt-4 text-sm font-bold text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900"
-                data-track="demo_see_example"
-              >
-                Or watch it write one from an example note
-              </button>
-            )}
-          </div>
+          guide ? (
+            <div className="flex min-w-0 flex-1 flex-col justify-center text-center">
+              <Sparkles className="mx-auto h-6 w-6 text-clay-400" />
+              <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-ink-600">
+                Your draft appears here, with {framework === "NZ" ? "Te Whāriki" : framework === "AU" ? "EYLF V2.0" : framework === "UK" ? "EYFS" : framework === "IE" ? "Aistear" : "curriculum"} links that
+                only claim what your note shows, usually in under a minute.
+              </p>
+              <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-ink-400">
+                Tip: what the child did, one thing they said, and what happened next. Three lines is plenty.
+              </p>
+            </div>
+          ) : (
+            // The whole empty panel is the button (3 Nov 2026): visitors kept
+            // clicking its text, expecting it to show them something.
+            <button
+              type="button"
+              onClick={() => { track("demo_example_panel", {}); playExample(); }}
+              className="group flex min-w-0 flex-1 flex-col items-center justify-center rounded-2xl px-2 py-4 text-center outline-none transition-colors hover:bg-cream-50/80 focus-visible:ring-2 focus-visible:ring-clay-300"
+              data-track="demo_see_example"
+            >
+              <Sparkles className="h-6 w-6 text-clay-500" />
+              <span className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-ink-600">
+                Your draft appears here, with curriculum links that only claim what your note shows, usually in under a minute.
+              </span>
+              <span className="mt-4 inline-flex items-center gap-2 rounded-full bg-clay-700 px-5 py-2.5 text-sm font-bold text-paper shadow-soft group-hover:bg-clay-800">
+                Watch one write itself from a real note
+              </span>
+              <span className="mt-2 text-xs text-ink-500">Takes a few seconds. No signup, nothing to type.</span>
+            </button>
+          )
         )}
       </div>
     </div>

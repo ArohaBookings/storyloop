@@ -11,6 +11,7 @@ import PageTracker from "@/components/analytics/PageTracker";
 import GuideProof from "@/components/marketing/GuideProof";
 import InternationalTry from "@/components/marketing/InternationalTry";
 import TransitionDemo from "@/components/marketing/TransitionDemo";
+import ExitFeedback from "@/components/landing/ExitFeedback";
 import type { TransitionFramework, TransitionMode } from "@/lib/ai/transition-draft";
 import PrintableCard from "@/components/marketing/PrintableCard";
 import { RelatedGuides } from "@/components/marketing/Guide";
@@ -489,6 +490,12 @@ export default async function SeoPage({ params }: PageProps) {
           </div>
         </section>
         {/* England and Ireland guides keep their own pages as they are. */}
+        {/* Real readers' own reasons for leaving (lib/exit-feedback.ts), 3 Nov 2026. */}
+        <div className="wide-shell py-8">
+          <div className="mx-auto max-w-3xl">
+            <ExitFeedback surface="guide" intent />
+          </div>
+        </div>
         {!INTERNATIONAL_SLUG_FRAMEWORK[page.slug] && <RelatedGuides links={relatedFor(page.slug)} />}
       </main>
       <Footer />

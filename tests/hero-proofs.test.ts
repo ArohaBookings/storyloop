@@ -38,3 +38,18 @@ test("England and Ireland see their own real draft, linked to its guide", () => 
   assert.equal(heroRegionForZone("Europe/Dublin"), "IE");
   assert.equal(heroRegionForZone("America/New_York"), "AU");
 });
+
+test("the hero's story excerpt is the real draft, word for word, with the child's words in it", () => {
+  for (const region of ["AU", "NZ", "UK", "IE"] as const) {
+    const proof = HERO_PROOFS[region];
+    const story = region === "AU" || region === "NZ"
+      ? REAL_EXAMPLES.find((item) => item.slug === proof.slug)?.story
+      : INTERNATIONAL_EXAMPLES[region].story;
+    assert.ok(story, `${region} has its real draft`);
+    assert.ok(story.includes(proof.excerpt), `${region}: the excerpt is word for word from the draft`);
+    assert.ok(proof.excerpt.includes(proof.quote), `${region}: the excerpt holds the child's words`);
+    // The quoted words appear in the jot too, so the card shows the same words going in and coming out.
+    const bare = proof.quote.replace(/^["“]|["”]$/g, "").replace(/’/g, "'");
+    assert.ok(proof.jot.replace(/’/g, "'").toLowerCase().includes(bare.toLowerCase()), `${region}: "${bare}" is in the jot`);
+  }
+});

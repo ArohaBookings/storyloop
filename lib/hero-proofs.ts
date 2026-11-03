@@ -5,7 +5,13 @@
  * against the real drafts, so this can never drift from what StoryLoop wrote.
  * The jots are the real notes, trimmed to fit two lines.
  */
-export type HeroProofItem = { slug: string; href: string; jot: string; title: string; words: number; links: string[] };
+/**
+ * `excerpt`: one or two sentences taken word for word from the real draft, holding
+ * the child's words (`quote`, as the draft prints them). The hero shows the note
+ * and this excerpt side by side (3 Nov 2026): the product's whole value in one
+ * glance, with no typing.
+ */
+export type HeroProofItem = { slug: string; href: string; jot: string; title: string; words: number; links: string[]; excerpt: string; quote: string };
 export type HeroRegion = "AU" | "NZ" | "UK" | "IE";
 
 /**
@@ -29,6 +35,8 @@ export const HERO_PROOFS: Record<HeroRegion, HeroProofItem> = {
     title: "Ruby feeding herself",
     words: 293,
     links: ["EYLF Outcome 3", "EYLF Outcome 5"],
+    excerpt: "Near the end, Ruby put the spoon down and used her fingers for the last bit. When she finished, she said, \"all gone\".",
+    quote: "\"all gone\"",
   },
   NZ: {
     slug: "toddler-sand-quote-nz",
@@ -37,6 +45,8 @@ export const HERO_PROOFS: Record<HeroRegion, HeroProofItem> = {
     title: "More sand",
     words: 385,
     links: ["Mana aotūroa", "Mana reo"],
+    excerpt: "When the bucket was empty, Tama used his words to ask for what he wanted. He said, \"more sand\".",
+    quote: "\"more sand\"",
   },
   // lib/international-examples.ts; words counted from the whole draft.
   UK: {
@@ -46,6 +56,8 @@ export const HERO_PROOFS: Record<HeroRegion, HeroProofItem> = {
     title: "Making more with playdough",
     words: 331,
     links: ["EYFS: Mathematics", "Communication and language"],
+    excerpt: "After comparing the two pieces, Poppy changed her idea. She cut her long piece in half and said, “now it’s two”.",
+    quote: "“now it’s two”",
   },
   IE: {
     slug: "ie-puddles",
@@ -54,5 +66,7 @@ export const HERO_PROOFS: Record<HeroRegion, HeroProofItem> = {
     title: "Puddles, mud and roads",
     words: 373,
     links: ["Exploring and Thinking", "Communicating"],
+    excerpt: "He stamped in the water, watched the splash, and then stamped harder. When the splash changed, Oisín named what he saw: “big splash!”",
+    quote: "“big splash!”",
   },
 };

@@ -226,8 +226,8 @@ export default function TransitionDemo({
                 It is a draft from your notes: check every line. You decide what is true and what goes in the statement.
               </p>
               <p className="mb-3 text-sm text-ink-600">
-                Next year, start from a year of evidence: StoryLoop turns quick notes into learning stories through the year. 3 a month
-                free, no card.
+                In StoryLoop this comes straight from the stories you have already saved about each child: one tap per child, with their
+                own words kept. 3 stories a month free, no card.
               </p>
               <Link href="/signup" className="btn-primary px-4 py-2 text-sm" data-track="transition_demo_signup">
                 Start free

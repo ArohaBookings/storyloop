@@ -18,6 +18,8 @@ import {
 } from "@/lib/transition-pack";
 import PrintButton from "@/components/app/PrintButton";
 import TransitionPackView from "@/components/app/TransitionPackView";
+import ChildStatementDrafter from "@/components/app/ChildStatementDrafter";
+import { statementFrameworkFor } from "@/lib/child-statement";
 
 export const metadata = { title: "Transition pack" };
 
@@ -54,6 +56,23 @@ export default async function TransitionPackPage({
   if (!child) notFound();
 
   const profile = await getOrCreateProfile(user);
+  // The statement or summary drafted from this child's saved notes (lib/child-statement.ts):
+  // offered on every plan, free twice a month, so the end-of-year job is one step.
+  const statementFramework = statementFrameworkFor((profile.story_preferences as { defaultFramework?: string } | null)?.defaultFramework ?? null);
+  const { count: childStoryCount } = await supabase
+    .from("stories")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("child_id", child.id);
+  const drafter = statementFramework ? (
+    <ChildStatementDrafter
+      childId={child.id as string}
+      childName={child.name as string}
+      storyCount={childStoryCount ?? 0}
+      defaultFramework={statementFramework}
+      paid={hasFeatureAccess(profile.plan, "transitionPack")}
+    />
+  ) : null;
   const back = (
     <Link href="/children" className="inline-flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-900 print:hidden">
       <ArrowLeft className="h-4 w-4" /> Child profiles
@@ -75,6 +94,7 @@ export default async function TransitionPackPage({
           </p>
           <Link href="/billing?feature=transition-pack" className="btn-primary mt-4 inline-flex text-sm">See Educator</Link>
         </div>
+        {drafter}
       </div>
     );
   }
@@ -133,6 +153,8 @@ export default async function TransitionPackPage({
         {back}
         <PrintButton />
       </div>
+
+      {drafter}
 
       <form method="get" className="card mt-5 p-5 print:hidden">
         <input type="hidden" name="picked" value="1" />

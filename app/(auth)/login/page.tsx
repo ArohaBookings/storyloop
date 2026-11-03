@@ -31,6 +31,8 @@ export default function LoginPage() {
       setNotice("That sign-in link has been used or has expired. Sign in below, or get a new link.");
       setUseLink(true);
     }
+    // From signup's "you already have an account": open straight on the link option.
+    if (params.get("email_link") === "1") setUseLink(true);
     const oauth = params.get("oauth");
     if (oauth === "failed") {
       setNotice("Google sign-in didn't finish. Try again, or sign in with your email.");
