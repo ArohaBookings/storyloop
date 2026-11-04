@@ -1439,11 +1439,13 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     // Retitled 14 Oct 2026: 214 impressions at position 6.5 and 0 clicks in 28
     // days, because Google's AI Overview lists the principles. The printable
     // is the reason to click.
-    title: "8 EYLF Principles and 7 Practices (V2.0): Free Printable",
+    // Retitled again 5 Nov 2026 for "eylf principles and practices examples":
+    // the page now has a room example for every principle and practice.
+    title: "8 EYLF Principles and 7 Practices, With Examples (Printable)",
     description:
-      "All 8 EYLF V2.0 principles and 7 practices in plain English, what each looks like with children, what changed from version 1, and a free one-page printable.",
+      "All 8 EYLF V2.0 principles and 7 practices in plain English, a room example of each, what changed from version 1, and a free one-page printable.",
     kicker: "EYLF V2.0 · Australia",
-    heading: "The 8 EYLF principles and 7 practices, explained simply.",
+    heading: "The 8 EYLF principles and 7 practices, with an example of each.",
     intro:
       "The Early Years Learning Framework V2.0 has eight principles and seven practices. The principles are what you believe about children and learning; the practices are what you do because of it; the five learning outcomes are what you are working towards. V2.0 added three principles and merged play-based learning and intentional teaching into one practice, which is why older lists show five principles and eight practices.",
     image: { src: "/images/scenes/classroom.jpg", alt: "An educator in a centre holding a tablet with a learning story draft, children building with blocks behind her", position: "45% 60%" },
@@ -1481,6 +1483,16 @@ export const SEO_PAGES: Record<string, SeoPage> = {
           "Children have a strong sense of identity; are connected with and contribute to their world; have a strong sense of wellbeing; are confident and involved learners; and are effective communicators. They did not change in V2.0, though several sub-outcomes were reworded.",
       },
       {
+        question: "What is the difference between EYLF principles and practices?",
+        answer:
+          "Principles are what you believe and commit to, such as secure relationships and partnerships with families. Practices are what you do day to day because of them, such as responding to children's interests, setting up the environment and assessing learning. Both point towards the five learning outcomes.",
+      },
+      {
+        question: "What is an example of an EYLF practice in action?",
+        answer:
+          "Responsiveness to children: a child keeps drawing maps of the playground, so you bring in a real street map, talk with her about where she lives and plan a mapping walk for the next week. You noticed her interest and built on it, in the moment and in your planning.",
+      },
+      {
         question: "Do I have to name a principle or practice in every observation?",
         answer:
           "No. The principles and practices describe how you work, not labels for each record. ACECQA is clear there is no one way to document; what matters is that your records show children's learning and how your teaching responds to it.",
@@ -1491,9 +1503,11 @@ export const SEO_PAGES: Record<string, SeoPage> = {
           "Mostly in the practice of assessment and evaluation for learning, development and wellbeing: a story records what a child did, what you understood about their learning, and what you will do next. Written with families in mind, they also serve the partnerships principle.",
       },
     ],
-    reviewedAt: "2026-09-29",
+    reviewedAt: "2026-11-05",
     sources: [
       { label: "Belonging, Being and Becoming: The Early Years Learning Framework for Australia (V2.0), 2022", url: "https://www.acecqa.gov.au/sites/default/files/2023-01/Belonging_Being_And_Becoming_V2.0.pdf" },
+      { label: "ACECQA: EYLF V2.0 Principles (online version)", url: "https://www.acecqa.gov.au/belonging-being-becoming-early-years-learning-framework/eylf-principles" },
+      { label: "ACECQA: EYLF V2.0 Practices (online version)", url: "https://www.acecqa.gov.au/belonging-being-becoming-early-years-learning-framework/eylf-practices" },
       { label: "Australian Government Department of Education: Early Years Learning Framework", url: "https://www.education.gov.au/early-childhood/resources/early-years-learning-framework" },
       { label: "AERO practice resources: collaborative leadership and teamwork, play-based learning and intentionality", url: "https://www.edresearch.edu.au/guides-resources/practice-resources/collaborative-leadership-pblai" },
     ],
