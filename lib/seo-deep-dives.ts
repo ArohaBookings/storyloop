@@ -49,6 +49,31 @@ export const SEO_DEEP_DIVES: Record<string, Array<{ heading: string; paragraphs:
       ],
     },
     {
+      heading: "A room example for each principle",
+      paragraphs: [
+        "Secure, respectful and reciprocal relationships. Mila, 14 months, cries when her dad leaves. Her primary educator sits on the floor near the door at the same time each morning, takes the handover from Dad, and tells Mila \"Dad is going to work, I'm here.\" After three weeks Mila crawls off to the blocks and checks back with a look. The routine is the relationship.",
+        "Partnerships. Jaxon's mum mentions at pick-up that he has been lining up his toy trucks by colour at home. The educator writes it down, puts out trucks and coloured mats the next day, and sends Mum a photo of what he did with them. The family's knowledge shaped the plan.",
+        "Respect for diversity. Two children in the room speak Vietnamese at home. The educator asks their families for the words for hello, water and goodbye, learns them, and the families record a lullaby for rest time. Home languages are part of the day, not a display.",
+        "Aboriginal and Torres Strait Islander perspectives. The service invites a local Aboriginal Elder to share the local language name for the creek the children walk past, with the service's own protocols for visits. The educators keep using the name on every walk, not only in NAIDOC Week.",
+        "Equity, inclusion and high expectations. Oliver uses a walking frame. When the group goes to the climbing area, the educator changes the obstacle course so it has a route he can do, and he times himself like everyone else. The expectation stayed high and the barrier changed.",
+        "Sustainability. The children notice the worm farm has gone quiet. They decide together to collect fruit scraps from morning tea in a labelled tub and check the worms each Friday. Caring for something living is environmental sustainability children can actually do.",
+        "Critical reflection and ongoing professional learning. An educator notices she redirects boys from the home corner more often than girls. She asks herself why, talks it over with her room leader, and changes how she responds. The change is the part that makes it critical.",
+        "Collaborative leadership and teamwork. At the room meeting, the newest educator says rest time is the hardest part of her day. The team shares what works for them, agrees to try one change, and the educational leader checks back in a fortnight. Everyone leads a little.",
+      ],
+    },
+    {
+      heading: "A room example for each practice",
+      paragraphs: [
+        "Holistic, integrated and interconnected approaches. A group builds a cubby from crates and sheets. In one hour they lift and balance, negotiate who goes inside, count how many fit, and calm a friend who got squashed. You write it up as one experience, not five separate skills.",
+        "Responsiveness to children. Ava keeps drawing maps of the playground. You bring in a real street map, ask her to show you where she lives, and plan a mapping walk around the yard for the next week. You followed her lead, in the moment and in the plan.",
+        "Play-based learning and intentionality. In the sandpit, two children argue about whose river is longer. You ask \"How could we check?\", hand them a length of rope, and step back while they work it out. You chose when to come in and when to stay out.",
+        "Learning environments. The room is loud after lunch and a few children are overwhelmed. The team sets up a quiet corner with cushions and books, and moves the noisy construction play outside for that hour. The space and the timetable changed, both part of the environment.",
+        "Cultural responsiveness. A family is fasting during Ramadan. The educator asks them how their child would like to take part in mealtimes and plans a calm activity nearby for that time. Asking first, rather than assuming, is the practice.",
+        "Continuity of learning and transitions. A child moving up to the preschool room visits it with her familiar educator for short times over two weeks. Her favourite song, her rest-time routine and a few notes about what she loves go with her. Her new educators start from what she already knows.",
+        "Assessment and evaluation for learning, development and wellbeing. Over three weeks you record Noah's attempts to join play: watching, then circling, then asking. You analyse the pattern, plan small-group games where he can join easily, and later check whether it helped. Observe, analyse, plan, act, reflect: that is the planning cycle at work.",
+      ],
+    },
+    {
       heading: "Why older lists say eight practices",
       paragraphs: [
         "Version 1 of the EYLF, from 2009, had five principles and eight practices. Its practices included learning through play and intentional teaching as two separate items, and cultural competence and assessment for learning under older names. V2.0 joined the first two into play-based learning and intentionality and renamed the others, so it has seven practices. If a resource lists eight practices or five principles, it was written for version 1.",
