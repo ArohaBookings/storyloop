@@ -956,3 +956,23 @@ test("a jotted two-word note still names the child", () => {
     assert.equal(inferPrimaryChildName(note), "", `must not invent a name from: ${note}`);
   }
 });
+
+test("a date at the top of a note is never the child (first found with a photo of handwritten notes)", () => {
+  // 10 Nov 2026: this note, read from a photo, became a story about "Tues".
+  const photoNote = 'Tues 10 Nov - sandpit, am\nMia (2.5) filled the yellow bucket w/ the\nscoop, tipped it out, 4 times.\nSaid "more sand pease" when it was empty\nCarried bucket to the tap - asked Sam\n"you help?"\nThey filled it together + made a "big cake"\nMia: "happy birthday Sam!"';
+  assert.equal(inferPrimaryChildName(photoNote), "Mia");
+  assert.deepEqual(extractOtherChildNames(photoNote, "Mia"), ["Sam"]);
+  // Other ways a date gets jotted.
+  assert.equal(inferPrimaryChildName('Tues 10 Nov. Mia filled the bucket and asked Sam to help. Mia said "more".'), "Mia");
+  assert.equal(inferPrimaryChildName("Fri 14/11 Tama at the sandpit, filled the red bucket with the scoop. Tama tipped it out."), "Tama");
+  assert.equal(inferPrimaryChildName("Wed am - Ruby poured the water into the funnel. Ruby watched it run out."), "Ruby");
+  assert.equal(inferPrimaryChildName("Thurs Nov 12 Nikau stood at the front for waiata. Nikau sang the first line."), "Nikau");
+  assert.equal(inferPrimaryChildName("12 March 2026. Zara mixed blue and yellow. Zara said \"green!\""), "Zara");
+  // Ages written the way educators write them.
+  assert.equal(inferPrimaryChildName("Sandpit. Mia (2.5) filled the bucket and Sam helped."), "Mia");
+  assert.equal(inferPrimaryChildName("Sam helped while Arlo (18m) stacked the cups."), "Arlo");
+  // Children named after months are still children.
+  assert.equal(inferPrimaryChildName('May (3) painted with June at the easel. May said "mine is purple".'), "May");
+  assert.equal(inferPrimaryChildName('April built a tall tower. April said "tall". Then April knocked it down.'), "April");
+  assert.equal(inferPrimaryChildName('June stacked the blocks. June said "up". June clapped.'), "June");
+});

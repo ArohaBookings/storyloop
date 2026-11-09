@@ -178,6 +178,13 @@ function isSentenceStart(text: string, index: number) {
   return before === "" || /[.!?]["')\]]?$/.test(before);
 }
 
+// True when this occurrence opens a line. A jotted note (and a photo of one)
+// breaks lines without full stops, so "Carried bucket to the tap" on its own
+// line is a new thought, and its capital says nothing about a name.
+function isLineStart(text: string, index: number) {
+  return /\n[ \t]*$/.test(text.slice(0, index));
+}
+
 
 /**
  * Words that can open an observation but are never the child's name. Educators
@@ -295,14 +302,43 @@ function inferLowercaseName(text: string) {
   return "";
 }
 
+/**
+ * A date jotted at the top of a note ("Tues 10 Nov", "Fri 14/11", "Wed am") is
+ * not a child. Handwritten notes usually open with one: on 10 Nov 2026 the
+ * first story written from a photo of notes began "Tues 10 Nov - sandpit, am /
+ * Mia (2.5) filled the bucket" and was written about a child called "Tues".
+ * Dates are blanked out (same length, so positions hold) before any name is
+ * looked for. A month is only treated as a date beside a day number, because
+ * May, June and April are also children: "May (3) painted" is untouched.
+ */
+const DAY_WORD = "(?:Mon(?:day)?|Tue(?:s|sday)?|Wed(?:s|nesday)?|Thu(?:r|rs|rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)";
+const MONTH_WORD = "(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|July?|Aug(?:ust)?|Sep(?:t|tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)";
+const DATE_PATTERNS = [
+  // "Tues 10 Nov", "10 Nov 2026", "3rd March"
+  new RegExp(`\\b(?:${DAY_WORD}\\.?,?\\s+)?\\d{1,2}(?:st|nd|rd|th)?\\s+${MONTH_WORD}\\b\\.?(?:,?\\s+\\d{4})?`, "gi"),
+  // "Tues Nov 10", "Nov 10, 2026" (a month before a number only with a weekday or a year)
+  new RegExp(`\\b${DAY_WORD}\\.?,?\\s+${MONTH_WORD}\\.?\\s+\\d{1,2}(?:st|nd|rd|th)?\\b(?:,?\\s+\\d{4})?`, "gi"),
+  new RegExp(`\\b${MONTH_WORD}\\.?\\s+\\d{1,2}(?:st|nd|rd|th)?,?\\s+\\d{4}\\b`, "gi"),
+  // "Fri 14/11", "Wed am", "Tues morning": a weekday beside a number or a time of day
+  new RegExp(`\\b${DAY_WORD}\\b\\.?(?=,?\\s*(?:\\d{1,2}\\b|am\\b|pm\\b|morning\\b|afternoon\\b|arvo\\b))`, "gi"),
+  // "Tues - sandpit": a weekday alone at the very top of the note
+  new RegExp(`^\\s*${DAY_WORD}\\b\\.?(?=\\s*(?:[-–:,]|\\n|$))`, "i"),
+];
+
+export function blankDates(note: string) {
+  let text = note;
+  for (const pattern of DATE_PATTERNS) text = text.replace(pattern, (found) => " ".repeat(found.length));
+  return text;
+}
+
 export function inferPrimaryChildName(observations: string) {
-  const text = observations.trim();
+  const text = blankDates(observations).trim();
   if (!text) return "";
 
   // Strongest signal: a name paired with an age, e.g. "Ruby (3)",
   // "Noah (3yo)", or the common educator shorthand "Ariana, aged 3".
   const ageMatch = text.match(
-    /\b([A-Z][a-z][A-Za-z'-]*(?:\s+[A-Z][a-z][A-Za-z'-]*)?)\s*(?:\(\s*\d{1,2}\s*(?:yo|years?|months?|mths?|mnths?)?\s*\)|,?\s+aged\s+\d{1,2}\b|,?\s+age\s+\d{1,2}\b|,?\s+is\s+\d{1,2}\s+years?\s+old\b)/
+    /\b([A-Z][a-z][A-Za-z'-]*(?:\s+[A-Z][a-z][A-Za-z'-]*)?)\s*(?:\(\s*\d{1,2}(?:[.,]\d)?\s*(?:½|1\/2)?\s*(?:yo|y\.?o\.?|yrs?|years?|months?|mths?|mnths?|mo|m|y)?\s*\)|,?\s+aged\s+\d{1,2}\b|,?\s+age\s+\d{1,2}\b|,?\s+is\s+\d{1,2}\s+years?\s+old\b)/
   );
   const ageName = ageMatch ? cleanNameCandidate(ageMatch[1] ?? "") : "";
   if (ageName) return ageName;
@@ -337,7 +373,7 @@ export function inferPrimaryChildName(observations: string) {
     // At the start of a sentence a capital says nothing, so an ordinary word
     // there is not a name: "Mat time waiata, Nikau stood at the front" was
     // written up as a story about a child called Mat.
-    if (isSentenceStart(text, match.index) && COMMON_WORDS.has(candidate.toLowerCase())) continue;
+    if ((isSentenceStart(text, match.index) || isLineStart(text, match.index)) && COMMON_WORDS.has(candidate.toLowerCase())) continue;
     const isFirstCandidate = !firstCandidate;
     if (isFirstCandidate) firstCandidate = candidate;
     const focusBonus = isFirstCandidate ? 3 : 0;
@@ -368,7 +404,7 @@ export function inferPrimaryChildName(observations: string) {
 // Uses the same blocked-word and sentence-start guards as name inference so that
 // capitalised sentence-starters ("After", "Suddenly") are never mistaken for names.
 export function extractOtherChildNames(observations: string, childName?: string, limit = 2): string[] {
-  const text = observations.trim();
+  const text = blankDates(observations).trim();
   if (!text) return [];
   const child = childName?.trim().toLowerCase();
   const seen = new Set<string>();
@@ -381,6 +417,8 @@ export function extractOtherChildNames(observations: string, childName?: string,
     // Sentence-initial words are usually not names; skip them to avoid false positives.
     if (isSentenceStart(text, match.index)) continue;
     const key = candidate.toLowerCase();
+    // An ordinary word opening a line ("Carried bucket to the tap") is not a child.
+    if (isLineStart(text, match.index) && COMMON_WORDS.has(key)) continue;
     if (key === child || seen.has(key)) continue;
     seen.add(key);
     result.push(candidate);
