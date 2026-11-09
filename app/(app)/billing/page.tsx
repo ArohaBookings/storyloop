@@ -152,6 +152,18 @@ export default function BillingPage() {
     fetch("/api/centre-offer").then((r) => (r.ok ? r.json() : null)).then(setCentreOffer).catch(() => {});
   }, []);
 
+  // Pause is always offered before Cancel, here and again inside the cancel
+  // dialog (Leo, 20 Oct and 10 Nov 2026: pause first, then cancel, on this page
+  // only, never in an email). It shows wherever a pause is possible.
+  const canPause = Boolean(
+    billing?.subscription &&
+      !billing.subscription.endsAt &&
+      !billing.subscription.paused &&
+      !billing.subscription.trialEndsAt &&
+      billing.subscription.status === "active" &&
+      (billing.subscription.nextPayment?.amount ?? 0) > 0,
+  );
+
   // Back from Stripe without starting: say plainly that nothing happened, and
   // count it, because a checkout left half way is the most expensive exit.
   const checkoutCancelled = searchParams.get("checkout") === "cancelled";
@@ -615,7 +627,7 @@ export default function BillingPage() {
                         Restart payments now
                       </button>
                     )}
-                    {!billing.subscription.paused && !billing.subscription.trialEndsAt && billing.subscription.status === "active" && (billing.subscription.nextPayment?.amount ?? 0) > 0 && (
+                    {canPause && (
                       <button type="button" onClick={() => setPauseOpen(true)} disabled={Boolean(loading)} className="btn-secondary" data-testid="pause-subscription">
                         Pause payments
                       </button>
@@ -696,6 +708,24 @@ export default function BillingPage() {
             <p className="mt-2 text-sm leading-relaxed text-ink-600">
               Your plan stays on until {billing.subscription.trialEndsAt ? formatDay(billing.subscription.trialEndsAt) : billing.subscription.currentPeriodEnd ? formatDay(billing.subscription.currentPeriodEnd) : "the end of this period"}, then ends. Nothing more is charged, and everything you've written stays yours.
             </p>
+            {/* Offered, never pushed: Cancel stays one click below (Leo, 20 Oct and 10 Nov 2026). */}
+            {canPause && (
+              <div className="mt-4 rounded-2xl border border-sage-200 bg-sage-50 p-4" data-testid="pause-instead">
+                <p className="text-sm font-semibold text-ink-900">Just need a break?</p>
+                <p className="mt-1 text-sm leading-relaxed text-ink-600">
+                  Pause payments for one, two or three months instead. Nothing is charged, and your stories and children stay exactly as they are.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => { setCancelOpen(false); setPauseOpen(true); }}
+                  disabled={Boolean(loading)}
+                  className="btn-secondary mt-3"
+                  data-testid="pause-instead-button"
+                >
+                  Pause instead
+                </button>
+              </div>
+            )}
             <label htmlFor="cancel-reason" className="mt-4 block text-sm font-semibold text-ink-800">What's the main reason? (optional)</label>
             <select id="cancel-reason" value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} className="input mt-1">
               <option value="">Choose one</option>

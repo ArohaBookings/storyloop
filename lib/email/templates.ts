@@ -211,7 +211,7 @@ function layout({
             </tr>
             <tr>
               <td class="sl-footer sl-pad" style="padding:22px 28px;background:#fbf6ee;border-top:1px solid #efe3d7;">
-                <p style="margin:0;font-size:12px;line-height:1.6;color:#6f6660;">StoryLoop by Aria Care. Reply to this email and it will reach ${esc(EMAIL_REPLY_TO)}.</p>
+                <p style="margin:0;font-size:12px;line-height:1.6;color:#6f6660;">StoryLoop by Aria Care. Questions? Email Leo at <a href="mailto:${esc(EMAIL_REPLY_TO)}" style="color:#7a4f34;text-decoration:underline;">${esc(EMAIL_REPLY_TO)}</a>, or just reply to this email.</p>
                 ${footer}
               </td>
             </tr>
@@ -243,7 +243,7 @@ function plain({
     "",
     `${cta}: ${ctaUrl}`,
     "",
-    `Reply to ${EMAIL_REPLY_TO}.`,
+    `Questions? Email Leo at ${EMAIL_REPLY_TO}, or just reply to this email.`,
     unsubscribe ? `Unsubscribe from product tips: ${unsubscribe}` : "",
   ]
     .filter(Boolean)
@@ -637,8 +637,10 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
           preview: `Payment received for ${esc(plan)}.`,
           cta: "Write a story",
           ctaUrl,
+          // No pause or cancel links in email: those live on the Billing page
+          // only, pause first (Leo, 10 Nov 2026). The footer carries his address.
           secondary: renews
-            ? `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Next payment: ${esc(renews)}. You can view invoices or cancel any time from Billing.</p>`
+            ? `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Next payment: ${esc(renews)}. Your receipts are in Billing.</p>`
             : undefined,
           body: `<p>Hi ${esc(name)}, your payment of <strong>${esc(amount)}</strong> for ${esc(plan)} went through.</p>${
             stories

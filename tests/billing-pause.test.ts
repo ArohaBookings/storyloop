@@ -115,3 +115,32 @@ test("the pause email states the real charge, links to the confirm page, and for
   assert.match(au.text, /^Hi Kim/);
   assert.match(au.text, /A\$19/);
 });
+
+test("emails carry Leo's address and never a pause or cancel link; those live on Billing only", async () => {
+  // 10 Nov 2026, Leo: "no pause or cancel buttons ... not in the emails, just
+  // make sure the emails have my email so they can email me".
+  const { renderLifecycleEmail } = await import("../lib/email/templates");
+  const receipt = renderLifecycleEmail({
+    type: "payment_succeeded",
+    userId: "u",
+    recipient: "a@b.com",
+    name: "Sam",
+    context: { planLabel: "Educator", amountLabel: "NZ$21", renewsOn: "10 December 2026" },
+  });
+  for (const body of [receipt.html, receipt.text]) {
+    assert.match(body, /ariacareapp@gmail\.com/);
+    assert.doesNotMatch(body, /manage=(pause|cancel)/);
+    assert.doesNotMatch(body, /pause/i);
+    assert.doesNotMatch(body, /cancel/i);
+  }
+  assert.match(receipt.html, /mailto:ariacareapp@gmail\.com/);
+  assert.match(receipt.html, /Your receipts are in Billing/);
+  // The main button is still the product.
+  assert.match(receipt.ctaUrl ?? "", /\/generate/);
+  // Every other lifecycle email shows the same address, in both versions.
+  for (const type of ["welcome", "trial_ending", "payment_failed", "usage_tips", "free_limit_reached"] as const) {
+    const email = renderLifecycleEmail({ type, userId: "u", recipient: "a@b.com", name: "Sam" });
+    assert.match(email.html, /mailto:ariacareapp@gmail\.com/, type);
+    assert.match(email.text, /Email Leo at ariacareapp@gmail\.com/, type);
+  }
+});
