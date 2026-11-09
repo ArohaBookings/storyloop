@@ -229,7 +229,7 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
 
     intro:
       "Every funded kindergarten in Victoria has to complete a TLDS for each child starting school, by the end of Term 4. The online tool tells you which boxes to fill. It cannot tell you what to write. This guide covers what each section asks for, with example wording you can adapt from what you have already seen this year.",
-    reviewedAt: "2026-10-19",
+    reviewedAt: "2026-11-10",
     sections: [
       {
         title: "Section 1.1 in one line",
@@ -750,7 +750,7 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
 
     intro:
       "Before you write a single line of a transition statement, you need the right permission from the family. NSW and Queensland each publish their own consent form, and Victoria works differently: families can opt out of the TLDS being shared with the school. This guide explains what each form asks, what to do when a form has not come back, and how to explain it to a family in plain words. Then the draft box turns your notes into the outcomes section, with no signup.",
-    reviewedAt: "2026-10-29",
+    reviewedAt: "2026-11-10",
     sections: [
       {
         title: "NSW: one form, two choices",

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BookOpenCheck, Mic, MessageCircleHeart, QrCode, UsersRound, Wand2 } from "lucide-react";
+import { BookOpenCheck, Mic, MessageCircleHeart, QrCode, UsersRound, Wand2, Camera } from "lucide-react";
 import { GuideCta, GuideFaq, GuideFigure, GuideHero, GuidePage, GuideSection, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 import { ACCURACY_REPORT as R } from "@/lib/accuracy-report";
 
@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 
 const FEATURES = [
   { icon: Mic, title: "Say it instead of typing it", body: "Record a voice memo after play; StoryLoop turns it into text and drafts from it.", plan: "Every plan" },
+  { icon: Camera, title: "Or photograph your notes", body: "Jotted it on paper? Take a photo of the page and the words land in the box, ready for you to check. Notes only, never children.", plan: "Every plan" },
   { icon: BookOpenCheck, title: "Children's words kept exactly", body: "Quotes are checked against your note, and anything the draft assumed is listed for you.", plan: "Every plan" },
   { icon: UsersRound, title: "One moment, many children", body: "Five children in the hut you built together? One note becomes a story for each child, using only their part of it.", plan: "Every plan" },
   { icon: Wand2, title: "Quill, for the last 10%", body: "Highlight a line and ask for it warmer, shorter or closer to your centre's voice.", plan: "Taste on Educator, unlimited on Pro" },
@@ -57,7 +58,7 @@ export default function ForEducatorsPage() {
         title={<>Finish the learning story <span className="italic text-clay-700">before you leave.</span></>}
         answer={
           <p>
-            Jot a few quick points or record a voice memo after play. StoryLoop drafts the learning story in about{" "}
+            Jot a few quick points, record a voice memo after play, or photograph the notes you wrote on paper. StoryLoop drafts the learning story in about{" "}
             {Math.round(R.medianSeconds)} seconds, with Te Whāriki or EYLF links and where to next. You check every word,
             then publish it wherever your centre does. Free for 3 stories a month.
           </p>

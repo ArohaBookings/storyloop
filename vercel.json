@@ -4,6 +4,14 @@
   "regions": [
     "syd1"
   ],
+  "git": {
+    "deploymentEnabled": {
+      "pages/*": false,
+      "claude/*": false,
+      "release/*": false,
+      "codex/*": false
+    }
+  },
   "crons": [
     { "path": "/api/cron/reset-usage", "schedule": "0 0 1 * *" },
     { "path": "/api/cron/email-automation", "schedule": "0 */6 * * *" },

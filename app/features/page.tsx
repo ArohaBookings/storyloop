@@ -66,7 +66,7 @@ export default function FeaturesPage() {
         title={<>Everything StoryLoop does, <span className="italic text-clay-700">and which plan it is on.</span></>}
         answer={
           <p>
-            At its heart, StoryLoop turns a quick note or voice memo into a checked learning story with Te Whāriki or EYLF
+            At its heart, StoryLoop turns a quick note, a voice memo or a photo of your written notes into a checked learning story with Te Whāriki or EYLF
             V2.0 links. Around that are tools for the rest of the day: following each child&apos;s learning, sharing with
             families in their own language, and running a centre on one price with unlimited children.
           </p>

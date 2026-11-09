@@ -15,7 +15,7 @@ const AUDIENCES = [
   {
     who: "Educators",
     title: "Finish the story before you leave, not at 9pm.",
-    body: "A quick note or a voice memo becomes a draft with curriculum links and where to next. You check every word.",
+    body: "A quick note, a voice memo or a photo of your scribbled notes becomes a draft with curriculum links and where to next. You check every word.",
     href: "/for-educators",
     cta: "StoryLoop for educators",
     image: "/images/scenes/kitchen.jpg",

@@ -272,6 +272,23 @@ export default async function SeoPage({ params }: PageProps) {
                     </li>
                   ))}
                 </ul>
+                {/* What they came for first, then what StoryLoop does about it,
+                    still on a phone's first screen (the hero buttons sit below
+                    the intro, more than a screen down once this box is here). */}
+                {(TRANSITION_DEMOS[page.slug] || hasTry) && (
+                  <div className="mt-4 border-t border-sage-100 pt-4">
+                    <p className="text-sm leading-relaxed text-ink-700">
+                      Writing it now? StoryLoop drafts the wording from your own notes. You check it, then enter the final wording in the official statement yourself.
+                    </p>
+                    <Link
+                      href={TRANSITION_DEMOS[page.slug] ? "#transition-try" : "#try"}
+                      className="btn-primary mt-3 justify-center"
+                      data-track="guide_official_try"
+                    >
+                      {TRANSITION_DEMOS[page.slug]?.button ?? "Turn a note into a learning story, no signup"}
+                    </Link>
+                  </div>
+                )}
               </div>
             )}
             <p className="mt-6 text-lg text-ink-600 max-w-3xl leading-relaxed">{page.intro}</p>
