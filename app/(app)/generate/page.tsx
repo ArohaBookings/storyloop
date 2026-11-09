@@ -811,6 +811,16 @@ export default function GeneratePage() {
     window.requestAnimationFrame(() => box?.scrollIntoView({ block: "center", behavior: "smooth" }));
   };
 
+  // The welcome card's third way in: a new educator on a phone who already has
+  // the note on paper. Opens the camera or photo picker inside the tap.
+  const photoFromWelcome = () => {
+    setMode("story");
+    resetClarification();
+    if (observationsRef.current.trim() === SAMPLE_OBSERVATION.trim()) setObservations("");
+    dismissFirstStoryWizard();
+    document.getElementById("notes-photo-input")?.click();
+  };
+
   const parsePhraseList = (value: string) =>
     value
       .split(",")
@@ -1211,7 +1221,7 @@ export default function GeneratePage() {
             <div>
               <h2 className="font-display text-xl font-bold text-ink-900">Your first story takes about two minutes.</h2>
               <p className="mt-1 text-sm text-ink-600">
-                Type a few quick points, record a voice note, or try an example first to see what you get back.
+                Type a few quick points, record a voice note, photograph notes you wrote on paper, or try an example first to see what you get back.
               </p>
             </div>
           </div>
@@ -1221,6 +1231,9 @@ export default function GeneratePage() {
             </button>
             <button type="button" onClick={writeOwnFromWelcome} className="btn-secondary text-sm">
               Write my own
+            </button>
+            <button type="button" onClick={photoFromWelcome} className="btn-secondary text-sm" data-testid="welcome-photo">
+              <Camera className="h-4 w-4" /> Photo of my notes
             </button>
             <button type="button" onClick={dismissFirstStoryWizard} className="btn-ghost text-sm" aria-label="Hide first story tips">
               Hide
@@ -1349,6 +1362,30 @@ export default function GeneratePage() {
               </p>
             )}
             <ObservationCoach observation={observations} plan={accountPlan} framework={location} />
+            {/* Phones only: the same Generate, right under the note. The main
+                button sits below "Who is it about?" and the options, about three
+                screens down on a phone (4 Nov 2026: new educators from Facebook's
+                in-app browser typed a note and never found it). The choices below
+                are optional, so their defaults are used. */}
+            {mode !== "backlog" && observations.trim().length >= MIN_STORY_OBSERVATION_CHARACTERS && (
+              <button
+                type="button"
+                onClick={() => handleGenerate()}
+                disabled={loading || transcribing || readingPhoto}
+                className="btn-primary mt-4 w-full py-3.5 text-base sm:hidden"
+                data-testid="gen-generate-phone"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Writing your story...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4" /> Generate story
+                  </>
+                )}
+              </button>
+            )}
           </div>
 
           <div className="card space-y-5 p-5 sm:p-6">

@@ -261,7 +261,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
       const subject = "Welcome to StoryLoop: create your first story";
       const lines = [
         `Hi ${name}, thanks for joining StoryLoop.`,
-        "The fastest way to test it is simple: paste 3-5 rough bullet points or record a quick voice note from one real observation.",
+        "The fastest way to test it is simple: paste 3-5 rough bullet points, record a quick voice note, or take a photo of the notes you wrote on paper, from one real observation.",
         "You have 3 free stories to try this month.",
       ];
       return {
@@ -271,10 +271,10 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
         ctaUrl,
         html: layout({
           title: "Create your first StoryLoop story",
-          preview: "Paste a few rough notes or record a voice note.",
+          preview: "Paste a few rough notes, say them, or photograph them.",
           cta: "Create your first story",
           ctaUrl,
-          body: `<p>Hi ${esc(name)}, thanks for joining StoryLoop.</p><p>The fastest way to test it is simple: <strong>paste 3-5 rough bullet points</strong> or record a quick voice note from one real observation.</p><p>You have <strong>3 free stories</strong> to try this month.</p>`,
+          body: `<p>Hi ${esc(name)}, thanks for joining StoryLoop.</p><p>The fastest way to test it is simple: <strong>paste 3-5 rough bullet points</strong>, record a quick voice note, or take a photo of the notes you wrote on paper, from one real observation.</p><p>You have <strong>3 free stories</strong> to try this month.</p>`,
         }),
         text: plain({ title: subject, lines, cta: "Create your first story", ctaUrl }),
       };
