@@ -1040,7 +1040,7 @@ export default function GeneratePage() {
         setTranscriptionMessage(
           unclear
             ? `Notes added from your photo. ${unclear === 1 ? "One word was hard to read and is" : `${unclear} words were hard to read and are`} marked [unclear]: fix ${unclear === 1 ? "it" : "them"} before you generate.`
-            : "Notes added from your photo. Check them against the paper, then generate the story.",
+            : "Notes added from your photo. Check them against the paper, especially anything a child said, then generate the story.",
         );
         track("notes_photo", { ok: true, unclear });
       }

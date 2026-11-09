@@ -24,8 +24,12 @@ export { UNCLEAR_MARK, hasUnclearMark };
  * The photo is sent to the AI provider to be read and is never stored by
  * StoryLoop (the route keeps it in memory for the length of the request).
  */
-export const NOTES_PHOTO_MODEL = process.env.OPENAI_NOTES_PHOTO_MODEL?.trim() || "gpt-5.4-mini";
-export const NOTES_PHOTO_FALLBACK_MODEL = process.env.OPENAI_NOTES_PHOTO_FALLBACK_MODEL?.trim() || "gpt-5.4";
+// The larger model reads first: on 10 Nov 2026 the small one, on its second
+// live run, turned a child's "pease" into "please", and both read the test page
+// in about 2 seconds. Keeping a child's words exactly matters more than cost
+// here (one small image per call, at most 20 an hour per educator).
+export const NOTES_PHOTO_MODEL = process.env.OPENAI_NOTES_PHOTO_MODEL?.trim() || "gpt-5.4";
+export const NOTES_PHOTO_FALLBACK_MODEL = process.env.OPENAI_NOTES_PHOTO_FALLBACK_MODEL?.trim() || "gpt-5.4-mini";
 /** The browser shrinks the photo first, so anything larger is not from the app. */
 export const NOTES_PHOTO_MAX_BYTES = 4 * 1024 * 1024;
 export const NOTES_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
@@ -35,7 +39,7 @@ export const NOTES_PHOTO_PROMPT = `You are reading a photo of an early childhood
 
 Copy out the words written in the photo, exactly as written. Rules:
 - Transcribe only writing that is visible in the photo. Do not add, guess, complete, tidy, correct, summarise or interpret anything. Keep the educator's wording, abbreviations, spelling and punctuation.
-- Keep quotation marks and any child's words exactly as written.
+- Keep quotation marks and any child's words exactly as written. Educators write down what a child said the way the child said it ("pease", "wabbit", "me do it", "I goed"). Copy every word letter by letter, especially inside quotation marks. Never change a word into its usual spelling, and never fix grammar.
 - Put each separate note or line on its own line. No headings, no bullet marks that are not on the paper, no commentary, no markdown.
 - If a word cannot be read with confidence, write ${UNCLEAR_MARK} in its place. Never guess a name, a number or a quoted word.
 - Do not describe the photo, the paper, the room or any person in it. If the photo shows people or objects and no written notes, there is nothing to copy.

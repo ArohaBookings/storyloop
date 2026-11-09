@@ -8,6 +8,9 @@ test("the photo reader is told to copy, never to guess, tidy or describe people"
   assert.match(NOTES_PHOTO_PROMPT, /Never guess a name, a number or a quoted word/);
   assert.match(NOTES_PHOTO_PROMPT, /Do not describe the photo, the paper, the room or any person/);
   assert.match(NOTES_PHOTO_PROMPT, /NO_NOTES/);
+  // 10 Nov 2026: on its second live run the reader turned a child's "pease" into "please".
+  assert.match(NOTES_PHOTO_PROMPT, /letter by letter, especially inside quotation marks/);
+  assert.match(NOTES_PHOTO_PROMPT, /Never change a word into its usual spelling/);
   assert.ok(NOTES_PHOTO_PROMPT.includes(UNCLEAR_MARK));
 });
 
