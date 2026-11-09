@@ -57,7 +57,7 @@ export type StoryMetadata = {
     strengths?: string[];
   };
   privacyGuardian?: PrivacyGuardianResult;
-  inputMethod?: "typed" | "paste" | "voice" | "sample" | "backlog";
+  inputMethod?: "typed" | "paste" | "voice" | "photo" | "sample" | "backlog";
   familyQuestion?: string;
   followUpPrompt?: string;
   educatorReflection?: string;

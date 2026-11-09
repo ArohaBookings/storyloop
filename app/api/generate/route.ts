@@ -51,7 +51,7 @@ function getClientIp(request: NextRequest): string {
 }
 
 function normalizeInputMethod(value: unknown) {
-  return value === "paste" || value === "voice" || value === "sample" || value === "backlog" ? value : "typed";
+  return value === "paste" || value === "voice" || value === "photo" || value === "sample" || value === "backlog" ? value : "typed";
 }
 
 function normalizeEducatorNames(value: unknown) {

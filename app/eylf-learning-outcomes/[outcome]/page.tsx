@@ -56,7 +56,7 @@ export default async function EylfOutcomePage({ params }: PageProps) {
     },
     {
       q: `How do I link a learning story to Outcome ${outcome.n}?`,
-      a: `Name the outcome, or the sub-outcome when one fits closely, then say in one sentence what the child did that shows it. Link only when the moment genuinely shows the learning; one or two strong links say more to a family than five weak ones.`,
+      a: `Name the outcome, or the sub-outcome when one fits closely, then say in one sentence what the child did that shows it. Link only when the moment genuinely shows the learning; one or two strong links say more to a family than five weak ones. StoryLoop does this from a typed or spoken note: it drafts the learning story and names Outcome ${outcome.n} only when the note shows it, and you check every word.`,
     },
   ];
 

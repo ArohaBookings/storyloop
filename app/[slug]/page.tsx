@@ -141,7 +141,7 @@ const EDUCATOR_FIRST_SLUGS = new Set([
   "nqs-standards",
 ]);
 import { DEDICATED_ROUTE_SLUGS, SEO_PAGES, SEO_PAGE_SLUGS } from "@/lib/seo-pages";
-import { PenLine, ShieldCheck } from "lucide-react";
+import { ExternalLink, PenLine, ShieldCheck } from "lucide-react";
 
 const SITE_URL = "https://storyloop.space";
 
@@ -249,6 +249,31 @@ export default async function SeoPage({ params }: PageProps) {
             <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-ink-900 tracking-tight max-w-5xl">
               {page.heading}
             </h1>
+            {/* The official login, form or guide the searcher came for, before
+                anything else asks for their attention. New tab, so this page and
+                its draft box are still here when they come back. */}
+            {page.officialLinks && (
+              <div className="mt-6 max-w-3xl rounded-3xl border border-sage-200 bg-white p-5 shadow-soft" data-testid="official-links">
+                <p className="text-xs font-bold uppercase tracking-wider text-sage-700">{page.officialLinks.heading}</p>
+                <ul className="mt-3 space-y-2.5">
+                  {page.officialLinks.links.map((link) => (
+                    <li key={link.url} className="min-w-0">
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        data-track="guide_official_link"
+                        className="inline-flex max-w-full items-start gap-2 text-base font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900"
+                      >
+                        <ExternalLink className="mt-1 h-4 w-4 shrink-0" aria-hidden="true" />
+                        <span className="min-w-0 break-words">{link.label}</span>
+                      </a>
+                      {link.note && <p className="mt-0.5 pl-6 text-sm leading-relaxed text-ink-600">{link.note}</p>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <p className="mt-6 text-lg text-ink-600 max-w-3xl leading-relaxed">{page.intro}</p>
             {/* Buttons straight under the intro, so they are on a phone's first
                 screen. Below the tips they started at 932px on an 844px phone. */}
@@ -307,6 +332,20 @@ export default async function SeoPage({ params }: PageProps) {
                 </>
               )}
             </div>
+            {page.siblingLinks && (
+              <nav aria-label={page.siblingLinks.heading} className="mt-6 max-w-4xl" data-testid="sibling-links">
+                <p className="text-sm font-semibold text-ink-700">{page.siblingLinks.heading}</p>
+                <ul className="mt-2 flex flex-wrap gap-2">
+                  {page.siblingLinks.links.map((link) => (
+                    <li key={link.href}>
+                      <Link href={link.href} className="inline-flex min-h-11 items-center rounded-full border border-clay-200 bg-white px-4 text-sm font-semibold text-clay-800 transition-colors hover:border-clay-400">
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            )}
             {/* The search title promises the printable, so it sits on the
                 first screen, above the tips and the photo. */}
             {SLUG_PRINTABLES[page.slug] && (

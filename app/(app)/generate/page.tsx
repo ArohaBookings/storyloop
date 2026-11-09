@@ -8,6 +8,7 @@ import {
   Copy,
   Check,
   Mic,
+  Camera,
   Square,
   RefreshCw,
   AlertCircle,
@@ -23,6 +24,9 @@ import {
   LockKeyhole,
 } from "lucide-react";
 import ObservationCoach from "@/components/app/ObservationCoach";
+import { track } from "@/lib/analytics/client";
+import { shrinkPhoto } from "@/lib/photo-shrink";
+import { hasUnclearMark } from "@/lib/notes-photo";
 import StoryIntelligence from "@/components/app/StoryIntelligence";
 import QuillAssistant from "@/components/app/QuillAssistant";
 import ExportPackPanel from "@/components/app/ExportPackPanel";
@@ -81,7 +85,7 @@ const PEDAGOGY_OPTIONS = [
 
 const STYLE_OPEN_KEY = "storyloop-generate-style-open";
 
-type InputMethod = "typed" | "paste" | "voice" | "sample" | "backlog";
+type InputMethod = "typed" | "paste" | "voice" | "photo" | "sample" | "backlog";
 
 type BacklogItem = {
   id: string;
@@ -194,6 +198,8 @@ export default function GeneratePage() {
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [transcribing, setTranscribing] = useState(false);
+  // "Photo of my notes": the words on paper, read into the box (lib/ai/read-notes.ts).
+  const [readingPhoto, setReadingPhoto] = useState(false);
   const [error, setError] = useState("");
   const [clarification, setClarification] = useState<{
     kind?: string;
@@ -475,6 +481,12 @@ export default function GeneratePage() {
   ) => {
     if (observations.trim().length < MIN_STORY_OBSERVATION_CHARACTERS) {
       setError("Please add at least a very short observation");
+      return;
+    }
+    // A word the photo reader could not read is never guessed, and never
+    // reaches a story: the educator fills it in or removes it first.
+    if (hasUnclearMark(observations)) {
+      setError("A word from your photo is still marked [unclear]. Replace it with what you wrote, or delete it, then generate.");
       return;
     }
 
@@ -991,6 +1003,45 @@ export default function GeneratePage() {
     }
   };
 
+  const handleNotesPhotoChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    try {
+      setReadingPhoto(true);
+      setError("");
+      setTranscriptionMessage("");
+      setBillingRequired(false);
+      const photo = await shrinkPhoto(file);
+      const formData = new FormData();
+      formData.append("file", photo, "notes.jpg");
+      const response = await fetch("/api/read-notes", { method: "POST", body: formData });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        if (data.billingRequired) setBillingRequired(true);
+        throw new Error(data.error ?? "We could not read that photo just now. Try again, or type the note.");
+      }
+      if (data.text) {
+        const unclear = Number(data.unclear) || 0;
+        resetClarification();
+        // An untouched example is replaced, never mixed with the educator's own notes.
+        setObservations((previous) => (previous.trim() && previous.trim() !== SAMPLE_OBSERVATION.trim() ? `${previous.trim()}\n${data.text}` : data.text));
+        setInputMethod("photo");
+        setTranscriptionMessage(
+          unclear
+            ? `Notes added from your photo. ${unclear === 1 ? "One word was hard to read and is" : `${unclear} words were hard to read and are`} marked [unclear]: fix ${unclear === 1 ? "it" : "them"} before you generate.`
+            : "Notes added from your photo. Check them against the paper, then generate the story.",
+        );
+        track("notes_photo", { ok: true, unclear });
+      }
+    } catch (photoError) {
+      setError(photoError instanceof Error ? photoError.message : "We could not read that photo just now. Try again, or type the note.");
+      track("notes_photo", { ok: false });
+    } finally {
+      setReadingPhoto(false);
+    }
+  };
+
   const handleAudioFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = "";
@@ -1216,7 +1267,7 @@ export default function GeneratePage() {
               onChange={(e) => {
                 setObservations(e.target.value);
                 if (clarification) resetClarification();
-                if (inputMethod !== "voice" && inputMethod !== "sample" && inputMethod !== "backlog") {
+                if (inputMethod !== "voice" && inputMethod !== "photo" && inputMethod !== "sample" && inputMethod !== "backlog") {
                   setInputMethod("typed");
                 }
               }}
@@ -1231,6 +1282,13 @@ export default function GeneratePage() {
               accept="audio/*,.m4a,.mp3,.mpeg,.mpga,.wav,.webm"
               className="sr-only"
               onChange={handleAudioFileChange}
+            />
+            <input
+              id="notes-photo-input"
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={handleNotesPhotoChange}
             />
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {recording && (
@@ -1261,6 +1319,16 @@ export default function GeneratePage() {
               >
                 <Download className="h-4 w-4 rotate-180" /> Upload a voice memo
               </label>
+              <label
+                htmlFor="notes-photo-input"
+                data-testid="notes-photo-button"
+                className={`inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-colors ${
+                  loading || transcribing || readingPhoto || recording ? "pointer-events-none border-clay-100 bg-cream-50 text-ink-400" : "border-clay-200 bg-white text-ink-700 hover:border-clay-400"
+                }`}
+              >
+                {readingPhoto ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                {readingPhoto ? "Reading your notes…" : "Photo of my notes"}
+              </label>
               {observations.trim().length === 0 && !recording && !transcribing && (
                 <button
                   type="button"
@@ -1272,6 +1340,9 @@ export default function GeneratePage() {
               )}
             </div>
             {voiceStatus && <p className="mt-2 text-xs text-ink-500">{voiceStatus}</p>}
+            <p className="mt-2 text-xs text-ink-500">
+              Photo: your written notes only, never children. It is read into the box, then discarded. Nothing is saved until you generate.
+            </p>
             {transcriptionMessage && (
               <p className="mt-2 rounded-lg border border-sage-100 bg-sage-50 px-3 py-2 text-xs font-semibold text-sage-700">
                 {transcriptionMessage}
@@ -1582,7 +1653,7 @@ export default function GeneratePage() {
                   id="gen-generate"
                   type="button"
                   onClick={() => handleGenerate()}
-                  disabled={loading || transcribing || observations.trim().length < MIN_STORY_OBSERVATION_CHARACTERS}
+                  disabled={loading || transcribing || readingPhoto || observations.trim().length < MIN_STORY_OBSERVATION_CHARACTERS}
                   className="btn-primary w-full py-4 text-base"
                 >
                   {loading ? (

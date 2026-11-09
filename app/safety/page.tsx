@@ -45,6 +45,10 @@ const FAQS = [
     a: "Educators can record their own voice memo, which is turned into text and not kept as audio. When a child records their own words for a story, StoryLoop keeps the words, not the recording.",
   },
   {
+    q: "What happens to a photo of my notes?",
+    a: "If you photograph your written notes, the photo is shrunk on your phone, which also removes the location a camera embeds, then sent to the AI provider to be read into text. The words appear in the box for you to check, and StoryLoop does not keep the photo. Photograph your notes only, never children. A word it cannot read is marked [unclear] rather than guessed, and a story cannot be generated until you have fixed it.",
+  },
+  {
     q: "What do families see on a wall card?",
     a: "The learning, not the child: wall cards shared on a centre wall or by QR code carry no names, no photographs and no dates, and families can read them in English or ten other languages.",
   },

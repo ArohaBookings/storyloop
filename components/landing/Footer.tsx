@@ -68,6 +68,7 @@ export default function Footer() {
               <li><Link href="/te-whariki-learning-stories" className="hover:text-paper transition-colors">Te Whāriki stories</Link></li>
               <li><Link href="/learning-story-examples-nz" className="hover:text-paper transition-colors">NZ learning story examples</Link></li>
               <li><Link href="/eylf-learning-stories" className="hover:text-paper transition-colors">EYLF stories</Link></li>
+              <li><Link href="/learning-story-examples-eylf" className="hover:text-paper transition-colors">EYLF learning story examples</Link></li>
               <li><Link href="/eyfs-learning-stories" className="hover:text-paper transition-colors">EYFS observations (England)</Link></li>
               <li><Link href="/aistear-learning-stories" className="hover:text-paper transition-colors">Aistear stories (Ireland)</Link></li>
               <li><Link href="/resources" className="hover:text-paper transition-colors">Educator resources</Link></li>

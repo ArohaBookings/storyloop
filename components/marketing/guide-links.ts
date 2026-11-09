@@ -19,6 +19,7 @@ export const SLUG_PRINTABLES: Record<string, PrintableKey[]> = {
   "te-whariki-learning-stories": ["templateNz", "tw"],
   "nz-learning-stories": ["templateNz", "tw"],
   "learning-story-examples-nz": ["templateNz", "tw"],
+  "learning-story-examples-eylf": ["templateAu", "eylf"],
 };
 // "Keep reading" links at the foot of each guide, by topic. Guides had no links
 // to their neighbours, so a reader who finished one had nowhere to go but back
@@ -26,8 +27,8 @@ export const SLUG_PRINTABLES: Record<string, PrintableKey[]> = {
 export const SLUG_RELATED: Record<string, RelatedKey[]> = {
   "eylf-principles-and-practices": ["eylf", "eylfV2", "intentional", "reflection", "planning", "template"],
   "eylf-v2-changes": ["eylf", "eylfPrinciples", "eylfStories", "intentional", "template", "examples"],
-  "eylf-learning-stories": ["eylf", "eylfPrinciples", "template", "examples", "planning", "nextSteps"],
-  "australia-eylf-learning-stories": ["eylfStories", "eylf", "template", "examples", "transition", "generator"],
+  "eylf-learning-stories": ["auExamples", "eylf", "eylfPrinciples", "template", "examples", "nextSteps"],
+  "australia-eylf-learning-stories": ["eylfStories", "auExamples", "eylf", "template", "examples", "transition"],
   "eylf-planning-cycle": ["nqs13", "summative", "eylf", "intentional", "reflection", "nextSteps"],
   "intentional-teaching": ["eylfPrinciples", "planning", "eylf", "nextSteps", "reflection", "examples"],
   "critical-reflection-early-childhood": ["eylfPrinciples", "nqs13", "planning", "intentional", "observation", "template"],
@@ -39,12 +40,13 @@ export const SLUG_RELATED: Record<string, RelatedKey[]> = {
   "te-whariki-learning-stories": ["nzExamples", "teWhariki", "teWhPrinciples", "strands", "template", "nextSteps"],
   "te-whariki-pdf": ["teWhariki", "teWhPrinciples", "strands", "teWhStories", "template", "examples"],
   "nz-learning-stories": ["nzExamples", "teWhStories", "teWhariki", "teWhPrinciples", "template", "generator"],
+  "learning-story-examples-eylf": ["eylfStories", "eylf", "eylfObservations", "preschoolExamples", "nextSteps", "template"],
   "learning-story-examples-nz": ["teWhStories", "teWhariki", "strands", "nextSteps", "template", "examples"],
   "ero-early-childhood-regulation-2026": ["teWhStories", "teWhariki", "teWhPrinciples", "template", "safety", "centres"],
   "observation-methods-early-childhood": ["whatIs", "eylfObservations", "template", "examples", "preschoolExamples", "nextSteps"],
-  "eylf-observation-examples": ["eylf", "observation", "eylfStories", "nextSteps", "planning", "template"],
+  "eylf-observation-examples": ["auExamples", "eylf", "observation", "eylfStories", "nextSteps", "template"],
   "how-long-should-a-learning-story-take": ["whatIs", "template", "examples", "observation", "generator", "educators"],
-  "learning-story-examples-preschool": ["examples", "template", "nextSteps", "whatIs", "eylf", "teWhariki"],
+  "learning-story-examples-preschool": ["examples", "auExamples", "template", "nextSteps", "eylf", "teWhariki"],
   "learning-story-next-steps-examples": ["examples", "preschoolExamples", "template", "whatIs", "intentional", "eylf"],
   "learning-story-generator": ["examples", "preschoolExamples", "nextSteps", "template", "accuracy", "safety"],
   "transition-to-school-statement": ["tlds", "nswTransition", "qldTransition", "consent", "summative", "endOfYear"],

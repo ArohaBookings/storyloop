@@ -4,13 +4,13 @@
  * The version records which release a user acknowledged. Bumping it shows the
  * card again, once, to people who have already used StoryLoop.
  */
-export const WHATS_NEW_VERSION = "2026-10";
+export const WHATS_NEW_VERSION = "2026-11";
 
 /**
  * The day these notes were published (NZ). Bump it together with the version
  * whenever the notes are rewritten.
  */
-export const WHATS_NEW_PUBLISHED = "2026-09-23";
+export const WHATS_NEW_PUBLISHED = "2026-11-10";
 
 /**
  * How long a set of notes stays news. After this the card is not shown to
@@ -51,7 +51,7 @@ export function shouldShowWhatsNew(seenVersion: string | null | undefined, stori
 }
 
 export type WhatsNewItem = {
-  icon: "quill" | "shield" | "voice" | "guides" | "refresh" | "today" | "family" | "centre" | "review" | "group" | "card";
+  icon: "quill" | "shield" | "voice" | "photo" | "guides" | "refresh" | "today" | "family" | "centre" | "review" | "group" | "card";
   title: string;
   body: string;
   /** Where to go and try it. */
@@ -61,45 +61,32 @@ export type WhatsNewItem = {
 };
 
 /**
- * The October 2026 release.
+ * The November 2026 release (10 Nov).
  *
- * Only what is new since September, per the rule above: a card is not a
- * changelog. September's features are all still in the sidebar.
+ * Only what is new since October, per the rule above: a card is not a
+ * changelog. October's features are all still in the sidebar.
  */
 export const WHATS_NEW_ITEMS: WhatsNewItem[] = [
   {
-    icon: "group",
-    title: "One moment, many children",
+    icon: "photo",
+    title: "Photo of my notes",
     body:
-      "Write a group moment once and get a story for each child. StoryLoop splits your note by child using only your own sentences, you check each part, then every child's story is written with the same checks as any other.",
-    href: "/group",
+      "Jotted it on paper? On the story page, tap Photo of my notes and take a picture of the page. The words land in the box as if you had typed them, with anything it could not read marked for you to fix. Notes only, never children: the photo is read and then discarded.",
+    href: "/generate",
   },
   {
-    icon: "today",
-    title: "Your month at a glance",
+    icon: "quill",
+    title: "Write the story to the child",
     body:
-      "The dashboard now shows the time StoryLoop gave back this month, which children have had a story in the last 30 days, and the parts of the curriculum you have been writing to.",
-    href: "/dashboard",
+      "Under Style and extras you can now choose \"To the child\", for stories that read \"Ruby, you poured\" instead of \"Ruby poured\". Leave it off and nothing changes.",
+    href: "/generate",
   },
   {
-    icon: "review",
-    title: "How often it gets it wrong, in public",
+    icon: "guides",
+    title: "A child's statement from the stories you already wrote",
     body:
-      "Every change to how stories are written is now tested on the same 24 notes before it ships, and the results are published, including what is still being improved.",
-    href: "/accuracy",
-  },
-  {
-    icon: "card",
-    title: "No surprises at checkout",
-    body:
-      "Checkout now shows StoryLoop's name, the exact date of the first charge and how to avoid it. Leave part way and Billing tells you plainly that nothing was charged.",
-    href: "/billing",
-  },
-  {
-    icon: "shield",
-    title: "Safer passwords",
-    body:
-      "Passwords known from data breaches are now refused when you sign up or reset one. The check never sends your password anywhere: only the first five characters of a scrambled version of it.",
+      "From a child's profile, open the transition pack. StoryLoop drafts each outcome of their transition statement or end of year summary from the notes you have already saved about them, and you check every line. Twice a month on the free plan.",
+    href: "/children",
   },
   {
     // Kept from September on purpose: it is the one item that pays the reader.

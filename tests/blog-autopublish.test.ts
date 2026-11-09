@@ -66,3 +66,26 @@ test("a draft that names another product or an AI chatbot is never published", (
     assert.deepEqual(rivalNames(`${topic.title} ${topic.angle} ${topic.keywords.join(" ")}`), [], topic.slug);
   }
 });
+
+test("the blog keeps its stated pace when the cron runs at the same minute every day", async () => {
+  // 10 Nov 2026: 30 Oct to 7 Nov was 8 days at "one a week", because a guide is
+  // stamped seconds after its run began and the next week's run missed by those
+  // seconds. Two a week would have been one every 4 days.
+  const { blogHoldReason, blogMinGapDays, BLOG_WEEK_WINDOW_DAYS } = await import("../lib/blog-pace");
+  const seconds = 40 / 86_400; // the guide was stamped 40 seconds into its run
+  // One a week: day 7 publishes (last week's guide has left the window, the gap is met).
+  assert.equal(blogHoldReason({ perWeek: 1, publishedInWindow: 7 - seconds < BLOG_WEEK_WINDOW_DAYS ? 1 : 0, daysSinceLatest: 7 - seconds }), null);
+  // ...and day 6 and earlier do not.
+  assert.match(blogHoldReason({ perWeek: 1, publishedInWindow: 1, daysSinceLatest: 6 - seconds }) ?? "", /this week's pace is 1/);
+  assert.match(blogHoldReason({ perWeek: 1, publishedInWindow: 0, daysSinceLatest: 5 - seconds }) ?? "", /minimum is 6/);
+  // Two a week: day 3 publishes, day 2 does not, and a third in the week never does.
+  assert.equal(blogHoldReason({ perWeek: 2, publishedInWindow: 1, daysSinceLatest: 3 - seconds }), null);
+  assert.match(blogHoldReason({ perWeek: 2, publishedInWindow: 1, daysSinceLatest: 2 - seconds }) ?? "", /minimum is 3/);
+  assert.match(blogHoldReason({ perWeek: 2, publishedInWindow: 2, daysSinceLatest: 3 - seconds }) ?? "", /this week's pace is 2/);
+  // A double delivery minutes later is still refused, and an empty backlog publishes nothing.
+  assert.ok(blogHoldReason({ perWeek: 2, publishedInWindow: 1, daysSinceLatest: 0.01 }));
+  assert.equal(blogHoldReason({ perWeek: 0, publishedInWindow: 0, daysSinceLatest: null }), "no topics left in the backlog");
+  // A first ever guide goes out.
+  assert.equal(blogHoldReason({ perWeek: 1, publishedInWindow: 0, daysSinceLatest: null }), null);
+  assert.equal(blogMinGapDays(2), 2.75);
+});

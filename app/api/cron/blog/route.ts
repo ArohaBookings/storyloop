@@ -4,6 +4,7 @@ import { createAdminSupabase } from "@/lib/supabase/admin";
 import { recentlyChanged, submitToIndexNow } from "@/lib/indexnow";
 import sitemap from "@/app/sitemap";
 import { currentBlogTarget } from "@/lib/business-manager";
+import { BLOG_WEEK_WINDOW_DAYS, blogHoldReason } from "@/lib/blog-pace";
 
 // Up to two model calls per run (a rejected draft lets the next topic try).
 export const maxDuration = 300;
@@ -25,8 +26,6 @@ export const maxDuration = 300;
  * need verified official facts are skipped, and a draft citing a law or
  * regulation its verified facts do not support is never published.
  */
-const daysBetweenPosts = (perWeek: number) => (perWeek >= 2 ? 3 : 6);
-
 function authorised(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
   if (!secret) return false;
@@ -37,15 +36,13 @@ function authorised(request: NextRequest) {
 async function publishNext() {
   const admin = createAdminSupabase();
   const perWeek = await currentBlogTarget();
-  if (perWeek === 0) return NextResponse.json({ skipped: true, reason: "no topics left in the backlog" });
-  const { count: lastSevenDays } = await admin
+  // The gaps carry a quarter of a day of slack, so a once-a-day run does not
+  // miss its day by seconds (lib/blog-pace.ts).
+  const { count: publishedInWindow } = await admin
     .from("blog_posts")
     .select("id", { count: "exact", head: true })
     .eq("published", true)
-    .gte("published_at", new Date(Date.now() - 7 * 86_400_000).toISOString());
-  if ((lastSevenDays ?? 0) >= perWeek) {
-    return NextResponse.json({ skipped: true, reason: `${lastSevenDays} published in the last 7 days, this week's pace is ${perWeek}` });
-  }
+    .gte("published_at", new Date(Date.now() - BLOG_WEEK_WINDOW_DAYS * 86_400_000).toISOString());
   const { data: latest } = await admin
     .from("blog_posts")
     .select("published_at")
@@ -53,17 +50,12 @@ async function publishNext() {
     .order("published_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-
-  if (latest?.published_at) {
-    const daysSince = (Date.now() - new Date(latest.published_at).getTime()) / 86_400_000;
-    const minimum = daysBetweenPosts(perWeek);
-    if (daysSince < minimum) {
-      return NextResponse.json({
-        skipped: true,
-        reason: `last post was ${daysSince.toFixed(1)} days ago, minimum is ${minimum}`,
-      });
-    }
-  }
+  const hold = blogHoldReason({
+    perWeek,
+    publishedInWindow: publishedInWindow ?? 0,
+    daysSinceLatest: latest?.published_at ? (Date.now() - new Date(latest.published_at).getTime()) / 86_400_000 : null,
+  });
+  if (hold) return NextResponse.json({ skipped: true, reason: hold });
 
   const result = await writeNextGuide();
   if (!result.ok) {

@@ -39,7 +39,7 @@ export default function StrandPage({ slug }: { slug: string }) {
     },
     {
       q: `How do I link a learning story to ${strand.maori} | ${strand.english}?`,
-      a: `Name the strand, and the learning outcome when one fits closely, then say in a sentence what the child did that shows it. Link only where the moment genuinely shows the learning; one honest link says more to whānau than five loose ones.`,
+      a: `Name the strand, and the learning outcome when one fits closely, then say in a sentence what the child did that shows it. Link only where the moment genuinely shows the learning; one honest link says more to whānau than five loose ones. StoryLoop does this from a typed or spoken note: it drafts the learning story and names ${strand.maori} | ${strand.english} only when the note shows it, and you check every word.`,
     },
   ];
 

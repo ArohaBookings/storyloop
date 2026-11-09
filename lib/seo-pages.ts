@@ -17,6 +17,22 @@ export type SeoPage = {
   deepDive?: Array<{ heading: string; paragraphs: string[] }>;
   /** A photograph under the hero. Every screen in these is a real StoryLoop page (scripts/brand). */
   image?: { src: string; alt: string; position?: string };
+  /**
+   * "Go straight to the official thing": the login, form or guide the searcher
+   * came for, shown right under the heading. In the week to 9 Nov 2026 the
+   * consent form guide's median visit was 6 seconds and 7 visitors in 10 were
+   * gone inside 10: they wanted the form, and the page made them read first.
+   * Links open in a new tab so this page stays open behind them. We link to the
+   * official page and never host a copy. Check every URL on the day it is added.
+   */
+  officialLinks?: { heading: string; links: Array<{ label: string; url: string; note?: string }> };
+  /**
+   * The same topic for another state or step, linked by name on the first
+   * screen. These guides were competing for one search (10 Nov 2026: the NSW
+   * guide fell from 661 impressions to 0 while the hub and the consent guide
+   * showed for NSW searches), so each now says plainly which page is which.
+   */
+  siblingLinks?: { heading: string; links: Array<{ label: string; href: string }> };
 };
 
 const sharedFaqs = [
@@ -869,6 +885,16 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       "Example wording for a 2026 transition to school statement, what Victoria (TLDS), NSW and Queensland ask for, and a draft from your own notes.",
     kicker: "Educator guide · Term 4",
     heading: "Write a transition statement from a year of noticing, not a week of remembering.",
+    siblingLinks: {
+      heading: "Which statement are you writing?",
+      links: [
+        { label: "Victoria: TLDS", href: "/tlds-examples" },
+        { label: "NSW: Transition to School Statement", href: "/nsw-transition-to-school-statement" },
+        { label: "Queensland: kindergarten transition statement", href: "/qld-kindergarten-transition-statement" },
+        { label: "Consent forms", href: "/transition-statement-consent-form" },
+      ],
+    },
+
     intro:
       "A transition statement is the one document a new teacher is most likely to read before a child walks in. The hard part is rarely the form. It is finding, in November, the real moments that show who this child is. This guide covers what each state asks for and how to have that evidence ready.",
     reviewedAt: "2026-09-17",

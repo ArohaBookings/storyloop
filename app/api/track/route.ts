@@ -39,6 +39,10 @@ const ALLOWED_EVENTS = new Set([
   // visible for the third of visitors who allowed it, and people who took the
   // PDF and left looked like bounces.
   "printable_download",
+  // "Photo of my notes" on the story page (10 Nov 2026): whether a photo was
+  // read (metadata.ok) and how many words came back marked [unclear]. Never the
+  // photo or its text.
+  "notes_photo",
   // The TLDS / transition / end-of-year draft on three guides (19 Oct 2026),
   // named apart from demo_* so the learning-story demo's figures stay its own.
   "transition_demo_started",

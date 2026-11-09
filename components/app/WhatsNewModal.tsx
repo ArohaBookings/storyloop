@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { BarChart3, BookOpen, Check, Copy, CreditCard, Gift, MessageCircleHeart, RefreshCw, ShieldCheck, Sparkles, Star, Sunrise, Users, X } from "lucide-react";
+import { BarChart3, BookOpen, Check, Copy, CreditCard, Gift, MessageCircleHeart, RefreshCw, ShieldCheck, Sparkles, Star, Sunrise, Users, X, Camera } from "lucide-react";
 import { WHATS_NEW_ITEMS, type WhatsNewItem } from "@/lib/whats-new";
 import { referredRewardText } from "@/lib/referrals";
 
@@ -21,6 +21,7 @@ const ICONS: Record<WhatsNewItem["icon"], typeof Sparkles> = {
   quill: Sparkles,
   shield: ShieldCheck,
   voice: Sparkles,
+  photo: Camera,
   guides: BookOpen,
   refresh: RefreshCw,
   today: Sunrise,

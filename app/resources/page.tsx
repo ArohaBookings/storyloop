@@ -98,6 +98,13 @@ const GUIDES = [
     icon: BookOpen,
   },
   {
+    href: "/learning-story-examples-eylf",
+    kicker: "Australia · New",
+    title: "EYLF learning story examples",
+    description: "Six stories from a baby to a four year old: the note, the story, the EYLF V2.0 outcome it shows and what comes next.",
+    icon: FileCheck,
+  },
+  {
     href: "/learning-story-examples-nz",
     kicker: "Aotearoa · New",
     title: "NZ learning story examples",

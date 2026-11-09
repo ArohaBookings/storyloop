@@ -14,6 +14,7 @@
  */
 import type { SeoPage } from "./seo-pages";
 import { REAL_EXAMPLES, type RealExample } from "./real-examples";
+import { EYLF_OUTCOMES } from "./eylf-outcomes";
 
 type Block = { heading: string; paragraphs: string[] };
 
@@ -49,6 +50,18 @@ function example(slug: string): RealExample {
   const found = REAL_EXAMPLES.find((item) => item.slug === slug);
   if (!found) throw new Error(`Missing real example ${slug}`);
   return found;
+}
+
+/**
+ * An EYLF V2.0 link written out in full, from the published wording held in
+ * lib/eylf-outcomes.ts, so an example can never misquote the framework.
+ */
+function eylfLink(code: string): string {
+  for (const outcome of EYLF_OUTCOMES) {
+    const sub = outcome.subs.find((item) => item.code === code);
+    if (sub) return `EYLF Outcome ${outcome.n}: ${outcome.title}, "${sub.text}" (${code})`;
+  }
+  throw new Error(`Unknown EYLF key component ${code}`);
 }
 
 const curriculumName = (example: RealExample) => (example.framework === "NZ" ? "Te Whāriki" : "EYLF V2.0");
@@ -188,6 +201,32 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
       "How to write a Transition Learning and Development Statement in 2026: what each section asks for, example wording and intentional teaching strategies.",
     kicker: "Victoria · Term 4 2026",
     heading: "Write a TLDS a Prep teacher will actually use.",
+    // Login link checked on 10 Nov 2026 on the Victorian Government's "Complete
+    // an online Transition Learning and Development Statement" page.
+    officialLinks: {
+      heading: "Looking for the Online TLDS?",
+      links: [
+        {
+          label: "Log in to the Online TLDS (Insight Assessment Platform)",
+          url: "https://www.vcaa.vic.edu.au/assessment/foundation-10/insight-assessment-platform/login-insight",
+          note: "Victoria's Online TLDS tool is accessed through the Insight Assessment Platform.",
+        },
+        {
+          label: "Victorian Government: complete an online TLDS (user guides and helpdesk)",
+          url: "https://www.vic.gov.au/complete-online-transition-learning-and-development-statement",
+        },
+      ],
+    },
+    siblingLinks: {
+      heading: "Which statement are you writing?",
+      links: [
+        { label: "All states: examples and what each asks", href: "/transition-to-school-statement" },
+        { label: "NSW: Transition to School Statement", href: "/nsw-transition-to-school-statement" },
+        { label: "Queensland: kindergarten transition statement", href: "/qld-kindergarten-transition-statement" },
+        { label: "Consent forms", href: "/transition-statement-consent-form" },
+      ],
+    },
+
     intro:
       "Every funded kindergarten in Victoria has to complete a TLDS for each child starting school, by the end of Term 4. The online tool tells you which boxes to fill. It cannot tell you what to write. This guide covers what each section asks for, with example wording you can adapt from what you have already seen this year.",
     reviewedAt: "2026-10-19",
@@ -486,14 +525,45 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
   // (updated 18 August 2026).
   "nsw-transition-to-school-statement": {
     slug: "nsw-transition-to-school-statement",
-    title: "NSW Transition to School Digital Statement: Examples",
+    // 10 Nov 2026: this guide fell from 661 impressions to 0 in a week while
+    // Google showed the all-states guide and the consent guide for NSW searches,
+    // and Copilot's top grounding queries were "transition to school statement
+    // nsw" (99) and "... nsw login" (54). The title now says NSW, the year and
+    // the login, and the login link sits at the top. Login wording checked on
+    // 10 Nov 2026 against the department's Transition to School Digital
+    // Statement page ("Access the Transition to School Digital Statement").
+    title: "NSW Transition to School Statement 2026: Login and Examples",
     description:
-      "What the NSW Transition to School Digital Statement asks for, section by section, with example wording and a draft of the outcomes from your own notes.",
+      "Where to log in to the NSW Transition to School Digital Statement, what each section asks for, example wording, and a draft of the outcomes from your notes.",
     kicker: "New South Wales · Term 4 2026",
     heading: "The NSW Transition to School Statement, section by section.",
+    officialLinks: {
+      heading: "Looking for the statement itself?",
+      links: [
+        {
+          label: "Log in to the NSW Transition to School Digital Statement",
+          url: "https://transitions.education.nsw.gov.au/",
+          note: "The NSW Department of Education's platform. Early childhood teachers and educators register or log in here.",
+        },
+        {
+          label: "The department's page: user guides, FAQs and the consent form",
+          url: "https://education.nsw.gov.au/early-childhood-education/ecec-resource-library/transition-to-school/transition-to-school-digital-statement",
+        },
+      ],
+    },
+    siblingLinks: {
+      heading: "Which statement are you writing?",
+      links: [
+        { label: "All states: examples and what each asks", href: "/transition-to-school-statement" },
+        { label: "Victoria: TLDS", href: "/tlds-examples" },
+        { label: "Queensland: kindergarten transition statement", href: "/qld-kindergarten-transition-statement" },
+        { label: "Consent forms", href: "/transition-statement-consent-form" },
+      ],
+    },
+
     intro:
       "In NSW the Transition to School Statement is written by a child's early childhood service in the year before school, then shared with the family and the new school. If your service receives Start Strong funding, it must be completed and shared before the new school year. This guide walks through each section with example wording, and the draft box turns your own notes into the learning and development section in a couple of minutes.",
-    reviewedAt: "2026-10-27",
+    reviewedAt: "2026-11-10",
     sections: [
       {
         title: "Two parts are always required",
@@ -512,6 +582,11 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
       },
     ],
     faqs: [
+      {
+        question: "Where do I log in to the NSW Transition to School Digital Statement?",
+        answer:
+          "Early childhood teachers and educators register or log in at transitions.education.nsw.gov.au, which is linked from the NSW Department of Education's Transition to School Digital Statement page under \"Access the Transition to School Digital Statement\". NSW public school staff and principals open statements from the school's dashboard, or in the Staff Portal by searching for Transition to School Digital Statement in My Essentials. StoryLoop is not the department's platform: it drafts the wording from your notes, and you enter the final statement there yourself.",
+      },
       {
         question: "Who has to complete a Transition to School Statement in NSW?",
         answer:
@@ -552,6 +627,27 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
       "Writing a Queensland kindergarten transition statement: the five QKLG areas, consent forms 1 and 2, the KTS app, examples and a draft from your notes.",
     kicker: "Queensland · November 2026",
     heading: "Writing a Queensland kindergarten transition statement.",
+    officialLinks: {
+      heading: "Looking for the KTS app or the consent forms?",
+      links: [
+        {
+          label: "QCAA: using the KTS app, with consent forms 1 and 2",
+          url: "https://www.qcaa.qld.edu.au/kindergarten/creating-transition-statements/using-kts-app",
+          note: "The Kindergarten Transition Statement application sits in the QCAA Portal.",
+        },
+        { label: "QCAA: Kindergarten Transition Statement application FAQs", url: "https://www.qcaa.qld.edu.au/kindergarten/creating-transition-statements/faqs" },
+      ],
+    },
+    siblingLinks: {
+      heading: "Which statement are you writing?",
+      links: [
+        { label: "All states: examples and what each asks", href: "/transition-to-school-statement" },
+        { label: "Victoria: TLDS", href: "/tlds-examples" },
+        { label: "NSW: Transition to School Statement", href: "/nsw-transition-to-school-statement" },
+        { label: "Consent forms", href: "/transition-statement-consent-form" },
+      ],
+    },
+
     intro:
       "Queensland kindergartens complete a transition statement for each child in November of the kindergarten year. It is a strengths-based, point-in-time summary of the child's knowledge, skills and dispositions for learning across the five learning and development areas of the Queensland kindergarten learning guideline (QKLG). This guide covers consent, the KTS app and the five areas with example wording, and the draft box writes yours from your own notes.",
     reviewedAt: "2026-10-27",
@@ -620,6 +716,38 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
       "What the NSW and Queensland transition statement consent forms ask, what to do when one is missing, Victoria's opt-out, and a draft from your notes.",
     kicker: "NSW · Queensland · Victoria · Term 4 2026",
     heading: "Transition statement consent forms, state by state.",
+    // 10 Nov 2026: median visit 6 seconds, 7 visitors in 10 gone inside 10.
+    // They searched for the form, so the official forms come first.
+    officialLinks: {
+      heading: "The official forms",
+      links: [
+        {
+          label: "NSW: Transition to School Digital Statement consent form (PDF)",
+          url: "https://education.nsw.gov.au/content/dam/main-education/early-childhood-education/working-in-early-childhood-education/media/documents/transition-to-school/Transition_to_School_Digital_Statement_consent_form.pdf",
+          note: "From the NSW Department of Education. The family signs it and you upload it to the digital statement.",
+        },
+        {
+          label: "Queensland: consent forms 1 and 2, on QCAA's KTS app page",
+          url: "https://www.qcaa.qld.edu.au/kindergarten/creating-transition-statements/using-kts-app",
+          note: "Form 1 is consent to create the statement. Form 2 is consent to share it with the school.",
+        },
+        {
+          label: "Victoria: how sharing a TLDS and opting out work",
+          url: "https://www.vic.gov.au/transition-statement-privacy-and-information-sharing",
+          note: "Victoria has no form to create a TLDS. Families must be given the chance to opt out of it being shared with the school.",
+        },
+      ],
+    },
+    siblingLinks: {
+      heading: "Which statement are you writing?",
+      links: [
+        { label: "All states: examples and what each asks", href: "/transition-to-school-statement" },
+        { label: "Victoria: TLDS", href: "/tlds-examples" },
+        { label: "NSW: Transition to School Statement", href: "/nsw-transition-to-school-statement" },
+        { label: "Queensland: kindergarten transition statement", href: "/qld-kindergarten-transition-statement" },
+      ],
+    },
+
     intro:
       "Before you write a single line of a transition statement, you need the right permission from the family. NSW and Queensland each publish their own consent form, and Victoria works differently: families can opt out of the TLDS being shared with the school. This guide explains what each form asks, what to do when a form has not come back, and how to explain it to a family in plain words. Then the draft box turns your notes into the outcomes section, with no signup.",
     reviewedAt: "2026-10-29",
@@ -771,6 +899,79 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
       { label: "ACECQA: (EYLF) The Early Years Learning Framework Planning Cycle", url: "https://www.acecqa.gov.au/belonging-being-becoming-early-years-learning-framework/eylf-early-years-learning-framework-planning-cycle" },
     ],
   },
+  // 10 Nov 2026: "learning story examples" sits at position 9 in Search
+  // Console, and 70 of Copilot's 386 citations of StoryLoop in the five days to
+  // 6 Nov were for "learning story examples" and "learning story example". The
+  // New Zealand page was staged; Australia, the larger market (18,197 approved
+  // services), had no twin. The six children are imagined, to show the shape,
+  // so nothing here repeats the real drafts on /examples and
+  // /learning-story-examples-preschool. Outcome and key component wording comes
+  // from lib/eylf-outcomes.ts (the published EYLF V2.0 text) through eylfLink.
+  "learning-story-examples-eylf": {
+    slug: "learning-story-examples-eylf",
+    title: "EYLF Learning Story Examples: 6 Notes and Stories (V2.0)",
+    description:
+      "Six EYLF learning story examples from a 10 month old to a 4 year old: the note, the story, the V2.0 outcome it shows, where to next and a family question.",
+    kicker: "Educator guide · EYLF V2.0",
+    heading: "EYLF learning story examples, from the quick note to the finished story.",
+    intro:
+      "Six short examples, from a baby to a child about to start school. Each one shows the note an educator might jot down in the moment, the learning story written from it, the EYLF V2.0 outcome it shows, and what you might plan next. The children are imagined, to show the shape. Yours should come from what you noticed today.",
+    reviewedAt: "2026-11-10",
+    sections: [
+      {
+        title: "One moment, not the whole week",
+        body:
+          "A learning story tells one thing a child did, in the order it happened, with their own words kept exactly. A list of everything from the week is a summary, and it is much harder to link honestly.",
+      },
+      {
+        title: "Name the outcome and say why",
+        body:
+          "\"Outcome 4\" on its own tells a family nothing. Name the outcome, and the key component when one fits closely, then say in one sentence what the child did that shows it.",
+      },
+      {
+        title: "Finish with a plan and a question",
+        body:
+          "Where to next is what you will offer or change because of what you saw. One question for the family turns the story into a conversation, and their answer becomes part of the picture.",
+      },
+    ],
+    faqs: [
+      {
+        question: "What does a good EYLF learning story look like?",
+        answer:
+          "It tells one real moment in plain words a family will enjoy reading: what the child did and said, what learning it shows with one or two EYLF V2.0 outcomes, and what you will do next. Keep the child's own words exactly as they said them, and leave out anything you did not see.",
+      },
+      {
+        question: "How many EYLF outcomes should a learning story link to?",
+        answer:
+          "Usually one or two: the ones the moment genuinely shows. A story that links to all five reads like a checklist and tells a family less. Every example on this page links one outcome, and one of them adds a second.",
+      },
+      {
+        question: "Should I link the outcome or the sub-outcome?",
+        answer:
+          "Either. EYLF V2.0 has five learning outcomes, and each has key components that many educators call sub-outcomes, 20 in all. Naming the key component, such as 4.2, is more precise, but only when the moment clearly fits it. The outcome alone with a clear reason is still a sound link.",
+      },
+      {
+        question: "Do learning stories have to follow a set format?",
+        answer:
+          "No. ACECQA says there is no one way to meet documentation requirements, and assessors look for the assessment and planning cycle, not a template. Observation, what learning you noticed, outcome links, where to next and family voice is a common shape, and it is the one used on this page.",
+      },
+      {
+        question: "Should I write to the child or about the child?",
+        answer:
+          "Either is fine, and it is a choice for your service. Writing about the child (\"Mia served her own rice\") suits a story that sits in a portfolio beside your analysis. Writing to the child (\"Mia, you served your own rice\") reads warmly when the story is shared with the child and the family. The examples here are written about the child.",
+      },
+      {
+        question: "Can StoryLoop write these from my notes?",
+        answer:
+          "Yes. Type or say your quick note and StoryLoop drafts the learning story with the EYLF V2.0 outcomes the moment actually shows, keeps the child's words exactly as you wrote them, and adds where to next and a family link. You can try it on this page without signing up, it is free for 3 stories a month, and you check every word before anything is shared.",
+      },
+    ],
+    sources: [
+      { label: "Belonging, Being and Becoming: The Early Years Learning Framework for Australia V2.0 (2022)", url: "https://www.acecqa.gov.au/sites/default/files/2023-01/Belonging_Being_And_Becoming_V2.0.pdf" },
+      { label: "ACECQA: Element 1.3.1 Assessment and planning cycle", url: "https://www.acecqa.gov.au/national-quality-framework/guide-nqf/section-3-national-quality-standard-and-assessment-and-rating/quality-area-1-educational-program-and-practice/standard-13-assessment-and-planning/element-131-assessment-and-planning-cycle" },
+    ],
+  },
+
   // 4 Nov 2026: "learning story examples nz" and "learning stories ece nz
   // examples" in Search Console at positions 6 to 24, with no NZ page that
   // shows worked examples (the NZ guides describe StoryLoop, not stories).
@@ -1321,6 +1522,77 @@ export const OCT_2026_DEEP_DIVES: Record<string, Block[]> = {
       paragraphs: [
         "The rough note is the part only you can write, because only you were there. Turning it into an observation, a link and a story is where the evening goes.",
         "Type your note into the box on this page and StoryLoop drafts the learning story with the EYLF V2.0 outcomes the moment actually shows and a next step, keeping the child's words exactly as you wrote them. Use a first name only. You check and edit every word before anything is shared with a family.",
+      ],
+    },
+  ],
+  "learning-story-examples-eylf": [
+    {
+      heading: "How each example is laid out",
+      paragraphs: [
+        "The note is what an educator might scribble on a sticky note or say into their phone in the moment. The story is what it becomes, in full sentences a family can read. Then comes the learning: the EYLF V2.0 outcome and key component in the framework's own words, and a sentence on why the moment fits. Last is where to next, with one question for the family.",
+        "That is the assessment and planning cycle on one page: you observed, you worked out what it shows, and you planned a response. Nothing more is needed for a story to be useful.",
+      ],
+    },
+    {
+      heading: "Baby: Isla, 10 months (example)",
+      paragraphs: [
+        "The note: \"Morning tea. Isla pointed at the banana, looked at me, said 'ba'. I said 'banana?' and she bounced and clapped. Gave her a piece. Pointed at her cup next, 'ba' again.\"",
+        "The story: At morning tea Isla pointed at the banana, looked up at her educator and said, \"ba\". When the educator answered, \"Banana?\", Isla bounced in her seat and clapped. She ate her piece, then pointed at her cup and said \"ba\" again, watching to see what would happen.",
+        `The learning: ${eylfLink("5.1")}. Isla used pointing, eye contact and a sound together to ask for what she wanted, then waited for an answer. She is learning that communication goes both ways.`,
+        "Where to next: name what Isla points to and pause so she can take a turn, and offer two choices at meals so she has a reason to ask. For the family: what does Isla point to or ask for at home, and what sounds does she use?",
+      ],
+    },
+    {
+      heading: "Toddler: Arjun, 20 months (example)",
+      paragraphs: [
+        "The note: \"Water trough. Arjun poured the jug into the funnel over and over, watched it run out the bottom, put his hand under to catch it. Said 'gone'. Then tried the cup, looked underneath it.\"",
+        "The story: Arjun spent a long time at the water trough today. He poured water from the jug into the funnel again and again, watching it run out the bottom, then held his hand underneath to catch it. \"Gone,\" he said, when the jug was empty. Next he poured into a cup and bent down to look underneath, checking whether the water would come out there too.",
+        `The learning: ${eylfLink("4.2")}. Arjun repeated an action to see whether the result stayed the same, then tested his idea on a different container. That is experimenting.`,
+        "Where to next: add a sieve, a tube and a bottle with a hole to the trough, and use the words full, empty, through and under while he plays. For the family: does Arjun like pouring and tipping in the bath or at the sink?",
+      ],
+    },
+    {
+      heading: "Toddler: Mia, 2 years 6 months (example)",
+      paragraphs: [
+        "The note: \"Lunch. Mia served her own rice with the big spoon, some went on the table. 'Uh oh.' Got the cloth from the shelf by herself and wiped it. 'I did it.'\"",
+        "The story: At lunch Mia served her own rice with the big serving spoon. Some landed on the table. \"Uh oh,\" she said, then climbed down, took the cloth from the shelf and wiped the table herself. She looked up and said, \"I did it.\"",
+        `The learning: ${eylfLink("1.2")}. Mia chose to serve herself, dealt with a spill without waiting for help and was proud of it. She knows where things are kept and that she is trusted to use them.`,
+        "Where to next: keep the cloths and a small jug where Mia can reach them, and invite her to help set the table. For the family: what does Mia like to do by herself at home?",
+      ],
+    },
+    {
+      heading: "Preschooler: Noah, 3 years 8 months (example)",
+      paragraphs: [
+        "The note: \"After rain, snail on the path. Noah: 'Don't step on him!' Put three sticks around it, told Ava and Sam to walk around. Carried it to the garden bed on a leaf. 'He lives here.'\"",
+        "The story: After the rain Noah found a snail in the middle of the path. \"Don't step on him!\" he called. He laid three sticks around the snail and told Ava and Sam to walk around. Then he slid a leaf under the snail, carried it to the garden bed and set it down. \"He lives here,\" he said.",
+        `The learning: ${eylfLink("2.4")}. Noah noticed a living thing at risk, made a plan to protect it and asked his friends to help. He showed care for the natural world and for how his group shares the space.`,
+        "Where to next: look for snails and other small creatures in the garden with Noah after the next rain, and ask the group what else in our yard needs looking after. For the family: does Noah notice insects and animals when you are out together?",
+      ],
+    },
+    {
+      heading: "Preschooler: Chloe, 4 years 2 months (example)",
+      paragraphs: [
+        "The note: \"Obstacle course. Chloe stopped at the beam: 'I can't.' Watched Eli go across. Asked to hold one of my fingers. Third go she let go for the last two steps and jumped off. 'I did the whole thing!'\"",
+        "The story: Chloe stopped when she reached the balance beam on the obstacle course. \"I can't,\" she said. She watched Eli walk across, then asked to hold one of her educator's fingers and tried it. On her third go she let go for the last two steps and jumped off the end. \"I did the whole thing!\"",
+        `The learning: ${eylfLink("3.2")}. Chloe worked on her balance and judged for herself how much help she needed, a little less each time. Coming back for a third try also shows persistence, which is why this story adds a second link: ${eylfLink("4.1")}.`,
+        "Where to next: leave the beam out this week and add a lower plank beside it, so Chloe can choose her own challenge. For the family: what is Chloe proud of being able to do with her body at the moment?",
+      ],
+    },
+    {
+      heading: "Preschooler: Ethan, 4 years 9 months (example)",
+      paragraphs: [
+        "The note: \"Home corner. Ethan wrote a shopping list: M for milk, drew four eggs and counted '1, 2, 3, 4', wrote a 4 next to them. Read it to Ava: 'Milk and four eggs.'\"",
+        "The story: Ethan decided the home corner needed a shopping list. He wrote an M for milk, drew four eggs, counted them, \"1, 2, 3, 4\", and wrote a 4 beside them. Then he held the list up and read it to Ava: \"Milk and four eggs.\"",
+        `The learning: ${eylfLink("5.4")}. Ethan used a letter, a drawing and a numeral to carry meaning, and read them back to a friend. He understands that marks on paper can stand for words and amounts.`,
+        "Where to next: add notepads, pencils and shop catalogues to the home corner, and write a real shopping list with Ethan before the next cooking experience. For the family: does Ethan like to help write lists or notes at home?",
+      ],
+    },
+    {
+      heading: "What makes these examples work",
+      paragraphs: [
+        "Each one is a single moment, not a summary of the week. The child's own words are kept exactly as they were said. The outcome is named in full and explained by what the child did, so a family, a colleague or an assessor can see why it fits. And each ends with something an educator will actually do, plus one question a family can answer.",
+        "None of them claims more than two outcomes. A story that links all five says less, not more.",
+        "The note is the part only you can write. Type it into the box on this page and StoryLoop drafts the learning story with the EYLF V2.0 outcomes the moment shows, where to next and a family link, keeping the child's words exactly as you wrote them. Use a first name only, and check every word before anything is shared.",
       ],
     },
   ],
