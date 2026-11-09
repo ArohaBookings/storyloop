@@ -231,7 +231,7 @@ export const RELATED = {
   eylfStories: { href: "/eylf-learning-stories", title: "EYLF learning stories", body: "Writing V2.0 learning stories that link outcomes to what actually happened." },
   planning: { href: "/eylf-planning-cycle", title: "The EYLF planning cycle", body: "From observation to response, without more paperwork." },
   intentional: { href: "/intentional-teaching", title: "Intentional teaching", body: "Everyday strategies, with examples for babies, toddlers and preschoolers." },
-  reflection: { href: "/critical-reflection-early-childhood", title: "Critical reflection", body: "Three short examples and a ten-minute template for you or your team." },
+  reflection: { href: "/critical-reflection-early-childhood", title: "Critical reflection", body: "Three examples, a filled-in template and the NQS 1.3.2 evidence list." },
   nqs13: { href: "/nqs-standard-1-3-assessment-and-planning", title: "NQS Standard 1.3", body: "What assessors look for in assessment and planning, element by element." },
   nqs: { href: "/nqs-standards", title: "The NQS in plain words (2026)", body: "All 7 quality areas, 15 standards and 40 elements, and what changed for child safety." },
   transition: { href: "/transition-to-school-statement", title: "Transition to school statements", body: "What Victoria, NSW and Queensland ask for, with example wording." },

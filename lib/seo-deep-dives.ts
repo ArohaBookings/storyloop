@@ -98,6 +98,27 @@ export const SEO_DEEP_DIVES: Record<string, Array<{ heading: string; paragraphs:
       ],
     },
     {
+      heading: "The template, filled in",
+      paragraphs: [
+        "What did I notice? At pack-away time on Monday and Tuesday, Ava (3) and Kai (4) hid under the climbing frame while the rest of the group tidied. Both times an educator called them out by name in front of the group.",
+        "What did I assume, and why? That they were avoiding work. I have always seen pack-away as a responsibility every child shares, and I read hiding as testing limits.",
+        "Whose perspective is missing? Theirs. When I asked Kai later, he said, \"It's too loud and everyone grabs.\" Ava's dad mentioned she finds sudden changes hard at home too. Who does our pack-away suit? The children who like noise and speed.",
+        "What will I try? A five-minute warning with the sand timer, and a small job each for Ava and Kai, starting a minute before the others, in the quieter book corner.",
+        "What happened? Over the next week Ava finished the book corner every day and asked for the timer herself on Thursday. Kai joined on three of five days. The team agreed to keep the timer for the whole room and talk at the next meeting about other loud transitions, such as lunch.",
+        "Notice what makes this critical rather than descriptive: a belief was named, the children's and a family's views changed the reading of the event, and the routine changed, not the children.",
+      ],
+    },
+    {
+      heading: "Evidence for NQS element 1.3.2",
+      paragraphs: [
+        "Element 1.3.2 says critical reflection on children's learning and development, both as individuals and in groups, drives program planning and implementation. ACECQA's guide lists what assessors may observe, discuss and sight. In plain terms, have these ready:",
+        "Things assessors might see in the room: educators changing an experience that is not engaging children, quick conversations between educators about practice during the day, the program adapted to include every child rather than the child adapted to fit the program, and children's ideas changing activities or routines.",
+        "Things assessors might ask about: how reflection is part of an ongoing cycle of review, how the educational leader supports it, how reflection has changed planning and practice, whether the program has barriers for any child, and how children's own comments are sought and recorded.",
+        "Things assessors might read: reflection journals or diaries, jottings about arrivals, routines, transitions, group times, the environment, interactions with particular children and teaching strategies, notes of conversations with colleagues, children and families, and planning that shows a change made because of a reflection.",
+        "One reflection that runs from noticing to change, like the example above, shows more than a long journal with no follow-up. Keep the after part: the date you came back to it and what happened.",
+      ],
+    },
+    {
       heading: "Reflecting as a team",
       paragraphs: [
         "Group reflection works best around real evidence: a few recent stories, a routine that is not working, or a family's comment. Bring the documentation, not only opinions. Agree on one change and who will watch whether it helps, then return to it at the next meeting.",

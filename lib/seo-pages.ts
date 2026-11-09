@@ -1514,11 +1514,14 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
   "critical-reflection-early-childhood": {
     slug: "critical-reflection-early-childhood",
-    title: "Critical reflection in early childhood, with examples",
+    // Retitled 10 Nov 2026: "critical reflection in childcare (example)" sat at
+    // position 48-60; the page now carries a filled-in template and the 1.3.2
+    // evidence list those searches are after.
+    title: "Critical Reflection in Childcare: Examples and Template",
     description:
-      "What critical reflection means under EYLF V2.0 and NQS element 1.3.2, the questions that make reflection critical, three short examples and a simple template.",
+      "Critical reflection in childcare: three examples, a filled-in template, the questions to ask and the evidence assessors look for under NQS element 1.3.2.",
     kicker: "Reflective practice · Australia and Aotearoa",
-    heading: "Critical reflection, without the jargon.",
+    heading: "Critical reflection in childcare, with real examples.",
     intro:
       "Critical reflection is looking closely at your own practice, asking why you do things and who they work for, and changing something as a result. In Australia it is an EYLF V2.0 principle, critical reflection and ongoing professional learning, and NQS element 1.3.2 asks whether it drives your program. In Aotearoa, reflecting on and evaluating practice is how services improve, and it is part of what ERO looks at. The test is simple: did anything change because of it?",
     image: { src: "/images/scenes/office.jpg", alt: "A centre manager at her desk reading a StoryLoop report on a laptop", position: "30% 50%" },
@@ -1565,11 +1568,27 @@ export const SEO_PAGES: Record<string, SeoPage> = {
         answer:
           "It can prompt good questions and show patterns, such as which children are rarely documented, but the thinking has to be yours. Reflection an AI wrote for you is not reflection.",
       },
+      {
+        question: "What is the difference between reflection and critical reflection?",
+        answer:
+          "Reflection is thinking intentionally about your own and others' practice with a goal in mind. Critical reflection goes deeper: it weighs different perspectives, such as theory, ethics and families' views, asks who is included or left out, and leads to a decision or change. The EYLF V2.0 points out the two terms are often used as if they mean the same thing, but they are different practices.",
+      },
+      {
+        question: "What evidence of critical reflection do assessors look for?",
+        answer:
+          "Under element 1.3.2, assessors may see reflection journals, jottings, team meeting notes and planning that shows how reflection led to a change. They may also watch educators adjust an experience that is not working, or talk briefly about practice during the day, and ask how children's own comments shape the program.",
+      },
+      {
+        question: "What should a written critical reflection include?",
+        answer:
+          "What you noticed, what you assumed, whose view was missing, what you changed, and what happened after. Five short parts are enough. If the last two are blank, it is not finished yet.",
+      },
     ],
-    reviewedAt: "2026-09-29",
+    reviewedAt: "2026-11-10",
     sources: [
       { label: "ACECQA: Element 1.3.2, Critical reflection", url: "https://www.acecqa.gov.au/national-quality-framework/guide-nqf/section-3-national-quality-standard-and-assessment-and-rating/quality-area-1-educational-program-and-practice/standard-13-assessment-and-planning/element-132-critical-reflection" },
       { label: "Belonging, Being and Becoming: The Early Years Learning Framework for Australia (V2.0), 2022", url: "https://www.acecqa.gov.au/sites/default/files/2023-01/Belonging_Being_And_Becoming_V2.0.pdf" },
+      { label: "ACECQA: EYLF V2.0 principle, critical reflection and ongoing professional learning", url: "https://www.acecqa.gov.au/belonging-being-becoming-early-years-learning-framework/eylf-principles/eylf-critical-reflection-and-ongoing-professional-learning" },
       { label: "Education Review Office: how ERO reviews early childhood services", url: "https://www.ero.govt.nz/how-ero-reviews/how-ero-reviews-early-childhood-services" },
     ],
   },

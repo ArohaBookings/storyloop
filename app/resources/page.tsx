@@ -65,8 +65,8 @@ const GUIDES = [
   {
     href: "/critical-reflection-early-childhood",
     kicker: "Every educator · New",
-    title: "Critical reflection, without the jargon",
-    description: "What makes reflection critical, three short examples, and a ten-minute template. NQS element 1.3.2.",
+    title: "Critical reflection in childcare",
+    description: "What makes reflection critical, three short examples, a filled-in template and the evidence assessors look for under NQS element 1.3.2.",
     icon: BookOpen,
   },
   {
