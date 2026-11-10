@@ -58,7 +58,7 @@ export default function Navbar() {
             {signedIn ? "Open StoryLoop" : "Sign in"}
           </Link>
           <button
-            className="p-2 text-ink-700"
+            className="flex h-11 w-11 items-center justify-center text-ink-700"
             onClick={() => setOpen(!open)}
             aria-label={open ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={open}

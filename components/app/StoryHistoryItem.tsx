@@ -369,15 +369,15 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
           <p className="text-xs font-bold text-clay-600 uppercase tracking-wider">Saved story</p>
           <div className="flex items-center gap-2 flex-wrap">
             {!editing && (
-              <button onClick={startEdit} className="btn-ghost px-3 py-1.5 text-xs">
+              <button onClick={startEdit} className="btn-ghost min-h-[44px] px-3 py-1.5 text-xs">
                 <Pencil className="w-3 h-3" /> Edit
               </button>
             )}
-            <button onClick={copyStory} className="btn-ghost px-3 py-1.5 text-xs">
+            <button onClick={copyStory} className="btn-ghost min-h-[44px] px-3 py-1.5 text-xs">
               {copied ? <Check className="w-3 h-3 text-sage-600" /> : <Copy className="w-3 h-3" />}
               {copied ? "Copied" : "Copy"}
             </button>
-            <button onClick={downloadStory} className="btn-ghost px-3 py-1.5 text-xs">
+            <button onClick={downloadStory} className="btn-ghost min-h-[44px] px-3 py-1.5 text-xs">
               <Download className="w-3 h-3" /> Export
             </button>
           </div>

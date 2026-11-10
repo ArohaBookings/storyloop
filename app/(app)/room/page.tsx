@@ -283,7 +283,7 @@ export default function RoomModePage() {
           const on = names.some((n) => n.toLowerCase() === name.toLowerCase());
           return (
             <button key={child.id} type="button" onClick={() => toggle(name)} aria-pressed={on}
-              className={`rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors ${on ? "border-clay-600 bg-clay-700 text-paper" : "border-clay-200 bg-paper text-ink-700 hover:border-clay-400"}`}>
+              className={`min-h-[44px] rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors ${on ? "border-clay-600 bg-clay-700 text-paper" : "border-clay-200 bg-paper text-ink-700 hover:border-clay-400"}`}>
               {name}
             </button>
           );

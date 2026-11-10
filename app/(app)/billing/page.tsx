@@ -795,7 +795,7 @@ export default function BillingPage() {
         <div className="inline-flex bg-white border border-clay-200 rounded-xl p-1">
           {(["AUD", "NZD"] as const).map(c => (
             <button key={c} onClick={() => setCurrency(c)}
-              className={`min-h-[44px] px-4 py-1.5 text-xs font-semibold rounded-lg transition-all sm:min-h-0 ${currency === c ? "bg-clay-700 text-paper" : "text-ink-600"}`}>
+              className={`min-h-[44px] px-4 py-1.5 text-xs font-semibold rounded-lg transition-all ${currency === c ? "bg-clay-700 text-paper" : "text-ink-600"}`}>
               {c}
             </button>
           ))}

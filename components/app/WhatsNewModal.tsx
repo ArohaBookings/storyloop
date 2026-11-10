@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { BarChart3, BookOpen, Check, Copy, CreditCard, Gift, MessageCircleHeart, RefreshCw, ShieldCheck, Sparkles, Star, Sunrise, Users, X, Camera } from "lucide-react";
-import { WHATS_NEW_ITEMS, type WhatsNewItem } from "@/lib/whats-new";
+import { WHATS_NEW_ITEMS, type WhatsNewItem, whatsNewMonth } from "@/lib/whats-new";
 import { referredRewardText } from "@/lib/referrals";
 
 type State = {
@@ -134,7 +134,7 @@ export default function WhatsNewModal() {
           <div className="min-h-0 overflow-y-auto px-5 pb-6 pt-10 sm:px-7">
             <h2 className="text-center font-display text-2xl font-bold text-ink-900">What&apos;s new in StoryLoop</h2>
             <p className="mx-auto mt-2 max-w-lg text-center text-sm leading-relaxed text-ink-600">
-              What arrived in September. You will only see this once.
+              What arrived in {whatsNewMonth()}. You will only see this once.
             </p>
             <div className="mt-7 grid gap-5 sm:grid-cols-2">
               {WHATS_NEW_ITEMS.map((item) => {

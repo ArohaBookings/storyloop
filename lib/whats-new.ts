@@ -6,6 +6,16 @@
  */
 export const WHATS_NEW_VERSION = "2026-11b";
 
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+/**
+ * The month the card names, read from the version. The card said "What arrived
+ * in September" for two months after September, over November's features
+ * (found 10 Nov 2026): the month was typed into the page and nobody changed it.
+ */
+export function whatsNewMonth(version: string = WHATS_NEW_VERSION): string {
+  return MONTHS[Number(version.slice(5, 7)) - 1] ?? "the last few weeks";
+}
+
 /**
  * The day these notes were published (NZ). Bump it together with the version
  * whenever the notes are rewritten.

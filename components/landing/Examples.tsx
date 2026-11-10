@@ -66,7 +66,7 @@ export default function Examples() {
                 </p>
                 <DraftStory story={example.story.split(/\n\s*What learning (?:we|I) noticed/i)[0]} note={example.note} />
                 <details className="group mt-2">
-                  <summary className="cursor-pointer list-none text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4">
+                  <summary className="flex min-h-[44px] cursor-pointer list-none items-center text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4">
                     <span className="group-open:hidden">Show the learning, curriculum links and next steps</span>
                     <span className="hidden group-open:inline">Hide the rest of the draft</span>
                   </summary>

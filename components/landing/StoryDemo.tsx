@@ -233,10 +233,10 @@ export default function StoryDemo({
 
   const isUnchangedExample = !guide && input.trim() === example.note.trim();
 
-  /** On a phone the story panel sits below the box: bring it into view when it starts writing. */
+  /** On a phone the story panel sits below the box: bring it to the top of the screen when it starts writing. */
   const showStoryPanel = () => {
     if (typeof window === "undefined" || window.innerWidth >= 640) return;
-    window.setTimeout(() => document.getElementById(guide ? "guide-demo-story" : "demo-story")?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 60);
+    window.setTimeout(() => document.getElementById(guide ? "guide-demo-story" : "demo-story")?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
   };
 
   const playExample = async () => {
