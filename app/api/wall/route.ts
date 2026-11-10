@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
-import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getAccessProfile } from "@/lib/supabase/profiles";
 import { hasFeatureAccess } from "@/lib/plans";
 import { buildWallCard, generateWallCode, isWallCode, type PublicWallCard, type ScrubReport } from "@/lib/wall-card";
 import { translateWallCard } from "@/lib/wall-translate";
@@ -27,7 +27,7 @@ async function requireEducator() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) } as const;
-  const profile = await getOrCreateProfile(user);
+  const profile = await getAccessProfile(user);
   if (!hasFeatureAccess(profile.plan, "wallCards")) {
     return { error: NextResponse.json({ error: "Wall cards are on paid plans.", feature: "wall-cards" }, { status: 403 }) } as const;
   }

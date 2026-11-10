@@ -4,7 +4,7 @@ import ChildProfileManager from "@/components/app/ChildProfileManager";
 import QuietChildRadarPanel from "@/components/app/QuietChildRadarPanel";
 import type { ChildProfile } from "@/lib/children";
 import { createClient } from "@/lib/supabase/server";
-import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getAccessProfile } from "@/lib/supabase/profiles";
 import { hasFeatureAccess } from "@/lib/plans";
 import { buildQuietChildRadar } from "@/lib/quiet-radar";
 import { isMissingTermSettingsColumn, parseTermSettings } from "@/lib/term-settings";
@@ -33,7 +33,7 @@ export default async function ChildrenPage() {
   // the child profiles page exactly as it was, never broken.
   let radarPanel: ReactNode = null;
   try {
-    const profile = await getOrCreateProfile(user);
+    const profile = await getAccessProfile(user);
     const hasAccess = hasFeatureAccess(profile.plan, "quietChildRadar");
 
     // term_settings is read on its own, never through the shared profile

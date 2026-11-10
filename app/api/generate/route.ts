@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { generateLearningStory, StoryWriterUnavailableError } from "@/lib/ai/generate";
 import { generateInternationalStory } from "@/lib/ai/international-story";
 import { frameworkForCountry, isInternationalFramework, normalizeAnyFramework } from "@/lib/international-frameworks";
-import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getAccessProfile } from "@/lib/supabase/profiles";
 import { getMonthlyStoryLimit, getRemainingStories } from "@/lib/story-limits";
 import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
 import { hasFeatureAccess } from "@/lib/plans";
@@ -238,7 +238,7 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Sign in to generate stories" }, { status: 401 });
 
-    const profile = await getOrCreateProfile(user);
+    const profile = await getAccessProfile(user);
     if (profile.is_active === false) {
       return NextResponse.json({ error: "Your account has been disabled. Contact support." }, { status: 403 });
     }

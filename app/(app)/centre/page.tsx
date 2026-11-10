@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { Building2, Check, Copy, Loader2, Mail, ShieldCheck, UserPlus } from "lucide-react";
+import StartCentreMonth from "@/components/app/StartCentreMonth";
 
 type Member = {
   user_id: string;
@@ -170,6 +171,22 @@ export default function CentrePage() {
         </div>
       ) : (
         <div className="space-y-5">
+          {/* A centre named before its plan started has one seat (the leader's own).
+              Say how the team's seats arrive, with the button, instead of leaving
+              "all seats are in use" as the only thing on the page. */}
+          {isLeader && !centre.plan && (
+            <div className="card border-sage-200 bg-sage-50 p-5" data-testid="centre-start-month">
+              <h2 className="font-display text-lg font-bold text-ink-900">Start your centre&apos;s free month to bring your team in</h2>
+              <p className="mt-1 text-sm leading-relaxed text-ink-700">
+                30 days free, with no card. Up to 10 educators and every child. Everyone you invite then has unlimited
+                stories and everything on the centre plan, at no cost to them. If it is not for you, do nothing: the
+                month ends and nothing is charged.
+              </p>
+              <div className="mt-3">
+                <StartCentreMonth from="centre" />
+              </div>
+            </div>
+          )}
           <div className="card flex flex-wrap items-center justify-between gap-3 p-5">
             <div>
               <p className="text-sm text-ink-600">
@@ -232,7 +249,11 @@ export default function CentrePage() {
                   </button>
                 </div>
                 {centre.seatsRemaining <= 0 && (
-                  <p className="mt-2 text-xs text-clay-700">All seats are in use. Free one up or move to a larger plan.</p>
+                  <p className="mt-2 text-xs text-clay-700">
+                    {centre.plan
+                      ? "All seats are in use. Free one up or move to a larger plan."
+                      : "Seats for your team come with the centre plan. Start the free month above, then invite them here."}
+                  </p>
                 )}
               </div>
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getAccessProfile } from "@/lib/supabase/profiles";
 import { hasFeatureAccess } from "@/lib/plans";
 
 /**
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const profile = await getOrCreateProfile(user);
+  const profile = await getAccessProfile(user);
   if (!hasFeatureAccess(profile.plan, "childVoice")) {
     return NextResponse.json({ error: "Children's own words is on paid plans." }, { status: 403 });
   }

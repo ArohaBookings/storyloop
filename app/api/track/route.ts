@@ -18,6 +18,9 @@ const ALLOWED_EVENTS = new Set([
   "leader_check_opened",
   "leader_check_answered",
   "leader_check_centre_click",
+  // 10 Nov 2026: the homepage demo's button pressed on an empty box (it now plays the example), and the in-app centre month.
+  "demo_empty_tap",
+  "centre_month_click",
   // Room mode (lib/room-mode.ts): one long voice note, counted once when its transcript is ready.
   "room_session",
   "demo_started",

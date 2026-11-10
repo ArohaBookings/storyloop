@@ -1,6 +1,7 @@
 import type { User } from "@supabase/supabase-js";
 import { createAdminSupabase } from "./admin";
 import { sanitizeStoryPreferences, type StoryPreferences } from "@/lib/story-options";
+import { getCentreCover } from "@/lib/centres";
 
 export type AppProfile = {
   id: string;
@@ -103,4 +104,31 @@ export async function getOrCreateProfile(user: Pick<User, "id" | "email" | "user
   if (createError) throw createError;
 
   return normaliseProfileRecord(created);
+}
+
+export type AccessProfile = AppProfile & {
+  /** Set when the plan below is the educator's centre's, not their own. */
+  plan_via_centre: { centreId: string; centreName: string } | null;
+};
+
+/**
+ * The profile to decide ACCESS with: what this educator may use right now.
+ *
+ * The same as getOrCreateProfile, except that an educator on the free plan who
+ * belongs to a centre on a live centre plan is given that plan (see
+ * centreCover in lib/centres.ts). Use this for limits and feature gates. Use
+ * getOrCreateProfile for anything about the educator's OWN money: checkout,
+ * plan changes, cards, receipts, referral credit. Their own subscription fields
+ * are never touched here.
+ */
+export async function getAccessProfile(user: Pick<User, "id" | "email" | "user_metadata">): Promise<AccessProfile> {
+  const profile = await getOrCreateProfile(user);
+  const cover = await getCentreCover(profile.id, profile.plan);
+  if (!cover) return { ...profile, plan_via_centre: null };
+  return {
+    ...profile,
+    plan: cover.plan,
+    subscription_status: "active",
+    plan_via_centre: { centreId: cover.centreId, centreName: cover.centreName },
+  };
 }

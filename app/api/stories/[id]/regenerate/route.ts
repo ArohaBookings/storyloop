@@ -5,7 +5,7 @@ import { generateLearningStory, StoryWriterUnavailableError } from "@/lib/ai/gen
 import { generateInternationalStory } from "@/lib/ai/international-story";
 import { isInternationalFramework, normalizeAnyFramework } from "@/lib/international-frameworks";
 import { createClient } from "@/lib/supabase/server";
-import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getAccessProfile } from "@/lib/supabase/profiles";
 import { getMonthlyStoryLimit, getRemainingStories } from "@/lib/story-limits";
 import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
 import { normalizePlanKey } from "@/lib/plans";
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "Sign in to regenerate stories" }, { status: 401 });
     }
 
-    const profile = await getOrCreateProfile(user);
+    const profile = await getAccessProfile(user);
     if (profile.is_active === false) {
       return NextResponse.json({ error: "Your account has been disabled. Contact support." }, { status: 403 });
     }

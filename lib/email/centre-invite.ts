@@ -51,6 +51,7 @@ export async function sendCentreInviteEmail(opts: {
         <tr><td style="padding:28px;">
           <div style="font-size:15px;line-height:1.72;color:#3a332f;">
             <p style="margin:0 0 14px;">${esc(inviter)} has invited you to join <strong>${esc(centre)}</strong> on StoryLoop, which turns a rough observation or a voice note into an editable learning story draft.</p>
+            <p style="margin:0 0 14px;"><strong>Nothing for you to pay.</strong> ${esc(centre)}&#39;s plan covers you: unlimited stories and everything on the centre plan while you are part of the team.</p>
             <p style="margin:0 0 14px;"><strong>Your drafts stay yours.</strong> Joining a centre lets leadership see that you are writing and when. It does not let them read what you wrote, unless you turn sharing on yourself, and you can turn it off again whenever you like.</p>
           </div>
           <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:22px;">
@@ -71,6 +72,8 @@ export async function sendCentreInviteEmail(opts: {
     `${inviter} has invited you to join ${centre} on StoryLoop.`,
     "",
     "StoryLoop turns a rough observation or voice note into an editable learning story draft.",
+    "",
+    `Nothing for you to pay. ${centre}'s plan covers you: unlimited stories and everything on the centre plan while you are part of the team.`,
     "",
     "Your drafts stay yours. Joining a centre lets leadership see that you are writing and when.",
     "It does not let them read what you wrote unless you turn sharing on yourself.",

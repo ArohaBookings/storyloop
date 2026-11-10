@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getAccessProfile } from "@/lib/supabase/profiles";
 import { hasFeatureAccess, requiredPlanForFeature } from "@/lib/plans";
 
 type RouteContext = {
@@ -113,7 +113,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (!user) {
       return NextResponse.json({ error: "Sign in to edit stories" }, { status: 401 });
     }
-    const profile = await getOrCreateProfile(user);
+    const profile = await getAccessProfile(user);
 
     if (whanauVoice !== undefined && !hasFeatureAccess(profile.plan, "familyReplyLoop")) {
       return NextResponse.json({

@@ -127,9 +127,10 @@ export default function FeaturesPage() {
             </div>
             <ul className="grid min-w-0 gap-3 sm:grid-cols-2">
               {group.items.map((item) => (
-                <li key={item.name} className="flex flex-col rounded-3xl border border-clay-100 bg-paper p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="font-display text-lg font-bold leading-snug text-ink-900">{item.name}</h3>
+                <li key={item.name} className="flex min-w-0 flex-col rounded-3xl border border-clay-100 bg-paper p-5">
+                  {/* Wraps under the name on the narrowest phones (320px), where the plan badge hung off the card. */}
+                  <div className="flex min-w-0 flex-wrap items-start justify-between gap-x-3 gap-y-1.5">
+                    <h3 className="min-w-0 font-display text-lg font-bold leading-snug text-ink-900">{item.name}</h3>
                     <span className={`flex-none rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider ${
                       planBadge(item.key) === "Every plan" ? "bg-sage-100 text-sage-800" : "bg-clay-100 text-clay-800"
                     }`}>

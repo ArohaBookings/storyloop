@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getAccessProfile } from "@/lib/supabase/profiles";
 import { STORY_FRAMEWORKS, normalizeFramework } from "@/lib/story-options";
 import { INTERNATIONAL_FRAMEWORKS, isInternationalFramework, normalizeAnyFramework } from "@/lib/international-frameworks";
 import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Sign in to use voice notes." }, { status: 401 });
     }
 
-    const profile = await getOrCreateProfile(user);
+    const profile = await getAccessProfile(user);
     if (profile.is_active === false) {
       return NextResponse.json({ error: "Your account has been disabled. Contact support." }, { status: 403 });
     }

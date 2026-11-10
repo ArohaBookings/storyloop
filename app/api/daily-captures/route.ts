@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getAccessProfile } from "@/lib/supabase/profiles";
 import { monthStartIso, todayCaptureAllowance } from "@/lib/today-loop";
 
 const CAPTURE_SELECT =
@@ -16,7 +16,7 @@ export async function GET() {
     return NextResponse.json({ error: "Sign in to view Today Loop" }, { status: 401 });
   }
 
-  const profile = await getOrCreateProfile(user);
+  const profile = await getAccessProfile(user);
   const [{ data, error }, { count }] = await Promise.all([
     supabase
       .from("daily_captures")
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Add one real detail before saving this moment." }, { status: 400 });
   }
 
-  const profile = await getOrCreateProfile(user);
+  const profile = await getAccessProfile(user);
   const { count } = await supabase
     .from("daily_captures")
     .select("id", { count: "exact", head: true })

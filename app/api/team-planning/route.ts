@@ -7,7 +7,7 @@ import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
 import { hasFeatureAccess, requiredPlanForFeature } from "@/lib/plans";
 import { buildPlanningBoard } from "@/lib/planning-board";
 import { createClient } from "@/lib/supabase/server";
-import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getAccessProfile } from "@/lib/supabase/profiles";
 import { normalizeAnyFramework } from "@/lib/international-frameworks";
 
 function asRecord(value: unknown) {
@@ -20,7 +20,7 @@ export async function POST() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Sign in to create a planning brief" }, { status: 401 });
 
-    const profile = await getOrCreateProfile(user);
+    const profile = await getAccessProfile(user);
     if (isBillingBlocked(profile)) {
       return NextResponse.json(billingBlockPayload(profile), { status: 402 });
     }

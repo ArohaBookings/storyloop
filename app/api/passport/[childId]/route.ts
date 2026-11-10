@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getAccessProfile } from "@/lib/supabase/profiles";
 import { hasFeatureAccess } from "@/lib/plans";
 import { localDate } from "@/lib/terms";
 import { isMissingTermSettingsColumn, parseTermSettings } from "@/lib/term-settings";
@@ -33,7 +33,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ chi
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const profile = await getOrCreateProfile(user);
+  const profile = await getAccessProfile(user);
   if (!hasFeatureAccess(profile.plan, "learningPassport")) {
     return NextResponse.json({ error: "The learning passport is on paid plans." }, { status: 403 });
   }

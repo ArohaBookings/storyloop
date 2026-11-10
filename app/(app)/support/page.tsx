@@ -72,7 +72,10 @@ export default function SupportPage() {
         </div>
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+      {/* min-w-0 on each card: a long share link otherwise widens the column past a
+          phone's screen and the whole card hangs off the side (found 10 Nov 2026 at
+          320 to 810px wide). */}
+      <div className="mt-6 grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
         <ReferralCard />
         <CentreReferralCard />
         <LearningIndexConsent />

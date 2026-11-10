@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getAccessProfile } from "@/lib/supabase/profiles";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { KEEP_STORY_MAX_AGE_MS, cleanKeptStory, keptStoryTitle } from "@/lib/keep-story";
 
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
   const allowed = await consumeRateLimit({ scope: "keep-story", key: user.id, limit: 3, windowSeconds: 86_400 });
   if (!allowed) return NextResponse.json({ error: "Try again tomorrow.", code: "rate_limited" }, { status: 429 });
 
-  const profile = await getOrCreateProfile(user);
+  const profile = await getAccessProfile(user);
   const { data: saved, error } = await supabase
     .from("stories")
     .insert({

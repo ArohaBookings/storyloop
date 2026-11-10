@@ -30,7 +30,10 @@ export default function HomeDemo() {
           <h2 className="text-center font-display text-3xl font-bold leading-tight text-ink-900 text-balance md:text-4xl">
             Try it with your own note
           </h2>
-          <p className="mx-auto mt-2 max-w-xl text-center text-sm leading-relaxed text-ink-600 md:text-base">
+          {/* Phones skip this line (10 Nov 2026): the button under it already says
+              "nothing to type" and the box says "no signup, first names only", and
+              three instructions in a row pushed the first thing to press 1.5 screens down. */}
+          <p className="mx-auto mt-2 hidden max-w-xl text-center text-sm leading-relaxed text-ink-600 sm:block md:text-base">
             No signup. Type a few lines from your day (first names only), or tap &ldquo;Use an example&rdquo;.
           </p>
           <div className="mt-6">

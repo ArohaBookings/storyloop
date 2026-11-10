@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getAccessProfile } from "@/lib/supabase/profiles";
 import { hasFeatureAccess } from "@/lib/plans";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { StoryWriterUnavailableError } from "@/lib/ai/generate";
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     );
   }
 
-  const profile = await getOrCreateProfile(user);
+  const profile = await getAccessProfile(user);
   const paid = hasFeatureAccess(profile.plan, "transitionPack");
   const allowed = await consumeRateLimit(
     paid

@@ -1,10 +1,11 @@
 "use client";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Sparkles, Loader2, Copy, Check, HelpCircle, ListChecks, Quote } from "lucide-react";
 import Link from "next/link";
 import GeneratingIndicator from "@/components/app/GeneratingIndicator";
 import { track } from "@/lib/analytics/client";
 import { frameworkFromStory, rememberStory } from "@/lib/keep-story";
+import { heroRegionForZone } from "@/lib/hero-proofs";
 
 const PLACEHOLDER = `For example:
 • Noah (3yo) filled a bucket with damp sand
@@ -76,11 +77,16 @@ const EXAMPLE_EVIDENCE: Evidence = {
   ],
 };
 
+/** Australia's example. Aotearoa, England and Ireland load theirs from lib/demo-examples.ts. */
+const AU_EXAMPLE = { note: SAMPLE, story: EXAMPLE_OUTPUT, evidence: EXAMPLE_EVIDENCE };
+
 /** How long the unchanged example "writes" for before the draft appears. */
 const EXAMPLE_WRITE_MS = 2200;
 
 type Clarify = { reason: string; questions: string[] };
 type Evidence = { anchors: string[]; checks: string[] };
+/** One canned example: a real note, and exactly what StoryLoop wrote from it. */
+type Example = { note: string; story: string; evidence: Evidence };
 
 function stringList(value: unknown, max = 6): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0).slice(0, max) : [];
@@ -198,31 +204,76 @@ export default function StoryDemo({
   // panel moves above the box and they see it being written without scrolling.
   const [exampleFirst, setExampleFirst] = useState(false);
 
-  const isUnchangedExample = !guide && input.trim() === SAMPLE.trim();
+  // The example in the visitor's own curriculum (lib/demo-examples.ts). Australia's
+  // is in this file; Aotearoa, England and Ireland load theirs after the page is up,
+  // so the first screen carries none of it. Guides never play a canned example.
+  const [example, setExample] = useState<Example>(AU_EXAMPLE);
+  const regional = useRef<Promise<Example> | null>(null);
+  const loadExample = () => {
+    regional.current ??= (async () => {
+      let region = "AU";
+      try { region = heroRegionForZone(Intl.DateTimeFormat().resolvedOptions().timeZone ?? ""); } catch { /* keep Australia */ }
+      if (guide || region === "AU") return AU_EXAMPLE;
+      try {
+        const { DEMO_EXAMPLES } = await import("@/lib/demo-examples");
+        const found = DEMO_EXAMPLES[region as "NZ" | "UK" | "IE"];
+        return found ? { note: found.note, story: found.story, evidence: { anchors: found.anchors, checks: found.checks } } : AU_EXAMPLE;
+      } catch {
+        return AU_EXAMPLE; // offline or a failed chunk: the Australian example still plays
+      }
+    })();
+    return regional.current;
+  };
+  useEffect(() => {
+    let live = true;
+    void loadExample().then((found) => { if (live) setExample(found); });
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const isUnchangedExample = !guide && input.trim() === example.note.trim();
+
+  /** On a phone the story panel sits below the box: bring it into view when it starts writing. */
+  const showStoryPanel = () => {
+    if (typeof window === "undefined" || window.innerWidth >= 640) return;
+    window.setTimeout(() => document.getElementById(guide ? "guide-demo-story" : "demo-story")?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 60);
+  };
 
   const playExample = async () => {
-    setInput(SAMPLE); setTouched(false);
+    const chosen = await loadExample();
+    setExample(chosen);
+    setInput(chosen.note); setTouched(false);
     setLoading(true); setError(""); setOutput(""); setClarify(null);
     track("demo_example_played");
     await new Promise((resolve) => setTimeout(resolve, EXAMPLE_WRITE_MS));
-    setOutput(EXAMPLE_OUTPUT);
-    setOutputNote(SAMPLE);
-    setEvidence(EXAMPLE_EVIDENCE);
+    setOutput(chosen.story);
+    setOutputNote(chosen.note);
+    setEvidence(chosen.evidence);
     setLoading(false);
   };
 
   const handleGenerate = async (proceedWithoutClarification = false) => {
     if (!input.trim()) {
-      // The button stays pressable on an empty box: a disabled button that
-      // looks ready reads as broken. Say what to do and put them in the box.
-      setError(guide ? "Type a few lines about one child first." : "Type a few lines first, or tap \"Use an example\".");
-      document.getElementById(guide ? "guide-demo-note" : "demo-note")?.focus();
+      // An empty box. On a guide, say what to do and put them in the box. On the
+      // homepage, show them one instead (10 Nov 2026): in two weeks, 8 of the 20
+      // visitors who pressed this button had typed nothing, and all 8 got an
+      // error where they had asked to see a story. It plays the real example,
+      // costs nothing and does not use their free try.
+      if (guide) {
+        setError("Type a few lines about one child first.");
+        document.getElementById("guide-demo-note")?.focus();
+        return;
+      }
+      track("demo_empty_tap");
+      showStoryPanel();
+      await playExample();
       return;
     }
 
     // The unchanged example: the real draft for this exact note, shown after
     // a short write. No model call, no cost, and it does not use the free try.
     if (isUnchangedExample) {
+      showStoryPanel();
       await playExample();
       return;
     }
@@ -234,6 +285,7 @@ export default function StoryDemo({
       return;
     }
     setLoading(true); setError(""); setOutput(""); setClarify(null);
+    showStoryPanel();
     track("demo_started", { inputWords: input.trim().split(/\s+/).length, prefilled: !touched, surface });
     try {
       const res = await fetch("/api/generate", {
@@ -276,7 +328,7 @@ export default function StoryDemo({
     rememberStory(outputNote, output, framework ?? frameworkFromStory(output));
     track("keep_story_clicked", { surface });
   };
-  const ownDraft = Boolean(output) && !(outputNote === SAMPLE && output === EXAMPLE_OUTPUT);
+  const ownDraft = Boolean(output) && !(outputNote === example.note && output === example.story);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(output);
@@ -316,10 +368,10 @@ export default function StoryDemo({
               type="button"
               onClick={() => {
                 if (isUnchangedExample) { setInput(""); setTouched(true); }
-                else { setInput(SAMPLE); setTouched(false); track("demo_example_loaded"); }
+                else { setInput(example.note); setTouched(false); track("demo_example_loaded"); }
                 setError(""); setClarify(null);
               }}
-              className="text-xs font-bold text-clay-700 hover:text-clay-900"
+              className="-my-2 inline-flex min-h-[44px] flex-none items-center text-xs font-bold text-clay-700 hover:text-clay-900"
               data-track={isUnchangedExample ? "demo_clear_example" : "demo_use_example"}
             >
               {isUnchangedExample ? "Clear it" : "Use an example"}
@@ -367,7 +419,8 @@ export default function StoryDemo({
       </div>
 
       {/* --------------------------------------------------------- output */}
-      <div className={`story-safe card-warm relative flex min-w-0 max-w-full flex-col overflow-hidden p-5 sm:p-6 ${exampleFirst ? "order-first sm:order-none" : ""}`}
+      <div id={guide ? "guide-demo-story" : "demo-story"}
+           className={`story-safe card-warm relative flex min-w-0 max-w-full scroll-mt-24 flex-col overflow-hidden p-5 sm:p-6 ${exampleFirst ? "order-first sm:order-none" : ""}`}
            style={{ minHeight: compact ? 240 : 300 }}>
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <label className="section-title">Your learning story</label>
@@ -427,7 +480,7 @@ export default function StoryDemo({
               <Quote className="h-3.5 w-3.5 text-sage-600" />
               Highlighted: the child&apos;s words, exactly as the note has them.
             </p>
-            <EvidencePanel evidence={evidence} onOpen={() => track("demo_evidence_opened", { example: outputNote === SAMPLE })} />
+            <EvidencePanel evidence={evidence} onOpen={() => track("demo_evidence_opened", { example: outputNote === example.note })} />
             <div className="mt-4 border-t border-clay-200 pt-4 text-center">
               {ownDraft ? (
                 <>

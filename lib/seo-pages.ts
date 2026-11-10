@@ -1127,11 +1127,16 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     image: { src: "/images/scenes/team.jpg", alt: "Three educators planning together around a low table with a laptop showing StoryLoop", position: "50% 55%" },
     title: "Learning story software for ECE centres",
     description:
-      "Documentation support for a whole early childhood team: unlimited children, a reliever brief, an evidence pack, and planning built from real stories.",
-    kicker: "For directors and owners",
-    heading: "Your team's documentation, without buying their diary.",
+      "For early childhood centres: learning stories, end-of-year summaries and transition statements written from your team's own notes. 30 days free, no card.",
+    kicker: "For directors, owners and head teachers",
+    // 10 Nov 2026. The page used to open with what leadership cannot see ("without
+    // buying their diary"), a promise to educators made to the person who pays. In
+    // 30 days 20 people opened it, one pressed the offer, and half left inside four
+    // seconds. It now opens with what the buyer came for; the sharing rule is still
+    // here, unchanged, further down.
+    heading: "Every child documented. Nobody writing at 9pm.",
     intro:
-      "A centre plan covers every educator and every child for one flat price. Leadership sees who is documenting and when. It never sees what an educator wrote unless that educator turns sharing on, because buying the seats should not buy the diary.",
+      "Your educators jot a note after play. StoryLoop writes the learning story from it, and at the end of the year turns each child's saved stories into their summary or transition statement. You see who is documenting and which children are thin, and you can check a story in two minutes. One flat price for the whole team, 30 days free, no card.",
     reviewedAt: "2026-11-10",
     sections: [
       {
@@ -1139,9 +1144,22 @@ export const SEO_PAGES: Record<string, SeoPage> = {
         body: "An educator can send you a private link to one story. You see the note they wrote beside the story drafted from it, and answer that it looks good or suggest a change. The link opens that one story for 14 days, the educator can cancel it, and you do not need to sign up to look.",
       },
       {
+        title: "The end of the year, on one page",
+        body: "The year in one tap lists every child with the stories written about them this year, the thinnest first, so nobody is missed. From there each child's saved stories become their end-of-year summary or transition statement in one step, with their own words kept, and a handover sheet prints for next year's teacher.",
+      },
+      {
+        title: "Your whole team, the moment you invite them",
+        body: "Invite your educators from My centre and each one has unlimited stories and everything on the centre plan straight away, with their own login and nothing to pay. Seats follow your plan: 10 on Centre Starter, 25 on Centre Growth.",
+      },
+      {
         title: "One price, unlimited children",
         body:
           "Centre Starter is NZ$109 or A$99 a month for up to 10 educators, Centre Growth NZ$219 or A$199 for up to 25. Enrol twenty more tamariki and the price does not move. Per educator that is roughly half the individual plan.",
+      },
+      {
+        title: "If your service keeps documentation short",
+        body:
+          "In Australia, ACECQA says in writing that the National Law and Regulations do not prescribe how much documentation there is or what it looks like. If your team writes little, set stories to concise and use StoryLoop for what still has to be written well: each child's summary, the transition statement and the plain-words note to families. All of it starts from the notes your educators already take.",
       },
       {
         title: "The evidence, without the fortnight before the visit",
@@ -1191,6 +1209,10 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       {
         label: "ACECQA Guide to the NQF: Standard 1.3 Assessment and planning",
         url: "https://www.acecqa.gov.au/national-quality-framework/guide-nqf/section-3-national-quality-standard-and-assessment-and-rating/quality-area-1-educational-program-and-practice/standard-13-assessment-and-planning",
+      },
+      {
+        label: "ACECQA: QA1 Educational program documentation for approved providers (early childhood)",
+        url: "https://www.acecqa.gov.au/nqf/national-quality-standard/quality-area-1-educational-program-and-practice/information-sheets-quality-area-1/qa1-educational-program-documentation-approved-providers-early-childhood",
       },
       {
         label: "Education Review Office: how ERO reviews early childhood services",

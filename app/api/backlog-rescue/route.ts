@@ -7,7 +7,7 @@ import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
 import { hasFeatureAccess, requiredPlanForFeature } from "@/lib/plans";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
-import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getAccessProfile } from "@/lib/supabase/profiles";
 import { mergeStoryPreferences, sanitizeStoryPreferences } from "@/lib/story-options";
 import { normalizeAnyFramework } from "@/lib/international-frameworks";
 
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const profile = await getOrCreateProfile(user);
+    const profile = await getAccessProfile(user);
     if (isBillingBlocked(profile)) {
       return NextResponse.json(billingBlockPayload(profile), { status: 402 });
     }

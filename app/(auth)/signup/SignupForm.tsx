@@ -352,7 +352,7 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
               <button
                 type="button"
                 onClick={() => setShowAccessCode(true)}
-                className="text-xs font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900"
+                className="-my-2 inline-flex min-h-[44px] items-center text-xs font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900"
               >
                 Have an access code?
               </button>

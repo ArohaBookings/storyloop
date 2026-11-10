@@ -13,6 +13,7 @@ import InternationalTry from "@/components/marketing/InternationalTry";
 import TransitionDemo from "@/components/marketing/TransitionDemo";
 import type { TransitionFramework, TransitionMode } from "@/lib/ai/transition-draft";
 import PrintableCard from "@/components/marketing/PrintableCard";
+import CentreMonthBand from "@/components/marketing/CentreMonthBand";
 import { RelatedGuides } from "@/components/marketing/Guide";
 import { SLUG_PRINTABLES, relatedFor } from "@/components/marketing/guide-links";
 import { INTERNATIONAL_SLUG_FRAMEWORK } from "@/lib/seo-pages-international";
@@ -431,6 +432,9 @@ export default async function SeoPage({ params }: PageProps) {
             </div>
           </section>
         )}
+        {TRANSITION_DEMOS[page.slug] && (
+          <CentreMonthBand what={TRANSITION_DEMOS[page.slug].mode === "summary" ? "summaries" : "statements"} />
+        )}
 
         {/* England and Ireland guides: the demo in their own curriculum. */}
         {INTERNATIONAL_SLUG_FRAMEWORK[page.slug] && (
@@ -538,7 +542,7 @@ export default async function SeoPage({ params }: PageProps) {
             <div className="space-y-3">
               {page.faqs.map((faq) => (
                 <details key={faq.question} className="card p-5 group">
-                  <summary className="font-semibold text-ink-900 text-sm list-none flex items-center justify-between gap-4 cursor-pointer">
+                  <summary className="font-semibold text-ink-900 text-sm list-none flex min-h-[44px] items-center justify-between gap-4 cursor-pointer">
                     {faq.question}
                     <span className="text-clay-500 text-xl flex-shrink-0 group-open:rotate-45 transition-transform">+</span>
                   </summary>

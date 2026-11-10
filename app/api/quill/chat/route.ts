@@ -4,7 +4,7 @@ export const maxDuration = 30;
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
-import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getAccessProfile } from "@/lib/supabase/profiles";
 import { isBillingBlocked, billingBlockPayload } from "@/lib/billing-access";
 import { hasFeatureAccess, normalizePlanKey, EDUCATOR_ASSISTANT_MONTHLY } from "@/lib/plans";
 import { consumeRateLimit } from "@/lib/rate-limit";
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Sign in to use Quill" }, { status: 401 });
 
-    const profile = await getOrCreateProfile(user);
+    const profile = await getAccessProfile(user);
     if (isBillingBlocked(profile)) return NextResponse.json(billingBlockPayload(profile), { status: 402 });
 
     const plan = profile.plan ?? "free";

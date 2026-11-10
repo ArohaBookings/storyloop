@@ -8,6 +8,7 @@ import { formatDate } from "./billing";
 import { createStripe } from "@/lib/stripe-client";
 import { abandonedCheckoutCandidates, stillAbandoned } from "@/lib/abandoned-checkout";
 import { isCentrePlan } from "@/lib/centre-offer";
+import { listCoveredMemberIds } from "@/lib/centres";
 import { WINBACK_CLAIM_DAYS, WINBACK_OFFER_ID, longDay } from "@/lib/offers";
 import { ACTIVATION_COUPON_ID, ACTIVATION_MONTHS, ACTIVATION_PERCENT_OFF } from "@/lib/activation-offer";
 import { EMAIL_CLASS, HOLDS_EVERYTHING, inFreeDecisionWindow, orderCandidates } from "./brain";
@@ -272,7 +273,11 @@ export async function runLifecycleAutomation() {
   const sent: Array<{ type: LifecycleEmailType; status: string; reason?: string }> = [];
   const errors: string[] = [];
   const candidates: Candidate[] = [];
+  // Educators whose centre covers their plan are on the free plan in their own
+  // row. They are never asked to pay or sent a discount (lib/centres.ts centreCover).
+  const coveredByCentre = await listCoveredMemberIds();
   const consider = (row: ProfileEmailRow, type: LifecycleEmailType, since?: string, extra: Partial<Candidate> = {}) => {
+    if (coveredByCentre.has(row.id) && (EMAIL_CLASS[type] === "moment" || EMAIL_CLASS[type] === "offer")) return;
     // Tips wait while a free educator is deciding whether to pay (lib/email/brain.ts).
     if (EMAIL_CLASS[type] === "engagement" && inFreeDecisionWindow({ plan: row.plan, storiesThisMonth: row.stories_this_month, monthlyLimit: getMonthlyStoryLimit(row) })) return;
     candidates.push({ row, type, since, ...extra });

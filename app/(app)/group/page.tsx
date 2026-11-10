@@ -141,7 +141,7 @@ export default function GroupMomentPage() {
                 type="button"
                 aria-pressed={names.includes(child.name)}
                 onClick={() => toggle(child.name)}
-                className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors ${names.includes(child.name) ? "border-clay-700 bg-clay-700 text-paper" : mentioned.includes(child) ? "border-clay-400 bg-cream-50 text-ink-800" : "border-clay-200 bg-paper text-ink-600"}`}
+                className={`min-h-[44px] rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors sm:min-h-0 ${names.includes(child.name) ? "border-clay-700 bg-clay-700 text-paper" : mentioned.includes(child) ? "border-clay-400 bg-cream-50 text-ink-800" : "border-clay-200 bg-paper text-ink-600"}`}
               >
                 {child.name}
               </button>

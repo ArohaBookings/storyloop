@@ -3,7 +3,7 @@ import { redirectToLogin } from "@/lib/auth/login-redirect";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import DashboardNav from "@/components/app/DashboardNav";
-import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getAccessProfile } from "@/lib/supabase/profiles";
 import { isAdminEmail } from "@/lib/admin-session";
 import WhatsNewModal from "@/components/app/WhatsNewModal";
 import AppTopBar from "@/components/app/AppTopBar";
@@ -28,7 +28,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return redirectToLogin();
 
-  const profile = await getOrCreateProfile(user);
+  // What this educator may use, which for a free account in a centre is the centre's plan.
+  const profile = await getAccessProfile(user);
 
   if (profile.is_active === false) {
     redirect("/login?disabled=1");

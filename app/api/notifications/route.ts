@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
-import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getAccessProfile } from "@/lib/supabase/profiles";
 import { getMonthlyStoryLimit } from "@/lib/story-limits";
 import { hasFeatureAccess, normalizePlanKey } from "@/lib/plans";
 import { buildNotifications, mergeSeen, unseenCount, type NotificationFacts } from "@/lib/notifications";
@@ -41,7 +41,7 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "Sign in" }, { status: 401 });
 
   const admin = createAdminSupabase();
-  const profile = await getOrCreateProfile(user);
+  const profile = await getAccessProfile(user);
   const plan = normalizePlanKey(profile.plan);
   const now = new Date();
 

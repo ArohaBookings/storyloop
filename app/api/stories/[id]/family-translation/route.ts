@@ -6,7 +6,7 @@ import { generateFamilyTranslationPack } from "@/lib/ai/generate";
 import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
 import { hasFeatureAccess, requiredPlanForFeature } from "@/lib/plans";
 import { createClient } from "@/lib/supabase/server";
-import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getAccessProfile } from "@/lib/supabase/profiles";
 
 export async function POST(
   request: NextRequest,
@@ -24,7 +24,7 @@ export async function POST(
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Sign in to create a family translation" }, { status: 401 });
 
-    const profile = await getOrCreateProfile(user);
+    const profile = await getAccessProfile(user);
     if (isBillingBlocked(profile)) {
       return NextResponse.json(billingBlockPayload(profile), { status: 402 });
     }

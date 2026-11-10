@@ -494,6 +494,19 @@ export default function BillingPage() {
         </div>
       )}
 
+      {/* A free account in a centre is covered by the centre's plan (lib/centres.ts
+          centreCover). This page is about the educator's own money, and they have
+          none to pay, so say so before the plan cards. */}
+      {profile?.plan_via_centre && (
+        <div className="mb-6 rounded-3xl border border-sage-200 bg-sage-50 p-5" data-testid="covered-by-centre">
+          <p className="section-title mb-1">Your plan</p>
+          <h2 className="font-display text-xl font-bold text-ink-900">{profile.plan_via_centre.centreName} covers you.</h2>
+          <p className="mt-1 text-sm leading-relaxed text-ink-700">
+            You have nothing to pay and no card to add. Unlimited stories and everything on the centre plan are yours while you
+            are part of the team. If you leave the centre you go back to the free plan and keep every story you wrote.
+          </p>
+        </div>
+      )}
       {wantsWinback && winback?.eligible && currentPlan === "free" && (
         <div className="mb-8 rounded-3xl border border-clay-200 bg-gradient-to-br from-cream-100 via-white to-sage-50 p-5 shadow-warm" data-testid="winback-offer">
           <p className="section-title mb-2">Welcome back</p>
@@ -782,7 +795,7 @@ export default function BillingPage() {
         <div className="inline-flex bg-white border border-clay-200 rounded-xl p-1">
           {(["AUD", "NZD"] as const).map(c => (
             <button key={c} onClick={() => setCurrency(c)}
-              className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all ${currency === c ? "bg-clay-700 text-paper" : "text-ink-600"}`}>
+              className={`min-h-[44px] px-4 py-1.5 text-xs font-semibold rounded-lg transition-all sm:min-h-0 ${currency === c ? "bg-clay-700 text-paper" : "text-ink-600"}`}>
               {c}
             </button>
           ))}

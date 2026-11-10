@@ -194,7 +194,7 @@ export function CookiePreferencesButton({ className }: { className?: string }) {
   return (
     <button
       type="button"
-      className={className}
+      className={`inline-flex min-h-[44px] items-center sm:min-h-0 ${className ?? ""}`}
       onClick={() => window.dispatchEvent(new Event(CONSENT_OPEN))}
     >
       Cookie preferences

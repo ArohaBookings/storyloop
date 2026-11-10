@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { getAccessProfile } from "@/lib/supabase/profiles";
 import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { NOTES_PHOTO_MAX_BYTES, NOTES_PHOTO_TYPES, readNotesPhoto } from "@/lib/ai/read-notes";
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Sign in to add notes from a photo." }, { status: 401 });
 
-    const profile = await getOrCreateProfile(user);
+    const profile = await getAccessProfile(user);
     if (profile.is_active === false) {
       return NextResponse.json({ error: "Your account has been disabled. Contact support." }, { status: 403 });
     }

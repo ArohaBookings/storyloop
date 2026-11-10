@@ -1,0 +1,38 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { WORK_ROLES, cleanWorkRole, decidesForCentre, teamCardFor } from "../lib/work-role";
+
+const base = { role: null, stories: 5, plan: "free", coveredByCentre: false, dismissed: false } as const;
+
+test("only the four answers are accepted", () => {
+  for (const role of WORK_ROLES) assert.equal(cleanWorkRole(role), role);
+  for (const bad of ["admin", "Owner", "", null, undefined, 3, { role: "owner" }, "owner "]) assert.equal(cleanWorkRole(bad), null);
+});
+
+test("the question waits for the second story and is asked once", () => {
+  assert.equal(teamCardFor({ ...base, stories: 0 }), null);
+  assert.equal(teamCardFor({ ...base, stories: 1 }), null);
+  assert.equal(teamCardFor({ ...base, stories: 2 }), "ask");
+  assert.equal(teamCardFor({ ...base, role: "educator" }), null);
+  assert.equal(teamCardFor({ ...base, role: "student" }), null);
+});
+
+test("a leader or owner sees the centre month until they close it", () => {
+  assert.equal(decidesForCentre("leader"), true);
+  assert.equal(decidesForCentre("owner"), true);
+  assert.equal(decidesForCentre("educator"), false);
+  assert.equal(decidesForCentre(null), false);
+  assert.equal(teamCardFor({ ...base, role: "owner" }), "centre");
+  assert.equal(teamCardFor({ ...base, role: "leader", stories: 0 }), "centre");
+  assert.equal(teamCardFor({ ...base, role: "owner", dismissed: true }), null);
+  // A paying educator who leads a team is exactly who should see it.
+  assert.equal(teamCardFor({ ...base, role: "leader", plan: "educator" }), "centre");
+});
+
+test("nobody already on, or covered by, a centre plan is asked or offered anything", () => {
+  for (const role of [null, "owner", "leader", "educator"] as const) {
+    assert.equal(teamCardFor({ ...base, role, plan: "centre_starter" }), null);
+    assert.equal(teamCardFor({ ...base, role, plan: "centre_growth" }), null);
+    assert.equal(teamCardFor({ ...base, role, coveredByCentre: true }), null);
+  }
+});

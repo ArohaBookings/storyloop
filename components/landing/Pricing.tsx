@@ -43,7 +43,7 @@ export default function Pricing({ audience = "all" }: { audience?: "all" | "indi
           <div className="inline-flex bg-white border border-clay-200 rounded-xl p-1">
             {(["AUD", "NZD"] as const).map(c => (
               <button key={c} type="button" aria-pressed={currency === c} onClick={() => setCurrency(c)}
-                className={`px-5 py-1.5 text-sm font-semibold rounded-lg transition-all ${currency === c ? "bg-clay-700 text-paper shadow-warm" : "text-ink-600"}`}>
+                className={`min-h-[44px] px-5 py-1.5 text-sm font-semibold rounded-lg sm:min-h-0 transition-all ${currency === c ? "bg-clay-700 text-paper shadow-warm" : "text-ink-600"}`}>
                 {c === "AUD" ? "Australia" : "New Zealand"}
               </button>
             ))}

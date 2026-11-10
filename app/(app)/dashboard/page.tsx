@@ -13,6 +13,9 @@ import { PRO_MONTH_OFFER_ID, longDay } from "@/lib/offers";
 import TrackOnce from "@/components/analytics/TrackOnce";
 import AdsPaidConversion from "@/components/analytics/AdsPaidConversion";
 import QuietPayerNudge from "@/components/app/QuietPayerNudge";
+import { getCentreCover } from "@/lib/centres";
+import TeamCard from "@/components/app/TeamCard";
+import { CENTRE_CARD_DISMISSED_EVENT, ROLE_EVENT, cleanWorkRole, teamCardFor } from "@/lib/work-role";
 
 /** Stories, and days since the first, before StoryLoop asks for a review. */
 const REVIEW_ASK_MIN_STORIES = 4;
@@ -41,19 +44,24 @@ export default async function DashboardPage({
   ]);
 
   const firstName = profile?.full_name?.split(" ")[0] ?? "there";
-  const plan = profile?.plan ?? "free";
+  // A free account that belongs to a centre on a live centre plan is covered by
+  // it (lib/centres.ts centreCover): the dashboard must not tell that educator
+  // they have three stories left.
+  const cover = await getCentreCover(user.id, profile?.plan);
+  const access = cover && profile ? { ...profile, plan: cover.plan, subscription_status: "active" } : profile;
+  const plan = access?.plan ?? "free";
   // A paying educator who has gone quiet gets an in-app offer of a hand (never
   // an email): last story 14+ days ago, or none at all. See QuietPayerNudge.
   const lastStoryAt = recentStories?.[0]?.created_at ? new Date(recentStories[0].created_at).getTime() : null;
   const daysSinceStory = lastStoryAt === null ? null : Math.floor((Date.now() - lastStoryAt) / 86_400_000);
-  const payingNow = plan !== "free" && ["active", "trialing", "past_due"].includes(profile?.subscription_status ?? "");
+  const payingNow = !cover && plan !== "free" && ["active", "trialing", "past_due"].includes(profile?.subscription_status ?? "");
   const showQuietNudge = payingNow && (daysSinceStory === null || daysSinceStory >= 14);
   const used = profile?.stories_this_month ?? 0;
-  const limit = getMonthlyStoryLimit(profile ?? {});
-  const remaining = getRemainingStories(profile ?? {});
-  const allowanceLabel = getStoryAllowanceLabel(profile ?? {});
-  const billingBlocked = isBillingBlocked(profile ?? {});
-  const billingPastDue = isBillingPastDue(profile ?? {});
+  const limit = getMonthlyStoryLimit(access ?? {});
+  const remaining = getRemainingStories(access ?? {});
+  const allowanceLabel = getStoryAllowanceLabel(access ?? {});
+  const billingBlocked = isBillingBlocked(access ?? {});
+  const billingPastDue = isBillingPastDue(access ?? {});
   const upgraded = params?.upgraded === "true";
   // A centre that has just started its free month has bought nothing yet, and
   // its next step is its team, not its billing.
@@ -111,6 +119,30 @@ export default async function DashboardPage({
     console.error("Dashboard insights skipped:", error);
   }
 
+  // What this educator does, asked once (lib/work-role.ts). Best effort: any
+  // failure means no card today.
+  let teamCard: "ask" | "centre" | null = null;
+  try {
+    const { data: answers } = await createAdminSupabase()
+      .from("page_events")
+      .select("event_type, metadata, created_at")
+      .eq("user_id", user.id)
+      .in("event_type", [ROLE_EVENT, CENTRE_CARD_DISMISSED_EVENT])
+      .order("created_at", { ascending: false })
+      .limit(20);
+    const rows = answers ?? [];
+    const role = cleanWorkRole((rows.find((row) => row.event_type === ROLE_EVENT)?.metadata as { role?: unknown } | null)?.role);
+    teamCard = teamCardFor({
+      role,
+      stories: totalStories ?? 0,
+      plan,
+      coveredByCentre: Boolean(cover),
+      dismissed: rows.some((row) => row.event_type === CENTRE_CARD_DISMISSED_EVENT),
+    });
+  } catch {
+    teamCard = null;
+  }
+
   // The greeting in the educator's own time. This used the server's clock,
   // which runs on UTC: a kaiako opening StoryLoop at 9am in Auckland was
   // greeted "Good evening". Vercel sends the visitor's time zone.
@@ -162,6 +194,8 @@ export default async function DashboardPage({
       )}
 
       {showQuietNudge && !upgraded && <QuietPayerNudge firstName={firstName} daysSince={daysSinceStory} />}
+      {/* One card at a time: never beside the quiet-payer note or a billing problem. */}
+      {teamCard && !showQuietNudge && !upgraded && !billingBlocked && !billingPastDue && <TeamCard start={teamCard} />}
       {upgraded && !startedCentre && (
         <div className="mb-6 rounded-3xl border border-sage-200 bg-gradient-to-br from-sage-50 via-white to-cream-50 p-5 shadow-warm animate-fade-up">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -284,11 +318,13 @@ export default async function DashboardPage({
             // an Educator Pro subscriber read "Educator_pro".
             value: PLAN_DEFINITIONS.find((definition) => definition.key === normalizePlanKey(plan))?.name ?? "Free",
             icon: Clock,
-            sub: profile?.applied_access_code
-              ? `${profile.applied_access_code.toUpperCase()} complimentary access`
-              : plan === "free"
-                ? "Upgrade for more"
-                : "Active",
+            sub: cover
+              ? `Covered by ${cover.centreName}`
+              : profile?.applied_access_code
+                ? `${profile.applied_access_code.toUpperCase()} complimentary access`
+                : plan === "free"
+                  ? "Upgrade for more"
+                  : "Active",
           },
         ].map(({ label, value, icon: Icon, sub }) => (
           <div key={label} className="card p-5">

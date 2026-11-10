@@ -121,8 +121,8 @@ export default function LoginPage() {
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sign in"}
             </button>
             <div className="flex items-center justify-between gap-3 text-xs">
-              <Link href="/forgot-password" className="text-ink-500 hover:text-clay-700 hover:underline">Forgot your password?</Link>
-              <button type="button" onClick={() => setUseLink((value) => !value)} className="font-semibold text-clay-700 hover:underline">
+              <Link href="/forgot-password" className="inline-flex min-h-[44px] items-center text-ink-500 hover:text-clay-700 hover:underline">Forgot your password?</Link>
+              <button type="button" onClick={() => setUseLink((value) => !value)} className="inline-flex min-h-[44px] items-center text-right font-semibold text-clay-700 hover:underline">
                 {useLink ? "Hide" : "Email me a sign-in link instead"}
               </button>
             </div>

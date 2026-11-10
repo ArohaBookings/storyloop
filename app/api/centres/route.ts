@@ -124,14 +124,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Could not create the centre." }, { status: 500 });
     }
 
+    // Seats follow the owner's plan as it is now (lib/centres.ts liveSeatLimit),
+    // so the answer here is read back rather than taken from the row just written.
+    const live = await getCentre(centre.id);
+    const liveSeats = live?.seatLimit ?? 1;
     return NextResponse.json({
       centre: {
         id: centre.id,
         name: centre.name,
-        plan: centre.plan,
-        seatLimit: centre.seat_limit,
+        plan: live?.plan ?? null,
+        seatLimit: liveSeats,
         seatsUsed: 1,
-        seatsRemaining: seatsRemaining(centre.seat_limit, 1),
+        seatsRemaining: seatsRemaining(liveSeats, 1),
         planLabel: getPlanByKey(planKey).name,
       },
     });

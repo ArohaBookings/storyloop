@@ -140,7 +140,7 @@ export default function ChildProfileManager({ initialChildren }: { initialChildr
                 Context for more connected stories
               </h2>
             </div>
-            <button type="button" onClick={closeForm} className="btn-ghost p-2" aria-label="Close profile form">
+            <button type="button" onClick={closeForm} className="btn-ghost min-h-[44px] min-w-[44px] justify-center p-2" aria-label="Close profile form">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -209,10 +209,10 @@ export default function ChildProfileManager({ initialChildren }: { initialChildr
                   <p className="mt-1 text-xs text-ink-500">{child.age_group || "Age group not added"}</p>
                 </div>
                 <div className="flex gap-1">
-                  <button type="button" onClick={() => editChild(child)} className="btn-ghost p-2" aria-label={`Edit ${child.name}`}>
+                  <button type="button" onClick={() => editChild(child)} className="btn-ghost min-h-[44px] min-w-[44px] justify-center p-2" aria-label={`Edit ${child.name}`}>
                     <Pencil className="h-4 w-4" />
                   </button>
-                  <button type="button" onClick={() => deleteChild(child)} className="btn-ghost p-2 text-red-600" aria-label={`Delete ${child.name}`}>
+                  <button type="button" onClick={() => deleteChild(child)} className="btn-ghost min-h-[44px] min-w-[44px] justify-center p-2 text-red-600" aria-label={`Delete ${child.name}`}>
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>

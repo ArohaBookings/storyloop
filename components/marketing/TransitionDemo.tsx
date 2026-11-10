@@ -147,7 +147,7 @@ export default function TransitionDemo({
               setNotes(SAMPLE);
               setUsingSample(true);
             }}
-            className="text-left text-xs font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900"
+            className="inline-flex min-h-[44px] items-center text-left text-xs font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900"
             data-track="transition_sample"
           >
             Fill in an example first

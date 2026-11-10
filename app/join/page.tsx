@@ -88,8 +88,8 @@ function JoinInner() {
           <CheckCircle2 className="mx-auto mb-3 h-10 w-10 text-sage-600" />
           <h1 className="font-display text-2xl font-bold text-ink-900">You have joined {centreName}.</h1>
           <p className="mt-2 text-sm leading-relaxed text-ink-600">
-            Your drafts stay private to you. Your centre can see that you are writing and when, and nothing
-            more, unless you choose to share.
+            {centreName} covers your plan: unlimited stories, with nothing for you to pay. Your drafts stay private to
+            you. Your centre can see that you are writing and when, and nothing more, unless you choose to share.
           </p>
           <Link href="/generate" className="btn-primary mt-5 inline-flex">Write a story</Link>
         </div>
