@@ -48,6 +48,7 @@ MIGRATIONS=(
   "supabase/migrations/20260924_offer_grants.sql"
   "supabase/migrations/20260924_stripe_event_log.sql"
   "supabase/migrations/20261110_story_checks.sql"
+  "supabase/migrations/20261110_family_links.sql"
 )
 TESTS=(
   "supabase/tests/centre_team_model.test.sql"

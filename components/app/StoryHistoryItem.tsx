@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import LeaderCheck from "@/components/app/LeaderCheck";
+import FamilyShare from "@/components/app/FamilyShare";
 import type { EducatorCheckView } from "@/lib/story-check";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -609,6 +610,7 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
         />
 
         <LeaderCheck storyId={story.id} initial={check} />
+        <FamilyShare storyId={story.id} childName={story.child_name} />
 
         <ExportPackPanel
           plan={plan}

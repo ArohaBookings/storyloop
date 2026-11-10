@@ -17,7 +17,7 @@ export async function GET() {
   const admin = createAdminSupabase();
   const { data: profile } = await admin
     .from("profiles")
-    .select("whats_new_seen_version, referral_modal_seen_at")
+    .select("whats_new_seen_version, referral_modal_seen_at, created_at")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -27,7 +27,7 @@ export async function GET() {
     .from("stories")
     .select("id", { count: "exact", head: true })
     .eq("user_id", user.id);
-  const showWhatsNew = shouldShowWhatsNew(profile?.whats_new_seen_version, storiesWritten ?? 0);
+  const showWhatsNew = shouldShowWhatsNew(profile?.whats_new_seen_version, storiesWritten ?? 0, new Date(), profile?.created_at ?? null);
 
   // Never ask a new educator to refer people before they have written anything.
   // Signup -> first story is the step we are protecting, so the referral intro

@@ -2,18 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
-import {
-  AlertTriangle,
-  Bell,
-  CalendarClock,
-  CreditCard,
-  Gift,
-  Hourglass,
-  QrCode,
-  Sprout,
-  Users,
-  X,
-} from "lucide-react";
+import { AlertTriangle, Bell, CalendarClock, CreditCard, Gift, Hourglass, QrCode, Sprout, Users, X, HeartHandshake } from "lucide-react";
 import type { AppNotification, NotificationKind } from "@/lib/notifications";
 
 /**
@@ -103,6 +92,7 @@ const ICONS: Record<NotificationKind, typeof Bell> = {
   term: CalendarClock,
   allowance: CreditCard,
   invite: Users,
+  family: HeartHandshake,
 };
 
 function ago(date: string) {

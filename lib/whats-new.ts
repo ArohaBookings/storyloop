@@ -4,7 +4,7 @@
  * The version records which release a user acknowledged. Bumping it shows the
  * card again, once, to people who have already used StoryLoop.
  */
-export const WHATS_NEW_VERSION = "2026-11b";
+export const WHATS_NEW_VERSION = "2026-11c";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 /**
@@ -54,9 +54,25 @@ export function whatsNewIsFresh(now: Date = new Date()) {
  * not used the product yet does not need to hear what changed in it. And only
  * while the notes are recent (WHATS_NEW_SHOW_DAYS).
  */
-export function shouldShowWhatsNew(seenVersion: string | null | undefined, storiesWritten: number, now: Date = new Date()) {
+export function shouldShowWhatsNew(
+  seenVersion: string | null | undefined,
+  storiesWritten: number,
+  now: Date = new Date(),
+  /**
+   * When the account was created. Somebody who joined AFTER these notes were
+   * published has nothing to be told is new: all of it is. Until 10 Nov 2026 a
+   * new educator who wrote their first story met this card, with six features
+   * on it, on the very next page. Leave it out to keep the old behaviour.
+   */
+  accountCreatedAt?: string | Date | null,
+) {
   if (storiesWritten < WHATS_NEW_MIN_STORIES) return false;
   if (!whatsNewIsFresh(now)) return false;
+  if (accountCreatedAt) {
+    const created = accountCreatedAt instanceof Date ? accountCreatedAt.getTime() : Date.parse(accountCreatedAt);
+    const published = Date.parse(`${WHATS_NEW_PUBLISHED}T00:00:00+12:00`);
+    if (Number.isFinite(created) && created >= published) return false;
+  }
   return seenVersion !== WHATS_NEW_VERSION;
 }
 
@@ -78,6 +94,20 @@ export type WhatsNewItem = {
  */
 export const WHATS_NEW_ITEMS: WhatsNewItem[] = [
   {
+    icon: "family",
+    title: "Share a story with the family, and hear back",
+    body:
+      "On any saved story, tap Share with the family and make a private link for Mum, Dad or Nana. No app and no password. They read the stories you share, in their own language if you choose one, with the child's own words left exactly as said, and what they write back lands beside the story.",
+    href: "/history",
+  },
+  {
+    icon: "voice",
+    title: "Write or say your note in your own language",
+    body:
+      "Think in Tagalog, Hindi, Mandarin, Samoan or anything else? Jot or say the note that way, then tap \"Put it into English for me to check\" under the note. Anything a child said is left exactly as they said it, with its meaning in brackets. Then write the story as usual.",
+    href: "/generate",
+  },
+  {
     icon: "review",
     title: "Ask your leader to check a story",
     body:
@@ -97,20 +127,6 @@ export const WHATS_NEW_ITEMS: WhatsNewItem[] = [
     body:
       "Every child on one page, from this year's stories: who is ready for a summary or transition statement, the family keepsake, and a handover sheet to print for next year.",
     href: "/year",
-  },
-  {
-    icon: "photo",
-    title: "Photo of my notes",
-    body:
-      "Jotted it on paper? On the story page, tap Photo of my notes and take a picture of the page. The words land in the box as if you had typed them, with anything it could not read marked for you to fix. Notes only, never children: the photo is read and then discarded.",
-    href: "/generate",
-  },
-  {
-    icon: "quill",
-    title: "Write the story to the child",
-    body:
-      "Under Style and extras you can now choose \"To the child\", for stories that read \"Ruby, you poured\" instead of \"Ruby poured\". Leave it off and nothing changes.",
-    href: "/generate",
   },
   {
     // Kept from September on purpose: it is the one item that pays the reader.

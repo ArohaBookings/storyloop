@@ -13,7 +13,7 @@ import { PRO_MONTH_OFFER_ID, longDay } from "@/lib/offers";
 import TrackOnce from "@/components/analytics/TrackOnce";
 import AdsPaidConversion from "@/components/analytics/AdsPaidConversion";
 import QuietPayerNudge from "@/components/app/QuietPayerNudge";
-import { getCentreCover } from "@/lib/centres";
+import { canManageTeam, countActiveMembers, getCentreCover, getMembership } from "@/lib/centres";
 import TeamCard from "@/components/app/TeamCard";
 import { CENTRE_CARD_DISMISSED_EVENT, ROLE_EVENT, cleanWorkRole, teamCardFor } from "@/lib/work-role";
 
@@ -66,6 +66,19 @@ export default async function DashboardPage({
   // A centre that has just started its free month has bought nothing yet, and
   // its next step is its team, not its billing.
   const startedCentre = upgraded && (params?.plan === "centre_starter" || params?.plan === "centre_growth");
+  // A centre on its month that has not named itself or invited anyone is a
+  // centre of one. The "set up my centre" card used to show once, on the page
+  // straight after checkout; close that tab and nothing ever said it again.
+  let centreSetup: "name" | "invite" | null = null;
+  if (!cover && (plan === "centre_starter" || plan === "centre_growth") && ["active", "trialing", "past_due"].includes(profile?.subscription_status ?? "")) {
+    try {
+      const membership = await getMembership(user.id);
+      if (!membership) centreSetup = "name";
+      else if (canManageTeam(membership) && (await countActiveMembers(membership.centreId)) <= 1) centreSetup = "invite";
+    } catch {
+      centreSetup = null;
+    }
+  }
 
   // Whether to ask for a review: a few stories over a few days, never asked
   // of somebody who has already left one, and never of an internal account.
@@ -171,6 +184,25 @@ export default async function DashboardPage({
           sessionId={typeof params?.session_id === "string" && /^cs_[A-Za-z0-9_]{6,200}$/.test(params.session_id) ? params.session_id : null}
         />
       )}
+      {!startedCentre && centreSetup && (
+        <div className="mb-6 rounded-3xl border border-sage-200 bg-sage-50 p-5" data-testid="centre-setup">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <h2 className="font-display text-xl font-bold text-ink-900">
+                {centreSetup === "name" ? "Your centre plan is running. Name your centre and invite your team." : "Your team's seats are waiting. Invite your educators."}
+              </h2>
+              <p className="mt-1 text-sm leading-relaxed text-ink-700">
+                Each person you invite gets their own login and unlimited stories, with nothing for them to pay. It takes
+                a couple of minutes.
+              </p>
+            </div>
+            <Link href="/centre" className="btn-primary flex-shrink-0 justify-center" data-track="dashboard_centre_setup">
+              {centreSetup === "name" ? "Set up my centre" : "Invite my team"} <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      )}
+
       {startedCentre && (
         <div className="mb-6 rounded-3xl border border-sage-200 bg-gradient-to-br from-sage-50 via-white to-cream-50 p-5 shadow-warm animate-fade-up" data-testid="centre-started">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

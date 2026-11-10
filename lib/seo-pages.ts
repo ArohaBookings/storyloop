@@ -1144,6 +1144,10 @@ export const SEO_PAGES: Record<string, SeoPage> = {
         body: "An educator can send you a private link to one story. You see the note they wrote beside the story drafted from it, and answer that it looks good or suggest a change. The link opens that one story for 14 days, the educator can cancel it, and you do not need to sign up to look.",
       },
       {
+        title: "Families read it in their own language, and write back",
+        body: "An educator shares a story and gives the family a private link: no app to install, no password to forget. Whānau read every story shared about their child, in English or in one of ten languages, with the child's own words left exactly as they were said. What they write back, in any language, lands beside the story it answers with an English reading for the educator. That is family voice, recorded where a reviewer will look for it.",
+      },
+      {
         title: "The end of the year, on one page",
         body: "The year in one tap lists every child with the stories written about them this year, the thinnest first, so nobody is missed. From there each child's saved stories become their end-of-year summary or transition statement in one step, with their own words kept, and a handover sheet prints for next year's teacher.",
       },
@@ -1181,7 +1185,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       {
         question: "Can our centre move its learning stories to StoryLoop?",
         answer:
-          "Yes. Your team writes, checks and shares learning stories in StoryLoop, with one price and unlimited children. Families read a plain-words version and wall cards in their own language. StoryLoop does not host a family photo and video feed yet, and any story exports in one tap if you need it elsewhere.",
+          "Yes. Your team writes, checks and shares learning stories in StoryLoop, with one price and unlimited children. Each family gets a private link to their own child's stories, with no app and no password, reads them in their own language and can write back to the educator. StoryLoop keeps no photographs or video of children, and any story exports in one tap if you need it elsewhere.",
       },
       {
         question: "What does a centre plan actually include?",

@@ -10,6 +10,7 @@ import { buildQuietChildRadar } from "@/lib/quiet-radar";
 import { currentOrNextTerm, localDate } from "@/lib/terms";
 import { isCentrePlan } from "@/lib/centre-offer";
 import { createStripe } from "@/lib/stripe-client";
+import { unseenFamilyReplies } from "@/lib/family-link-server";
 
 export const dynamic = "force-dynamic";
 
@@ -167,6 +168,7 @@ export async function GET() {
     })),
     quiet,
     wall: wallRows.length ? { scans: wallScans, lastScannedAt } : null,
+    familyReplies: await unseenFamilyReplies(user.id),
     term,
     invites: (invites as Array<{ id: string; token: string; created_at: string; centres: { name?: string } | Array<{ name?: string }> | null }>).map((row) => {
       const centre = Array.isArray(row.centres) ? row.centres[0] : row.centres;

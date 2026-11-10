@@ -32,6 +32,8 @@ import QuillAssistant from "@/components/app/QuillAssistant";
 import ExportPackPanel from "@/components/app/ExportPackPanel";
 import FamilyTranslationPanel from "@/components/app/FamilyTranslationPanel";
 import LeaderCheck from "@/components/app/LeaderCheck";
+import FamilyShare from "@/components/app/FamilyShare";
+import { looksNonLatin } from "@/lib/note-language";
 import { ROOM_HANDOFF_STORY } from "@/lib/room-mode";
 import type { ChildProfile } from "@/lib/children";
 import { hasFeatureAccess, normalizePlanKey, type PlanKey } from "@/lib/plans";
@@ -508,6 +510,18 @@ export default function GeneratePage() {
 
     const submittedClarificationAnswers = normalizeClarificationAnswers(clarificationAnswersOverride);
 
+    // The story page used to record nothing (found 10 Nov 2026): of the last 22
+    // signups, 8 never wrote a story and nobody could say whether they pressed
+    // Generate. These four events are counts only; no note or story text is sent.
+    const startedAt = Date.now();
+    const noteWords = observations.trim().split(/\s+/).length;
+    track("app_generate_click", { inputMethod, noteWords, mode: "story", hasStory: Boolean(story) });
+    // On a phone the story panel sits below the form. Bring it to the top of the
+    // screen as it starts writing, so the story arrives where they are looking.
+    if (typeof window !== "undefined" && window.innerWidth < 1280) {
+      window.setTimeout(() => storyPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+    }
+
     setLoading(true);
     setError("");
     resetClarification();
@@ -556,10 +570,12 @@ export default function GeneratePage() {
         setClarificationStep(0);
         setRemaining(data.remaining ?? "");
         setAccountPlan(normalizePlanKey(data.plan));
+        track("app_clarification", { inputMethod, noteWords, questions: questions.length });
         setTimeout(() => storyPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
         return;
       }
       if (!res.ok) {
+        track("app_story_error", { status: res.status, limit: Boolean(data.upgradeRequired), billing: Boolean(data.billingRequired) });
         setError(data.error ?? "Failed");
         if (data.billingRequired) {
           setBillingRequired(true);
@@ -571,6 +587,7 @@ export default function GeneratePage() {
         return;
       }
 
+      track("app_story_shown", { inputMethod, noteWords, storyWords: String(data.story ?? "").trim().split(/\s+/).length, seconds: Math.round((Date.now() - startedAt) / 1000), basicDraft: data.basicDraft === true });
       setStory(data.story);
       setBasicDraft(data.basicDraft === true);
       setStoryTitle(data.storyTitle ?? "");
@@ -596,6 +613,12 @@ export default function GeneratePage() {
       setFollowUpPrompt(data.followUpPrompt ?? "");
       setAccountPlan(normalizePlanKey(data.plan));
       setRemaining(data.remaining);
+      // The page moves while a story is written (cards close, the panel grows), so
+      // on a phone or tablet the finished story is brought to the top of the screen
+      // once more when it arrives. Without this it sat two screens below the button.
+      if (typeof window !== "undefined" && window.innerWidth < 1280) {
+        window.setTimeout(() => storyPanelRef.current?.scrollIntoView({ block: "start" }), 250);
+      }
       if (sourceStoryId) {
         void fetch(`/api/stories/${encodeURIComponent(sourceStoryId)}`, {
           method: "PATCH",
@@ -630,10 +653,50 @@ export default function GeneratePage() {
         setShowUpgradePrompt(true);
       }
     } catch {
+      track("app_story_error", { status: 0 });
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
+  };
+
+  // The welcome card's "See my first story": pressing it writes the example
+  // straight away. The press used to scroll to the Generate button and stop; on
+  // 4 and 10 Nov two new signups on phones pressed it once, never pressed
+  // Generate, and left inside a minute with no story.
+  const [autoWriteExample, setAutoWriteExample] = useState(false);
+  useEffect(() => {
+    if (!autoWriteExample || loading) return;
+    if (observations.trim() !== SAMPLE_OBSERVATION.trim()) return;
+    setAutoWriteExample(false);
+    void handleGenerate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoWriteExample, observations, loading]);
+
+  // "My note is not in English": read it into English for the educator to check.
+  const [noteOriginal, setNoteOriginal] = useState("");
+  const [noteLanguage, setNoteLanguage] = useState("");
+  const [noteEnglishBusy, setNoteEnglishBusy] = useState(false);
+  const putNoteIntoEnglish = async () => {
+    const note = observations.trim();
+    if (note.length < 8 || noteEnglishBusy) return;
+    setNoteEnglishBusy(true); setError("");
+    try {
+      const response = await fetch("/api/note-english", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ note }) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) { setError(data.error ?? "That did not work. Try again."); return; }
+      if (data.alreadyEnglish) { setError("That note is already in English, so nothing was changed."); return; }
+      setNoteOriginal(observations);
+      setNoteLanguage(typeof data.language === "string" ? data.language : "");
+      setObservations(data.english);
+      track("app_note_english", { language: typeof data.language === "string" ? data.language.slice(0, 30) : "" });
+    } catch {
+      setError("That did not work. Check your connection and try again.");
+    } finally { setNoteEnglishBusy(false); }
+  };
+  const undoNoteEnglish = () => {
+    if (noteOriginal) setObservations(noteOriginal);
+    setNoteOriginal(""); setNoteLanguage("");
   };
 
   const handleClarificationContinue = async () => {
@@ -807,15 +870,17 @@ export default function GeneratePage() {
   // example in the box with its "this is an example" label gone. Each button now
   // takes them to the next step: the Generate button, or an empty box to type in.
   const tryExampleFromWelcome = () => {
+    track("app_welcome_choice", { choice: "example" });
     setMode("story");
     resetClarification();
     setObservations(SAMPLE_OBSERVATION);
     setInputMethod("sample");
     dismissFirstStoryWizard();
-    window.requestAnimationFrame(() => document.getElementById("gen-generate")?.scrollIntoView({ block: "center", behavior: "smooth" }));
+    setAutoWriteExample(true);
   };
 
   const writeOwnFromWelcome = () => {
+    track("app_welcome_choice", { choice: "own" });
     setMode("story");
     resetClarification();
     if (observationsRef.current.trim() === SAMPLE_OBSERVATION.trim()) setObservations("");
@@ -830,6 +895,7 @@ export default function GeneratePage() {
   // The welcome card's third way in: a new educator on a phone who already has
   // the note on paper. Opens the camera or photo picker inside the tap.
   const photoFromWelcome = () => {
+    track("app_welcome_choice", { choice: "photo" });
     setMode("story");
     resetClarification();
     if (observationsRef.current.trim() === SAMPLE_OBSERVATION.trim()) setObservations("");
@@ -1237,13 +1303,15 @@ export default function GeneratePage() {
             <div>
               <h2 className="font-display text-xl font-bold text-ink-900">Your first story takes about two minutes.</h2>
               <p className="mt-1 text-sm text-ink-600">
-                Type a few quick points, record a voice note, photograph notes you wrote on paper, or try an example first to see what you get back.
+                <span className="sm:hidden">See one written from an example note first. Then write your own, by typing, talking or a photo of your notes.</span>
+                <span className="hidden sm:inline">Type a few quick points, record a voice note, photograph notes you wrote on paper, or try an example first to see what you get back.</span>
               </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={tryExampleFromWelcome} className="btn-primary text-sm">
-              Try an example
+            <button type="button" onClick={tryExampleFromWelcome} className="btn-primary w-full justify-center py-3 text-sm sm:w-auto sm:py-2" data-testid="welcome-example">
+              <span className="sm:hidden">See my first story now</span>
+              <span className="hidden sm:inline">Try an example</span>
             </button>
             <button type="button" onClick={writeOwnFromWelcome} className="btn-secondary text-sm">
               Write my own
@@ -1305,6 +1373,26 @@ export default function GeneratePage() {
               placeholder={placeholder}
               className="input font-mono text-sm leading-relaxed resize-y"
             />
+            {/* "My note is not in English" (lib/note-language.ts): the note is read into
+                English for the educator to check before any story is written from it. */}
+            {noteOriginal ? (
+              <div className="mt-2 rounded-xl border border-sage-200 bg-sage-50 px-3 py-2 text-xs leading-relaxed text-ink-700" data-testid="note-english-done">
+                <strong className="font-semibold text-ink-900">Your note is now in English{noteLanguage ? ` (from ${noteLanguage})` : ""}.</strong>{" "}
+                Check it says what you meant. Anything a child said is left exactly as they said it, with its meaning in brackets.{" "}
+                <button type="button" onClick={undoNoteEnglish} className="inline-flex min-h-[44px] items-center font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 sm:min-h-0" data-testid="note-english-undo">
+                  Put my own words back
+                </button>
+              </div>
+            ) : (
+              observations.trim().length >= 8 && inputMethod !== "sample" && (
+                <p className="mt-1 text-xs text-ink-500">
+                  {looksNonLatin(observations) ? "This note is not in English. " : "Note not in English? "}
+                  <button type="button" onClick={putNoteIntoEnglish} disabled={noteEnglishBusy} className="inline-flex min-h-[44px] items-center font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 sm:min-h-0" data-testid="note-english">
+                    {noteEnglishBusy ? "Putting it into English…" : "Put it into English for me to check"}
+                  </button>
+                </p>
+              )
+            )}
             <input
               id="voice-note-input"
               type="file"
@@ -1831,7 +1919,7 @@ export default function GeneratePage() {
           )}
         </div>
 
-        <div ref={storyPanelRef} className="story-safe card-warm flex min-h-[220px] min-w-0 max-w-full flex-col overflow-hidden p-4 sm:min-h-[280px] sm:p-6 md:min-h-[420px] xl:sticky xl:top-4 xl:min-h-[500px]">
+        <div ref={storyPanelRef} className="scroll-mt-20 story-safe card-warm flex min-h-[220px] min-w-0 max-w-full flex-col overflow-hidden p-4 sm:min-h-[280px] sm:p-6 md:min-h-[420px] xl:sticky xl:top-4 xl:min-h-[500px]">
           <div className="mb-4 flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
             <p className="section-title whitespace-nowrap">Your learning story</p>
             {story && (
@@ -2099,6 +2187,7 @@ export default function GeneratePage() {
 
               {/* key: a new story starts with a fresh panel, never the last story's link. */}
               {storyId && <LeaderCheck key={storyId} storyId={storyId} />}
+            {storyId && <FamilyShare key={`family-${storyId}`} storyId={storyId} childName={childName} />}
 
               <FamilyTranslationPanel storyId={storyId} plan={accountPlan} />
 

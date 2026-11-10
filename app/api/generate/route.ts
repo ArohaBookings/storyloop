@@ -465,6 +465,22 @@ export async function POST(request: NextRequest) {
       },
     }).select("id").single();
 
+    // One row per story written, against the account (10 Nov 2026). Counts only:
+    // no note, no story text, no child's name.
+    await recordServerEvent(createAdminSupabase(), {
+      event: "story_created",
+      userId: user.id,
+      path: "/api/generate",
+      metadata: {
+        inputMethod: resolvedInputMethod,
+        noteWords: String(observations).trim().split(/\s+/).length,
+        storyWords: result.wordCount,
+        framework: internationalFramework ?? framework,
+        first: used === 0 && (profile.total_stories ?? 0) === 0,
+        basicDraft: Boolean(result.aiUnavailable),
+      },
+    });
+
     // Increment usage
     const now = new Date().toISOString();
     const newStoriesThisMonth = used + 1;

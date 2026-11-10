@@ -24,7 +24,7 @@
 
 import { hasFeatureAccess, type PlanKey } from "@/lib/plans";
 
-export type NotificationKind = "billing" | "trial" | "referral" | "quiet" | "wall" | "term" | "allowance" | "invite";
+export type NotificationKind = "billing" | "trial" | "referral" | "quiet" | "wall" | "term" | "allowance" | "invite" | "family";
 
 export type AppNotification = {
   /** Stable. Read state is keyed on it, so the same fact is never "new" twice. */
@@ -65,6 +65,8 @@ export type NotificationFacts = {
   /** Only passed when the term calendar is known to be the educator's own. */
   term: { number: number; end: string; childrenWithNoMomentThisTerm: number | null } | null;
   invites: Array<{ id: string; centreName: string; token: string; createdAt: string }>;
+  /** What families wrote back through a Family link and the educator has not read yet (lib/family-link.ts). */
+  familyReplies?: Array<{ id: string; storyId: string | null; childName: string; at: string }>;
 };
 
 export const WALL_MILESTONES = [1, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000];
@@ -192,6 +194,23 @@ export function buildNotifications(facts: NotificationFacts): AppNotification[] 
         date: referral.qualifiedAt,
       });
     }
+  }
+
+  // A family wrote back. One note per story, newest reply first, leading to the story it answers.
+  const seenStories = new Set<string>();
+  for (const reply of facts.familyReplies ?? []) {
+    const key = reply.storyId ?? reply.id;
+    if (seenStories.has(key)) continue;
+    seenStories.add(key);
+    const child = reply.childName.trim().split(/\s+/)[0] || "A child";
+    out.push({
+      id: `family:${reply.id}`,
+      kind: "family",
+      title: `${child}'s family wrote back`,
+      body: "They answered a story you shared. It is beside the story, with an English reading if they wrote in another language.",
+      href: reply.storyId ? `/history#${reply.storyId}` : "/history",
+      date: reply.at,
+    });
   }
 
   if (facts.wall && facts.wall.scans > 0) {

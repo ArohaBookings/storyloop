@@ -277,7 +277,10 @@ export function track(event: string, metadata: Record<string, unknown> = {}, opt
     utmSource: attribution.utmSource,
     utmMedium: attribution.utmMedium,
     utmCampaign: attribution.utmCampaign,
-    metadata,
+    // A browser driven by a script (our own daily site checks, any test tool)
+    // says so. Marked rather than dropped, so reports can leave them out: the
+    // homepage's desktop numbers were mostly our own checks (10 Nov 2026).
+    metadata: navigator.webdriver ? { ...metadata, auto: true } : metadata,
   });
 
   try {

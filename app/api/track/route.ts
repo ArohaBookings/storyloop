@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { effectiveConsent, parseRegion, REGION_COOKIE } from "@/lib/analytics/consent-region";
 
@@ -21,6 +22,18 @@ const ALLOWED_EVENTS = new Set([
   // 10 Nov 2026: the homepage demo's button pressed on an empty box (it now plays the example), and the in-app centre month.
   "demo_empty_tap",
   "centre_month_click",
+  // The story page, measured (counts only, no text).
+  "app_generate_click",
+  "app_story_shown",
+  "app_story_error",
+  "app_clarification",
+  "app_welcome_choice",
+  "app_note_english",
+  // Family link (lib/family-link.ts). No key, no child's name, filed under /family.
+  "family_story_shared",
+  "family_link_made",
+  "family_link_opened",
+  "family_reply_sent",
   // Room mode (lib/room-mode.ts): one long voice note, counted once when its transcript is ready.
   "room_session",
   "demo_started",
@@ -170,6 +183,17 @@ function metadataFor(eventType: string, raw: unknown, consent: "all" | "essentia
   return JSON.stringify(metadata).length > 4000 ? { consent, truncated: true } : metadata;
 }
 
+/** The account behind this request's session cookie, or null. Never throws. */
+async function signedInUserId(): Promise<string | null> {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getSession();
+    return uuidOrNull(data.session?.user?.id);
+  } catch {
+    return null;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
@@ -210,9 +234,11 @@ export async function POST(request: NextRequest) {
     await admin.from("page_events").insert({
       event_type: eventType,
       session_id: sessionId,
-      // Client-supplied, so it is attribution only and never a trust signal.
-      // Constrain it to a UUID so nothing arbitrary reaches the column.
-      user_id: uuidOrNull(body.userId),
+      // The signed-in account, read from this browser's own session cookie (no
+      // network call). Until 10 Nov 2026 nothing sent an id, so what an educator
+      // did after signing up could not be tied to their account. Attribution
+      // only, never a trust signal.
+      user_id: (await signedInUserId()) ?? uuidOrNull(body.userId),
       path: clean(body.path, 200),
       referrer_host: hostOf(body.referrer),
       utm_source: clean(body.utmSource, 80),
