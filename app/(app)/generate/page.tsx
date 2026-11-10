@@ -1309,7 +1309,7 @@ export default function GeneratePage() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={tryExampleFromWelcome} className="btn-primary w-full justify-center py-3 text-sm sm:w-auto sm:py-2" data-testid="welcome-example">
+            <button type="button" onClick={tryExampleFromWelcome} className="btn-primary min-h-[44px] w-full justify-center py-3 text-sm sm:w-auto sm:py-2" data-testid="welcome-example">
               <span className="sm:hidden">See my first story now</span>
               <span className="hidden sm:inline">Try an example</span>
             </button>
