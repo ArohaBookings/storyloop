@@ -6,6 +6,7 @@ import { STORY_FRAMEWORKS, normalizeFramework } from "@/lib/story-options";
 import { INTERNATIONAL_FRAMEWORKS, isInternationalFramework, normalizeAnyFramework } from "@/lib/international-frameworks";
 import { billingBlockPayload, isBillingBlocked } from "@/lib/billing-access";
 import { consumeRateLimit } from "@/lib/rate-limit";
+import { cleanRoomNames, namesHint, unsureWords } from "@/lib/room-mode";
 
 export const runtime = "nodejs";
 
@@ -43,17 +44,20 @@ export async function POST(request: NextRequest) {
     if (isBillingBlocked(profile)) {
       return NextResponse.json(billingBlockPayload(profile), { status: 402 });
     }
-    const allowed = await consumeRateLimit({
-      scope: "voice-transcription",
-      key: user.id,
-      limit: 30,
-      windowSeconds: 60 * 60,
-    });
+    const formData = await request.formData();
+    // Room mode (lib/room-mode.ts) sends a long session as pieces of under a
+    // minute, so it has its own allowance: a 15-minute session is about 20
+    // pieces. An ordinary voice note is counted exactly as before.
+    const room = formData.get("mode") === "room";
+    const allowed = await consumeRateLimit(
+      room
+        ? { scope: "room-transcription", key: user.id, limit: 90, windowSeconds: 60 * 60 }
+        : { scope: "voice-transcription", key: user.id, limit: 30, windowSeconds: 60 * 60 },
+    );
     if (!allowed) {
       return NextResponse.json({ error: "Voice-note limit reached. Try again later." }, { status: 429 });
     }
 
-    const formData = await request.formData();
     const upload = formData.get("file");
 
     if (!upload || typeof upload === "string") {
@@ -73,12 +77,29 @@ export async function POST(request: NextRequest) {
     const framework = normalizeFramework(requestedFramework ?? profile.story_preferences.defaultFramework);
     // England and Ireland get their own transcription hint; AU and NZ unchanged.
     const internationalFramework = normalizeAnyFramework(requestedFramework ?? profile.story_preferences.defaultFramework);
+    const basePrompt = isInternationalFramework(internationalFramework)
+      ? INTERNATIONAL_FRAMEWORKS[internationalFramework].transcriptionPrompt
+      : STORY_FRAMEWORKS[framework].transcriptionPrompt;
+
+    if (room) {
+      // The children's first names, so they are spelled the educator's way, and
+      // the transcriber's own confidence, so doubtful words can be shown to her.
+      const names = cleanRoomNames(typeof formData.get("names") === "string" ? String(formData.get("names")) : "");
+      const heard = await getOpenAI().audio.transcriptions.create({
+        file: upload,
+        model: "gpt-4o-mini-transcribe",
+        prompt: `${basePrompt}${namesHint(names)}`,
+        response_format: "json",
+        include: ["logprobs"],
+      });
+      // A quiet minute in a long session is normal: it comes back empty, not as an error.
+      return NextResponse.json({ text: heard.text?.trim() ?? "", unsure: unsureWords(heard.logprobs) });
+    }
+
     const transcription = await getOpenAI().audio.transcriptions.create({
       file: upload,
       model: "gpt-4o-mini-transcribe",
-      prompt: isInternationalFramework(internationalFramework)
-        ? INTERNATIONAL_FRAMEWORKS[internationalFramework].transcriptionPrompt
-        : STORY_FRAMEWORKS[framework].transcriptionPrompt,
+      prompt: basePrompt,
     });
 
     const text = transcription.text?.trim();

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import Navbar from "@/components/landing/Navbar";
 import PageTracker from "@/components/analytics/PageTracker";
 import Footer from "@/components/landing/Footer";
@@ -57,6 +58,22 @@ export default function AiPolicyPage() {
 
         <PolicyGenerator />
 
+        {/* 10 Nov 2026: this is the one page leaders find on Google (9 clicks in 28 days) and it had
+            no way on to the centre plan. A policy names an approved tool; this is where to try one. */}
+        <section className="mx-auto mt-12 max-w-3xl rounded-3xl border border-clay-200 bg-cream-50 p-6 sm:p-8 print:hidden" data-testid="ai-policy-centre">
+          <h2 className="font-display text-2xl font-bold text-ink-900">A policy names the tool your team may use. Here is one built for it.</h2>
+          <p className="mt-3 text-base leading-relaxed text-ink-700">
+            StoryLoop drafts a learning story from the educator&apos;s own note, keeps the child&apos;s words exactly, and the educator checks
+            every line. First names only, stored in Sydney, never used to train AI. An educator can send you any story to check, with
+            their note beside it, and you do not need an account to look.
+          </p>
+          <p className="mt-2 text-base font-semibold leading-relaxed text-ink-900">A whole centre can try it for 30 days free, with no card.</p>
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+            <Link href="/for-centres?utm_source=ai_policy&utm_medium=site" className="btn-primary px-6 py-3 text-base" data-track="ai_policy_centre">See it for your centre</Link>
+            <Link href="/safety" className="btn-secondary px-6 py-3 text-base" data-track="ai_policy_safety">How children&apos;s information is kept</Link>
+          </div>
+        </section>
+
         <section className="mx-auto mt-16 max-w-3xl print:hidden">
           <h2 className="font-display text-2xl font-bold text-ink-900">Questions directors ask</h2>
           <div className="mt-5 space-y-5">
@@ -86,7 +103,7 @@ export default function AiPolicyPage() {
                 (2024), under the Privacy Act 1988.
               </li>
             </ul>
-            <p className="mt-3 text-xs text-ink-500">Reviewed 17 September 2026 · Written by Leo, who builds StoryLoop, in Ōtautahi Christchurch</p>
+            <p className="mt-3 text-xs text-ink-500">Reviewed 10 November 2026 · Written by Leo, who builds StoryLoop, in Ōtautahi Christchurch</p>
           </div>
         </section>
       </main>

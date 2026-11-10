@@ -1132,8 +1132,12 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     heading: "Your team's documentation, without buying their diary.",
     intro:
       "A centre plan covers every educator and every child for one flat price. Leadership sees who is documenting and when. It never sees what an educator wrote unless that educator turns sharing on, because buying the seats should not buy the diary.",
-    reviewedAt: "2026-09-22",
+    reviewedAt: "2026-11-10",
     sections: [
+      {
+        title: "Check a story in two minutes, without an account",
+        body: "An educator can send you a private link to one story. You see the note they wrote beside the story drafted from it, and answer that it looks good or suggest a change. The link opens that one story for 14 days, the educator can cancel it, and you do not need to sign up to look.",
+      },
       {
         title: "One price, unlimited children",
         body:

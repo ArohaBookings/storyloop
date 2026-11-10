@@ -1,0 +1,247 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ArrowRight, CheckCircle2, Loader2, MessageSquareText, ShieldCheck } from "lucide-react";
+import StoryText from "@/components/app/StoryText";
+import { track } from "@/lib/analytics/client";
+import { CHECK_COMMENT_MAX, CHECK_DAYS, CHECK_NAME_MAX, tokenFromHash, type LeaderView } from "@/lib/story-check";
+import { CENTRE_TRIAL_DAYS } from "@/lib/centre-offer";
+
+type Phase = "loading" | "ready" | "gone";
+
+// The key never goes into analytics: every event from this page is filed under "/check".
+const AT = { path: "/check" };
+
+function day(value: string | null | undefined) {
+  if (!value) return "";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-NZ", { day: "numeric", month: "long", year: "numeric" });
+}
+
+/**
+ * The leader's side of a check. One story, the note it came from beside it,
+ * and two answers. After the answer comes the only thing asked of the leader:
+ * a look at the centre plan, because the person reading this page is the one
+ * who decides for the centre.
+ */
+export default function LeaderCheckPage() {
+  const [phase, setPhase] = useState<Phase>("loading");
+  const [view, setView] = useState<LeaderView | null>(null);
+  const [token, setToken] = useState("");
+  const [name, setName] = useState("");
+  const [comment, setComment] = useState("");
+  const [suggesting, setSuggesting] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const key = tokenFromHash(window.location.hash);
+    if (!key) { setPhase("gone"); return; }
+    setToken(key);
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await fetch("/api/check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: key, action: "open" }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (cancelled) return;
+        if (!response.ok || !data.view) { setPhase("gone"); return; }
+        setView(data.view as LeaderView);
+        setPhase("ready");
+        track("leader_check_opened", { answered: Boolean(data.view.decision) }, AT);
+      } catch {
+        if (!cancelled) setPhase("gone");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const answer = async (decision: "approved" | "changes") => {
+    if (saving) return;
+    if (decision === "changes" && !comment.trim()) { setError("Say what you would change, so they know what to fix."); return; }
+    setSaving(true); setError("");
+    try {
+      const response = await fetch("/api/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, action: "answer", decision, name, comment: decision === "changes" ? comment : "" }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.view) { setError(data.error ?? "That did not save. Try again."); return; }
+      setView(data.view as LeaderView);
+      track("leader_check_answered", { decision }, AT);
+    } catch {
+      setError("That did not save. Check your connection and try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (phase === "loading") {
+    return (
+      <div className="wide-shell flex min-h-[40vh] items-center justify-center" role="status">
+        <Loader2 className="h-6 w-6 animate-spin text-clay-600" />
+        <span className="sr-only">Opening the story</span>
+      </div>
+    );
+  }
+
+  if (phase === "gone" || !view) {
+    return (
+      <div className="wide-shell">
+        <div className="card mx-auto max-w-xl p-8 text-center" data-testid="leader-check-gone">
+          <h1 className="font-display text-2xl font-bold text-ink-900">This link is not open any more</h1>
+          <p className="mt-3 text-base leading-relaxed text-ink-600">
+            Links to check a story last {CHECK_DAYS} days and can be cancelled by the educator who sent them. Ask them to send you a new one.
+          </p>
+          <Link href="/for-centres" className="btn-secondary mt-6 inline-flex px-5 py-2.5 text-sm">What is StoryLoop?</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const answered = Boolean(view.decision);
+  const child = view.childName || "this child";
+
+  return (
+    <div className="wide-shell" data-testid="leader-check">
+      <div className="mx-auto max-w-5xl">
+        <p className="text-sm font-bold uppercase tracking-wider text-clay-700">A story to check</p>
+        <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-ink-900 md:text-4xl">
+          {view.educator} asked you to check this learning story
+        </h1>
+        <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-600 md:text-lg">
+          It takes about two minutes and there is nothing to sign up for. First is exactly what {view.educator} wrote down.
+          Then the story drafted from it{view.writtenOn ? `, on ${day(view.writtenOn)}` : ""}.
+        </p>
+
+        <div className="mt-8 grid min-w-0 gap-5 lg:grid-cols-[0.8fr_1.2fr]">
+          <section className="card min-w-0 p-5 sm:p-6" aria-labelledby="check-note">
+            <h2 id="check-note" className="text-xs font-bold uppercase tracking-wider text-ink-500">The educator&apos;s note</h2>
+            {view.note ? (
+              <p className="mt-3 whitespace-pre-wrap font-mono text-sm leading-relaxed text-ink-800" data-testid="leader-check-note">{view.note}</p>
+            ) : (
+              <p className="mt-3 text-sm text-ink-500">No note was saved with this story.</p>
+            )}
+            <div className="mt-5 rounded-2xl border border-sage-200 bg-sage-50 p-4">
+              <p className="flex items-start gap-2 text-sm font-semibold leading-relaxed text-sage-900">
+                <ShieldCheck className="mt-0.5 h-4 w-4 flex-none" />
+                What to look for
+              </p>
+              <ul className="mt-2 space-y-1.5 text-sm leading-relaxed text-ink-700">
+                <li>Anything {child} says in the story should be in the note, word for word.</li>
+                <li>Nothing should happen in the story that the note does not show.</li>
+                <li>The curriculum links should fit what {child} actually did.</li>
+              </ul>
+            </div>
+          </section>
+
+          <section className="card min-w-0 p-5 sm:p-6" aria-labelledby="check-story">
+            <h2 id="check-story" className="text-xs font-bold uppercase tracking-wider text-ink-500">The story</h2>
+            <div className="mt-3 min-w-0" data-testid="leader-check-story">
+              <StoryText text={view.story} />
+            </div>
+          </section>
+        </div>
+
+        <section className="card mt-5 p-5 sm:p-6" aria-live="polite">
+          {answered ? (
+            <div data-testid="leader-check-thanks">
+              <p className="flex items-center gap-2 font-display text-xl font-bold text-sage-900">
+                <CheckCircle2 className="h-5 w-5" />
+                {view.decision === "approved" ? `Thank you. ${view.educator} can see that it looks good.` : `Thank you. ${view.educator} can see your suggestion.`}
+              </p>
+              {view.comment && <p className="mt-3 whitespace-pre-wrap rounded-xl bg-cream-50 p-3 text-sm leading-relaxed text-ink-700">{view.comment}</p>}
+            </div>
+          ) : (
+            <>
+              <h2 className="font-display text-xl font-bold text-ink-900">What do you think?</h2>
+              <div className="mt-4 max-w-sm">
+                <label htmlFor="leader-name" className="label">Your first name (so {view.educator} knows who checked it)</label>
+                <input
+                  id="leader-name"
+                  value={name}
+                  maxLength={CHECK_NAME_MAX}
+                  onChange={(e) => setName(e.target.value)}
+                  autoComplete="given-name"
+                  className="input"
+                  placeholder="Optional"
+                />
+              </div>
+              {suggesting && (
+                <div className="mt-4">
+                  <label htmlFor="leader-comment" className="label">What would you change?</label>
+                  <textarea
+                    id="leader-comment"
+                    value={comment}
+                    maxLength={CHECK_COMMENT_MAX}
+                    onChange={(e) => { setComment(e.target.value); if (error) setError(""); }}
+                    rows={4}
+                    className="input resize-none text-sm leading-relaxed"
+                    placeholder="For example: the second paragraph says more than the note shows."
+                  />
+                </div>
+              )}
+              {error && <p className="mt-3 rounded-lg border border-clay-200 bg-clay-50 px-3 py-2 text-sm text-clay-800" role="alert">{error}</p>}
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                {suggesting ? (
+                  <>
+                    <button type="button" onClick={() => answer("changes")} disabled={saving} className="btn-primary px-6 py-3 text-base disabled:opacity-60" data-testid="leader-check-send-changes">
+                      {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquareText className="h-4 w-4" />} Send my suggestion
+                    </button>
+                    <button type="button" onClick={() => { setSuggesting(false); setError(""); }} disabled={saving} className="btn-secondary px-6 py-3 text-base">Back</button>
+                  </>
+                ) : (
+                  <>
+                    <button type="button" onClick={() => answer("approved")} disabled={saving} className="btn-primary px-6 py-3 text-base disabled:opacity-60" data-testid="leader-check-approve">
+                      {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} Looks good
+                    </button>
+                    <button type="button" onClick={() => setSuggesting(true)} disabled={saving} className="btn-secondary px-6 py-3 text-base" data-testid="leader-check-suggest">
+                      Suggest a change
+                    </button>
+                  </>
+                )}
+              </div>
+            </>
+          )}
+        </section>
+
+        <section className={`mt-5 rounded-3xl border p-6 sm:p-8 ${answered ? "border-clay-300 bg-paper shadow-soft" : "border-clay-100 bg-paper/70"}`} data-testid="leader-check-centre">
+          <h2 className="font-display text-2xl font-bold text-ink-900">{view.educator} wrote this with StoryLoop</h2>
+          <p className="mt-2 max-w-2xl text-base leading-relaxed text-ink-700">
+            The educator jots a note, StoryLoop drafts the story from it and keeps the child&apos;s words exactly, and the educator checks every
+            line. First names only, stored in Sydney, never used to train AI. It pastes into the app your centre already uses.
+          </p>
+          <p className="mt-2 max-w-2xl text-base font-semibold leading-relaxed text-ink-900">
+            A whole centre can try it for {CENTRE_TRIAL_DAYS} days free, with no card.
+          </p>
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/for-centres?utm_source=leader_check&utm_medium=product"
+              onClick={() => track("leader_check_centre_click", { answered, to: "for-centres" }, AT)}
+              className={`${answered ? "btn-primary" : "btn-secondary"} px-6 py-3 text-base`}
+              data-testid="leader-check-centre-link"
+            >
+              See it for your centre <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/safety?utm_source=leader_check&utm_medium=product"
+              onClick={() => track("leader_check_centre_click", { answered, to: "safety" }, AT)}
+              className="btn-secondary px-6 py-3 text-base"
+            >
+              How children&apos;s information is kept
+            </Link>
+          </div>
+        </section>
+
+        <p className="mt-5 text-xs leading-relaxed text-ink-500">
+          This link opens this one story only, until {day(view.expiresAt)}. Please do not pass it on.
+        </p>
+      </div>
+    </div>
+  );
+}

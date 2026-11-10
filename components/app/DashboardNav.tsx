@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, UsersRound, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, AlertTriangle, Brain, Users, ClipboardList, MessageSquareText, BarChart3, SlidersHorizontal, Lock, Sunrise, Building2, UserPlus, FileCheck2, QrCode, Mic, DoorOpen, Repeat } from "lucide-react";
+import { LayoutDashboard, UsersRound, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, AlertTriangle, Brain, Users, ClipboardList, MessageSquareText, BarChart3, SlidersHorizontal, Lock, Sunrise, Building2, UserPlus, FileCheck2, QrCode, Mic, DoorOpen, Repeat, CalendarRange, AudioLines } from "lucide-react";
 import AnimatedLogo from "@/components/brand/AnimatedLogo";
 import { createClient } from "@/lib/supabase/client";
 import { getMonthlyStoryLimit, getStoryAllowanceLabel } from "@/lib/story-limits";
@@ -50,6 +50,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/today", icon: Sunrise, label: "Today Loop" },
       { href: "/generate", icon: Sparkles, label: "New story", highlight: true },
       { href: "/group", icon: UsersRound, label: "Group moment" },
+      { href: "/room", icon: AudioLines, label: "Room mode" },
     ],
   },
   {
@@ -57,6 +58,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/children", icon: Users, label: "Child profiles" },
       { href: "/history", icon: History, label: "Story history" },
+      { href: "/year", icon: CalendarRange, label: "The year in one tap" },
       { href: "/voices", icon: Mic, label: "Children's words", feature: "childVoice" },
       { href: "/insights", icon: Brain, label: "Learning threads", feature: "learningThreads" },
     ],

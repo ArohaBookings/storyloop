@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Check, Copy, Loader2, Plus, Scissors, Sparkles, Users, X } from "lucide-react";
 import { track } from "@/lib/analytics/client";
+import { ROOM_HANDOFF_GROUP } from "@/lib/room-mode";
 
 type ChildProfile = { id: string; name: string };
 type Split = { children: Array<{ name: string; fragments: string[] }>; shared: string[]; source: "ai" | "rules"; notes: Record<string, string> };
@@ -20,6 +21,20 @@ export default function GroupMomentPage() {
   const [drafts, setDrafts] = useState<Draft[] | null>(null);
   const [results, setResults] = useState<Result[] | null>(null);
   const [copied, setCopied] = useState("");
+
+  // Room mode (lib/room-mode.ts) hands over a checked transcript and the children it is about.
+  useEffect(() => {
+    try {
+      const raw = window.sessionStorage.getItem(ROOM_HANDOFF_GROUP);
+      if (!raw) return;
+      window.sessionStorage.removeItem(ROOM_HANDOFF_GROUP);
+      const handoff = JSON.parse(raw) as { note?: unknown; names?: unknown };
+      if (typeof handoff.note === "string") setNote(handoff.note);
+      if (Array.isArray(handoff.names)) setNames(handoff.names.filter((n): n is string => typeof n === "string" && n.trim().length > 0).slice(0, 8));
+    } catch {
+      /* nothing to hand over */
+    }
+  }, []);
 
   useEffect(() => {
     fetch("/api/children")

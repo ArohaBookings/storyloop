@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import LeaderCheck from "@/components/app/LeaderCheck";
+import type { EducatorCheckView } from "@/lib/story-check";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Copy, Download, Loader2, Pencil, RefreshCw, Save, X } from "lucide-react";
@@ -23,6 +25,8 @@ import { isInternationalFramework, normalizeAnyFramework, type AnyFrameworkId } 
 import type { PrivacyGuardianResult } from "@/lib/privacy-guardian";
 
 type StoryHistoryItemProps = {
+  /** Where this story's leader check stands (lib/story-check.ts). */
+  check?: EducatorCheckView;
   story: {
     id: string;
     child_name: string | null;
@@ -59,7 +63,7 @@ function toDownloadName(childName?: string | null) {
   return (childName || "learning-story").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "learning-story";
 }
 
-export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryItemProps) {
+export default function StoryHistoryItem({ story, plan = "free", check }: StoryHistoryItemProps) {
   const router = useRouter();
   const initialMetadata = asRecord(story.metadata);
   const initialSettings = asRecord(initialMetadata.storySettings);
@@ -603,6 +607,8 @@ export default function StoryHistoryItem({ story, plan = "free" }: StoryHistoryI
           familyQuestion={familyQuestion}
           followUpPrompt={followUpPrompt}
         />
+
+        <LeaderCheck storyId={story.id} initial={check} />
 
         <ExportPackPanel
           plan={plan}

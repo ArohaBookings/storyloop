@@ -13,6 +13,13 @@ import { effectiveConsent, parseRegion, REGION_COOKIE } from "@/lib/analytics/co
 
 const ALLOWED_EVENTS = new Set([
   "page_view",
+  // Leader check (lib/story-check.ts): the first measured contact with the people who decide for a centre.
+  "leader_check_sent",
+  "leader_check_opened",
+  "leader_check_answered",
+  "leader_check_centre_click",
+  // Room mode (lib/room-mode.ts): one long voice note, counted once when its transcript is ready.
+  "room_session",
   "demo_started",
   "demo_completed",
   "demo_clarification",

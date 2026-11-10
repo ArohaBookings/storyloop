@@ -31,6 +31,8 @@ import StoryIntelligence from "@/components/app/StoryIntelligence";
 import QuillAssistant from "@/components/app/QuillAssistant";
 import ExportPackPanel from "@/components/app/ExportPackPanel";
 import FamilyTranslationPanel from "@/components/app/FamilyTranslationPanel";
+import LeaderCheck from "@/components/app/LeaderCheck";
+import { ROOM_HANDOFF_STORY } from "@/lib/room-mode";
 import type { ChildProfile } from "@/lib/children";
 import { hasFeatureAccess, normalizePlanKey, type PlanKey } from "@/lib/plans";
 import {
@@ -224,6 +226,20 @@ export default function GeneratePage() {
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [liveRecordingSupported, setLiveRecordingSupported] = useState(false);
   const [suggestUploadFallback, setSuggestUploadFallback] = useState(false);
+
+  // Room mode (lib/room-mode.ts) hands over a checked transcript for one child.
+  useEffect(() => {
+    if (searchParams.get("room") !== "1") return;
+    try {
+      const words = window.sessionStorage.getItem(ROOM_HANDOFF_STORY);
+      if (!words) return;
+      window.sessionStorage.removeItem(ROOM_HANDOFF_STORY);
+      setObservations(words);
+      setInputMethod("voice");
+    } catch {
+      /* nothing to hand over */
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     setPlaceholder(PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)]);
@@ -2080,6 +2096,9 @@ export default function GeneratePage() {
                   </button>
                 </div>
               )}
+
+              {/* key: a new story starts with a fresh panel, never the last story's link. */}
+              {storyId && <LeaderCheck key={storyId} storyId={storyId} />}
 
               <FamilyTranslationPanel storyId={storyId} plan={accountPlan} />
 

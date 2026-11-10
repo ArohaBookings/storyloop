@@ -3,6 +3,7 @@ import Link from "next/link";
 import { BookOpen, Sparkles } from "lucide-react";
 import StoryHistoryItem from "@/components/app/StoryHistoryItem";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
+import { latestChecksByStory } from "@/lib/story-check-server";
 
 export const metadata = { title: "Story history" };
 
@@ -17,6 +18,7 @@ export default async function HistoryPage() {
     .select("*")
     .eq("user_id", user!.id)
     .order("created_at", { ascending: false });
+  const checks = await latestChecksByStory(user!.id);
 
   return (
     <div className="w-full max-w-none p-4 sm:p-6 md:p-8">
@@ -42,7 +44,7 @@ export default async function HistoryPage() {
       ) : (
         <div className="space-y-4">
           {stories.map((story) => (
-            <StoryHistoryItem key={story.id} story={story} plan={profile.plan ?? "free"} />
+            <StoryHistoryItem key={story.id} story={story} plan={profile.plan ?? "free"} check={checks[story.id]} />
           ))}
         </div>
       )}

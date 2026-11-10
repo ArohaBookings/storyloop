@@ -650,7 +650,7 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
 
     intro:
       "Queensland kindergartens complete a transition statement for each child in November of the kindergarten year. It is a strengths-based, point-in-time summary of the child's knowledge, skills and dispositions for learning across the five learning and development areas of the Queensland kindergarten learning guideline (QKLG). This guide covers consent, the KTS app and the five areas with example wording, and the draft box writes yours from your own notes.",
-    reviewedAt: "2026-10-27",
+    reviewedAt: "2026-11-10",
     sections: [
       {
         title: "Two consent forms, two jobs",

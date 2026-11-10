@@ -194,6 +194,9 @@ export default function StoryDemo({
   const [basicDraft, setBasicDraft] = useState(false);
   // The free try is used: offer to keep what they wrote rather than a dead end.
   const [limitHit, setLimitHit] = useState(false);
+  // Phones: the visitor tapped "watch it write one" above the box, so the story
+  // panel moves above the box and they see it being written without scrolling.
+  const [exampleFirst, setExampleFirst] = useState(false);
 
   const isUnchangedExample = !guide && input.trim() === SAMPLE.trim();
 
@@ -284,6 +287,24 @@ export default function StoryDemo({
 
   return (
     <div className={compact ? "grid min-w-0 gap-4" : "grid min-w-0 gap-5 lg:grid-cols-2"}>
+      {/* 10 Nov 2026, phones only. Of 86 phone visitors in a week, 61 reached this
+          box and 6 touched it: an empty box asks a tired educator to type before
+          she has seen anything. The no-typing way in now comes first on a phone;
+          the box for her own note is unchanged, straight underneath. */}
+      {compact && !guide && !exampleFirst && !output && !loading && (
+        <div className="sm:hidden" data-testid="demo-watch-first">
+          <button
+            type="button"
+            onClick={() => { setExampleFirst(true); track("demo_example_panel", { from: "top" }); playExample(); }}
+            className="btn-primary w-full justify-center py-3.5 text-base"
+            data-track="demo_watch_first"
+          >
+            <Sparkles className="h-4 w-4" /> Watch it write one from a real note
+          </button>
+          <p className="mt-2 text-center text-xs text-ink-500">A few seconds, nothing to type. Or put your own note in below.</p>
+        </div>
+      )}
+
       {/* ---------------------------------------------------------- input */}
       <div className="card min-w-0 p-5 sm:p-6">
         <div className="mb-1.5 flex items-center justify-between gap-3">
@@ -346,7 +367,7 @@ export default function StoryDemo({
       </div>
 
       {/* --------------------------------------------------------- output */}
-      <div className="story-safe card-warm relative flex min-w-0 max-w-full flex-col overflow-hidden p-5 sm:p-6"
+      <div className={`story-safe card-warm relative flex min-w-0 max-w-full flex-col overflow-hidden p-5 sm:p-6 ${exampleFirst ? "order-first sm:order-none" : ""}`}
            style={{ minHeight: compact ? 240 : 300 }}>
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <label className="section-title">Your learning story</label>

@@ -4,7 +4,7 @@
  * The version records which release a user acknowledged. Bumping it shows the
  * card again, once, to people who have already used StoryLoop.
  */
-export const WHATS_NEW_VERSION = "2026-11";
+export const WHATS_NEW_VERSION = "2026-11b";
 
 /**
  * The day these notes were published (NZ). Bump it together with the version
@@ -68,6 +68,27 @@ export type WhatsNewItem = {
  */
 export const WHATS_NEW_ITEMS: WhatsNewItem[] = [
   {
+    icon: "review",
+    title: "Ask your leader to check a story",
+    body:
+      "On any saved story, make a private link and send it to your head teacher or mentor. They see your note beside the story and answer in about two minutes, with no account. The link opens that one story for 14 days and you can cancel it.",
+    href: "/history",
+  },
+  {
+    icon: "voice",
+    title: "Room mode: talk through a whole session",
+    body:
+      "Up to 15 minutes in one go. You get every word back to check, a name it nearly heard is one tap to fix, and then it splits by child. It is your voice note, and the sound is not kept.",
+    href: "/room",
+  },
+  {
+    icon: "today",
+    title: "The year in one tap",
+    body:
+      "Every child on one page, from this year's stories: who is ready for a summary or transition statement, the family keepsake, and a handover sheet to print for next year.",
+    href: "/year",
+  },
+  {
     icon: "photo",
     title: "Photo of my notes",
     body:
@@ -80,13 +101,6 @@ export const WHATS_NEW_ITEMS: WhatsNewItem[] = [
     body:
       "Under Style and extras you can now choose \"To the child\", for stories that read \"Ruby, you poured\" instead of \"Ruby poured\". Leave it off and nothing changes.",
     href: "/generate",
-  },
-  {
-    icon: "guides",
-    title: "A child's statement from the stories you already wrote",
-    body:
-      "From a child's profile, open the transition pack. StoryLoop drafts each outcome of their transition statement or end of year summary from the notes you have already saved about them, and you check every line. Twice a month on the free plan.",
-    href: "/children",
   },
   {
     // Kept from September on purpose: it is the one item that pays the reader.
