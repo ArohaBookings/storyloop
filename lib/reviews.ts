@@ -1,4 +1,5 @@
 import { createAdminSupabase, hasSupabaseAdminConfig } from "@/lib/supabase/admin";
+import { ANONYMOUS_REVIEWER } from "@/lib/review-ask";
 
 export type Review = {
   id: string;
@@ -21,11 +22,13 @@ export type PublicReview = {
 };
 
 /**
- * Shorten a name for public display: first name plus last initial. "Marcelle
- * Bidois" becomes "Marcelle B." A single name stays as is. This protects the
- * reviewer while keeping the review credible.
+ * Shorten a name for public display: first name plus last initial. "Mia
+ * Thompson" becomes "Mia T." A single name stays as is. This protects the
+ * reviewer while keeping the review credible. A reviewer who asked for no
+ * name is shown as an educator, whole.
  */
 export function shortenName(fullName: string) {
+  if (fullName.trim() === ANONYMOUS_REVIEWER) return ANONYMOUS_REVIEWER;
   const parts = fullName.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "An educator";
   if (parts.length === 1) return parts[0];

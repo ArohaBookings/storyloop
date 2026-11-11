@@ -17,6 +17,7 @@ import CentreMonthBand from "@/components/marketing/CentreMonthBand";
 import { RelatedGuides } from "@/components/marketing/Guide";
 import { SLUG_PRINTABLES, relatedFor } from "@/components/marketing/guide-links";
 import { INTERNATIONAL_SLUG_FRAMEWORK } from "@/lib/seo-pages-international";
+import TransitionExample from "@/components/marketing/TransitionExample";
 
 // Guides a director reads. They get the founding-centre offer under the hero
 // and a primary button that starts a centre's free month, not an individual
@@ -411,6 +412,9 @@ export default async function SeoPage({ params }: PageProps) {
             before seeing a number. The explanation is still below, for anyone
             who wants it after they know the price. */}
         {page.slug === "pricing" && <Pricing />}
+
+        {/* A finished example first: these readers searched for one (TransitionExample has the numbers). */}
+        {TRANSITION_DEMOS[page.slug]?.mode === "transition" && <TransitionExample framework={TRANSITION_DEMOS[page.slug].framework} />}
 
         {TRANSITION_DEMOS[page.slug] && (
           <section id="transition-try" aria-labelledby="transition-try-title" className="scroll-mt-24 border-y border-clay-100 bg-white py-12 md:py-16">

@@ -17,6 +17,7 @@ export default function ReviewForm({
   const [hover, setHover] = useState(0);
   const [role, setRole] = useState("");
   const [body, setBody] = useState("");
+  const [anonymous, setAnonymous] = useState(false);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
@@ -29,7 +30,7 @@ export default function ReviewForm({
       const res = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rating, role, body }),
+        body: JSON.stringify({ rating, role, body, anonymous }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? "Could not send your review."); return; }
@@ -53,7 +54,7 @@ export default function ReviewForm({
             <h2 className="font-display text-xl font-bold text-ink-900">Thank you, that means a lot.</h2>
             <p className="mt-1 text-sm leading-relaxed text-ink-600">
               A real person reads every review. If it helps other educators understand StoryLoop, it may appear on
-              our site with just your first name and last initial.
+              our site {anonymous ? "with no name" : "with just your first name and last initial"}.
             </p>
           </div>
         </div>
@@ -119,9 +120,21 @@ export default function ReviewForm({
           />
         </div>
 
+        <label className="flex min-h-[44px] cursor-pointer items-center gap-3 text-sm text-ink-700">
+          <input
+            type="checkbox"
+            checked={anonymous}
+            onChange={(e) => setAnonymous(e.target.checked)}
+            className="h-5 w-5 rounded border-clay-300 text-clay-700"
+            data-testid="review-anonymous"
+          />
+          Show it without my name
+        </label>
         {embedded && (
           <p className="text-sm text-ink-500">
-            We may share it on our site with your first name and last initial only. Never your email.
+            {anonymous
+              ? "We may share it on our site with no name at all. Never your email."
+              : "We may share it on our site with your first name and last initial only. Never your email."}
           </p>
         )}
         {error && <p className="rounded-xl border border-clay-200 bg-clay-50 px-3 py-2 text-sm text-clay-700">{error}</p>}

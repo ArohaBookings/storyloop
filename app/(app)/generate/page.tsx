@@ -21,6 +21,9 @@ import {
   Wand2,
   Users,
   MessageCircleHeart,
+  Heart,
+  UserCheck,
+  GraduationCap,
   LockKeyhole,
 } from "lucide-react";
 import ObservationCoach from "@/components/app/ObservationCoach";
@@ -33,6 +36,7 @@ import ExportPackPanel from "@/components/app/ExportPackPanel";
 import FamilyTranslationPanel from "@/components/app/FamilyTranslationPanel";
 import LeaderCheck from "@/components/app/LeaderCheck";
 import FamilyShare from "@/components/app/FamilyShare";
+import StoryReviewAsk from "@/components/app/StoryReviewAsk";
 import { looksNonLatin } from "@/lib/note-language";
 import { ROOM_HANDOFF_STORY } from "@/lib/room-mode";
 import type { ChildProfile } from "@/lib/children";
@@ -756,6 +760,18 @@ export default function GeneratePage() {
     }
   };
 
+  /** Bring a panel under the story into view and open it, from the row beside Copy. */
+  const jumpTo = (id: "family-share" | "leader-check") => {
+    track(id === "family-share" ? "app_row_family" : "app_row_leader");
+    const panel = document.getElementById(id);
+    if (!panel) return;
+    panel.scrollIntoView({ behavior: "smooth", block: "center" });
+    // Focus the panel's own button and stop there: making a link or sharing a
+    // story is the educator's tap, never something a shortcut does for them.
+    const first = panel.querySelector<HTMLButtonElement>("button:not([disabled])");
+    if (first) window.setTimeout(() => first.focus({ preventScroll: true }), 400);
+  };
+
   const handleCopy = async () => {
     await navigator.clipboard.writeText(story);
     setCopied(true);
@@ -1291,6 +1307,16 @@ export default function GeneratePage() {
               {label}
             </button>
           ))}
+          {/* A different document, so a different page: the same box, drafted outcome by outcome. */}
+          <Link
+            href="/statement"
+            data-testid="statement-tab"
+            data-track="generate_statement_tab"
+            className="flex min-h-10 flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-bold text-ink-600 transition-colors hover:bg-cream-50 sm:flex-none"
+          >
+            <GraduationCap className="h-4 w-4" />
+            Statement
+          </Link>
         </div>
       </div>
 
@@ -1937,6 +1963,17 @@ export default function GeneratePage() {
                 <button type="button" onClick={handleDownload} className={storyAction}>
                   <Download className="w-3 h-3" /> Export
                 </button>
+                {storyId && (
+                  <>
+                    {/* The two things worth doing with a finished story sat a screen below it, where nobody scrolled. */}
+                    <button type="button" onClick={() => jumpTo("family-share")} className={storyAction} data-testid="row-share-family">
+                      <Heart className="w-3 h-3" /> Share with family
+                    </button>
+                    <button type="button" onClick={() => jumpTo("leader-check")} className={storyAction} data-testid="row-ask-leader">
+                      <UserCheck className="w-3 h-3" /> Ask my leader
+                    </button>
+                  </>
+                )}
                 <button type="button" onClick={handleParentFriendlyVersion} disabled={parentVersionLoading || !storyId} className={storyAction}>
                   {parentVersionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <MessageCircleHeart className="w-3 h-3" />}
                   Family version
@@ -2186,8 +2223,17 @@ export default function GeneratePage() {
               )}
 
               {/* key: a new story starts with a fresh panel, never the last story's link. */}
-              {storyId && <LeaderCheck key={storyId} storyId={storyId} />}
-            {storyId && <FamilyShare key={`family-${storyId}`} storyId={storyId} childName={childName} />}
+              {storyId && (
+                <div id="leader-check" className="scroll-mt-24">
+                  <LeaderCheck key={storyId} storyId={storyId} />
+                </div>
+              )}
+              {storyId && (
+                <div id="family-share" className="scroll-mt-24">
+                  <FamilyShare key={`family-${storyId}`} storyId={storyId} childName={childName} />
+                </div>
+              )}
+              {storyId && <StoryReviewAsk key={`review-${storyId}`} />}
 
               <FamilyTranslationPanel storyId={storyId} plan={accountPlan} />
 

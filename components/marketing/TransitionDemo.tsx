@@ -45,11 +45,20 @@ export default function TransitionDemo({
   framework: initialFramework,
   mode,
   choices,
+  endpoint = "/api/transition-draft",
+  inApp = false,
+  childName = "",
 }: {
   framework: TransitionFramework;
   mode: TransitionMode;
   /** Let the reader pick their state or curriculum (the transition and end-of-year pages serve more than one). */
   choices?: TransitionFramework[];
+  /** Where the draft comes from. The signed-in page uses its own route, with the account's allowance. */
+  endpoint?: string;
+  /** Inside the app (the Statement page): no signup pitch, and its own event names. */
+  inApp?: boolean;
+  /** The child's first name, when the page asks for it separately. */
+  childName?: string;
 }) {
   const [framework, setFramework] = useState<TransitionFramework>(initialFramework);
   const [notes, setNotes] = useState("");
@@ -58,6 +67,9 @@ export default function TransitionDemo({
   const [error, setError] = useState("");
   const [draft, setDraft] = useState<TransitionDraft | null>(null);
   const [copied, setCopied] = useState(false);
+  const [limitHit, setLimitHit] = useState(false);
+  // The public demo and the signed-in page are counted apart in admin.
+  const ev = inApp ? "app_statement" : "transition_demo";
   // From the draft on screen, not the picker: switching the picker after a
   // draft must not relabel it.
   const strategyLabel = draft ? strategyLabelFor(draft.framework, draft.mode) : strategyLabelFor(framework, mode);
@@ -65,23 +77,25 @@ export default function TransitionDemo({
   const run = async () => {
     if (loading) return;
     setError("");
+    setLimitHit(false);
     setLoading(true);
     // Own event names, so the learning-story demo's numbers in admin stay its own.
-    track("transition_demo_started", { mode, framework, sample: usingSample, inputWords: notes.trim().split(/\s+/).length });
+    track(`${ev}_started`, { mode, framework, sample: usingSample, inputWords: notes.trim().split(/\s+/).length });
     try {
-      const res = await fetch("/api/transition-draft", {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notes, framework, mode }),
+        body: JSON.stringify(childName.trim() ? { notes, framework, mode, childName } : { notes, framework, mode }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.draft) {
         setError(data.error ?? "Something went wrong. Try again in a minute.");
-        track("transition_demo_error", { status: res.status, code: data.code ?? null });
+        setLimitHit(data.code === "free_limit");
+        track(`${ev}_error`, { status: res.status, code: data.code ?? null });
         return;
       }
       setDraft(data.draft);
-      track("transition_demo_completed", {
+      track(`${ev}_completed`, {
         mode,
         framework,
         sample: usingSample,
@@ -89,7 +103,7 @@ export default function TransitionDemo({
       });
     } catch {
       setError("Something went wrong. Try again in a minute.");
-      track("transition_demo_error", { status: 0 });
+      track(`${ev}_error`, { status: 0 });
     } finally {
       setLoading(false);
     }
@@ -167,10 +181,20 @@ export default function TransitionDemo({
           <p className="mt-2 text-xs text-ink-500">A little more: two or three moments, a few lines each.</p>
         )}
         <p className="mt-3 text-xs leading-relaxed text-ink-500">
-          No signup. Use a first name only. Your notes and the draft are not saved to any account and are never used to train AI. Check
-          your service&apos;s policy on children&apos;s information.
+          {inApp
+            ? "Use a first name only. The notes and the draft are not saved: copy what you want to keep. They are never used to train AI."
+            : "No signup. Use a first name only. Your notes and the draft are not saved to any account and are never used to train AI. Check your service's policy on children's information."}
         </p>
-        {error && <p role="alert" className="mt-3 rounded-lg border border-clay-200 bg-clay-50 px-3 py-2 text-xs text-clay-700">{error}</p>}
+        {error && (
+          <p role="alert" className="mt-3 rounded-lg border border-clay-200 bg-clay-50 px-3 py-2 text-xs text-clay-700">
+            {error}{" "}
+            {limitHit && (
+              <Link href="/billing" className="font-bold underline" data-track="statement_limit_upgrade">
+                See the plans
+              </Link>
+            )}
+          </p>
+        )}
       </div>
 
       <div className="card-warm min-w-0 p-5 sm:p-6" aria-live="polite">
@@ -225,13 +249,25 @@ export default function TransitionDemo({
               <p className="mb-2 text-sm text-ink-700">
                 It is a draft from your notes: check every line. You decide what is true and what goes in the statement.
               </p>
-              <p className="mb-3 text-sm text-ink-600">
-                In StoryLoop this comes straight from the stories you have already saved about each child: one tap per child, with their
-                own words kept. 3 stories a month free, no card.
-              </p>
-              <Link href="/signup" className="btn-primary px-4 py-2 text-sm" data-track="transition_demo_signup">
-                Start free
-              </Link>
+              {inApp ? (
+                <p className="text-sm text-ink-600">
+                  Saved a few stories about this child? Their page drafts this straight from those, with their own words kept:{" "}
+                  <Link href="/year" className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2">
+                    The year in one tap
+                  </Link>
+                  .
+                </p>
+              ) : (
+                <>
+                  <p className="mb-3 text-sm text-ink-600">
+                    In StoryLoop this comes straight from the stories you have already saved about each child: one tap per child, with
+                    their own words kept. 3 stories a month free, no card.
+                  </p>
+                  <Link href="/signup" className="btn-primary px-4 py-2 text-sm" data-track="transition_demo_signup">
+                    Start free
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         ) : (

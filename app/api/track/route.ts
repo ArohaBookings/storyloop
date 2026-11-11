@@ -34,6 +34,14 @@ const ALLOWED_EVENTS = new Set([
   "family_link_made",
   "family_link_opened",
   "family_reply_sent",
+  // The signed-in statement page, the row beside Copy, and the homepage film (11 Nov 2026).
+  "app_statement_started",
+  "app_statement_completed",
+  "app_statement_error",
+  "app_row_family",
+  "app_row_leader",
+  "film_play",
+  "film_complete",
   // Room mode (lib/room-mode.ts): one long voice note, counted once when its transcript is ready.
   "room_session",
   "demo_started",

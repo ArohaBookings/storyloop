@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { consumeRateLimit } from "@/lib/rate-limit";
+import { ANONYMOUS_REVIEWER } from "@/lib/review-ask";
 
 /**
  * An educator submits their own review. It lands as "pending" and is invisible
@@ -18,6 +19,8 @@ export async function POST(request: NextRequest) {
   const rating = Number(body.rating);
   const text = typeof body.body === "string" ? body.body.trim() : "";
   const role = typeof body.role === "string" ? body.role.trim().slice(0, 80) : null;
+  // "Show it without my name": the name is never stored with the review at all.
+  const anonymous = body.anonymous === true;
 
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     return NextResponse.json({ error: "Please choose a star rating." }, { status: 400 });
@@ -34,7 +37,7 @@ export async function POST(request: NextRequest) {
   const admin = createAdminSupabase();
   const { error } = await admin.from("reviews").insert({
     user_id: user.id,
-    reviewer_name: profile.full_name || user.email?.split("@")[0] || "An educator",
+    reviewer_name: anonymous ? ANONYMOUS_REVIEWER : profile.full_name || user.email?.split("@")[0] || "An educator",
     reviewer_role: role,
     rating,
     body: text.slice(0, 1500),

@@ -1,4 +1,4 @@
-import Image from "next/image";
+import HomeFilm from "@/components/landing/HomeFilm";
 import { Mic, PenLine, Send } from "lucide-react";
 
 /**
@@ -52,22 +52,8 @@ export default function HowItWorks() {
             ))}
           </ol>
         </div>
-        {/* The third step, in a picture: the draft is yours to finish. */}
-        <figure className="relative">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-clay-100 bg-cream-100">
-            <Image
-              src="/images/hero.jpg"
-              alt="An educator smiling at a desk in a classroom"
-              fill
-              sizes="(min-width: 1024px) 45vw, 100vw"
-              className="object-cover"
-            />
-          </div>
-          <figcaption className="mt-3 text-sm leading-relaxed text-ink-500">
-            The draft is a starting point, not a finished story. You read it, change what is not right, and share it where
-            you always do.
-          </figcaption>
-        </figure>
+        {/* The three steps, moving: the stock photograph that sat here showed nothing the words had not said. */}
+        <HomeFilm />
       </div>
     </section>
   );

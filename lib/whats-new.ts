@@ -4,7 +4,7 @@
  * The version records which release a user acknowledged. Bumping it shows the
  * card again, once, to people who have already used StoryLoop.
  */
-export const WHATS_NEW_VERSION = "2026-11c";
+export const WHATS_NEW_VERSION = "2026-11d";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 /**
@@ -20,7 +20,9 @@ export function whatsNewMonth(version: string = WHATS_NEW_VERSION): string {
  * The day these notes were published (NZ). Bump it together with the version
  * whenever the notes are rewritten.
  */
-export const WHATS_NEW_PUBLISHED = "2026-11-10";
+// RELEASE STEP: set this to the day the notes actually go live. It decides who
+// counts as an existing user (accounts made before it) and starts the 21 days.
+export const WHATS_NEW_PUBLISHED = "2026-11-11";
 
 /**
  * How long a set of notes stays news. After this the card is not shown to
@@ -87,39 +89,41 @@ export type WhatsNewItem = {
 };
 
 /**
- * The November 2026 release (10 Nov).
+ * The November 2026 release, second card (the big update staged 11 Nov).
  *
- * Only what is new since October, per the rule above: a card is not a
- * changelog. October's features are all still in the sidebar.
+ * Only one thing is new since the 10 Nov card: the statement page. The 10 Nov
+ * items stay because that card was live for a day and most people never saw
+ * it, and whoever did sees this one once and never again (the card marks the
+ * account the moment it appears: WhatsNewModal).
  */
 export const WHATS_NEW_ITEMS: WhatsNewItem[] = [
+  {
+    icon: "guides",
+    title: "A transition statement or summary, from your notes",
+    body:
+      "New in the menu: Statement or summary. Paste what you know about one child and get it back outcome by outcome, with a strategy for the next teacher or a next step for next year. It writes only from your notes and leaves an outcome for you when they show nothing. Two a month on the free plan.",
+    href: "/statement",
+  },
   {
     icon: "family",
     title: "Share a story with the family, and hear back",
     body:
-      "On any saved story, tap Share with the family and make a private link for Mum, Dad or Nana. No app and no password. They read the stories you share, in their own language if you choose one, with the child's own words left exactly as said, and what they write back lands beside the story.",
+      "Share with family now sits beside Copy on every story. Make a private link for Mum, Dad or Nana: no app and no password. They read the stories you share, with the child's own words left exactly as said, and what they write back comes to you.",
     href: "/history",
   },
   {
     icon: "voice",
     title: "Write or say your note in your own language",
     body:
-      "Think in Tagalog, Hindi, Mandarin, Samoan or anything else? Jot or say the note that way, then tap \"Put it into English for me to check\" under the note. Anything a child said is left exactly as they said it, with its meaning in brackets. Then write the story as usual.",
+      "Think in Tagalog, Hindi, Mandarin, Samoan or anything else? Jot or say the note that way, then tap \"Put it into English for me to check\" under the note. Anything a child said is left exactly as they said it, with its meaning in brackets.",
     href: "/generate",
   },
   {
     icon: "review",
     title: "Ask your leader to check a story",
     body:
-      "On any saved story, make a private link and send it to your head teacher or mentor. They see your note beside the story and answer in about two minutes, with no account. The link opens that one story for 14 days and you can cancel it.",
+      "Ask my leader is beside Copy too. It makes a private link for your head teacher or mentor: they see your note beside the story and answer in about two minutes, with no account. The link opens that one story for 14 days and you can cancel it.",
     href: "/history",
-  },
-  {
-    icon: "voice",
-    title: "Room mode: talk through a whole session",
-    body:
-      "Up to 15 minutes in one go. You get every word back to check, a name it nearly heard is one tap to fix, and then it splits by child. It is your voice note, and the sound is not kept.",
-    href: "/room",
   },
   {
     icon: "today",
