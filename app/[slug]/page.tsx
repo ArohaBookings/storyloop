@@ -144,6 +144,7 @@ const EDUCATOR_FIRST_SLUGS = new Set([
 ]);
 import { DEDICATED_ROUTE_SLUGS, SEO_PAGES, SEO_PAGE_SLUGS } from "@/lib/seo-pages";
 import { ExternalLink, PenLine, ShieldCheck } from "lucide-react";
+import { ORGANIZATION_REF } from "@/lib/site-identity";
 
 const SITE_URL = "https://storyloop.space";
 
@@ -213,7 +214,7 @@ export default async function SeoPage({ params }: PageProps) {
         description: page.description,
         dateModified: page.reviewedAt,
         author: { "@type": "Person", "@id": `${SITE_URL}/#leo`, name: "Leo" },
-        publisher: { "@type": "Organization", name: "StoryLoop", url: SITE_URL },
+        publisher: ORGANIZATION_REF,
         mainEntityOfPage: `${SITE_URL}/${page.slug}`,
         inLanguage: INTERNATIONAL_SLUG_FRAMEWORK[page.slug] === "UK" ? "en-GB" : INTERNATIONAL_SLUG_FRAMEWORK[page.slug] === "IE" ? "en-IE" : "en-AU",
         isPartOf: { "@type": "WebSite", "@id": `${SITE_URL}/#website` },

@@ -228,7 +228,7 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
     },
 
     intro:
-      "Every funded kindergarten in Victoria has to complete a TLDS for each child starting school, by the end of Term 4. The online tool tells you which boxes to fill. It cannot tell you what to write. This guide covers what each section asks for, with example wording you can adapt from what you have already seen this year.",
+      "Every funded kindergarten in Victoria has to complete a Transition Learning and Development Statement (TLDS) for each child starting school, by the end of Term 4. The online tool tells you which boxes to fill. It cannot tell you what to write. This guide covers what each section asks for, with example wording you can adapt from what you have already seen this year.",
     reviewedAt: "2026-11-10",
     sections: [
       {
@@ -249,7 +249,7 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
     ],
     faqs: [
       {
-        question: "When is the 2026 TLDS due?",
+        question: "When is the 2026 Transition Learning and Development Statement (TLDS) due?",
         answer:
           "Funded kindergarten providers must complete a TLDS for every enrolled child going to primary school in 2027, by the end of Term 4, 2026. The online TLDS tool, hosted on the Insight Assessment Platform, reopened on Monday 20 July 2026.",
       },

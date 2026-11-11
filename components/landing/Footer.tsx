@@ -97,7 +97,7 @@ export default function Footer() {
         </div>
 
         <div className="pt-8 border-t border-ink-800 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-ink-300">© {new Date().getFullYear()} StoryLoop · A division of Aria Care. Proudly built in New Zealand.</p>
+          <p className="text-xs text-ink-300" data-testid="footer-site-address">© {new Date().getFullYear()} StoryLoop, storyloop.space · A division of Aria Care. Proudly built in New Zealand.</p>
           <div className="flex items-center gap-5 text-xs text-ink-300">
             <Link href="/privacy" className="hover:text-paper transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-paper transition-colors">Terms</Link>

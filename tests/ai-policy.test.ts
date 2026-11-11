@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import test from "node:test";
-import { generateAiPolicy, normalizePolicyInput, policyToText, type PolicyInput } from "../lib/ai-policy";
+import { AU_DIGITAL_POLICY_PARAGRAPH, generateAiPolicy, normalizePolicyInput, policyToText, type PolicyInput } from "../lib/ai-policy";
 
 /**
  * A centre may formally adopt this document, so the tests are about the things
@@ -122,4 +123,39 @@ test("a bad date reads as a sentence, not 'Invalid Date'", () => {
 
 test("plain text export ends with the advice-disclaimer", () => {
   assert.match(text(base), /obtain your own advice where needed\.$/);
+});
+
+test("an Australian policy sits beside the regulation 168 digital technologies policy, and never says the regulation names AI", () => {
+  for (const familyNotice of ["inform", "opt_out", "opt_in"] as const) {
+    const au = text({ ...base, country: "AU", familyNotice });
+    assert.ok(au.includes(AU_DIGITAL_POLICY_PARAGRAPH), `AU ${familyNotice} is missing the digital technologies paragraph`);
+  }
+  assert.match(AU_DIGITAL_POLICY_PARAGRAPH, /Since 1 September 2025, regulation 168 of the Education and Care Services National Regulations/);
+  assert.match(AU_DIGITAL_POLICY_PARAGRAPH, /safe use of digital technologies and online environments/);
+  assert.ok(!/\bAI\b|artificial intelligence/i.test(AU_DIGITAL_POLICY_PARAGRAPH), "the regulation sentence must not claim the regulation mentions AI");
+  const nz = text({ ...base, country: "NZ" });
+  assert.ok(!nz.includes("regulation 168") && !nz.includes("digital technologies and online environments"), "NZ policy carries the AU regulation");
+});
+
+test("New Zealand output is byte-identical to before the 12 Nov 2026 AU change", () => {
+  // Hash captured from the code at 82443ae, before the AU paragraph was added.
+  const parts: string[] = [];
+  for (const serviceType of ["centre", "kindergarten", "home_based", "group"] as const)
+    for (const familyNotice of ["inform", "opt_out", "opt_in"] as const)
+      for (const approvedTools of [[], ["StoryLoop"]]) {
+        const input: PolicyInput = { ...base, country: "NZ", serviceType, familyNotice, approvedTools };
+        parts.push(JSON.stringify(generateAiPolicy(input)) + policyToText(generateAiPolicy(input)));
+      }
+  assert.equal(createHash("sha256").update(parts.join("\n---\n")).digest("hex"), "3e8865fb02a29d652f3079434e8960c9a21ef8b7cbd5b75b1b2b8aa004168b8b");
+});
+
+test("no product name appears inside any rule, in either country", () => {
+  const products = ["StoryLoop", "ChatGPT", "Copilot", "Gemini", "Claude", "OpenAI"];
+  for (const country of ["NZ", "AU"] as const) {
+    const policy = generateAiPolicy({ ...base, country, approvedTools: [] });
+    for (const section of policy.sections) {
+      const body = section.heading + " " + section.paragraphs.join(" ");
+      for (const product of products) assert.ok(!body.includes(product), `${country}: ${product} inside ${section.heading}`);
+    }
+  }
 });

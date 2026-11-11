@@ -180,6 +180,7 @@ export default function PolicyGenerator() {
               Start free
             </Link>
             <Link href="/responsible-ai-ece-documentation" className="btn-secondary text-sm">Read the practice guide</Link>
+            <Link href="/how-to-check-a-learning-story" className="btn-secondary text-sm" data-testid="ai-policy-check-link">How a leader checks a story in two minutes</Link>
           </div>
         </div>
       </div>

@@ -23,6 +23,23 @@
  *       particularly sensitive information, into publicly available generative
  *       AI tools.
  *
+ * Verified 2026-11-12 (AU only, one paragraph in section 1):
+ *
+ *   AU  ACECQA, "NQF child safety changes from 1 September 2025 and 1 January
+ *       2026" (acecqa.gov.au/nqf-child-safety-changes-1-september-2025-and-1-january-2026)
+ *       and "Changes to the NQF starting 1 September" (acecqa.gov.au/latest-news/
+ *       changes-nqf-starting-1-september): changes to regulation 168 of the
+ *       Education and Care Services National Regulations, commencing 1 September
+ *       2025, mean providers must make sure services have a policy and procedures
+ *       for the safe use of digital technologies and online environments (images
+ *       and videos of children, parental authorisation, optical surveillance,
+ *       service-issued devices, children's use of devices). Neither page names AI.
+ *       ACECQA's NQF Online Safety Guide, chapter 6, asks how that policy makes
+ *       clear when AI can and cannot be used. So the sentence says this policy
+ *       sits beside that one; it never says the regulation mentions AI. The
+ *       regulation's own text (legislation.nsw.gov.au) could not be opened on
+ *       2026-11-12, so nothing beyond ACECQA's wording is claimed.
+ *
  * Tool-neutral in its principles. StoryLoop appears only as an editable entry
  * in the approved-tools list, never inside a rule, because a policy that reads
  * as an advert is a policy no director will sign.
@@ -68,6 +85,13 @@ function formatDate(iso: string) {
   if (Number.isNaN(date.getTime())) return "the date it is adopted";
   return date.toLocaleDateString("en-NZ", { day: "numeric", month: "long", year: "numeric" });
 }
+
+/**
+ * Australia only. Worded no more strongly than ACECQA's own information sheet:
+ * the regulation requires the digital technologies policy; it does not name AI.
+ */
+export const AU_DIGITAL_POLICY_PARAGRAPH =
+  "Since 1 September 2025, regulation 168 of the Education and Care Services National Regulations has required our service to have policies and procedures for the safe use of digital technologies and online environments. This policy sits beside that policy and is read together with it.";
 
 export function normalizePolicyInput(raw: Partial<PolicyInput>): PolicyInput {
   const country: PolicyCountry = raw.country === "AU" ? "AU" : "NZ";
@@ -137,6 +161,8 @@ export function generateAiPolicy(raw: Partial<PolicyInput>): Policy {
         paragraphs: [
           `This policy sets out how ${input.serviceName} uses artificial intelligence tools to support, never replace, the professional work of documenting ${children}'s learning.`,
           `Documentation at our ${noun} is assessment for learning, grounded in ${curriculum}. It belongs to the relationship between ${educators}, ${children} and ${families}. AI may help with the drafting. It does not observe, interpret, or decide what a ${child} learned.`,
+          // AU only. NZ output must stay byte-identical (tests/ai-policy.test.ts).
+          ...(nz ? [] : [AU_DIGITAL_POLICY_PARAGRAPH]),
         ],
       },
       {

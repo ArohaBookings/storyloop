@@ -4,6 +4,7 @@ import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import PageTracker from "@/components/analytics/PageTracker";
 import { listPublishedPosts, readingMinutes, BLOG_CATEGORIES } from "@/lib/blog";
+import { ORGANIZATION_REF } from "@/lib/site-identity";
 
 export const revalidate = 300;
 
@@ -37,7 +38,7 @@ export default async function BlogIndex() {
     url: "https://storyloop.space/blog",
     description:
       "Practical guides on learning stories, Te Whāriki and EYLF, observation technique, and early childhood documentation.",
-    publisher: { "@type": "Organization", name: "StoryLoop", url: "https://storyloop.space" },
+    publisher: ORGANIZATION_REF,
     blogPost: posts.slice(0, 20).map((post) => ({
       "@type": "BlogPosting",
       headline: post.title,

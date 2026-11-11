@@ -58,6 +58,34 @@ export default function AiPolicyPage() {
 
         <PolicyGenerator />
 
+        {/* 12 Nov 2026: leaders now arrive asking whether a rule makes them have one. Each line below
+            was checked on the official page it links to that day; see the header of lib/ai-policy.ts. */}
+        <section className="mx-auto mt-12 max-w-3xl rounded-3xl border border-clay-100 bg-paper p-6 sm:p-8 print:hidden" data-testid="ai-policy-rules">
+          <h2 className="font-display text-2xl font-bold text-ink-900">Do you have to have one?</h2>
+          <div className="mt-4 space-y-4 text-base leading-relaxed text-ink-700">
+            <p>
+              <span className="font-semibold text-ink-900">Australia.</span> Since 1 September 2025, regulation 168 of the Education
+              and Care Services National Regulations has required every service to have{" "}
+              <a className="text-clay-700 underline underline-offset-2" href="https://www.acecqa.gov.au/nqf-child-safety-changes-1-september-2025-and-1-january-2026" target="_blank" rel="noopener noreferrer">
+                a policy and procedures for the safe use of digital technologies and online environments
+              </a>
+              . ACECQA&apos;s list of what that policy must cover does not mention AI, but its{" "}
+              <a className="text-clay-700 underline underline-offset-2" href="https://www.acecqa.gov.au/nqf-online-safety-guide/chapter-6-artificial-intelligence-ai-and-online-safety/questions-guide-reflection-practice" target="_blank" rel="noopener noreferrer">
+                Online Safety Guide
+              </a>{" "}
+              asks how that policy makes clear when AI can and cannot be used. So your AI rules belong in it, or in a policy that sits beside it.
+            </p>
+            <p>
+              <span className="font-semibold text-ink-900">New Zealand.</span> The{" "}
+              <a className="text-clay-700 underline underline-offset-2" href="https://www.privacy.org.nz/resources-and-learning/a-z-topics/ai/" target="_blank" rel="noopener noreferrer">
+                Privacy Commissioner&apos;s starting point
+              </a>{" "}
+              is that the Privacy Act 2020 applies to everyone using AI tools. Before your team uses one, you need to understand how it
+              handles children&apos;s information, and a written policy is the plain way to show that you do.
+            </p>
+          </div>
+        </section>
+
         {/* 10 Nov 2026: this is the one page leaders find on Google (9 clicks in 28 days) and it had
             no way on to the centre plan. A policy names an approved tool; this is where to try one. */}
         <section className="mx-auto mt-12 max-w-3xl rounded-3xl border border-clay-200 bg-cream-50 p-6 sm:p-8 print:hidden" data-testid="ai-policy-centre">

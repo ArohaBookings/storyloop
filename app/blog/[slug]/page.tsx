@@ -7,6 +7,7 @@ import Footer from "@/components/landing/Footer";
 import PageTracker from "@/components/analytics/PageTracker";
 import GuideProof from "@/components/marketing/GuideProof";
 import { getPublishedPost, listPublishedPosts, renderMarkdown, readingMinutes, plainSummary } from "@/lib/blog";
+import { ORGANIZATION_REF } from "@/lib/site-identity";
 
 export const revalidate = 300;
 
@@ -69,12 +70,7 @@ export default async function BlogPostPage({ params }: Params) {
     datePublished: post.published_at,
     dateModified: post.updated_at,
     author: { "@type": "Organization", name: post.author_name, url: "https://storyloop.space" },
-    publisher: {
-      "@type": "Organization",
-      name: "StoryLoop",
-      url: "https://storyloop.space",
-      logo: { "@type": "ImageObject", url: "https://storyloop.space/logo.svg" },
-    },
+    publisher: ORGANIZATION_REF,
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
     keywords: post.tags.join(", "),
     inLanguage: post.region === "AU" ? "en-AU" : "en-NZ",

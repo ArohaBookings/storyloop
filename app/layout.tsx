@@ -3,6 +3,7 @@ import { Fraunces, JetBrains_Mono, Manrope } from "next/font/google";
 import "./globals.css";
 import CookieBanner from "@/components/consent/CookieBanner";
 import GoogleAdsTag from "@/components/analytics/GoogleAdsTag";
+import { ORGANIZATION_ID, SITE_ALTERNATE_NAMES, SITE_DESCRIPTION, SITE_LOGO, SITE_NAME, SITE_URL, SOFTWARE_ID, WEBSITE_ID } from "@/lib/site-identity";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -96,13 +97,16 @@ const structuredData = {
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://storyloop.space/#organization",
+      "@id": ORGANIZATION_ID,
       // The brand searchers and answer engines see is "StoryLoop" (14 Oct 2026).
-      "name": "StoryLoop",
-      "url": "https://storyloop.space/",
+      // Name, address, description and logo come from lib/site-identity.ts so
+      // every block on the site agrees (12 Nov 2026).
+      "name": SITE_NAME,
+      "alternateName": SITE_ALTERNATE_NAMES,
+      "url": SITE_URL,
+      "description": SITE_DESCRIPTION,
       "email": "ariacareapp@gmail.com",
-      // A raster logo: Google's Organization logo guidance asks for a bitmap of 112px or more.
-      "logo": "https://storyloop.space/brand/storyloop-icon.png",
+      "logo": SITE_LOGO,
       "founder": { "@id": "https://storyloop.space/#leo" },
       "foundingDate": "2026",
       "foundingLocation": {
@@ -150,25 +154,29 @@ const structuredData = {
           "addressCountry": "NZ",
         },
       },
-      "worksFor": { "@id": "https://storyloop.space/#organization" },
+      "worksFor": { "@id": ORGANIZATION_ID },
     },
     {
       "@type": "WebSite",
-      "@id": "https://storyloop.space/#website",
-      "name": "StoryLoop",
-      "url": "https://storyloop.space/",
-      "publisher": { "@id": "https://storyloop.space/#organization" },
+      "@id": WEBSITE_ID,
+      "name": SITE_NAME,
+      "alternateName": SITE_ALTERNATE_NAMES,
+      "url": SITE_URL,
+      "description": SITE_DESCRIPTION,
+      "publisher": { "@id": ORGANIZATION_ID },
       "inLanguage": "en-AU",
     },
     {
       "@type": "SoftwareApplication",
-      "@id": "https://storyloop.space/#software",
-      "name": "StoryLoop",
-      "description": "Learning story drafting assistant for early childhood educators using Te Whāriki and EYLF-aligned curriculum links, child continuity, whānau voice, and educator review.",
+      "@id": SOFTWARE_ID,
+      "name": SITE_NAME,
+      "alternateName": SITE_ALTERNATE_NAMES,
+      "description": SITE_DESCRIPTION,
+      "image": SITE_LOGO,
       "applicationCategory": "EducationalApplication",
       "operatingSystem": "Web",
-      "url": "https://storyloop.space/",
-      "publisher": { "@id": "https://storyloop.space/#organization" },
+      "url": SITE_URL,
+      "publisher": { "@id": ORGANIZATION_ID },
       "featureList": [
         "Voice notes to editable learning stories",
         "Today Loop for quick moments and daily follow-up focus",

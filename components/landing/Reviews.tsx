@@ -1,5 +1,6 @@
 import { Star } from "lucide-react";
 import { listPublishedReviews, reviewSummary } from "@/lib/reviews";
+import { ORGANIZATION_ID, SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOFTWARE_ID } from "@/lib/site-identity";
 
 /**
  * Educator reviews on the landing page. Renders nothing at all until at least
@@ -13,8 +14,11 @@ export default async function Reviews() {
   const reviewJsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "@id": "https://storyloop.space/#software",
-    name: "StoryLoop",
+    "@id": SOFTWARE_ID,
+    name: SITE_NAME,
+    url: SITE_URL,
+    description: SITE_DESCRIPTION,
+    publisher: { "@id": ORGANIZATION_ID },
     operatingSystem: "Web",
     applicationCategory: "EducationalApplication",
     offers: {
