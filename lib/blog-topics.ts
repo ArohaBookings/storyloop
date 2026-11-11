@@ -224,6 +224,37 @@ export const GUIDE_TOPICS: GuideTopic[] = [
     intent: "commercial", region: "both", category: "article",
     keywords: ["ai learning stories", "ai early childhood documentation", "is ai ethical education"],
   },
+  // --- Added 12 Nov 2026: the season (end of year, then settling in) and the
+  // people who decide for a centre. No rules or regulations in any of them, so
+  // the writer needs no official facts. ---
+  {
+    slug: "end-of-year-message-to-families",
+    title: "End-of-year message to families: what to write, with examples",
+    angle: "The note that goes home in December. Three short examples for a room, one child and a child leaving for school, each built from something that actually happened this year and not from adjectives. What to leave out, and why two true sentences beat a paragraph of praise.",
+    intent: "problem", region: "both", category: "guide",
+    keywords: ["end of year message to parents from educator", "end of year letter to families childcare", "end of year message kindergarten teacher to parents"],
+  },
+  {
+    slug: "settling-in-observations",
+    title: "Settling-in observations: what to notice in a child's first weeks",
+    angle: "February is full of new children and nothing written down about them. What is worth noticing in the first fortnight (how they arrive, who they watch, what they go back to), written as short observations a family will be relieved to read, without guessing at feelings.",
+    intent: "informational", region: "both", category: "guide",
+    keywords: ["settling in observations childcare", "settling in learning story", "new child observation examples early childhood"],
+  },
+  {
+    slug: "learning-story-feedback-examples",
+    title: "Feedback on a learning story: examples a team leader can use",
+    angle: "Six pieces of feedback, each one sentence on what is right and one on what to change, for the six most common problems: no next step, a tidied-up quote, a link to nothing, a list of adjectives, a story about the activity and not the child, and a story that is too long to read.",
+    intent: "problem", region: "both", category: "guide",
+    keywords: ["feedback on learning stories examples", "how to give feedback on educators documentation", "educational leader feedback examples"],
+  },
+  {
+    slug: "team-documentation-meeting",
+    title: "A 20 minute team meeting about documentation that people do not dread",
+    angle: "One agenda a head teacher or educational leader can run next week: one story read aloud, one thing it does well, one child nobody has written about this month, and who will notice them. Why it works better than a documentation audit.",
+    intent: "problem", region: "both", category: "article",
+    keywords: ["documentation team meeting early childhood", "staff meeting ideas childcare documentation", "educational leader meeting agenda"],
+  },
 ];
 
 /** Topics that have not been published yet. */

@@ -245,6 +245,10 @@ export const RELATED = {
   preschoolExamples: { href: "/learning-story-examples-preschool", title: "Learning story examples, ages 3 to 5", body: "Real preschool notes and the drafts written from them." },
   nextSteps: { href: "/learning-story-next-steps-examples", title: "Next steps examples", body: "12 real “where to next” sections, and why each one works." },
   howLong: { href: "/how-long-should-a-learning-story-take", title: "How long should a story take?", body: "Why the blank page costs more than the writing, and what to do about it." },
+  // The questions the November 2026 features answer (lib/seo-pages-2026-11.ts).
+  familyLanguages: { href: "/learning-stories-in-family-languages", title: "Stories in a family's language", body: "What to translate, what never to translate, and how families can write back." },
+  secondLanguage: { href: "/writing-learning-stories-english-second-language", title: "Writing in a second language", body: "Start in the language you think in, then get it into English you can stand behind." },
+  leaderCheck: { href: "/how-to-check-a-learning-story", title: "How to check a learning story", body: "Five questions a leader can ask in two minutes, and feedback that helps." },
 } as const;
 
 export type RelatedKey = keyof typeof RELATED;

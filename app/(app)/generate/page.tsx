@@ -621,7 +621,19 @@ export default function GeneratePage() {
       // on a phone or tablet the finished story is brought to the top of the screen
       // once more when it arrives. Without this it sat two screens below the button.
       if (typeof window !== "undefined" && window.innerWidth < 1280) {
-        window.setTimeout(() => storyPanelRef.current?.scrollIntoView({ block: "start" }), 250);
+        window.setTimeout(() => {
+          const panel = storyPanelRef.current;
+          if (!panel) return;
+          panel.scrollIntoView({ block: "start" });
+          const settledAt = window.scrollY;
+          // A card above the panel can still be closing (seen once in 12 Nov's test runs: the
+          // story landed 50px too high, its heading off the top). If nobody has scrolled since
+          // and the panel has slid off its mark, put it back, once.
+          window.setTimeout(() => {
+            const top = panel.getBoundingClientRect().top;
+            if (window.scrollY === settledAt && (top < 0 || top > 140)) panel.scrollIntoView({ block: "start" });
+          }, 600);
+        }, 250);
       }
       if (sourceStoryId) {
         void fetch(`/api/stories/${encodeURIComponent(sourceStoryId)}`, {
@@ -1256,7 +1268,7 @@ export default function GeneratePage() {
     educatorNames.trim() ? `Educators: ${educatorNames.trim()}` : null,
   ].filter(Boolean).join(" · ");
   const storyAction =
-    "inline-flex min-h-9 items-center gap-1.5 rounded-full border border-clay-200 bg-white px-3 text-xs font-semibold text-ink-700 transition-colors hover:border-clay-400 hover:text-ink-900 disabled:opacity-50";
+    "inline-flex min-h-11 flex-none items-center gap-1.5 whitespace-nowrap rounded-full border border-clay-200 bg-white px-3.5 text-xs font-semibold text-ink-700 transition-colors hover:border-clay-400 hover:text-ink-900 disabled:opacity-50 xl:min-h-9 xl:px-3";
   const segment = (active: boolean) =>
     `min-h-10 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay-600 ${
       active ? "border-clay-700 bg-clay-700 text-paper" : "border-clay-200 bg-white text-ink-700 hover:border-clay-400"
@@ -1949,19 +1961,12 @@ export default function GeneratePage() {
           <div className="mb-4 flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
             <p className="section-title whitespace-nowrap">Your learning story</p>
             {story && (
-              <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <button type="button" onClick={() => handleGenerate()} className={storyAction}>
-                  <RefreshCw className="w-3 h-3" /> Regenerate
-                </button>
-                <button type="button" onClick={startStoryEdit} disabled={editingStory || savingStory} className={storyAction}>
-                  <Pencil className="w-3 h-3" /> Edit
-                </button>
+              /* One line to swipe on a phone, so the story starts higher; wrapped from tablet width up.
+                 Ordered by what people do with a finished story: copy it, share it, have it checked. */
+              <div className="-mx-1 flex min-w-0 max-w-full items-center gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible [&::-webkit-scrollbar]:hidden" data-testid="story-actions">
                 <button type="button" onClick={handleCopy} className={storyAction}>
                   {copied ? <Check className="w-3 h-3 text-sage-600" /> : <Copy className="w-3 h-3" />}
                   {copied ? "Copied" : "Copy"}
-                </button>
-                <button type="button" onClick={handleDownload} className={storyAction}>
-                  <Download className="w-3 h-3" /> Export
                 </button>
                 {storyId && (
                   <>
@@ -1974,6 +1979,15 @@ export default function GeneratePage() {
                     </button>
                   </>
                 )}
+                <button type="button" onClick={startStoryEdit} disabled={editingStory || savingStory} className={storyAction}>
+                  <Pencil className="w-3 h-3" /> Edit
+                </button>
+                <button type="button" onClick={() => handleGenerate()} className={storyAction}>
+                  <RefreshCw className="w-3 h-3" /> Regenerate
+                </button>
+                <button type="button" onClick={handleDownload} className={storyAction}>
+                  <Download className="w-3 h-3" /> Export
+                </button>
                 <button type="button" onClick={handleParentFriendlyVersion} disabled={parentVersionLoading || !storyId} className={storyAction}>
                   {parentVersionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <MessageCircleHeart className="w-3 h-3" />}
                   Family version

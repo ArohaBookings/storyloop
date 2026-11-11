@@ -2005,6 +2005,12 @@ for (const page of Object.values(INTERNATIONAL_PAGES)) {
   SEO_PAGES[page.slug] = { ...page, faqs: [...page.faqs, ...sharedFaqs] };
 }
 
+// The questions the November features answer, 12 Nov 2026.
+import { NOV_2026_PAGES } from "./seo-pages-2026-11";
+for (const page of Object.values(NOV_2026_PAGES)) {
+  SEO_PAGES[page.slug] = { ...page, faqs: [...page.faqs, ...sharedFaqs] };
+}
+
 // Attach long-form bodies to the pages that have them. Kept separate so the
 // heavy prose lives in its own file and this one stays a readable index.
 import { SEO_DEEP_DIVES } from "./seo-deep-dives";

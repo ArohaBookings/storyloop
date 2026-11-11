@@ -131,20 +131,23 @@ export default function HomeFilm() {
             }
           }}
         />
+      </div>
+      {/* Under the film, not on it: every corner of the picture has words in it. */}
+      <div className="mt-3 flex items-start gap-3">
+        <figcaption className="min-w-0 flex-1 text-sm leading-relaxed text-ink-500">
+          Twenty seconds, no sound: a real note, and the draft StoryLoop wrote from it. The draft is a starting point. You read it, change
+          what is not right, and share it where you always do.
+        </figcaption>
         <button
           type="button"
           onClick={toggle}
           aria-label={playing ? "Pause the film" : "Play the film"}
           data-testid="home-film-toggle"
-          className="absolute bottom-3 right-3 flex h-11 w-11 items-center justify-center rounded-full bg-ink-900/70 text-paper backdrop-blur transition-colors hover:bg-ink-900"
+          className="flex h-11 w-11 flex-none items-center justify-center rounded-full border border-clay-200 bg-white text-ink-700 transition-colors hover:border-clay-400 hover:text-ink-900"
         >
           {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 translate-x-px" />}
         </button>
       </div>
-      <figcaption className="mt-3 text-sm leading-relaxed text-ink-500">
-        Twenty seconds, no sound: a real note, and the draft StoryLoop wrote from it. The draft is a starting point. You read it, change
-        what is not right, and share it where you always do.
-      </figcaption>
     </figure>
   );
 }

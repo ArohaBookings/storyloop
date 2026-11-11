@@ -170,15 +170,35 @@ export const INTERNATIONAL_PAGES: Record<string, SeoPage> = {
 
   "aistear-learning-stories": {
     slug: "aistear-learning-stories",
-    title: "Aistear Learning Stories: Linking to the Four Themes",
+    // Retitled 12 Nov 2026: "aistear themes" sat at position 22.6 under a title
+    // that led with learning stories. The Themes now come first, and the
+    // official framework is one tap from the heading.
+    title: "Aistear Themes: The Four Themes in Learning Stories",
     description:
       "Writing learning stories with the updated Aistear: the four Themes, what changed in the December 2024 update, and example links for each Theme.",
     kicker: "Ireland · Aistear",
     heading: "Aistear learning stories that link to the Themes honestly.",
     intro:
       "The updated Aistear, published by the NCCA in December 2024 and in use from September 2025, kept its four Themes and cut back the learning goals. Learning stories are one of the most natural ways to show those Themes in a child's day, because they start from what the child actually did. This guide covers linking a story to Wellbeing, Identity and Belonging, Communicating, and Exploring and Thinking without turning it into a checklist.",
-    reviewedAt: "2026-10-13",
+    reviewedAt: "2026-11-12",
+    // Checked on 12 Nov 2026: the NCCA's Curriculum Online page for Aistear
+    // (2024) lists the framework, the Guidance for Good Practice and the FAQ.
+    officialLinks: {
+      heading: "Looking for the framework itself?",
+      links: [
+        {
+          label: "Aistear (2024) on the NCCA's Curriculum Online",
+          url: "https://www.curriculumonline.ie/early-childhood/aistear-2024/",
+          note: "The updated framework, the Guidance for Good Practice and the NCCA's questions and answers.",
+        },
+      ],
+    },
     sections: [
+      {
+        title: "The four Aistear Themes",
+        body:
+          "Wellbeing; Identity and Belonging; Communicating; and Exploring and Thinking. The December 2024 update kept all four. Each Theme has aims and broad learning goals, and there is an example link for each one further down this page.",
+      },
       {
         title: "What changed in the update",
         body:

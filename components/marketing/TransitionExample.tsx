@@ -48,7 +48,7 @@ export default function TransitionExample({ framework }: { framework: Transition
   if (!example) return null;
   const [first, second, ...rest] = example.outcomes;
   return (
-    <section aria-labelledby="transition-example-title" className="border-t border-clay-100 bg-cream-50 py-12 md:py-16" data-testid="transition-example">
+    <section id="transition-example" aria-labelledby="transition-example-title" className="scroll-mt-24 border-t border-clay-100 bg-cream-50 py-12 md:py-16" data-testid="transition-example">
       <div className="wide-shell">
         <div className="max-w-3xl">
           <p className="section-title mb-3">A worked example</p>

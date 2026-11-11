@@ -231,6 +231,8 @@ export default async function SeoPage({ params }: PageProps) {
 
   // The page has a "try your own note" demo (GuideProof or InternationalTry, both at #try).
   const hasTry = !NO_PROOF_SLUGS.has(page.slug) || Boolean(INTERNATIONAL_SLUG_FRAMEWORK[page.slug]);
+  // The statement guides that open with a finished example (TransitionExample).
+  const hasExample = TRANSITION_DEMOS[page.slug]?.mode === "transition";
 
   return (
     <div className="min-h-screen bg-paper">
@@ -289,6 +291,11 @@ export default async function SeoPage({ params }: PageProps) {
                     >
                       {TRANSITION_DEMOS[page.slug]?.button ?? "Turn a note into a learning story, no signup"}
                     </Link>
+                    {hasExample && (
+                      <Link href="#transition-example" className="mt-1 flex min-h-[44px] items-center text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900" data-track="guide_official_example">
+                        Or see a finished example first
+                      </Link>
+                    )}
                   </div>
                 )}
               </div>
@@ -351,6 +358,13 @@ export default async function SeoPage({ params }: PageProps) {
                 </>
               )}
             </div>
+            {/* These readers searched for an example: in 30 days as many clicked through to see a
+                full draft as ran the drafter. It is one tap from the first screen now. */}
+            {hasExample && (
+              <Link href="#transition-example" className="mt-2 inline-flex min-h-[44px] items-center text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900" data-track="guide_hero_example">
+                Or see a finished example first
+              </Link>
+            )}
             {page.siblingLinks && (
               <nav aria-label={page.siblingLinks.heading} className="mt-6 max-w-4xl" data-testid="sibling-links">
                 <p className="text-sm font-semibold text-ink-700">{page.siblingLinks.heading}</p>

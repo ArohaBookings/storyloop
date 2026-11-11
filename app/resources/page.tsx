@@ -238,6 +238,27 @@ const GUIDES = [
     icon: ShieldCheck,
   },
   {
+    href: "/how-to-check-a-learning-story",
+    kicker: "Leaders · New",
+    title: "How to check a learning story",
+    description: "Five questions an educational leader or head teacher can ask in two minutes, and feedback an educator can use.",
+    icon: FileCheck,
+  },
+  {
+    href: "/learning-stories-in-family-languages",
+    kicker: "Families · New",
+    title: "Learning stories in a family's language",
+    description: "What to translate, what never to translate, how to check a translation you cannot read, and how families write back.",
+    icon: BookOpen,
+  },
+  {
+    href: "/writing-learning-stories-english-second-language",
+    kicker: "Every educator · New",
+    title: "Writing when English is your second language",
+    description: "Start the note in the language you think in, keep the child's words exactly, and get to English you can stand behind.",
+    icon: BookOpen,
+  },
+  {
     href: "/eyfs-learning-stories",
     kicker: "England · EYFS",
     title: "EYFS learning stories and observations",
