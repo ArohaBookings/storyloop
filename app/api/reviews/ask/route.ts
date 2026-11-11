@@ -33,8 +33,24 @@ export async function GET() {
         internal: Boolean(profile?.is_internal),
         lastAskedAt: (last?.created_at as string | undefined) ?? null,
       });
-    if (ask) await recordServerEvent(admin, { event: "review_ask_shown", userId: user.id, path: "/generate" });
-    return NextResponse.json({ ask }, { headers: { "Cache-Control": "no-store" } });
+    if (!ask) return NextResponse.json({ ask: false }, { headers: { "Cache-Control": "no-store" } });
+    // Inline, not recordServerEvent: that helper swallows insert errors, and
+    // this row is the only record that the ask was shown. If it is not
+    // written, saying yes would put the ask under every story, so the answer
+    // is no until it can be recorded. Same row shape as recordServerEvent.
+    const { error: shownError } = await admin.from("page_events").insert({
+      event_type: "review_ask_shown",
+      session_id: `user:${user.id}`.slice(0, 60),
+      user_id: user.id,
+      path: "/generate",
+      device: "server",
+      metadata: { source: "server" },
+    });
+    if (shownError) {
+      console.error("Review ask not recorded:", shownError.message);
+      return NextResponse.json({ ask: false }, { headers: { "Cache-Control": "no-store" } });
+    }
+    return NextResponse.json({ ask: true }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return NextResponse.json({ ask: false }, { headers: { "Cache-Control": "no-store" } });
   }

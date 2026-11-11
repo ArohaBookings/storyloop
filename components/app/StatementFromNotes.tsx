@@ -65,9 +65,9 @@ export default function StatementFromNotes() {
         </div>
       </div>
       {framework && (
-        // key: a new document type starts with an empty draft, never the last one relabelled.
+        // No key: switching the document type keeps the pasted notes. A draft on
+        // screen keeps its own labels (TransitionDemo reads them from draft.mode).
         <TransitionDemo
-          key={mode}
           framework={framework}
           mode={mode}
           choices={STATEMENT_FRAMEWORKS}

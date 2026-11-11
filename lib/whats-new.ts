@@ -6,6 +6,16 @@
  */
 export const WHATS_NEW_VERSION = "2026-11d";
 
+/**
+ * The browser's "seen it" flag, per account and per version of the notes. It
+ * once had no version in it, so a browser that saw ANY earlier card counted as
+ * having seen every later one, and the new card never reached most existing
+ * accounts (found 12 Nov 2026).
+ */
+export function whatsNewDismissedKey(userId: string, version: string) {
+  return `storyloop-whats-new-dismissed:${userId}:${version}`;
+}
+
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 /**
  * The month the card names, read from the version. The card said "What arrived

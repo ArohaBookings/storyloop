@@ -54,11 +54,12 @@ export default function InternationalTry({ framework }: { framework: "UK" | "IE"
                 <li key={outcome} className="rounded-full border border-sage-200 bg-sage-50 px-3 py-1 text-xs font-semibold text-sage-800">{outcome}</li>
               ))}
             </ul>
-            <details className="mt-4 group">
-              <summary className="cursor-pointer text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900">
+            {/* py-3 makes the summary a 44px tap target; the margins around it shrink to match. */}
+            <details className="mt-1 group">
+              <summary className="cursor-pointer py-3 text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900">
                 Read the whole draft
               </summary>
-              <div className="story-safe mt-3 whitespace-pre-line text-sm leading-relaxed text-ink-700">{rest}</div>
+              <div className="story-safe whitespace-pre-line text-sm leading-relaxed text-ink-700">{rest}</div>
             </details>
           </figure>
         </div>

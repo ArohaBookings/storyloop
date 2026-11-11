@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { shouldShowWhatsNew, whatsNewIsFresh, WHATS_NEW_MIN_STORIES, WHATS_NEW_PUBLISHED, WHATS_NEW_SHOW_DAYS, WHATS_NEW_VERSION, WHATS_NEW_ITEMS } from "../lib/whats-new";
+import { shouldShowWhatsNew, whatsNewIsFresh, WHATS_NEW_MIN_STORIES, WHATS_NEW_PUBLISHED, WHATS_NEW_SHOW_DAYS, WHATS_NEW_VERSION, WHATS_NEW_ITEMS, whatsNewDismissedKey } from "../lib/whats-new";
 
 // A moment while the current notes are still news.
 const FRESH = new Date(Date.parse(`${WHATS_NEW_PUBLISHED}T12:00:00+12:00`) + 86_400_000);
@@ -65,4 +65,13 @@ test("the centre referral is described as what it actually pays", () => {
   // The thing an educator on the free plan most needs to know, since that is
   // the case that used to pay nothing at all.
   assert.match(referral!.body, /held for you/i);
+});
+
+test("the browser's seen flag is per version, so an earlier card never hides a new one", () => {
+  const user = "00000000-0000-4000-8000-000000000001";
+  const legacy = `storyloop-whats-new-dismissed:${user}`;
+  assert.notEqual(whatsNewDismissedKey(user, WHATS_NEW_VERSION), legacy);
+  assert.notEqual(whatsNewDismissedKey(user, WHATS_NEW_VERSION), whatsNewDismissedKey(user, "2026-11c"));
+  assert.ok(whatsNewDismissedKey(user, WHATS_NEW_VERSION).includes(WHATS_NEW_VERSION));
+  assert.notEqual(whatsNewDismissedKey(user, WHATS_NEW_VERSION), whatsNewDismissedKey("someone-else", WHATS_NEW_VERSION));
 });

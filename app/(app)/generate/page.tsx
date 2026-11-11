@@ -777,11 +777,13 @@ export default function GeneratePage() {
     track(id === "family-share" ? "app_row_family" : "app_row_leader");
     const panel = document.getElementById(id);
     if (!panel) return;
-    panel.scrollIntoView({ behavior: "smooth", block: "center" });
-    // Focus the panel's own button and stop there: making a link or sharing a
-    // story is the educator's tap, never something a shortcut does for them.
-    const first = panel.querySelector<HTMLButtonElement>("button:not([disabled])");
-    if (first) window.setTimeout(() => first.focus({ preventScroll: true }), 400);
+    // An explicit "smooth" overrides the CSS reduced-motion rule, so ask here.
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    panel.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+    // Focus the panel itself, never a button in it: when the story is already
+    // shared, the first button stops sharing, and a keyboard user must not land
+    // on that. Making a link or sharing is always the educator's own tap.
+    window.setTimeout(() => panel.focus({ preventScroll: true }), reduce ? 0 : 400);
   };
 
   const handleCopy = async () => {
@@ -1267,6 +1269,13 @@ export default function GeneratePage() {
     speakToChild && (location === "NZ" || location === "AU") ? "Written to the child" : null,
     educatorNames.trim() ? `Educators: ${educatorNames.trim()}` : null,
   ].filter(Boolean).join(" · ");
+  // The three tabs at the top (One story, Backlog Rescue, Statement) share one
+  // line even on a 320px phone, each label on one line: no icons below 420px,
+  // tighter padding and smaller text below 360px, and each tab may shrink, so
+  // nothing runs off the right edge.
+  const writeTab =
+    "flex min-h-10 min-w-0 flex-auto items-center justify-center gap-2 rounded-xl px-1.5 py-2 text-center text-xs font-bold leading-tight transition-colors min-[360px]:px-2 min-[360px]:text-sm sm:flex-none sm:px-4";
+  const writeTabIcon = "hidden h-4 w-4 shrink-0 min-[420px]:block";
   const storyAction =
     "inline-flex min-h-11 flex-none items-center gap-1.5 whitespace-nowrap rounded-full border border-clay-200 bg-white px-3.5 text-xs font-semibold text-ink-700 transition-colors hover:border-clay-400 hover:text-ink-900 disabled:opacity-50 xl:min-h-9 xl:px-3";
   const segment = (active: boolean) =>
@@ -1311,11 +1320,11 @@ export default function GeneratePage() {
                   setShowBacklogUpgradeNudge(true);
                 }
               }}
-              className={`flex min-h-10 flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-colors sm:flex-none ${
+              className={`${writeTab} ${
                 mode === option ? "bg-clay-700 text-paper shadow-warm" : "text-ink-600 hover:bg-cream-50"
               }`}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className={writeTabIcon} />
               {label}
             </button>
           ))}
@@ -1324,9 +1333,9 @@ export default function GeneratePage() {
             href="/statement"
             data-testid="statement-tab"
             data-track="generate_statement_tab"
-            className="flex min-h-10 flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-bold text-ink-600 transition-colors hover:bg-cream-50 sm:flex-none"
+            className={`${writeTab} text-ink-600 hover:bg-cream-50`}
           >
-            <GraduationCap className="h-4 w-4" />
+            <GraduationCap className={writeTabIcon} />
             Statement
           </Link>
         </div>
@@ -1357,7 +1366,7 @@ export default function GeneratePage() {
             <button type="button" onClick={photoFromWelcome} className="btn-secondary text-sm" data-testid="welcome-photo">
               <Camera className="h-4 w-4" /> Photo of my notes
             </button>
-            <button type="button" onClick={dismissFirstStoryWizard} className="btn-ghost text-sm" aria-label="Hide first story tips">
+            <button type="button" onClick={dismissFirstStoryWizard} className="btn-ghost min-h-[44px] text-sm" aria-label="Hide first story tips">
               Hide
             </button>
           </div>
@@ -1962,8 +1971,15 @@ export default function GeneratePage() {
             <p className="section-title whitespace-nowrap">Your learning story</p>
             {story && (
               /* One line to swipe on a phone, so the story starts higher; wrapped from tablet width up.
-                 Ordered by what people do with a finished story: copy it, share it, have it checked. */
-              <div className="-mx-1 flex min-w-0 max-w-full items-center gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible [&::-webkit-scrollbar]:hidden" data-testid="story-actions">
+                 Ordered by what people do with a finished story: copy it, share it, have it checked.
+                 Below sm the right edge fades, so it reads as "more this way"; the right padding lets the
+                 last button scroll clear of the fade. */
+              <div
+                role="toolbar"
+                aria-label="What to do with this story"
+                className="-mx-1 flex min-w-0 max-w-full items-center gap-2 overflow-x-auto pb-1 pl-1 pr-10 [mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)] [scrollbar-width:none] sm:flex-wrap sm:overflow-visible sm:px-1 sm:[mask-image:none] [&::-webkit-scrollbar]:hidden"
+                data-testid="story-actions"
+              >
                 <button type="button" onClick={handleCopy} className={storyAction}>
                   {copied ? <Check className="w-3 h-3 text-sage-600" /> : <Copy className="w-3 h-3" />}
                   {copied ? "Copied" : "Copy"}
@@ -2238,16 +2254,15 @@ export default function GeneratePage() {
 
               {/* key: a new story starts with a fresh panel, never the last story's link. */}
               {storyId && (
-                <div id="leader-check" className="scroll-mt-24">
+                <div id="leader-check" tabIndex={-1} className="scroll-mt-24 rounded-2xl focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay-600">
                   <LeaderCheck key={storyId} storyId={storyId} />
                 </div>
               )}
               {storyId && (
-                <div id="family-share" className="scroll-mt-24">
+                <div id="family-share" tabIndex={-1} className="scroll-mt-24 rounded-2xl focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay-600">
                   <FamilyShare key={`family-${storyId}`} storyId={storyId} childName={childName} />
                 </div>
               )}
-              {storyId && <StoryReviewAsk key={`review-${storyId}`} />}
 
               <FamilyTranslationPanel storyId={storyId} plan={accountPlan} />
 
@@ -2406,6 +2421,12 @@ export default function GeneratePage() {
               </div>
             </div>
           )}
+          {/* Outside the branches above and never keyed, so it stays mounted through
+              Regenerate: a half-written review survives a new story. Hidden, not
+              removed, while a story is being written. */}
+          <div hidden={loading || !story}>
+            <StoryReviewAsk storyId={storyId} />
+          </div>
         </div>
       </div>
 

@@ -123,7 +123,7 @@ export default function ExportPackPanel({
               {copied ? <Check className="h-3 w-3 text-sage-700" /> : <Copy className="h-3 w-3" />}
               {copied ? "Copied" : "Copy pack"}
             </button>
-            <button type="button" onClick={downloadPack} className="btn-ghost px-3 py-2 text-xs">
+            <button type="button" onClick={downloadPack} className="btn-ghost min-h-[44px] px-3 py-2 text-xs">
               <Download className="h-3 w-3" />
               Download
             </button>

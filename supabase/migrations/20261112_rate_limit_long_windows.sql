@@ -51,3 +51,7 @@ revoke all on function public.consume_rate_limit(text, text, integer, integer)
   from public, anon, authenticated;
 grant execute on function public.consume_rate_limit(text, text, integer, integer)
   to postgres, service_role;
+
+-- The tidy-up above filters on window_start for every call; without an index
+-- that is a scan of the whole table each time.
+create index if not exists rate_limits_window_start_idx on private.rate_limits (window_start);

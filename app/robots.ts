@@ -14,6 +14,7 @@ export default function robots(): MetadataRoute.Robots {
         "/today?",
         "/today/",
         "/generate",
+        "/statement",
         "/children",
         "/history",
         "/insights",

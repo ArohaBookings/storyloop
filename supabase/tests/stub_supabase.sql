@@ -72,6 +72,16 @@ create table if not exists public.child_profiles (
   created_at timestamptz default now()
 );
 
+-- From 20260615_learning_loop_profiles.sql, which this checker does not replay.
+-- 20261112_rate_limit_long_windows.sql indexes it, so it must exist first.
+create table if not exists private.rate_limits (
+  scope text not null,
+  key_hash text not null,
+  window_start timestamptz not null,
+  request_count integer not null default 0,
+  primary key (scope, key_hash, window_start)
+);
+
 create table if not exists private.stripe_webhook_events (
   event_id text primary key,
   type text not null,

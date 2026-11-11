@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Star, X } from "lucide-react";
 import ReviewForm from "@/components/app/ReviewForm";
 
@@ -10,20 +10,29 @@ import ReviewForm from "@/components/app/ReviewForm";
  * this shows at most once a month for an account. One tap on a star is
  * already useful; the sentence is optional and goes to the moderated queue.
  */
-export default function StoryReviewAsk() {
+export default function StoryReviewAsk({ storyId }: { storyId: string }) {
   const [ask, setAsk] = useState(false);
   const [rating, setRating] = useState(0);
   const [closed, setClosed] = useState(false);
   const [sent, setSent] = useState(false);
+  // Read inside the effect without making them dependencies: only a new story
+  // should trigger a check.
+  const settled = useRef(false);
+  useEffect(() => { settled.current = ask || rating > 0; }, [ask, rating]);
 
+  // Stays mounted across stories (the story page keeps it alive through
+  // Regenerate), so a half-written review is never thrown away. A new story
+  // asks the server again only while nothing is on screen: once the ask is
+  // showing or a star has been tapped, it stays as it is.
   useEffect(() => {
+    if (!storyId || settled.current) return;
     let active = true;
     fetch("/api/reviews/ask")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => { if (active && data?.ask) setAsk(true); })
       .catch(() => {});
     return () => { active = false; };
-  }, []);
+  }, [storyId]);
 
   const rate = (n: number) => {
     setRating(n);

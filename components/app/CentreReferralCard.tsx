@@ -134,8 +134,9 @@ export default function CentreReferralCard({ months = 3 }: { months?: number }) 
         </button>
       </div>
 
-      <details className="group mt-4">
-        <summary className="cursor-pointer list-none text-sm font-medium text-ink-800 hover:text-ink-900">
+      {/* py-3 makes the summary a 44px tap target; the margin above shrinks to match. */}
+      <details className="group mt-1">
+        <summary className="cursor-pointer list-none py-3 text-sm font-medium text-ink-800 hover:text-ink-900">
           <span className="underline decoration-clay-300 underline-offset-4">Something to send your manager</span>
           <span className="ml-1.5 text-xs text-ink-500 group-open:hidden">(you do not have to write it)</span>
         </summary>

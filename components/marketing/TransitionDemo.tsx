@@ -155,6 +155,11 @@ export default function TransitionDemo({
           placeholder="Two or three moments from your documentation, a few lines each: what they did, anything they said, and what helped. First name only."
         />
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          {inApp ? (
+            // No sample in the app: a free account would spend one of its two
+            // monthly drafts (a paid model call) on a child who is not theirs.
+            <span aria-hidden="true" />
+          ) : (
           <button
             type="button"
             onClick={() => {
@@ -166,6 +171,7 @@ export default function TransitionDemo({
           >
             Fill in an example first
           </button>
+          )}
           <button
             type="button"
             onClick={run}
@@ -199,7 +205,7 @@ export default function TransitionDemo({
 
       <div className="card-warm min-w-0 p-5 sm:p-6" aria-live="polite">
         <div className="mb-3 flex items-center justify-between gap-2">
-          <p className="section-title">{mode === "summary" ? "Your summary, outcome by outcome" : "Your draft, outcome by outcome"}</p>
+          <p className="section-title">{(draft ? draft.mode : mode) === "summary" ? "Your summary, outcome by outcome" : "Your draft, outcome by outcome"}</p>
           {draft && (
             <button type="button" onClick={copyAll} className="btn-ghost px-3 py-1 text-xs" data-track="transition_copy">
               {copied ? <Check className="h-3.5 w-3.5 text-sage-600" /> : <Copy className="h-3.5 w-3.5" />}

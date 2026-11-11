@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { BarChart3, BookOpen, Check, Copy, CreditCard, Gift, MessageCircleHeart, RefreshCw, ShieldCheck, Sparkles, Star, Sunrise, Users, X, Camera } from "lucide-react";
-import { WHATS_NEW_ITEMS, type WhatsNewItem, whatsNewMonth } from "@/lib/whats-new";
+import { WHATS_NEW_ITEMS, type WhatsNewItem, whatsNewDismissedKey, whatsNewMonth } from "@/lib/whats-new";
 import { referredRewardText } from "@/lib/referrals";
 
 type State = {
@@ -42,9 +42,14 @@ const ICONS: Record<WhatsNewItem["icon"], typeof Sparkles> = {
  * the network write fails. The referral offer lives permanently on the Support
  * page after that.
  */
-function markSeen(userId: string) {
+// The browser flag carries the notes' version (the GET answer's `version`).
+// Without it, a browser that saw ANY earlier card counted as having seen this
+// one, so the new card never appeared for most existing accounts, and the
+// server was then marked seen as well. See whatsNewDismissedKey.
+
+function markSeen(userId: string, version: string) {
   try {
-    window.localStorage.setItem(`storyloop-whats-new-dismissed:${userId}`, "1");
+    window.localStorage.setItem(whatsNewDismissedKey(userId, version), "1");
   } catch { /* storage can be blocked; the server write is the record */ }
   void fetch("/api/whats-new", {
     method: "POST",
@@ -69,11 +74,11 @@ export default function WhatsNewModal() {
         if (!data.showWhatsNew && !data.showReferralIntro) return;
         let alreadySeen = false;
         try {
-          alreadySeen = Boolean(window.localStorage.getItem(`storyloop-whats-new-dismissed:${data.userId}`));
+          alreadySeen = Boolean(window.localStorage.getItem(whatsNewDismissedKey(data.userId, String(data.version ?? ""))));
         } catch { /* treat as not seen */ }
         // Either way the account is marked now: if it was seen here before and
         // the server never heard, this repairs that; if not, it is being shown.
-        markSeen(data.userId);
+        markSeen(data.userId, String(data.version ?? ""));
         if (alreadySeen) {
           setClosed(true);
           return;

@@ -45,7 +45,7 @@ test("no public guide is blocked by a robots rule", () => {
 });
 
 test("private pages stay blocked", () => {
-  for (const path of ["/today", "/today?date=2026-10-01", "/dashboard", "/admin", "/admin-login", "/api/generate", "/login", "/signup?plan=educator", "/generate"]) {
+  for (const path of ["/today", "/today?date=2026-10-01", "/dashboard", "/admin", "/admin-login", "/api/generate", "/login", "/signup?plan=educator", "/generate", "/statement"]) {
     assert.equal(isAllowed(path), false, `${path} should be disallowed`);
   }
 });

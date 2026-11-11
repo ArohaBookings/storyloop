@@ -70,6 +70,11 @@ begin
     '9 a window or a limit below one must be refused';
   checks := checks + 1;
 
+  -- 10. The tidy-up filters on window_start on every call, so it has an index.
+  assert exists (select 1 from pg_indexes where schemaname = 'private' and tablename = 'rate_limits' and indexname = 'rate_limits_window_start_idx'),
+    '10 private.rate_limits must have an index on window_start';
+  checks := checks + 1;
+
   raise notice 'all % checks passed', checks;
 end $$;
 
