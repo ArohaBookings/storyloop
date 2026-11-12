@@ -14,6 +14,8 @@ import TransitionDemo from "@/components/marketing/TransitionDemo";
 import type { TransitionFramework, TransitionMode } from "@/lib/ai/transition-draft";
 import PrintableCard from "@/components/marketing/PrintableCard";
 import CentreMonthBand from "@/components/marketing/CentreMonthBand";
+import CentreTrialWords from "@/components/centre/CentreTrialWords";
+import { centreTrialWordsCapital } from "@/lib/centre-offer";
 import { RelatedGuides } from "@/components/marketing/Guide";
 import { SLUG_PRINTABLES, relatedFor } from "@/components/marketing/guide-links";
 import { INTERNATIONAL_SLUG_FRAMEWORK } from "@/lib/seo-pages-international";
@@ -325,9 +327,15 @@ export default async function SeoPage({ params }: PageProps) {
                 </>
               ) : CENTRE_SLUGS.has(page.slug) ? (
                 <>
-                  <Link href="/signup?plan=centre_starter" className="btn-primary justify-center">
-                    Start your centre&apos;s free month
-                  </Link>
+                  <span className="flex flex-col gap-1">
+                    <Link href="/signup?plan=centre_starter" className="btn-primary justify-center" data-track="guide_hero_centre_month">
+                      Start your centre&apos;s free month
+                    </Link>
+                    {/* How long it is free, worked out again in the browser: this page is built ahead of time. */}
+                    <span className="text-center text-sm text-ink-600" data-testid="guide-centre-trial">
+                      <CentreTrialWords initial={centreTrialWordsCapital(new Date())} capital />, no card.
+                    </span>
+                  </span>
                   <Link href="#founding" className="btn-secondary justify-center">
                     See the founding offer
                   </Link>

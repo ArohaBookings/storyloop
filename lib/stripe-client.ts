@@ -35,3 +35,19 @@ export function createStripe(key: string | undefined = process.env.STRIPE_SECRET
   const testServer = stripeTestServer();
   return new Stripe(key, { apiVersion: STRIPE_API_VERSION, ...(testServer ?? {}) });
 }
+
+/**
+ * The moment a checkout is made. Always the real clock, except against the
+ * local payments mock: there a test may name the moment in the
+ * x-storyloop-test-now header, so the centre free-period rule
+ * (lib/centre-offer.ts centreTrialDays) can be proved end to end for any date.
+ * stripeTestServer() is null on every Vercel deployment, so the header is
+ * ignored there whatever is sent.
+ */
+export function checkoutNow(headerValue: string | null | undefined, env: Record<string, string | undefined> = process.env): Date {
+  if (headerValue && stripeTestServer(env)) {
+    const when = new Date(headerValue);
+    if (Number.isFinite(when.getTime())) return when;
+  }
+  return new Date();
+}

@@ -14,6 +14,7 @@ import { reportSignupConversion } from "@/lib/analytics/google-ads";
 import { takeHumanPass, warmHumanPass } from "@/lib/auth/human-pass-client";
 import { readKeptStory } from "@/lib/keep-story";
 import { FIRST_STORY_PATH, signupDestination } from "@/lib/signup-next";
+import { offerRefFromHash } from "@/lib/story-check";
 
 function normaliseCurrency(value: string | null): CurrencyCode {
   return value === "NZD" ? "NZD" : "AUD";
@@ -79,6 +80,13 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
     if (ref) {
       setReferralCode(ref.trim().toUpperCase());
       try { window.localStorage.setItem("storyloop_ref", ref.trim().toUpperCase()); } catch {}
+    }
+    // A leader starting the team's month from a story an educator sent: the
+    // offer reference rides after the # (never sent to a server) and waits here
+    // for the centre's set-up screen (app/(app)/centre, lib/leader-offer-server.ts).
+    const offerRef = offerRefFromHash(window.location.hash);
+    if (offerRef) {
+      try { window.localStorage.setItem("storyloop_leader_offer", offerRef); } catch {}
     }
     captureAttribution();
     track("signup_view");

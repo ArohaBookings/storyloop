@@ -105,11 +105,12 @@ function nextMonthFirst(now: Date) {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
 }
 
-export function formatDay(value: string | Date) {
+export function formatDay(value: string | Date, timeZone = "UTC") {
   const date = typeof value === "string" ? new Date(value.length === 10 ? `${value}T12:00:00Z` : value) : value;
   // "Friday 25 September": built from parts because en-NZ puts a comma after
   // the weekday, which reads like a list in the middle of a sentence.
-  const parts = new Intl.DateTimeFormat("en-NZ", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).formatToParts(date);
+  // UTC suits the date-only values; a moment (a trial's end) is read in New Zealand time.
+  const parts = new Intl.DateTimeFormat("en-NZ", { weekday: "long", day: "numeric", month: "long", timeZone }).formatToParts(date);
   const part = (type: string) => parts.find((item) => item.type === type)?.value ?? "";
   return `${part("weekday")} ${part("day")} ${part("month")}`;
 }
@@ -153,7 +154,8 @@ export function buildNotifications(facts: NotificationFacts): AppNotification[] 
       out.push({
         id: `trial:${isoDate(ends)}`,
         kind: "trial",
-        title: noCard ? `Your centre's free month ends ${formatDay(ends)}` : `Your free trial ends ${formatDay(ends)}`,
+        // In New Zealand time, the calendar checkout and the emails use, so all three name the same day.
+        title: noCard ? `Your centre's free month ends ${formatDay(ends, "Pacific/Auckland")}` : `Your free trial ends ${formatDay(ends, "Pacific/Auckland")}`,
         body: noCard
           ? "Add a card from Billing to keep your team going. Otherwise it simply ends, nothing is charged, and everything stays yours."
           : "Nothing to do if you want to keep going. If not, you can cancel from Billing before then and you will not be charged.",

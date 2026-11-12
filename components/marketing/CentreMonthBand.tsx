@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Users } from "lucide-react";
+import CentreTrialWords from "@/components/centre/CentreTrialWords";
+import { centreTrialWords } from "@/lib/centre-offer";
 
 /**
  * The centre's free month, on the guides people read while a whole room's
@@ -24,10 +26,10 @@ export default function CentreMonthBand({ what }: { what: "statements" | "summar
               Writing these for a whole room?
             </h2>
             <p className="mt-2 text-base leading-relaxed text-ink-700">
-              Your centre&apos;s first month is free, with no card. Every teacher on your team gets their own login and
-              unlimited drafts, and each child&apos;s {what === "statements" ? "statement" : "summary"} is drafted from the notes
-              and stories your team already has, for you to check and finish. If it is not for you, do nothing: the month
-              ends and nothing is charged.
+              For your centre it is <CentreTrialWords initial={centreTrialWords(new Date())} />, with no card. Every teacher on
+              your team gets their own login and unlimited drafts, and each child&apos;s {what === "statements" ? "statement" : "summary"} is
+              drafted from the notes and stories your team already has, for you to check and finish. If it is not for you, do
+              nothing: the free period ends and nothing is charged.
             </p>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link href="/signup?plan=centre_starter" className="btn-primary justify-center" data-track="guide_centre_month">

@@ -2,6 +2,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { Building2, Check, Copy, Loader2, Mail, ShieldCheck, UserPlus } from "lucide-react";
 import StartCentreMonth from "@/components/app/StartCentreMonth";
+import CentreOnBoardCard from "@/components/app/CentreOnBoardCard";
+import { useCentreTrialWords } from "@/components/centre/CentreTrialWords";
+import { offerRefFromHash } from "@/lib/story-check";
+
+/** Set by the leader's page and by signup (lib/story-check.ts offerSignupHref): a story an educator sent, waiting to be claimed. */
+const OFFER_KEY = "storyloop_leader_offer";
+
+type LeaderOffer = { educator: string; centreName: string; status: "ready" | "invited" | "joined" | "unavailable" };
 
 type Member = {
   user_id: string;
@@ -18,6 +26,8 @@ type CentreState = {
   centre: { id: string; name: string; plan: string | null; seatLimit: number; seatsUsed: number; seatsRemaining: number } | null;
   membership: { role: string; sharesStories: boolean } | null;
   members: Member[];
+  /** For an educator in no centre and not on a centre plan: the "Get your centre on board" card. */
+  onBoard?: { newestStoryId: string | null } | null;
 };
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -41,6 +51,51 @@ export default function CentrePage() {
   const [name, setName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
   const [copied, setCopied] = useState(false);
+  // The educator whose story brought this centre here (lib/leader-offer-server.ts): first name and centre name only.
+  const [offer, setOffer] = useState<LeaderOffer | null>(null);
+  const [inviting, setInviting] = useState(false);
+  const freeFor = useCentreTrialWords(undefined, true);
+
+  // Claim a waiting offer once, then read whatever this account has claimed.
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      let ref = "";
+      try { ref = offerRefFromHash(window.location.hash) || window.localStorage.getItem(OFFER_KEY) || ""; } catch { /* no storage */ }
+      let found: LeaderOffer | null = null;
+      try {
+        if (ref) {
+          const response = await fetch("/api/centres/leader-offer", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ref }) });
+          const data = await response.json().catch(() => ({}));
+          found = data.offer ?? null;
+          // Claimed by this account or not claimable at all: either way, done with it on this device.
+          try { window.localStorage.removeItem(OFFER_KEY); } catch { /* ignore */ }
+        }
+        if (!found) {
+          const response = await fetch("/api/centres/leader-offer");
+          const data = await response.json().catch(() => ({}));
+          found = data.offer ?? null;
+        }
+      } catch { /* no offer: the page is exactly as before */ }
+      if (!active || !found) return;
+      setOffer(found);
+      if (found.centreName) setName((current) => current || found.centreName);
+    })();
+    return () => { active = false; };
+  }, []);
+
+  const inviteFromOffer = async () => {
+    if (!offer || inviting) return;
+    setInviting(true); setError(""); setNotice("");
+    try {
+      const response = await fetch("/api/centres/leader-offer/invite", { method: "POST" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error ?? "Could not send that invitation.");
+      setOffer(data.offer ?? offer);
+    } catch (inviteError) {
+      setError(inviteError instanceof Error ? inviteError.message : "Could not send that invitation.");
+    } finally { setInviting(false); }
+  };
 
   const load = useCallback(async () => {
     try {
@@ -140,8 +195,10 @@ export default function CentrePage() {
       {error && <div className="mb-4 rounded-2xl border border-clay-200 bg-clay-50 p-3 text-sm text-clay-800">{error}</div>}
       {notice && <div className="mb-4 rounded-2xl border border-sage-200 bg-sage-50 p-3 text-sm text-ink-700">{notice}</div>}
 
+      {!centre && state?.onBoard && !offer && <CentreOnBoardCard newestStoryId={state.onBoard.newestStoryId} />}
+
       {!centre ? (
-        <div className="card p-6">
+        <div className="card p-6" data-testid="centre-setup-card">
           <div className="flex items-start gap-3">
             <div className="flex h-11 w-11 flex-none items-center justify-center rounded-2xl bg-clay-700 text-paper">
               <Building2 className="h-5 w-5" />
@@ -162,12 +219,18 @@ export default function CentrePage() {
               onChange={(e) => setName(e.target.value)}
               placeholder="Sunnyside Early Learning"
               className="input flex-1"
+              data-testid="centre-name-input"
             />
-            <button onClick={createCentre} disabled={busy || name.trim().length < 2} className="btn-primary flex-none">
+            <button onClick={createCentre} disabled={busy || name.trim().length < 2} className="btn-primary flex-none" data-testid="centre-create">
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Building2 className="h-4 w-4" />}
               Create centre
             </button>
           </div>
+          {offer && (
+            <p className="mt-3 text-sm leading-relaxed text-ink-600" data-testid="centre-offer-note">
+              {offer.centreName ? `Filled in from the story ${offer.educator} sent you. ` : ""}Once your centre is set up, you can invite {offer.educator} with one tap.
+            </p>
+          )}
         </div>
       ) : (
         <div className="space-y-5">
@@ -178,9 +241,9 @@ export default function CentrePage() {
             <div className="card border-sage-200 bg-sage-50 p-5" data-testid="centre-start-month">
               <h2 className="font-display text-lg font-bold text-ink-900">Start your centre&apos;s free month to bring your team in</h2>
               <p className="mt-1 text-sm leading-relaxed text-ink-700">
-                30 days free, with no card. Up to 10 educators and every child. Everyone you invite then has unlimited
+                {freeFor}, with no card. Up to 10 educators and every child. Everyone you invite then has unlimited
                 stories and everything on the centre plan, at no cost to them. If it is not for you, do nothing: the
-                month ends and nothing is charged.
+                free period ends and nothing is charged.
               </p>
               <div className="mt-3">
                 <StartCentreMonth from="centre" />
@@ -220,6 +283,36 @@ export default function CentrePage() {
               </div>
             </div>
           </div>
+
+          {isLeader && offer && (
+            <div className="card border-sage-200 bg-sage-50 p-5" data-testid="centre-offer-invite">
+              {offer.status === "joined" ? (
+                <p className="text-sm font-semibold text-sage-900">{offer.educator} is in your team.</p>
+              ) : offer.status === "invited" ? (
+                <p className="text-sm font-semibold text-sage-900">
+                  {offer.educator} has been invited. They will see it in StoryLoop and by email, and join when they accept.
+                </p>
+              ) : (
+                <>
+                  <h2 className="font-display text-lg font-bold text-ink-900">Bring {offer.educator} in first</h2>
+                  <p className="mt-1 text-sm leading-relaxed text-ink-700">
+                    {offer.educator} sent you the story. One tap invites {offer.educator}, with nothing to type. {offer.educator}&apos;s
+                    drafts stay private unless {offer.educator} chooses to share them.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={inviteFromOffer}
+                    disabled={inviting || offer.status === "unavailable"}
+                    className="btn-primary mt-3"
+                    data-testid="centre-offer-invite-button"
+                  >
+                    {inviting ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+                    Invite {offer.educator}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
 
           {isLeader && (
             <>

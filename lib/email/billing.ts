@@ -43,7 +43,13 @@ export function formatAmount(amountInCents: number | null | undefined, currency:
   return `${prefix}${major.toFixed(2)}`;
 }
 
-/** A date an educator would read: "14 October 2026". */
+/**
+ * A date an educator would read: "14 October 2026". In New Zealand time, the
+ * same calendar checkout's own wording uses (lib/stripe-branding.ts). It used
+ * the server's clock, which is UTC in production: a free period ending at
+ * 10am on 1 February in Auckland was emailed as ending on 31 January while
+ * checkout had said 1 February.
+ */
 export function formatDate(seconds: number | null | undefined) {
   if (typeof seconds !== "number" || !Number.isFinite(seconds)) return null;
   try {
@@ -51,6 +57,7 @@ export function formatDate(seconds: number | null | undefined) {
       day: "numeric",
       month: "long",
       year: "numeric",
+      timeZone: "Pacific/Auckland",
     });
   } catch {
     return null;

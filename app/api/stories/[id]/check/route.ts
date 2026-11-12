@@ -3,12 +3,13 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { SITE_URL } from "@/lib/email/config";
-import { checkExpiry, checkUrl, educatorView, type CheckRow } from "@/lib/story-check";
-import { newCheckToken } from "@/lib/story-check-token";
+import { checkExpiry, checkUrl, cleanCentreName, educatorView, type CheckRow } from "@/lib/story-check";
+import { hashOfferRef, newCheckToken, offerRefFor } from "@/lib/story-check-token";
+import { CHECK_COLUMNS } from "@/lib/story-check-server";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-const COLUMNS = "id, story_id, user_id, status, leader_name, comment, created_at, opened_at, decided_at, expires_at, revoked_at";
+const COLUMNS = CHECK_COLUMNS;
 
 /** The signed-in educator and proof that the story is theirs, or the response to send instead. */
 async function ownStory(context: RouteContext) {
@@ -50,10 +51,16 @@ export async function GET(_request: NextRequest, context: RouteContext) {
  * returned once and never stored: only its hash is. Any earlier unanswered
  * link for the same story stops working, so there is one live link at a time.
  */
-export async function POST(_request: NextRequest, context: RouteContext) {
+export async function POST(request: NextRequest, context: RouteContext) {
   try {
     const own = await ownStory(context);
     if ("error" in own) return own.error;
+    // Both optional (13 Nov 2026): the centre's name, and whether the leader may
+    // see a few numbers about this educator's own recent stories. A request with
+    // no body at all is a link with neither, exactly as before.
+    const body = await request.json().catch(() => ({}));
+    const centreName = cleanCentreName(body?.centreName) || null;
+    const shareCounts = body?.shareCounts === true;
 
     const allowed = await consumeRateLimit({ scope: "leader-check", key: own.user.id, limit: 30, windowSeconds: 24 * 60 * 60 });
     if (!allowed) return NextResponse.json({ error: "That is a lot of links for one day. Try again tomorrow." }, { status: 429 });
@@ -71,7 +78,16 @@ export async function POST(_request: NextRequest, context: RouteContext) {
     const { token, hash } = newCheckToken();
     const { data, error } = await admin
       .from("story_checks")
-      .insert({ story_id: own.storyId, user_id: own.user.id, token_hash: hash, expires_at: checkExpiry(now).toISOString() })
+      .insert({
+        story_id: own.storyId,
+        user_id: own.user.id,
+        token_hash: hash,
+        expires_at: checkExpiry(now).toISOString(),
+        centre_name: centreName,
+        share_counts: shareCounts,
+        // Not the link key and opens nothing; see lib/story-check-token.ts offerRefFor.
+        offer_ref_hash: hashOfferRef(offerRefFor(token)),
+      })
       .select(COLUMNS)
       .single();
     if (error || !data) {

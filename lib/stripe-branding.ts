@@ -95,6 +95,12 @@ export function checkoutTermsMessage(input: {
   winback?: boolean;
   /** The early-educator offer (lib/activation-offer.ts): the first paid months after the trial at a discount. */
   activation?: boolean;
+  /**
+   * A centre's free period with a fixed end (lib/centre-offer.ts centreTrialEnd:
+   * the end of 31 January 2027 for a centre that starts in 2026). The words then
+   * name that day instead of counting days from now.
+   */
+  trialEndsAt?: Date | null;
   now?: Date;
 }): string {
   const now = input.now ?? new Date();
@@ -112,6 +118,9 @@ export function checkoutTermsMessage(input: {
     const then = input.founding
       ? `your first three paid months are half price at ${money(input.plan, input.currency, FOUNDING_SHARE)}, then ${price} a month`
       : `${price} a month`;
+    if (input.trialEndsAt) {
+      return `Free until ${day(input.trialEndsAt)} with no card. To keep going after that, add a card in StoryLoop Billing (${then}). If you don't, the free period simply ends and nothing is charged.`;
+    }
     return `${input.trialDays} days free with no card. To keep going after ${firstCharge}, add a card in StoryLoop Billing (${then}). If you don't, the free month simply ends and nothing is charged.`;
   }
   const opener = input.offer === "pro_month" ? `Your free month of ${planName}` : `Your ${input.trialDays}-day free trial`;

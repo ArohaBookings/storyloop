@@ -4,7 +4,8 @@ import { normalizePlanKey, type PlanKey } from "@/lib/plans";
 /**
  * What a centre gets when it starts StoryLoop.
  *
- * EVERY CENTRE: a 30-day free trial with no card needed. A director deciding
+ * EVERY CENTRE: a free trial with no card needed: 30 days, or until the end of
+ * 31 January 2027 for a centre that starts in 2026 (centreTrialDays below). A director deciding
  * for a whole team needs a real month of use, not a week, and a card form in
  * front of a trial is the single biggest reason a busy director closes the tab
  * and "looks at it later". If no card is added by the end, the subscription
@@ -36,7 +37,68 @@ import { normalizePlanKey, type PlanKey } from "@/lib/plans";
  * here.
  */
 
+/** The shortest a centre's free period ever is, and its length from 1 January 2027. */
 export const CENTRE_TRIAL_DAYS = 30;
+
+/**
+ * Free until 31 January for centres that start this year (13 Nov 2026).
+ *
+ * A 30 day free month started in late November runs into the Christmas
+ * shutdown and ends before the team has had a real month of use. So a centre
+ * plan started before 1 January 2027, New Zealand time, is free until the end
+ * of 31 January 2027 (New Zealand time). From 1 January 2027 it is 30 days
+ * again. Never fewer than 30 days. Only the length changes: no card, the
+ * founding discount on the first three PAID months, prices and every
+ * individual plan are exactly as before.
+ *
+ * Stripe is told the exact end (subscription_data.trial_end) before the
+ * cut-off, so the free period ends at the end of 31 January wherever and
+ * whenever checkout is finished, and trial_period_days = 30 after it.
+ */
+const DAY_MS = 86_400_000;
+/** 1 January 2027, 00:00 in New Zealand (NZDT, UTC+13). Starts from this moment get 30 days. */
+export const CENTRE_LONG_TRIAL_CUTOFF = new Date("2027-01-01T00:00:00+13:00");
+/** The end of 31 January 2027 in New Zealand (NZDT, UTC+13). */
+export const CENTRE_FREE_UNTIL = new Date("2027-01-31T23:59:59+13:00");
+
+/**
+ * When a centre plan started at `at` stops being free: the end of 31 January
+ * 2027 for a start before the cut-off, or null when the plain 30 days apply.
+ * Null too if the long end were somehow under 30 days away (it never is before
+ * the cut-off, but the 30-day floor is the rule). Pure.
+ */
+export function centreTrialEnd(at: Date): Date | null {
+  const t = at.getTime();
+  if (!Number.isFinite(t) || t >= CENTRE_LONG_TRIAL_CUTOFF.getTime()) return null;
+  if (CENTRE_FREE_UNTIL.getTime() - t < CENTRE_TRIAL_DAYS * DAY_MS) return null;
+  return new Date(CENTRE_FREE_UNTIL.getTime());
+}
+
+/**
+ * Days of free trial for a centre plan started at `at`: whole days until the
+ * end of 31 January 2027 (part of a day counts as a day) before the cut-off,
+ * otherwise 30. Never fewer than 30. Pure.
+ */
+export function centreTrialDays(at: Date): number {
+  const end = centreTrialEnd(at);
+  if (!end) return CENTRE_TRIAL_DAYS;
+  return Math.max(CENTRE_TRIAL_DAYS, Math.ceil((end.getTime() - at.getTime()) / DAY_MS));
+}
+
+/**
+ * The words for how long a centre's free period is, for a centre about to
+ * start at `at`: "free until 31 January" before the cut-off, "30 days free"
+ * after it. Lower case, to sit inside a sentence; see centreTrialWordsCapital. Pure.
+ */
+export function centreTrialWords(at: Date): string {
+  return centreTrialEnd(at) ? "free until 31 January" : `${CENTRE_TRIAL_DAYS} days free`;
+}
+
+/** The same words at the start of a sentence or a button note. Pure. */
+export function centreTrialWordsCapital(at: Date): string {
+  const words = centreTrialWords(at);
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
 export const INDIVIDUAL_TRIAL_DAYS = 7;
 export const FOUNDING_CENTRE_SPOTS = 10;
 export const FOUNDING_DISCOUNT_PERCENT = 50;
@@ -55,6 +117,7 @@ export function isCentrePlan(plan: unknown): boolean {
 }
 
 export type CheckoutTerms = {
+  /** Whole days free (for a centre before the cut-off, until the end of 31 January 2027). */
   trialDays: number;
   /** Stripe may skip the card form; the trial cancels if none is added. */
   noCardNeeded: boolean;
@@ -75,6 +138,8 @@ export function checkoutTerms(input: {
   /** A centre that has had a centre subscription before is not a new centre. */
   hadCentreBefore: boolean;
   couponId: string;
+  /** When the checkout is made. The centre free period depends on it (centreTrialDays). */
+  now?: Date;
 }): CheckoutTerms {
   if (!isCentrePlan(input.plan)) {
     return { trialDays: INDIVIDUAL_TRIAL_DAYS, noCardNeeded: false, foundingCoupon: null };
@@ -87,7 +152,7 @@ export function checkoutTerms(input: {
   }
   const spotAvailable = input.spotsLeft === null || input.spotsLeft > 0;
   return {
-    trialDays: CENTRE_TRIAL_DAYS,
+    trialDays: centreTrialDays(input.now ?? new Date()),
     noCardNeeded: true,
     foundingCoupon: spotAvailable ? input.couponId : null,
   };

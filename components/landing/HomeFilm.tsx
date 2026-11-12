@@ -19,15 +19,22 @@ import { CUSTOMER_CLIP, HOME_FILM, filmVariantForZone, type FilmVariant } from "
  * the largest thing there, so it loads with priority; the frame is capped at
  * 62% of a phone's screen height so the headline and "Start free" stay on the
  * first screen, and the caption is one line.
+ *
+ * The still (13 Nov 2026): rendered on the server, straight away, for everybody,
+ * and it is the New Zealand one, because most homepage visitors are in New
+ * Zealand. Waiting for the browser to say which country left an empty cream
+ * frame on the first screen. The visitor's own country's still replaces it only
+ * when the film is not going to play by itself (reduced motion or Save-Data),
+ * because then the still is what they read. The film file is still chosen by
+ * country.
  */
 export default function HomeFilm({ inHero = false }: { inHero?: boolean }) {
   const frame = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
+  // The film's country, known only in the browser.
   const [variant, setVariant] = useState<FilmVariant>("au");
-  // The country is only known in the browser. In the hero the still waits for
-  // it (one frame after load): a guessed still would be fetched, shown on the
-  // first screen and then swapped for the other country's, with different words.
-  const [known, setKnown] = useState(false);
+  // The still: New Zealand's from the first frame, for everybody (see above).
+  const [stillVariant, setStillVariant] = useState<FilmVariant>("nz");
   const [src, setSrc] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
   const wantsPlay = useRef(true);
@@ -38,13 +45,15 @@ export default function HomeFilm({ inHero = false }: { inHero?: boolean }) {
     try { zone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? ""; } catch { /* Australia */ }
     const chosen = filmVariantForZone(zone);
     setVariant(chosen);
-    setKnown(true);
 
-    const el = frame.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
     const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const saving = Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData);
     wantsPlay.current = !calm && !saving;
+    // Not playing by itself: the still is what they read, so it is their country's.
+    if (!wantsPlay.current) setStillVariant(chosen);
+
+    const el = frame.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
     const small = window.innerWidth < 700;
     const watcher = new IntersectionObserver(
       ([entry]) => {
@@ -119,14 +128,16 @@ export default function HomeFilm({ inHero = false }: { inHero?: boolean }) {
       >
         {/* The still under the film: a lazy picture, where a poster attribute would be fetched with the page.
             In the hero it is the largest thing on the first screen, so there it loads first. */}
-        {(known || !inHero) && <Image
-          src={HOME_FILM.poster(variant)}
+        <Image
+          src={HOME_FILM.poster(stillVariant)}
           alt=""
           fill
           priority={inHero}
           sizes="(min-width: 480px) 432px, 100vw"
           className="object-cover"
-        />}
+          data-testid="home-film-still"
+          data-variant={stillVariant}
+        />
         <video
           ref={video}
           src={src ?? undefined}

@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getMembership, getCentre, countActiveMembers, canManageTeam, seatsRemaining } from "@/lib/centres";
 import { normalizePlanKey, getPlanByKey } from "@/lib/plans";
+import { isCentrePlan } from "@/lib/centre-offer";
+import { educatorFirstName } from "@/lib/story-check";
 
 /**
  * A centre, and who is in it.
@@ -39,7 +41,7 @@ export async function GET() {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const membership = await getMembership(user.id);
-    if (!membership) return NextResponse.json({ centre: null, membership: null, members: [] });
+    if (!membership) return NextResponse.json({ centre: null, membership: null, members: [], onBoard: await onBoardFor(user.id) });
 
     const centre = await getCentre(membership.centreId);
     if (!centre) return NextResponse.json({ centre: null, membership: null, members: [] });
@@ -50,8 +52,16 @@ export async function GET() {
     // and the seat count, which is all they need and all they are owed.
     let members: unknown[] = [];
     if (canManageTeam(membership)) {
-      const { data } = await createAdminSupabase().rpc("centre_activity", { p_centre_id: centre.id });
-      members = Array.isArray(data) ? data : [];
+      const admin = createAdminSupabase();
+      const [{ data }, { data: fromOffer }] = await Promise.all([
+        admin.rpc("centre_activity", { p_centre_id: centre.id }),
+        admin.from("centre_invites").select("accepted_by").eq("centre_id", centre.id).eq("from_leader_offer", true).not("accepted_by", "is", null),
+      ]);
+      // Somebody who joined from a one-tap invitation (lib/leader-offer-server.ts)
+      // is shown as the leader first met them: a first name, never an address.
+      const viaOffer = new Set((fromOffer ?? []).map((row) => row.accepted_by as string));
+      members = (Array.isArray(data) ? data : []).map((member: { user_id: string; full_name: string | null; email: string | null }) =>
+        viaOffer.has(member.user_id) ? { ...member, full_name: educatorFirstName(member.full_name), email: null } : member);
     }
 
     return NextResponse.json({
@@ -72,6 +82,26 @@ export async function GET() {
   } catch (error) {
     console.error("Centre fetch error:", error);
     return NextResponse.json({ error: "Could not load centre" }, { status: 500 });
+  }
+}
+
+/**
+ * "Get your centre on board" (13 Nov 2026), for an educator in no centre and
+ * not on a centre plan: where their newest saved story is, so the card's one
+ * button opens its "Send this story to your leader" panel. Null for anyone
+ * the card is not for.
+ */
+async function onBoardFor(userId: string): Promise<{ newestStoryId: string | null } | null> {
+  try {
+    const admin = createAdminSupabase();
+    const [{ data: profile }, { data: newest }] = await Promise.all([
+      admin.from("profiles").select("plan").eq("id", userId).maybeSingle(),
+      admin.from("stories").select("id").eq("user_id", userId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    ]);
+    if (isCentrePlan(profile?.plan)) return null;
+    return { newestStoryId: (newest?.id as string | undefined) ?? null };
+  } catch {
+    return null;
   }
 }
 

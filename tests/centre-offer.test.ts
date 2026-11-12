@@ -29,17 +29,26 @@ test("individual plans keep the 7-day trial with a card, and never get the found
   }
 });
 
+// 13 Nov 2026: a centre that starts in 2026 is free until 31 January 2027, so
+// the plain 30 days are the rule from 1 January 2027 (NZ time). The assertions
+// below are unchanged and run at a moment the 30-day rule applies; the long
+// free period has its own tests in tests/leader-offer.test.ts.
+const AFTER_CUTOFF = new Date("2027-01-02T09:00:00+13:00");
+
 test("a new centre gets 30 days free with no card, and a founding spot while any remain", () => {
   for (const plan of ["centre_starter", "centre_growth"] as const) {
-    assert.deepEqual(checkoutTerms({ plan, spotsLeft: 3, hadCentreBefore: false, couponId: COUPON }), {
+    assert.deepEqual(checkoutTerms({ plan, spotsLeft: 3, hadCentreBefore: false, couponId: COUPON, now: AFTER_CUTOFF }), {
       trialDays: CENTRE_TRIAL_DAYS,
       noCardNeeded: true,
       foundingCoupon: COUPON,
     });
   }
-  const full = checkoutTerms({ plan: "centre_starter", spotsLeft: 0, hadCentreBefore: false, couponId: COUPON });
+  const full = checkoutTerms({ plan: "centre_starter", spotsLeft: 0, hadCentreBefore: false, couponId: COUPON, now: AFTER_CUTOFF });
   assert.equal(full.foundingCoupon, null, "no spots, no coupon");
   assert.equal(full.trialDays, CENTRE_TRIAL_DAYS, "but the free month stays");
+  // Before the cut-off: the same terms, longer.
+  const thisYear = checkoutTerms({ plan: "centre_starter", spotsLeft: 3, hadCentreBefore: false, couponId: COUPON, now: new Date("2026-11-13T10:00:00+13:00") });
+  assert.deepEqual(thisYear, { trialDays: 80, noCardNeeded: true, foundingCoupon: COUPON }, "a centre starting on 13 Nov 2026 is free for 80 days, to the end of 31 January");
   const unknown = checkoutTerms({ plan: "centre_starter", spotsLeft: null, hadCentreBefore: false, couponId: COUPON });
   assert.equal(unknown.foundingCoupon, COUPON, "when Stripe cannot be asked, try it; Stripe refuses a spent coupon");
 });

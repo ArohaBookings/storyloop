@@ -7,7 +7,7 @@ import { getPlanByKey, normalizePlanKey } from "@/lib/plans";
 import { formatDate } from "./billing";
 import { createStripe } from "@/lib/stripe-client";
 import { abandonedCheckoutCandidates, stillAbandoned } from "@/lib/abandoned-checkout";
-import { isCentrePlan } from "@/lib/centre-offer";
+import { centreTrialWords, isCentrePlan } from "@/lib/centre-offer";
 import { listCoveredMemberIds } from "@/lib/centres";
 import { WINBACK_CLAIM_DAYS, WINBACK_OFFER_ID, longDay } from "@/lib/offers";
 import { ACTIVATION_COUPON_ID, ACTIVATION_MONTHS, ACTIVATION_PERCENT_OFF } from "@/lib/activation-offer";
@@ -564,6 +564,7 @@ export async function runLifecycleAutomation() {
             // Older sessions carry no terms; individual plans were 7 days then.
             trialDays: candidate.trialDays ?? (candidate.plan.startsWith("centre") ? undefined : 7),
             centreTrial: candidate.noCard,
+            ...(candidate.noCard ? { centreTrialWords: centreTrialWords(new Date()) } : {}),
             offerCode: candidate.offer ?? undefined,
           },
         });

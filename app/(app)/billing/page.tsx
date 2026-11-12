@@ -12,6 +12,9 @@ import { CANCELLATION_REASONS, type BillingSummary } from "@/lib/billing-manage"
 import { getSessionId, track } from "@/lib/analytics/client";
 import { getNextPlan, getPlanByKey, getPlanDefinitions, hasFeatureAccess, normalizePlanKey, planRank, requiredPlanForFeature, resolveFeatureParam, type CurrencyCode, type FeatureKey, type PlanKey } from "@/lib/plans";
 
+// A trial ends at a moment; it is named in New Zealand time, as checkout and the emails name it.
+const NZ_TIME = "Pacific/Auckland";
+
 function formatMoney(cents: number, currency: string) {
   const symbol = currency.toLowerCase() === "nzd" ? "NZ$" : currency.toLowerCase() === "aud" ? "A$" : `${currency.toUpperCase()} `;
   return `${symbol}${(cents / 100).toFixed(2)}`;
@@ -406,7 +409,7 @@ export default function BillingPage() {
       {trialStatus?.centreTrial && trialStatus.cardOnFile !== true && (
         <div className="mb-6 rounded-2xl border border-clay-200 bg-cream-50 p-5" data-testid="centre-trial-banner">
           <p className="font-display text-xl font-bold text-ink-900">
-            Your centre&apos;s free month{trialStatus.trialEndsAt ? ` ends ${formatDay(trialStatus.trialEndsAt)}` : " is running"}.
+            Your centre&apos;s free month{trialStatus.trialEndsAt ? ` ends ${formatDay(trialStatus.trialEndsAt, NZ_TIME)}` : " is running"}.
           </p>
           <p className="mt-1.5 text-base leading-relaxed text-ink-700">
             {trialStatus.cardOnFile === null ? "If you have not added a card yet, add" : "Add"} one to keep your team going
@@ -610,7 +613,7 @@ export default function BillingPage() {
                   : billing.subscription.paused
                     ? billing.subscription.pausedUntil ? `Payments paused until ${formatDay(billing.subscription.pausedUntil)}` : "Payments paused"
                   : billing.subscription.trialEndsAt
-                    ? `Free until ${formatDay(billing.subscription.trialEndsAt)}`
+                    ? `Free until ${formatDay(billing.subscription.trialEndsAt, NZ_TIME)}`
                     : billing.subscription.status === "past_due" || billing.subscription.status === "unpaid"
                       ? "Payment overdue"
                       : "Active"}
@@ -719,7 +722,7 @@ export default function BillingPage() {
           <div role="dialog" aria-modal="true" aria-labelledby="cancel-title" className="w-full max-w-md rounded-3xl bg-white p-6 shadow-warm" onClick={(event) => event.stopPropagation()}>
             <h2 id="cancel-title" className="font-display text-2xl font-bold text-ink-900">Cancel your subscription?</h2>
             <p className="mt-2 text-sm leading-relaxed text-ink-600">
-              Your plan stays on until {billing.subscription.trialEndsAt ? formatDay(billing.subscription.trialEndsAt) : billing.subscription.currentPeriodEnd ? formatDay(billing.subscription.currentPeriodEnd) : "the end of this period"}, then ends. Nothing more is charged, and everything you've written stays yours.
+              Your plan stays on until {billing.subscription.trialEndsAt ? formatDay(billing.subscription.trialEndsAt, NZ_TIME) : billing.subscription.currentPeriodEnd ? formatDay(billing.subscription.currentPeriodEnd) : "the end of this period"}, then ends. Nothing more is charged, and everything you've written stays yours.
             </p>
             {/* Offered, never pushed: Cancel stays one click below (Leo, 20 Oct and 10 Nov 2026). */}
             {canPause && (

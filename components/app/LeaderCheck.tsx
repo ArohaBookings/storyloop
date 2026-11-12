@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, CheckCircle2, Copy, Loader2, MessageSquareText, Share2, UserCheck } from "lucide-react";
 import { track } from "@/lib/analytics/client";
-import { CHECK_DAYS, type EducatorCheckView } from "@/lib/story-check";
+import { CENTRE_NAME_MAX, CHECK_DAYS, type EducatorCheckView } from "@/lib/story-check";
 
 function day(value: string | null | undefined) {
   if (!value) return "";
@@ -12,12 +12,17 @@ function day(value: string | null | undefined) {
 }
 
 /**
- * "Ask your leader to check it", on a saved story (lib/story-check.ts).
+ * "Send this story to your leader", on a saved story (lib/story-check.ts).
  *
  * The educator makes a private link to this one story and sends it however
  * they already talk to their head teacher or mentor. The link is shown once,
  * here, straight after it is made: it is never stored, so after a reload the
  * panel shows where the check stands and offers a fresh link instead.
+ *
+ * 13 Nov 2026: two optional things before the link is made, both empty by
+ * default: the centre's name, and a tick to show the leader a few numbers about
+ * her own recent stories. Left as they are, the link is exactly what it was.
+ * /history#leader-<story id> opens this panel (the dashboard's centre card).
  */
 export default function LeaderCheck({ storyId, initial }: { storyId: string; initial?: EducatorCheckView }) {
   const [check, setCheck] = useState<EducatorCheckView>(initial ?? { state: "none" });
@@ -25,17 +30,30 @@ export default function LeaderCheck({ storyId, initial }: { storyId: string; ini
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
+  const [centreName, setCentreName] = useState("");
+  const [shareCounts, setShareCounts] = useState(false);
+  const panel = useRef<HTMLElement>(null);
+
+  // Arriving from "Send a story to your leader": open this story and bring the panel into view.
+  useEffect(() => {
+    if (window.location.hash !== `#leader-${storyId}`) return;
+    const details = panel.current?.closest("details");
+    if (details) details.open = true;
+    window.setTimeout(() => panel.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
+  }, [storyId]);
 
   const call = async (method: "POST" | "DELETE") => {
     if (busy) return;
     setBusy(true); setError("");
     try {
-      const response = await fetch(`/api/stories/${encodeURIComponent(storyId)}/check`, { method });
+      const response = await fetch(`/api/stories/${encodeURIComponent(storyId)}/check`, method === "POST"
+        ? { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ centreName: centreName.trim(), shareCounts }) }
+        : { method });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) { setError(data.error ?? "That did not work. Try again."); return; }
       setCheck(data.check ?? { state: "none" });
       setUrl(method === "POST" ? data.url ?? "" : "");
-      if (method === "POST") track("leader_check_sent", {});
+      if (method === "POST") track("leader_check_sent", { centre_name: Boolean(centreName.trim()), counts: shareCounts });
     } catch {
       setError("That did not work. Check your connection and try again.");
     } finally {
@@ -66,9 +84,9 @@ export default function LeaderCheck({ storyId, initial }: { storyId: string; ini
   const answered = check.state === "answered";
 
   return (
-    <section className="mt-5 rounded-2xl border border-clay-100 bg-cream-50/60 p-4 sm:p-5" data-testid="leader-check-panel">
+    <section ref={panel} id={`leader-${storyId}`} className="mt-5 scroll-mt-24 rounded-2xl border border-clay-100 bg-cream-50/60 p-4 sm:p-5" data-testid="leader-check-panel">
       <h3 className="flex items-center gap-2 text-sm font-bold text-ink-900">
-        <UserCheck className="h-4 w-4 text-clay-700" /> Ask your leader to check it
+        <UserCheck className="h-4 w-4 text-clay-700" /> Send this story to your leader
       </h3>
 
       {answered && (
@@ -115,6 +133,30 @@ export default function LeaderCheck({ storyId, initial }: { storyId: string; ini
                 ? "Edited it since? Send it again."
                 : "Send your head teacher or mentor a private link to this one story. They see your note beside the story and answer in about two minutes. They do not need an account."}
           </p>
+          <div className="mt-3 grid gap-2 sm:max-w-md">
+            <label htmlFor={`leader-centre-${storyId}`} className="text-xs font-semibold text-ink-700">
+              Your centre&apos;s name <span className="font-normal text-ink-500">(optional)</span>
+            </label>
+            <input
+              id={`leader-centre-${storyId}`}
+              value={centreName}
+              maxLength={CENTRE_NAME_MAX}
+              onChange={(e) => setCentreName(e.target.value)}
+              autoComplete="organization"
+              className="input text-sm"
+              data-testid="leader-check-centre-name"
+            />
+            <label className="flex min-h-[44px] cursor-pointer items-start gap-2.5 text-xs leading-relaxed text-ink-700">
+              <input
+                type="checkbox"
+                checked={shareCounts}
+                onChange={(e) => setShareCounts(e.target.checked)}
+                className="mt-0.5 h-4 w-4 flex-none accent-clay-700"
+                data-testid="leader-check-share-counts"
+              />
+              Also show my leader how many children I have written about lately (numbers only, no names)
+            </label>
+          </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <button type="button" onClick={() => call("POST")} disabled={busy} className="btn-secondary px-4 py-2 text-xs disabled:opacity-60" data-testid="leader-check-make">
               {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserCheck className="h-3.5 w-3.5" />}

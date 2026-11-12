@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Loader2, MessageSquareText, ShieldCheck } from "lucide-react";
+import { ArrowRight, CheckCircle2, FileText, Loader2, MessageSquareText, ShieldCheck } from "lucide-react";
 import StoryText from "@/components/app/StoryText";
 import { track } from "@/lib/analytics/client";
-import { CHECK_COMMENT_MAX, CHECK_DAYS, CHECK_NAME_MAX, tokenFromHash, type LeaderView } from "@/lib/story-check";
-import { CENTRE_TRIAL_DAYS } from "@/lib/centre-offer";
+import { CHECK_COMMENT_MAX, CHECK_DAYS, CHECK_NAME_MAX, leaderCountsSentence, offerSignupHref, tokenFromHash, type LeaderView } from "@/lib/story-check";
+import { useCentreTrialWords } from "@/components/centre/CentreTrialWords";
+
+/** Where a centre's offer reference waits between this page and the centre's set-up screen (app/(app)/centre). */
+const OFFER_KEY = "storyloop_leader_offer";
 
 type Phase = "loading" | "ready" | "gone";
 
@@ -21,9 +24,11 @@ function day(value: string | null | undefined) {
 
 /**
  * The leader's side of a check. One story, the note it came from beside it,
- * and two answers. After the answer comes the only thing asked of the leader:
- * a look at the centre plan, because the person reading this page is the one
- * who decides for the centre.
+ * and two answers. Under the answer, before and after it, the only thing asked
+ * of the leader: the whole team's free month, with this educator already in it
+ * (13 Nov 2026). The person reading this page is the one who decides for the
+ * centre, and this is the one time they have seen StoryLoop working on their
+ * own children.
  */
 export default function LeaderCheckPage() {
   const [phase, setPhase] = useState<Phase>("loading");
@@ -34,6 +39,7 @@ export default function LeaderCheckPage() {
   const [suggesting, setSuggesting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const freeFor = useCentreTrialWords();
 
   useEffect(() => {
     const key = tokenFromHash(window.location.hash);
@@ -211,31 +217,42 @@ export default function LeaderCheckPage() {
         </section>
 
         <section className={`mt-5 rounded-3xl border p-6 sm:p-8 ${answered ? "border-clay-300 bg-paper shadow-soft" : "border-clay-100 bg-paper/70"}`} data-testid="leader-check-centre">
-          <h2 className="font-display text-2xl font-bold text-ink-900">{view.educator} wrote this with StoryLoop</h2>
-          <p className="mt-2 max-w-2xl text-base leading-relaxed text-ink-700">
-            The educator jots a note, StoryLoop drafts the story from it and keeps the child&apos;s words exactly, and the educator checks every
-            line. First names only, stored in Sydney, never used to train AI. It pastes into the app your centre already uses.
+          <h2 className="font-display text-2xl font-bold text-ink-900" data-testid="leader-offer-heading">{view.educator} already writes with StoryLoop.</h2>
+          {view.offer.counts && (
+            <p className="mt-2 max-w-2xl text-base leading-relaxed text-ink-700" data-testid="leader-offer-counts">
+              {leaderCountsSentence(view.educator, view.offer.counts)}
+            </p>
+          )}
+          <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-700" data-testid="leader-offer-terms">
+            Start a free month for {view.centreName ? <strong className="font-semibold text-ink-900">{view.centreName}</strong> : "your whole team"}: up
+            to 10 educators and any number of children, <strong className="font-semibold text-ink-900">{freeFor}</strong>, with no card
+            needed. {view.educator} comes with you, and {view.educator}&apos;s drafts stay private unless {view.educator} chooses to share them.
           </p>
-          <p className="mt-2 max-w-2xl text-base font-semibold leading-relaxed text-ink-900">
-            A whole centre can try it for {CENTRE_TRIAL_DAYS} days free, with no card.
-          </p>
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/for-centres?utm_source=leader_check&utm_medium=product"
-              onClick={() => track("leader_check_centre_click", { answered, to: "for-centres" }, AT)}
-              className={`${answered ? "btn-primary" : "btn-secondary"} px-6 py-3 text-base`}
+          <div className="mt-5">
+            <a
+              href={offerSignupHref(view.offer)}
+              onClick={() => {
+                // Kept on this device too, for a leader who signs up in this browser. Not the link key; opens nothing.
+                try { if (view.offer.ref) window.localStorage.setItem(OFFER_KEY, view.offer.ref); } catch { /* the link carries it as well */ }
+                track("leader_check_centre_click", { answered, to: "signup", counts: Boolean(view.offer.counts), named: Boolean(view.centreName) }, AT);
+              }}
+              className="btn-primary w-full justify-center px-6 py-3 text-base sm:w-auto"
               data-testid="leader-check-centre-link"
+              // Click analytics records a link's address; this one carries the offer reference, so only the name is kept.
+              data-private=""
+              data-track="leader_offer_start"
             >
-              See it for your centre <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/safety?utm_source=leader_check&utm_medium=product"
-              onClick={() => track("leader_check_centre_click", { answered, to: "safety" }, AT)}
-              className="btn-secondary px-6 py-3 text-base"
-            >
-              How children&apos;s information is kept
-            </Link>
+              Start our free month <ArrowRight className="h-4 w-4" />
+            </a>
           </div>
+          <Link
+            href="/data-sheet"
+            onClick={() => track("leader_check_centre_click", { answered, to: "data-sheet" }, AT)}
+            className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 text-sm text-ink-600 underline decoration-clay-200 underline-offset-4 hover:text-ink-900"
+            data-testid="leader-offer-data-sheet"
+          >
+            <FileText className="h-3.5 w-3.5 flex-none" /> For your owner, board or approved provider: the one-page data sheet
+          </Link>
         </section>
 
         <p className="mt-5 text-xs leading-relaxed text-ink-500">

@@ -76,6 +76,16 @@ export default function Hero() {
                 or try it with your own note <ArrowDown className="h-3.5 w-3.5" />
               </a>
             </div>
+            {/* 13 Nov 2026: one quiet way in for the person who decides for a centre.
+                Under the buttons, so it can never push "Start free" down; 44px tall to tap. */}
+            <Link
+              href="/for-centres?utm_source=home&utm_medium=hero_leader"
+              data-track="home_hero_leader"
+              data-testid="home-hero-leader"
+              className="animate-fade-up-2 mt-1 inline-flex min-h-[44px] items-center text-sm text-ink-500 underline decoration-clay-200 underline-offset-4 hover:text-ink-800"
+            >
+              Deciding for a whole centre? See what a leader gets
+            </Link>
           </div>
 
           {HERO_SHOWS_FILM ? <HomeFilm inHero /> : <HeroPhotoProof inHero />}

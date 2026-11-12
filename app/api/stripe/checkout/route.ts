@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { createStripe } from "@/lib/stripe-client";
+import { checkoutNow, createStripe } from "@/lib/stripe-client";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { getPlanByKey, normalizePlanKey, type CurrencyCode, type PlanKey } from "@/lib/plans";
@@ -8,7 +8,7 @@ import { getOrCreateReferralCoupon } from "@/lib/referrals";
 import { ensureActivationCoupon } from "@/lib/activation-offer";
 import { checkoutDiscountParams } from "@/lib/checkout-discount";
 import { resolveVerifiedPriceId } from "@/lib/stripe-prices";
-import { checkoutTerms, foundingCouponId, foundingSpotsLeft, isCentrePlan, isCouponRefusal } from "@/lib/centre-offer";
+import { centreTrialEnd, checkoutTerms, foundingCouponId, foundingSpotsLeft, isCentrePlan, isCouponRefusal } from "@/lib/centre-offer";
 import { CHECKOUT_BRANDING, CHECKOUT_PRESENTATION, checkoutAuthorisationMessage, checkoutTermsMessage, isBrandingRefusal } from "@/lib/stripe-branding";
 import { OFFER_REASON_COPY, PRO_MONTH_OFFER_ID, PRO_MONTH_PLAN, PRO_MONTH_TRIAL_DAYS, WINBACK_OFFER_ID, ensureWinbackCoupon, proMonthEligibility, winbackEligibility } from "@/lib/offers";
 import { createAdminSupabase } from "@/lib/supabase/admin";
@@ -53,6 +53,8 @@ export async function POST(request: NextRequest) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const stripe = getStripe();
     const origin = request.nextUrl.origin;
+    // The real clock (a test-only override exists against the local payments mock, see lib/stripe-client.ts).
+    const now = checkoutNow(request.headers.get("x-storyloop-test-now"));
 
     const body = await request.json();
     const { currency, activationOffer } = body;
@@ -166,8 +168,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Centres: a 30-day trial with no card needed, and a founding spot (50%
-    // off after the free month) while any of the ten remain. A centre that has
+    // Centres: a free trial with no card needed (until the end of 31 January
+    // 2027 for a centre that starts in 2026, otherwise 30 days), and a founding
+    // spot (50% off the first three paid months) while any of the ten remain. A centre that has
     // had a centre subscription before is not a new centre. See
     // lib/centre-offer.ts for the reasoning behind each number.
     let hadCentreBefore = false;
@@ -189,7 +192,12 @@ export async function POST(request: NextRequest) {
           spotsLeft: isCentrePlan(selectedPlan) ? await foundingSpotsLeft(stripe) : null,
           hadCentreBefore,
           couponId: foundingCouponId(),
+          now,
         });
+    // A centre starting in 2026 is free until the end of 31 January 2027 (New
+    // Zealand time). Stripe is given that exact moment rather than a count of
+    // days, so finishing checkout later the same day cannot move the date.
+    const trialEndsAt = !offer && isCentrePlan(selectedPlan) && terms.noCardNeeded && terms.trialDays > 0 ? centreTrialEnd(now) : null;
     const lineItem = await buildLineItem(stripe, selectedPlan, selectedCurrency);
 
     const createSession = (founding: string | null, branded = true) => {
@@ -208,6 +216,7 @@ export async function POST(request: NextRequest) {
         // The terms this checkout offered, so a follow-up email can restate
         // them exactly instead of guessing.
         trial_days: String(terms.trialDays),
+        ...(trialEndsAt ? { trial_end: trialEndsAt.toISOString() } : {}),
         no_card: terms.noCardNeeded ? "true" : "false",
         ...(offer === "pro_month" ? { offer_id: PRO_MONTH_OFFER_ID } : {}),
         ...(offer === "winback" ? { offer_id: WINBACK_OFFER_ID } : {}),
@@ -215,7 +224,7 @@ export async function POST(request: NextRequest) {
       // StoryLoop's own authorisation line, in place of Stripe's (which names the
       // shared account). Only with the presentation, since that is what hides Stripe's.
       const firstMonthFree = !founding && Boolean(referralCoupon);
-      const authorisation = branded ? checkoutAuthorisationMessage({ trialDays: terms.trialDays, noCardNeeded: terms.noCardNeeded, firstMonthFree }) : null;
+      const authorisation = branded ? checkoutAuthorisationMessage({ trialDays: terms.trialDays, noCardNeeded: terms.noCardNeeded, firstMonthFree, now }) : null;
       return stripe.checkout.sessions.create({
         ...(branded ? { branding_settings: CHECKOUT_BRANDING, ...CHECKOUT_PRESENTATION } : {}),
         custom_text: {
@@ -230,6 +239,8 @@ export async function POST(request: NextRequest) {
               winback: offer === "winback",
               activation: !founding && Boolean(activationCoupon),
               firstMonthFree,
+              trialEndsAt,
+              now,
             }),
           },
           ...(authorisation ? { after_submit: { message: authorisation } } : {}),
@@ -249,8 +260,11 @@ export async function POST(request: NextRequest) {
         ...checkoutDiscountParams(appliedCoupon, offer),
         subscription_data: {
           // Stripe rejects trial_period_days: 0, so a returning centre simply
-          // has no trial rather than a zero-length one.
-          ...(terms.trialDays > 0 ? { trial_period_days: terms.trialDays } : {}),
+          // has no trial rather than a zero-length one. A fixed end (the end of
+          // 31 January 2027) goes as trial_end; Stripe takes one or the other.
+          ...(trialEndsAt
+            ? { trial_end: Math.floor(trialEndsAt.getTime() / 1000) }
+            : terms.trialDays > 0 ? { trial_period_days: terms.trialDays } : {}),
           // With no card on file, the trial ends in a clean cancellation, never
           // a failed charge or a past-due account.
           ...(terms.noCardNeeded ? { trial_settings: { end_behavior: { missing_payment_method: "cancel" as const } } } : {}),
@@ -304,7 +318,7 @@ export async function POST(request: NextRequest) {
         : Promise.resolve(),
     ]);
 
-    return NextResponse.json({ url: session.url, trialDays: terms.trialDays, noCardNeeded: terms.noCardNeeded, founding: Boolean(session.metadata?.founding_centre === "true") });
+    return NextResponse.json({ url: session.url, trialDays: terms.trialDays, trialEndsAt: trialEndsAt?.toISOString() ?? null, noCardNeeded: terms.noCardNeeded, founding: Boolean(session.metadata?.founding_centre === "true") });
   } catch (error) {
     console.error("Checkout error:", error);
     return NextResponse.json({ error: "Failed to create checkout" }, { status: 500 });

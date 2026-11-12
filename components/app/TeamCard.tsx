@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Users, X } from "lucide-react";
 import StartCentreMonth from "@/components/app/StartCentreMonth";
+import { useCentreTrialWords } from "@/components/centre/CentreTrialWords";
 import { WORK_ROLES, WORK_ROLE_LABELS, decidesForCentre, type WorkRole } from "@/lib/work-role";
 
 /**
@@ -14,6 +15,7 @@ export default function TeamCard({ start }: { start: "ask" | "centre" }) {
   const [view, setView] = useState<"ask" | "centre" | "thanks" | "gone">(start);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const freeFor = useCentreTrialWords();
 
   const post = async (body: Record<string, unknown>) => {
     const response = await fetch("/api/me/role", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -69,11 +71,11 @@ export default function TeamCard({ start }: { start: "ask" | "centre" }) {
           </div>
           <div className="min-w-0 flex-1">
             <p className="section-title mb-1">For your whole team</p>
-            <h2 className="font-display text-xl font-bold text-ink-900">Your centre&apos;s first month is free. No card.</h2>
+            <h2 className="font-display text-xl font-bold text-ink-900">Your whole centre, {freeFor}. No card.</h2>
             <p className="mt-1 text-sm leading-relaxed text-ink-600">
               Up to 10 educators and every child. Your team writes from their own notes, you see who is documenting and
               which children are thin, you can check a story in two minutes, and each child&apos;s end-of-year summary comes
-              from the stories already saved. If it is not for you, do nothing: the month ends and nothing is charged.
+              from the stories already saved. If it is not for you, do nothing: the free period ends and nothing is charged.
             </p>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
               <StartCentreMonth from="dashboard" className="btn-primary justify-center" />
@@ -94,7 +96,7 @@ export default function TeamCard({ start }: { start: "ask" | "centre" }) {
           <p className="text-sm leading-relaxed text-ink-700">
             Want a second pair of eyes on a story? Open it in{" "}
             <Link href="/history" className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4">History</Link>{" "}
-            and tap &ldquo;Ask your leader to check it&rdquo;. They get a private link and need no account.
+            and tap &ldquo;Send this story to your leader&rdquo;. They get a private link and need no account.
           </p>
         </div>
       )}

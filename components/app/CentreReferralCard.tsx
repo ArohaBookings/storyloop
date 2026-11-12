@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Building2, Check, Copy, Loader2 } from "lucide-react";
+import { useCentreTrialWords } from "@/components/centre/CentreTrialWords";
+import { CENTRE_MESSAGE } from "@/lib/centre-message";
 
 type ReferralState = { code: string | null; shareUrl: string | null; bankedMonths?: number; planName?: string };
 
@@ -18,22 +20,13 @@ type ReferralState = { code: string | null; shareUrl: string | null; bankedMonth
  * without composing it, that argues from the centre's problems rather than
  * from how much the educator likes the product.
  */
-const MESSAGE = (shareUrl: string, founding: boolean) =>
-  `Hi,
-
-I have been using StoryLoop for my own learning stories and it has saved me a lot of evening writing. It does not replace what we use now, the drafts export straight into it.
-
-There is a centre plan that covers every educator and unlimited children for one flat price, and a couple of things in it that are ours rather than mine:
-
-- an evidence pack that pulls together what a review visit asks for from the stories we have already written, and flags the gaps first
-- a one page brief for relievers, built from what the team has already recorded
-- codes we can put beside wall displays so families can read the learning behind them at pickup
-
-If you want to look, this page has the details. Centres get 30 days free with no card needed${founding ? ", and the first ten centres then pay half for three months" : ""}: ${shareUrl}
-
-Happy to show you what I have been doing with it.`;
-
-export default function CentreReferralCard({ months = 3 }: { months?: number }) {
+/**
+ * `embedded` (13 Nov 2026): inside the "Get your centre on board" card on the
+ * Dashboard and My centre, which has its own heading and its own button, so
+ * this drops its outer card and heading and keeps the code, the reward and the
+ * message.
+ */
+export default function CentreReferralCard({ months = 3, embedded = false }: { months?: number; embedded?: boolean }) {
   const [state, setState] = useState<ReferralState | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState<"link" | "message" | null>(null);
@@ -64,7 +57,8 @@ export default function CentreReferralCard({ months = 3 }: { months?: number }) 
       return state.shareUrl;
     }
   }, [state?.shareUrl, state?.code]);
-  const message = useMemo(() => (centreUrl ? MESSAGE(centreUrl, founding) : ""), [centreUrl, founding]);
+  const freeFor = useCentreTrialWords();
+  const message = useMemo(() => (centreUrl ? CENTRE_MESSAGE(centreUrl, founding, freeFor) : ""), [centreUrl, founding, freeFor]);
   const banked = state?.bankedMonths ?? 0;
   const onFreePlan = (state?.planName ?? "free") === "free";
 
@@ -87,8 +81,25 @@ export default function CentreReferralCard({ months = 3 }: { months?: number }) 
   }
   if (!state?.shareUrl || !centreUrl) return null;
 
+  const reward = (
+    <>
+      Your centre can start {freeFor} with no card needed{founding ? ", and the first ten centres then pay half for three months" : ""}.
+      If a centre plan starts on your link, {months} months of your own subscription are credited automatically,
+      so there is nothing to claim and nothing to chase. On the free plan they are held for you and applied the
+      moment you start a plan.
+    </>
+  );
+
   return (
-    <section id="centre-referral" className="card scroll-mt-24 p-5 md:p-6">
+    <section id={embedded ? "centre-referral-code" : "centre-referral"} className={embedded ? "min-w-0" : "card scroll-mt-24 p-5 md:p-6"} data-testid="centre-referral">
+      {embedded ? (
+        <div className="mb-3">
+          <h3 className="text-sm font-bold text-ink-900">Or send your manager your centre link</h3>
+          <p className="mt-1 text-sm leading-relaxed text-ink-600">
+            If your centre subscribes on your code, you get {months} months of your own plan, free. {reward}
+          </p>
+        </div>
+      ) : (
       <div className="mb-4 flex items-start gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-clay-700 text-paper">
           <Building2 className="h-5 w-5" />
@@ -99,13 +110,11 @@ export default function CentreReferralCard({ months = 3 }: { months?: number }) 
             If your centre subscribes on your code, you get {months} months of your own plan, free.
           </h2>
           <p className="mt-1 text-sm leading-relaxed text-ink-600">
-            Your centre gets 30 days free with no card needed{founding ? ", and the first ten centres then pay half for three months" : ""}.
-            If a centre plan starts on your link, {months} months of your own subscription are credited automatically,
-            so there is nothing to claim and nothing to chase. On the free plan they are held for you and applied the
-            moment you start a plan.
+            {reward}
           </p>
         </div>
       </div>
+      )}
 
       {/* Months already earned but not yet payable. This is the whole reason
           the reward is held rather than dropped: an educator who brought their
@@ -141,8 +150,7 @@ export default function CentreReferralCard({ months = 3 }: { months?: number }) 
           <span className="ml-1.5 text-xs text-ink-500 group-open:hidden">(you do not have to write it)</span>
         </summary>
         <p className="mt-2 text-xs leading-relaxed text-ink-600">
-          Asking for money is the awkward part, so here are the words. It argues from what the centre has to deal with,
-          not from how much you like it. Change anything that does not sound like you.
+          Asking is the awkward part, so here are the words. Change anything that does not sound like you.
         </p>
         <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-xl border border-clay-200 bg-cream-50 p-3 font-sans text-xs leading-relaxed text-ink-700">
 {message}

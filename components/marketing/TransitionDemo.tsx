@@ -312,6 +312,9 @@ export default function TransitionDemo({
                 </>
               ) : (
                 <>
+                  <p className="mb-2 text-sm text-ink-700" data-testid="transition-draft-caution">
+                    It is a draft from your notes: check every line. You decide what is true and what goes in the statement.
+                  </p>
                   {/* 12 Nov 2026: statements are due now, and the reader has a class of them, not one. */}
                   <p className="mb-2 text-sm font-semibold text-ink-800">
                     Got a whole class to write? Paste each child&apos;s notes and have every one drafted tonight.

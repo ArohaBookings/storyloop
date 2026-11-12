@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { randomBytes } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getMembership, getCentre, countActiveMembers, canManageTeam, seatsRemaining } from "@/lib/centres";
-import { sendCentreInviteEmail } from "@/lib/email/centre-invite";
 import { consumeRateLimit } from "@/lib/rate-limit";
-
-const INVITE_DAYS = 14;
+import { createCentreInvite } from "@/lib/centre-invites";
 
 function cleanEmail(value: unknown) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
@@ -26,14 +23,17 @@ export async function GET() {
 
     const { data } = await createAdminSupabase()
       .from("centre_invites")
-      .select("id, email, role, expires_at, created_at")
+      .select("id, email, role, expires_at, created_at, from_leader_offer")
       .eq("centre_id", membership.centreId)
       .is("accepted_at", null)
       .is("revoked_at", null)
       .order("created_at", { ascending: false })
       .limit(50);
 
-    return NextResponse.json({ invites: data ?? [] });
+    // An invitation made with one tap from a story an educator sent is addressed
+    // to her account, which the leader never saw: its address is not shown.
+    const invites = (data ?? []).map(({ from_leader_offer: fromOffer, ...row }) => (fromOffer ? { ...row, email: null } : row));
+    return NextResponse.json({ invites });
   } catch (error) {
     console.error("Invite list error:", error);
     return NextResponse.json({ error: "Could not load invitations." }, { status: 500 });
@@ -99,40 +99,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Replace any outstanding invite for the same address rather than stacking.
-    await admin
-      .from("centre_invites")
-      .update({ revoked_at: new Date().toISOString() })
-      .eq("centre_id", centre.id)
-      .eq("email", email)
-      .is("accepted_at", null)
-      .is("revoked_at", null);
-
-    const token = randomBytes(32).toString("base64url");
-    const expiresAt = new Date(Date.now() + INVITE_DAYS * 24 * 60 * 60 * 1000).toISOString();
-
-    const { data: invite, error } = await admin
-      .from("centre_invites")
-      .insert({ centre_id: centre.id, email, role, token, invited_by: user.id, expires_at: expiresAt })
-      .select("id, email, role, expires_at")
-      .single();
-
-    if (error || !invite) {
-      console.error("Invite create failed:", error?.message);
-      return NextResponse.json({ error: "Could not create the invitation." }, { status: 500 });
-    }
-
-    const { data: inviterProfile } = await admin
-      .from("profiles").select("full_name").eq("id", user.id).maybeSingle();
-
-    // A failed email must not lose the invite: the link is returned either way
-    // so it can be shared by hand.
-    const mail = await sendCentreInviteEmail({
-      to: email,
-      centreName: centre.name,
-      inviterName: inviterProfile?.full_name ?? null,
-      token,
-    });
+    // Replaces any outstanding invite for the same address rather than stacking,
+    // and the link is returned either way so it can be shared by hand.
+    const made = await createCentreInvite({ centre, email, role, invitedBy: user.id });
+    if (!made.ok) return NextResponse.json({ error: "Could not create the invitation." }, { status: 500 });
+    const { invite, token } = made;
+    const mail = { sent: made.emailSent };
 
     return NextResponse.json({
       invite: { id: invite.id, email: invite.email, role: invite.role, expiresAt: invite.expires_at },

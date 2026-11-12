@@ -15,6 +15,8 @@ import AdsPaidConversion from "@/components/analytics/AdsPaidConversion";
 import QuietPayerNudge from "@/components/app/QuietPayerNudge";
 import { canManageTeam, countActiveMembers, getCentreCover, getMembership } from "@/lib/centres";
 import TeamCard from "@/components/app/TeamCard";
+import CentreOnBoardCard from "@/components/app/CentreOnBoardCard";
+import { isCentrePlan } from "@/lib/centre-offer";
 import { CENTRE_CARD_DISMISSED_EVENT, ROLE_EVENT, cleanWorkRole, teamCardFor } from "@/lib/work-role";
 
 /** Stories, and days since the first, before StoryLoop asks for a review. */
@@ -77,6 +79,17 @@ export default async function DashboardPage({
       else if (canManageTeam(membership) && (await countActiveMembers(membership.centreId)) <= 1) centreSetup = "invite";
     } catch {
       centreSetup = null;
+    }
+  }
+
+  // "Get your centre on board" (13 Nov 2026): for an educator in no centre and
+  // not on a centre plan, always here. Best effort: any failure means no card.
+  let showOnBoard = false;
+  if (!cover && !isCentrePlan(profile?.plan)) {
+    try {
+      showOnBoard = !(await getMembership(user.id));
+    } catch {
+      showOnBoard = false;
     }
   }
 
@@ -371,6 +384,8 @@ export default async function DashboardPage({
           </div>
         ))}
       </div>
+
+      {showOnBoard && <CentreOnBoardCard newestStoryId={(recentStories?.[0]?.id as string | undefined) ?? null} />}
 
       {plan === "free" && (
         <div className="mb-8 rounded-3xl border border-clay-200 bg-gradient-to-br from-cream-100 via-white to-sage-50 p-5 shadow-soft">
