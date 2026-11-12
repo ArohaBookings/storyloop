@@ -1119,108 +1119,127 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       },
     ],
   },
-  // The page a director lands on. Every claim here is either a plan fact from
-  // lib/plans.ts or a feature that exists; the consent rule is the one thing no
-  // competitor can say, so it leads.
+  // The page a director lands on. Rewritten 12 Nov 2026 from a buyers' panel
+  // (an NZ owner, an Australian director, a head teacher, a go-to-market lead):
+  // outcome first, then how a leader actually starts (a story sent by one of
+  // their own educators), then what they get, families, data, price, the free
+  // month, the Australian policy rule, drafts. Every fact is from the repo:
+  // prices lib/plans.ts, the month lib/centre-offer.ts, the leader tools
+  // lib/evidence-pack.ts, lib/quiet-radar.ts, lib/reliever-brief.ts, the check
+  // lib/story-check.ts, privacy lib/centres.ts, data app/privacy and app/safety,
+  // who runs it app/about, export components/app/DownloadEverything.tsx, the
+  // rule app/ai-policy/page.tsx. The full data detail lives on /data-sheet.
   "for-centres": {
     slug: "for-centres",
     image: { src: "/images/scenes/team.jpg", alt: "Three educators planning together around a low table with a laptop showing StoryLoop", position: "50% 55%" },
     title: "Learning story software for ECE centres",
     description:
-      "For early childhood centres: learning stories, end-of-year summaries and transition statements written from your team's own notes. 30 days free, no card.",
+      "Learning story software for ECE centres: stories drafted from your team's own notes, review evidence with the gaps first, one flat price. 30 days free, no card.",
     kicker: "For directors, owners and head teachers",
-    // 10 Nov 2026. The page used to open with what leadership cannot see ("without
-    // buying their diary"), a promise to educators made to the person who pays. In
-    // 30 days 20 people opened it, one pressed the offer, and half left inside four
-    // seconds. It now opens with what the buyer came for; the sharing rule is still
-    // here, unchanged, further down.
-    heading: "Every child documented. Nobody writing at 9pm.",
+    heading: "Documentation done in the day, and a calmer review visit.",
     intro:
-      "Your educators jot a note after play. StoryLoop writes the learning story from it, and at the end of the year turns each child's saved stories into their summary or transition statement. You see who is documenting and which children are thin, and you can check a story in two minutes. One flat price for the whole team, 30 days free, no card.",
-    reviewedAt: "2026-11-10",
+      "Your educators jot a note after play and StoryLoop drafts the learning story from it, so writing stops eating their evenings. Every room writes to the same standard, you can see which children have gone unnoticed, and when ERO or an assessment and rating visit comes, the evidence is already counted from stories your team saved. One flat price for the whole team, 30 days free, no card.",
+    reviewedAt: "2026-11-12",
+    siblingLinks: {
+      heading: "For the person who signs off",
+      links: [
+        { label: "The data sheet for your owner or board", href: "/data-sheet" },
+        { label: "How children's information is kept", href: "/safety" },
+        { label: "How to check a learning story", href: "/how-to-check-a-learning-story" },
+        { label: "A free AI policy for your service", href: "/ai-policy" },
+      ],
+    },
     sections: [
       {
-        title: "Check a story in two minutes, without an account",
-        body: "An educator can send you a private link to one story. You see the note they wrote beside the story drafted from it, and answer that it looks good or suggest a change. The link opens that one story for 14 days, the educator can cancel it, and you do not need to sign up to look.",
-      },
-      {
-        title: "Families read it in their own language, and write back",
-        body: "An educator shares a story and gives the family a private link: no app to install, no password to forget. Whānau read every story shared about their child, in English or in one of ten languages, with the child's own words left exactly as they were said. What they write back, in any language, lands beside the story it answers with an English reading for the educator. That is family voice, recorded where a reviewer will look for it.",
-      },
-      {
-        title: "The end of the year, on one page",
-        body: "The year in one tap lists every child with the stories written about them this year, the thinnest first, so nobody is missed. From there each child's saved stories become their end-of-year summary or transition statement in one step, with their own words kept, and a handover sheet prints for next year's teacher.",
-      },
-      {
-        title: "Your whole team, the moment you invite them",
-        body: "Invite your educators from My centre and each one has unlimited stories and everything on the centre plan straight away, with their own login and nothing to pay. Seats follow your plan: 10 on Centre Starter, 25 on Centre Growth.",
-      },
-      {
-        title: "One price, unlimited children",
+        title: "What changes for your team",
         body:
-          "Centre Starter is NZ$109 or A$99 a month for up to 10 educators, Centre Growth NZ$219 or A$199 for up to 25. Enrol twenty more tamariki and the price does not move. Per educator that is roughly half the individual plan.",
+          "An educator writes or says a short note after play. StoryLoop drafts the learning story from it, linked to Te Whāriki or the EYLF, keeps the child's words exactly as they were said, and lists anything it had to assume. The educator checks every line and saves it. Stories get written during the day instead of at home, and at the end of the year each child's saved stories become their summary or transition statement.",
       },
       {
-        title: "If your service keeps documentation short",
+        title: "See it on your own children first",
         body:
-          "In Australia, ACECQA says in writing that the National Law and Regulations do not prescribe how much documentation there is or what it looks like. If your team writes little, set stories to concise and use StoryLoop for what still has to be written well: each child's summary, the transition statement and the plain-words note to families. All of it starts from the notes your educators already take.",
+          "Do not judge it on our examples. Ask one of your educators to write a story about a child you know and send it to you with Ask my leader. You get a private link to that one story, with their note beside it. Checking it takes about two minutes and you do not need an account. Answer once: it looks good, or suggest a change. The link lasts 14 days and the educator can cancel it.",
       },
       {
-        title: "The evidence, without the fortnight before the visit",
+        title: "What a leader gets",
         body:
-          "Regulatory authorities generally give one to five days' notice of a site visit. The evidence pack counts what your team already saved: every child's coverage and when they were last documented, how often a next step was written and then actually revisited, where reflection and family voice are recorded, and the gaps, named first. It summarises your own records. It is not a compliance judgement and does not claim to be one.",
+          "The evidence pack counts what your team already saved, the way a review visit asks to see it: each child's coverage, next steps revisited, reflection and family voice, with the gaps named first. The quiet child radar names children with no captured moment in 8 working days. The reliever brief puts your room on one page. Shared centre voice and quality calibration keep every room writing to the same standard. These tools count children and gaps, never people.",
       },
       {
-        title: "The reliever problem, solved on one page",
+        title: "Nothing changes for families",
         body:
-          "A relief teacher prints one page before the children arrive: who has not been noticed lately, what each child is into, languages spoken at home, and the next steps your team already planned. Built from stories your team already wrote.",
+          "Keep whatever your centre uses for photos and messages to families. StoryLoop does one job: an educator writes here, copies the finished story in one tap, and pastes it there. If you want it, a Family link lets a family read their child's stories with no app and no password. StoryLoop has no photo or video sharing, no daily diary, and no rolls, fees or subsidy admin.",
+      },
+      {
+        title: "Is our data ours, and who runs this?",
+        body:
+          "StoryLoop is a product of Aria Care, a small New Zealand business in Ōtautahi Christchurch. You own what your team writes. Notes about children are stored in Sydney, Australia, and are never used to train AI. Each educator can download everything they have written from History, as a text file or a spreadsheet, at any time, including after you cancel. The data sheet sets this out on one page for your owner, board or approved provider.",
+      },
+      {
+        title: "One flat price, unlimited children",
+        body:
+          "Centre Starter is NZ$109 or A$99 a month for up to 10 educators. Centre Growth is NZ$219 or A$199 a month for up to 25. Every educator on the plan gets unlimited stories and everything on Educator Pro, with their own login. Enrol more children and the price does not move. There is no per-child fee and no contract.",
+      },
+      {
+        title: "30 days free, no card",
+        body:
+          "Start a centre plan and invite your team from My centre. You get 30 days free, and no card is needed to start. If the month ends with no card added, nothing is charged: the plan simply ends and the account drops back to the free plan with every story kept. If you add a card, the plan carries on monthly and you can cancel any time from Billing.",
+      },
+      {
+        title: "For Australian services: your digital technologies policy",
+        body:
+          "Since 1 September 2025, regulation 168 of the Education and Care Services National Regulations has required every service to have a policy and procedures for the safe use of digital technologies and online environments. ACECQA's Online Safety Guide asks how that policy makes clear when AI can and cannot be used. Our free AI policy generator writes one in about ten minutes, from published regulator guidance, to sit beside it.",
       },
       {
         title: "Educators keep their drafts",
         body:
-          "Sharing is off by default and only the educator can turn it on. Leadership always sees activity, never content they were not given. That is the difference between support and surveillance, and it is why teams stop hiding their documentation.",
+          "Sharing is off by default and only the educator can turn it on. A leader sees whether each educator is writing and when they last wrote, never the words of a story they were not given. That keeps your team writing honestly, and it is the difference between support and surveillance.",
       },
     ],
     faqs: [
       {
-        question: "Can our centre move its learning stories to StoryLoop?",
+        question: "Do we have to stop using what we have for families?",
         answer:
-          "Yes. Your team writes, checks and shares learning stories in StoryLoop, with one price and unlimited children. Each family gets a private link to their own child's stories, with no app and no password, reads them in their own language and can write back to the educator. StoryLoop keeps no photographs or video of children, and any story exports in one tap if you need it elsewhere.",
+          "No. Keep it. StoryLoop is where the story gets written. The finished story copies in one tap and pastes into whatever your families already read, so your photos, messages and family accounts stay exactly as they are.",
       },
       {
-        question: "What does a centre plan actually include?",
+        question: "What happens to our stories if we stop?",
         answer:
-          "Everything on Educator Pro for every educator on the plan, plus the evidence pack, the reliever brief, a planning brief built from recent stories, a documentation radar, shared centre voice and quality settings, export packs, and admin oversight that shows activity rather than content.",
+          "They stay yours. If you cancel, the account and its stories stay available, so each educator can come back or download everything they wrote from History as a text file or a spreadsheet. If you want everything deleted, email ariacareapp@gmail.com and the account, stories and child profiles are deleted within 30 days.",
       },
       {
-        question: "How do we try it?",
+        question: "Who is behind StoryLoop?",
         answer:
-          "Start a centre plan and you get 30 days free with no card needed. Invite your team from My centre. If it is not right for you, do nothing: the month simply ends, nothing is charged, and every story stays yours. While founding spots last, the first ten centres then pay 50% for their first three months.",
+          "Aria Care, a small New Zealand business based in Ōtautahi Christchurch. StoryLoop is its early childhood product, built around Te Whāriki and the EYLF. You can reach the people who run it at ariacareapp@gmail.com, and the data sheet sets out where information is stored and who processes it.",
+      },
+      {
+        question: "Can a leader see everything an educator writes?",
+        answer:
+          "No. A leader sees activity: how many stories each educator has written and when they last wrote. A leader reads a story only when the educator has switched sharing on or has sent that one story to be checked. The evidence pack, the radar and the reliever brief count children, not staff.",
+      },
+      {
+        question: "Will it make our next review visit calmer?",
+        answer:
+          "It cannot make you compliant, and nothing honest claims to. It counts what your team already recorded, child by child, and shows the gaps first, so you find them early instead of in the fortnight before a visit. The judgement and the practice stay yours.",
       },
       {
         question: "Is it cheaper than buying individual plans?",
         answer:
-          "From about six educators, yes. Ten individual Educator plans are NZ$210 a month; Centre Starter covers ten educators for NZ$109 with unlimited children. The documentation time calculator on this site does the arithmetic with your own numbers.",
+          "From about six educators, yes. Ten individual Educator plans are NZ$210 a month; Centre Starter covers ten educators for NZ$109 with unlimited children.",
       },
-      {
-        question: "Who owns what our educators write?",
-        answer:
-          "Your service does. Stories stay in the account, are editable and exportable at any time, and StoryLoop never sends anything to families on your behalf.",
-      },
-      ...sharedFaqs,
     ],
     sources: [
       {
-        label: "ACECQA Guide to the NQF: Standard 1.3 Assessment and planning",
-        url: "https://www.acecqa.gov.au/national-quality-framework/guide-nqf/section-3-national-quality-standard-and-assessment-and-rating/quality-area-1-educational-program-and-practice/standard-13-assessment-and-planning",
-      },
-      {
-        label: "ACECQA: QA1 Educational program documentation for approved providers (early childhood)",
-        url: "https://www.acecqa.gov.au/nqf/national-quality-standard/quality-area-1-educational-program-and-practice/information-sheets-quality-area-1/qa1-educational-program-documentation-approved-providers-early-childhood",
-      },
-      {
         label: "Education Review Office: how ERO reviews early childhood services",
         url: "https://www.ero.govt.nz/how-ero-reviews/how-ero-reviews-early-childhood-services",
+      },
+      {
+        label: "ACECQA: Assessment and rating process",
+        url: "https://www.acecqa.gov.au/assessment/assessment-and-rating-process",
+      },
+      {
+        label: "ACECQA Guide to the NQF: Standard 1.3 Assessment and planning",
+        url: "https://www.acecqa.gov.au/national-quality-framework/guide-nqf/section-3-national-quality-standard-and-assessment-and-rating/quality-area-1-educational-program-and-practice/standard-13-assessment-and-planning",
       },
     ],
   },

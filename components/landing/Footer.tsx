@@ -44,6 +44,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-ink-300">
               <li><Link href="/for-educators" className="hover:text-paper transition-colors">For educators</Link></li>
               <li><Link href="/for-centres" className="hover:text-paper transition-colors">For centres</Link></li>
+              <li><Link href="/data-sheet" className="hover:text-paper transition-colors">Data sheet for owners and boards</Link></li>
               <li><Link href="/for-families" className="hover:text-paper transition-colors">For families</Link></li>
               <li><Link href="/learning-story-generator" className="hover:text-paper transition-colors">Learning story generator</Link></li>
               <li><Link href="/safety" className="hover:text-paper transition-colors">Children&apos;s information and AI</Link></li>
