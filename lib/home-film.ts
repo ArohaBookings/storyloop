@@ -15,6 +15,15 @@
  */
 export type FilmVariant = "nz" | "au";
 
+/**
+ * Where the film sits (12 Nov 2026, Leo's order): true puts it on the first
+ * screen, in the hero's picture slot, and moves the classroom photograph with
+ * its note-and-sentence card down into How it works. false puts both back
+ * where they were before, exactly: the photograph in the hero, the film in How
+ * it works. One word to change, nothing else.
+ */
+export const HERO_SHOWS_FILM = true;
+
 export const HOME_FILM = {
   seconds: 20,
   width: 1080,

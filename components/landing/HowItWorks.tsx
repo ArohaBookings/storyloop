@@ -1,4 +1,6 @@
 import HomeFilm from "@/components/landing/HomeFilm";
+import HeroPhotoProof from "@/components/landing/HeroPhotoProof";
+import { HERO_SHOWS_FILM } from "@/lib/home-film";
 import { Mic, PenLine, Send } from "lucide-react";
 
 /**
@@ -52,8 +54,10 @@ export default function HowItWorks() {
             ))}
           </ol>
         </div>
-        {/* The three steps, moving: the stock photograph that sat here showed nothing the words had not said. */}
-        <HomeFilm />
+        {/* The three steps, moving: the stock photograph that sat here showed nothing the words had not said.
+            Since 12 Nov 2026 the film opens the page, and the classroom photograph with its note and
+            sentence sits here instead (HERO_SHOWS_FILM in lib/home-film.ts). */}
+        {HERO_SHOWS_FILM ? <HeroPhotoProof inHero={false} /> : <HomeFilm />}
       </div>
     </section>
   );

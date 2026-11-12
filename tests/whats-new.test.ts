@@ -75,3 +75,14 @@ test("the browser's seen flag is per version, so an earlier card never hides a n
   assert.ok(whatsNewDismissedKey(user, WHATS_NEW_VERSION).includes(WHATS_NEW_VERSION));
   assert.notEqual(whatsNewDismissedKey(user, WHATS_NEW_VERSION), whatsNewDismissedKey("someone-else", WHATS_NEW_VERSION));
 });
+
+test("the 12 Nov card leads with this release's two new things and keeps six at most", () => {
+  assert.ok(WHATS_NEW_ITEMS.length <= 6, `${WHATS_NEW_ITEMS.length} items`);
+  assert.equal(WHATS_NEW_ITEMS[0].href, "/statement");
+  assert.match(WHATS_NEW_ITEMS[0].body, /Next child/);
+  assert.equal(WHATS_NEW_ITEMS[1].title, "Download everything you have written");
+  assert.equal(WHATS_NEW_ITEMS[1].href, "/history");
+  assert.ok(!WHATS_NEW_ITEMS.some((item) => item.title === "The year in one tap"));
+  assert.ok(WHATS_NEW_ITEMS.some((item) => item.title === "Get your centre on board"));
+  assert.ok(!/—/.test(JSON.stringify(WHATS_NEW_ITEMS)), "no em dashes");
+});

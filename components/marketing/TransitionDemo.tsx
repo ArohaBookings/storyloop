@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { Check, Copy, Loader2, Sparkles } from "lucide-react";
+import { Check, Copy, Loader2, Sparkles, UserRoundPlus } from "lucide-react";
 import { track } from "@/lib/analytics/client";
 import type { TransitionDraft, TransitionFramework, TransitionMode } from "@/lib/ai/transition-draft";
+import { STATEMENT_SIGNUP_HREF } from "@/lib/signup-next";
 
 /**
  * "Paste your notes, get the five outcomes drafted" on the TLDS, transition
@@ -48,6 +49,8 @@ export default function TransitionDemo({
   endpoint = "/api/transition-draft",
   inApp = false,
   childName = "",
+  onNextChild,
+  allowanceNote,
 }: {
   framework: TransitionFramework;
   mode: TransitionMode;
@@ -59,6 +62,14 @@ export default function TransitionDemo({
   inApp?: boolean;
   /** The child's first name, when the page asks for it separately. */
   childName?: string;
+  /**
+   * Inside the app: "Next child" beside Copy all clears the notes and the draft
+   * (and, through this, the name the page holds) and keeps the document and the
+   * curriculum, so a whole class can be done in one sitting (12 Nov 2026).
+   */
+  onNextChild?: () => void;
+  /** A quiet line under the notes box (the free plan's allowance, in the app). */
+  allowanceNote?: ReactNode;
 }) {
   const [framework, setFramework] = useState<TransitionFramework>(initialFramework);
   const [notes, setNotes] = useState("");
@@ -68,6 +79,7 @@ export default function TransitionDemo({
   const [draft, setDraft] = useState<TransitionDraft | null>(null);
   const [copied, setCopied] = useState(false);
   const [limitHit, setLimitHit] = useState(false);
+  const notesBox = useRef<HTMLTextAreaElement>(null);
   // The public demo and the signed-in page are counted apart in admin.
   const ev = inApp ? "app_statement" : "transition_demo";
   // From the draft on screen, not the picker: switching the picker after a
@@ -123,6 +135,22 @@ export default function TransitionDemo({
     }
   };
 
+  // The same document and curriculum, a clean box, and the cursor in it.
+  const nextChild = () => {
+    setNotes("");
+    setUsingSample(false);
+    setDraft(null);
+    setError("");
+    setLimitHit(false);
+    setCopied(false);
+    onNextChild?.();
+    const box = notesBox.current;
+    if (box) {
+      box.focus({ preventScroll: true });
+      box.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  };
+
   return (
     <div className="grid min-w-0 gap-4 lg:grid-cols-2 lg:items-start">
       <div className="card-warm min-w-0 p-5 sm:p-6">
@@ -143,6 +171,7 @@ export default function TransitionDemo({
         )}
         <label htmlFor="transition-notes" className="section-title">What you know about this child</label>
         <textarea
+          ref={notesBox}
           id="transition-notes"
           value={notes}
           onChange={(e) => {
@@ -191,6 +220,7 @@ export default function TransitionDemo({
             ? "Use a first name only. The notes and the draft are not saved: copy what you want to keep. They are never used to train AI."
             : "No signup. Use a first name only. Your notes and the draft are not saved to any account and are never used to train AI. Check your service's policy on children's information."}
         </p>
+        {allowanceNote}
         {error && (
           <p role="alert" className="mt-3 rounded-lg border border-clay-200 bg-clay-50 px-3 py-2 text-xs text-clay-700">
             {error}{" "}
@@ -204,13 +234,28 @@ export default function TransitionDemo({
       </div>
 
       <div className="card-warm min-w-0 p-5 sm:p-6" aria-live="polite">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <p className="section-title">{(draft ? draft.mode : mode) === "summary" ? "Your summary, outcome by outcome" : "Your draft, outcome by outcome"}</p>
+        {/* Wraps on a phone, so the title keeps its width and the buttons sit under it. */}
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <p className="section-title min-w-0 flex-1 basis-48">{(draft ? draft.mode : mode) === "summary" ? "Your summary, outcome by outcome" : "Your draft, outcome by outcome"}</p>
           {draft && (
-            <button type="button" onClick={copyAll} className="btn-ghost px-3 py-1 text-xs" data-track="transition_copy">
-              {copied ? <Check className="h-3.5 w-3.5 text-sage-600" /> : <Copy className="h-3.5 w-3.5" />}
-              {copied ? "Copied" : "Copy all"}
-            </button>
+            <div className="flex flex-none items-center gap-2">
+              <button type="button" onClick={copyAll} className="btn-ghost min-h-[44px] px-3 py-1 text-xs sm:min-h-0" data-track="transition_copy">
+                {copied ? <Check className="h-3.5 w-3.5 text-sage-600" /> : <Copy className="h-3.5 w-3.5" />}
+                {copied ? "Copied" : "Copy all"}
+              </button>
+              {inApp && (
+                <button
+                  type="button"
+                  onClick={nextChild}
+                  className="btn-secondary min-h-[44px] px-3 py-1 text-xs sm:min-h-0"
+                  data-track="statement_next_child"
+                  data-testid="statement-next-child"
+                >
+                  <UserRoundPlus className="h-3.5 w-3.5" />
+                  Next child
+                </button>
+              )}
+            </div>
           )}
         </div>
         {loading ? (
@@ -252,10 +297,11 @@ export default function TransitionDemo({
               </div>
             )}
             <div className="border-t border-clay-200 pt-4 text-center">
-              <p className="mb-2 text-sm text-ink-700">
-                It is a draft from your notes: check every line. You decide what is true and what goes in the statement.
-              </p>
               {inApp ? (
+                <>
+                <p className="mb-2 text-sm text-ink-700">
+                  It is a draft from your notes: check every line. You decide what is true and what goes in the statement.
+                </p>
                 <p className="text-sm text-ink-600">
                   Saved a few stories about this child? Their page drafts this straight from those, with their own words kept:{" "}
                   <Link href="/year" className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2">
@@ -263,13 +309,15 @@ export default function TransitionDemo({
                   </Link>
                   .
                 </p>
+                </>
               ) : (
                 <>
-                  <p className="mb-3 text-sm text-ink-600">
-                    In StoryLoop this comes straight from the stories you have already saved about each child: one tap per child, with
-                    their own words kept. 3 stories a month free, no card.
+                  {/* 12 Nov 2026: statements are due now, and the reader has a class of them, not one. */}
+                  <p className="mb-2 text-sm font-semibold text-ink-800">
+                    Got a whole class to write? Paste each child&apos;s notes and have every one drafted tonight.
                   </p>
-                  <Link href="/signup" className="btn-primary px-4 py-2 text-sm" data-track="transition_demo_signup">
+                  <p className="mb-3 text-sm text-ink-600">Two a month are free. Educator covers as many as you need.</p>
+                  <Link href={STATEMENT_SIGNUP_HREF} className="btn-primary px-4 py-2 text-sm" data-track="transition_demo_signup">
                     Start free
                   </Link>
                 </>

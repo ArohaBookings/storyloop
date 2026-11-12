@@ -13,6 +13,7 @@ import { suggestEmailFix } from "@/lib/email-typo";
 import { reportSignupConversion } from "@/lib/analytics/google-ads";
 import { takeHumanPass, warmHumanPass } from "@/lib/auth/human-pass-client";
 import { readKeptStory } from "@/lib/keep-story";
+import { FIRST_STORY_PATH, signupDestination } from "@/lib/signup-next";
 
 function normaliseCurrency(value: string | null): CurrencyCode {
   return value === "NZD" ? "NZD" : "AUD";
@@ -51,6 +52,9 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
   useEffect(() => setKeptWaiting(Boolean(readKeptStory())), []);
   const [currency, setCurrency] = useState<CurrencyCode>("AUD");
   const [referralCode, setReferralCode] = useState("");
+  // Where a free account lands: the first story, unless the link asked for a
+  // page on the short list in lib/signup-next.ts (the statement guides send /statement).
+  const [destination, setDestination] = useState(FIRST_STORY_PATH);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -61,6 +65,7 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
     const selectedPlan = normalizePlanKey(params.get("plan"));
     const selectedCurrency = params.get("currency");
     const code = params.get("code");
+    setDestination(signupDestination(params.get("next")));
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     setPlan(selectedPlan);
     setCurrency(selectedCurrency ? normaliseCurrency(selectedCurrency) : tz?.includes("Auckland") ? "NZD" : "AUD");
@@ -151,8 +156,8 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
 
       // Land new free educators straight in the guided first-story flow, not the
       // dashboard — the fastest path to their first "aha" and the biggest lever
-      // on activation.
-      window.location.replace("/generate?welcome=1");
+      // on activation. A reader who came from a statement guide goes to /statement.
+      window.location.replace(destination);
     } catch {
       track("signup_error", { code: "network", status: 0, plan });
       setError("We couldn't reach StoryLoop. Check your internet connection and try again.");
@@ -202,7 +207,9 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
               ? "Create your account, then confirm your centre’s free month on Stripe. No card is needed for the first 30 days."
               : isPaidPlan
                 ? "Create your account first, then you’ll go straight to secure Stripe checkout to start the 7-day trial."
-                : "3 stories every month, free. No card needed. Next, you’ll turn a quick note into your first story."}
+                : destination === "/statement"
+                  ? "Free, no card needed. Next, you’ll paste your notes for the first child."
+                  : "3 stories every month, free. No card needed. Next, you’ll turn a quick note into your first story."}
           </p>
           {notice && (
             <p role="status" className="mb-4 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-xs text-amber-700">{notice}</p>
@@ -225,7 +232,7 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
               form, with "Sign in" a screen further down on a phone. */}
           <p className="mb-5 text-sm text-ink-600">
             Already have an account?{" "}
-            <Link href="/login" className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900" data-track="signup_top_sign_in">
+            <Link href={destination === FIRST_STORY_PATH ? "/login" : `/login?redirect=${encodeURIComponent(destination)}`} className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900" data-track="signup_top_sign_in">
               Sign in
             </Link>
           </p>
@@ -286,7 +293,7 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
           {/* One tap, no password to invent (shown once Google is switched on in Supabase). */}
           <GoogleButton
             intent="signup"
-            next="/generate?welcome=1"
+            next={destination}
             plan={plan}
             currency={currency}
             referralCode={referralCode || null}

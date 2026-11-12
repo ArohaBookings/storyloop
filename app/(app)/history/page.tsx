@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { BookOpen, Sparkles } from "lucide-react";
 import StoryHistoryItem from "@/components/app/StoryHistoryItem";
+import DownloadEverything from "@/components/app/DownloadEverything";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { latestChecksByStory } from "@/lib/story-check-server";
 
@@ -31,6 +32,8 @@ export default async function HistoryPage() {
           <Sparkles className="w-4 h-4" /> New story
         </Link>
       </div>
+
+      <DownloadEverything count={stories?.length ?? 0} />
 
       {!stories?.length ? (
         <div className="card p-14 text-center">

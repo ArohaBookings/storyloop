@@ -89,7 +89,7 @@ export function shouldShowWhatsNew(
 }
 
 export type WhatsNewItem = {
-  icon: "quill" | "shield" | "voice" | "photo" | "guides" | "refresh" | "today" | "family" | "centre" | "review" | "group" | "card";
+  icon: "quill" | "shield" | "voice" | "photo" | "guides" | "refresh" | "today" | "family" | "centre" | "review" | "group" | "card" | "download";
   title: string;
   body: string;
   /** Where to go and try it. */
@@ -101,18 +101,27 @@ export type WhatsNewItem = {
 /**
  * The November 2026 release, second card (the big update staged 11 Nov).
  *
- * Only one thing is new since the 10 Nov card: the statement page. The 10 Nov
+ * New since the 10 Nov card: the statement page, which now does a whole class
+ * in one sitting (Next child), and Download everything on History. The 10 Nov
  * items stay because that card was live for a day and most people never saw
  * it, and whoever did sees this one once and never again (the card marks the
- * account the moment it appears: WhatsNewModal).
+ * account the moment it appears: WhatsNewModal). "The year in one tap" made
+ * room (12 Nov 2026). Newest first, six at most.
  */
 export const WHATS_NEW_ITEMS: WhatsNewItem[] = [
   {
     icon: "guides",
-    title: "A transition statement or summary, from your notes",
+    title: "Statements for the whole class, one child after another",
     body:
-      "New in the menu: Statement or summary. Paste what you know about one child and get it back outcome by outcome, with a strategy for the next teacher or a next step for next year. It writes only from your notes and leaves an outcome for you when they show nothing. Two a month on the free plan.",
+      "Statement or summary, in the menu: paste what you know about one child and get it back outcome by outcome. Then tap Next child. The notes, name and draft clear, your document and curriculum stay, and you paste the next one. Two a month on the free plan; Educator covers as many as you need.",
     href: "/statement",
+  },
+  {
+    icon: "download",
+    title: "Download everything you have written",
+    body:
+      "On the History page: every story you have saved, in one file. Choose a text file to read and keep, or a spreadsheet file (CSV) with the date, the child, your note, the story, outcomes and next steps. Your stories are yours.",
+    href: "/history",
   },
   {
     icon: "family",
@@ -134,13 +143,6 @@ export const WHATS_NEW_ITEMS: WhatsNewItem[] = [
     body:
       "Ask my leader is beside Copy too. It makes a private link for your head teacher or mentor: they see your note beside the story and answer in about two minutes, with no account. The link opens that one story for 14 days and you can cancel it.",
     href: "/history",
-  },
-  {
-    icon: "today",
-    title: "The year in one tap",
-    body:
-      "Every child on one page, from this year's stories: who is ready for a summary or transition statement, the family keepsake, and a handover sheet to print for next year.",
-    href: "/year",
   },
   {
     // Kept from September on purpose: it is the one item that pays the reader.

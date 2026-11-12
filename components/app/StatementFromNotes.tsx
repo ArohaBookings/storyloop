@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { FileText, GraduationCap } from "lucide-react";
 import TransitionDemo from "@/components/marketing/TransitionDemo";
 import type { TransitionFramework, TransitionMode } from "@/lib/ai/transition-draft";
@@ -15,8 +16,12 @@ const MODES: Array<[TransitionMode, string, typeof FileText]> = [
  * The signed-in door to the statement drafter: pick which document, type a
  * first name if you like, paste notes. The drafting box itself is the one on
  * the public guides (TransitionDemo), pointed at the account's own route.
+ *
+ * A whole class in one sitting (12 Nov 2026): "Next child" beside Copy all
+ * empties the notes, the name and the draft, keeps the document and the
+ * curriculum, and puts the cursor back in the notes.
  */
-export default function StatementFromNotes() {
+export default function StatementFromNotes({ freePlan = false }: { freePlan?: boolean }) {
   const [mode, setMode] = useState<TransitionMode>("transition");
   const [framework, setFramework] = useState<TransitionFramework | null>(null);
   const [childName, setChildName] = useState("");
@@ -74,6 +79,17 @@ export default function StatementFromNotes() {
           endpoint="/api/statement-from-notes"
           inApp
           childName={childName}
+          onNextChild={() => setChildName("")}
+          allowanceNote={
+            freePlan ? (
+              <p className="mt-2 text-xs leading-relaxed text-ink-500" data-testid="statement-free-line">
+                Free plan: two drafts a month. Educator covers as many as you need.{" "}
+                <Link href="/billing" className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2" data-track="statement_free_line_billing">
+                  See the plans
+                </Link>
+              </p>
+            ) : null
+          }
         />
       )}
     </div>

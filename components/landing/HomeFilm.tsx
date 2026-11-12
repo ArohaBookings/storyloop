@@ -9,15 +9,25 @@ import { CUSTOMER_CLIP, HOME_FILM, filmVariantForZone, type FilmVariant } from "
 /**
  * The homepage film (lib/home-film.ts has what it is and is not).
  *
- * It costs a visitor nothing until they reach it: the poster is a small
- * picture, and the film itself is only fetched when the frame is on screen.
- * It plays without sound and stops when scrolled away. Somebody who asked
- * their device for less motion or less data gets the poster and a play button.
+ * The poster is a small picture, and the film itself is only fetched when at
+ * least 45% of the frame is on screen. It plays without sound and stops when
+ * scrolled away. Somebody who asked their device for less motion or less data
+ * gets the poster and a play button, and nothing more is fetched until they
+ * press it.
+ *
+ * `inHero` (12 Nov 2026, HERO_SHOWS_FILM): on the first screen the poster is
+ * the largest thing there, so it loads with priority; the frame is capped at
+ * 62% of a phone's screen height so the headline and "Start free" stay on the
+ * first screen, and the caption is one line.
  */
-export default function HomeFilm() {
+export default function HomeFilm({ inHero = false }: { inHero?: boolean }) {
   const frame = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const [variant, setVariant] = useState<FilmVariant>("au");
+  // The country is only known in the browser. In the hero the still waits for
+  // it (one frame after load): a guessed still would be fetched, shown on the
+  // first screen and then swapped for the other country's, with different words.
+  const [known, setKnown] = useState(false);
   const [src, setSrc] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
   const wantsPlay = useRef(true);
@@ -28,6 +38,7 @@ export default function HomeFilm() {
     try { zone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? ""; } catch { /* Australia */ }
     const chosen = filmVariantForZone(zone);
     setVariant(chosen);
+    setKnown(true);
 
     const el = frame.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
@@ -91,21 +102,31 @@ export default function HomeFilm() {
   }
 
   return (
-    <figure className="relative mx-auto w-full max-w-[27rem]">
+    <figure
+      className={
+        inHero
+          ? // 4:5, so a width of 0.8 x the height cap. svh: the screen with the browser's bars showing.
+            "animate-fade-up-1 relative mx-auto w-[min(100%,27rem,calc(62svh_*_0.8))] min-w-0 lg:w-[min(100%,27rem,calc((100svh_-_11rem)_*_0.8))]"
+          : "relative mx-auto w-full max-w-[27rem]"
+      }
+      data-placement={inHero ? "hero" : "how-it-works"}
+    >
       <div
         ref={frame}
         className="relative overflow-hidden rounded-3xl border border-clay-100 bg-cream-100 shadow-warm"
         style={{ aspectRatio: `${HOME_FILM.width} / ${HOME_FILM.height}` }}
         data-testid="home-film"
       >
-        {/* The still under the film: a lazy picture, where a poster attribute would be fetched with the page. */}
-        <Image
+        {/* The still under the film: a lazy picture, where a poster attribute would be fetched with the page.
+            In the hero it is the largest thing on the first screen, so there it loads first. */}
+        {(known || !inHero) && <Image
           src={HOME_FILM.poster(variant)}
           alt=""
           fill
+          priority={inHero}
           sizes="(min-width: 480px) 432px, 100vw"
           className="object-cover"
-        />
+        />}
         <video
           ref={video}
           src={src ?? undefined}
@@ -134,10 +155,16 @@ export default function HomeFilm() {
       </div>
       {/* Under the film, not on it: every corner of the picture has words in it. */}
       <div className="mt-3 flex items-start gap-3">
-        <figcaption className="min-w-0 flex-1 text-sm leading-relaxed text-ink-500">
-          Twenty seconds, no sound: a real note, and the draft StoryLoop wrote from it. The draft is a starting point. You read it, change
-          what is not right, and share it where you always do.
-        </figcaption>
+        {inHero ? (
+          <figcaption className="min-w-0 flex-1 self-center text-sm leading-snug text-ink-500" data-testid="home-film-caption">
+            A real note and its draft. No sound.
+          </figcaption>
+        ) : (
+          <figcaption className="min-w-0 flex-1 text-sm leading-relaxed text-ink-500">
+            Twenty seconds, no sound: a real note, and the draft StoryLoop wrote from it. The draft is a starting point. You read it, change
+            what is not right, and share it where you always do.
+          </figcaption>
+        )}
         <button
           type="button"
           onClick={toggle}

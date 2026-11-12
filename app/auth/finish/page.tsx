@@ -9,6 +9,7 @@ import { getAttribution, getSessionId, track } from "@/lib/analytics/client";
 import { reportSignupConversion } from "@/lib/analytics/google-ads";
 import { clearOAuthContext, readOAuthContext, type OAuthIntent } from "@/lib/auth/oauth";
 import { safeRedirectPath } from "@/lib/safe-redirect";
+import { signupDestination } from "@/lib/signup-next";
 import { createClient } from "@/lib/supabase/client";
 import { GoogleMark } from "@/components/auth/GoogleButton";
 
@@ -88,7 +89,8 @@ function Finish() {
           window.location.replace(checkout.ok && checkoutData.url ? checkoutData.url : "/billing");
           return;
         }
-        window.location.replace("/generate?welcome=1");
+        // The first story, unless they came from a page on lib/signup-next.ts's short list.
+        window.location.replace(signupDestination(params.get("next") ?? context?.next ?? null));
         return;
       }
 
