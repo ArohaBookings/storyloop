@@ -139,9 +139,9 @@ export const WHATS_NEW_ITEMS: WhatsNewItem[] = [
   },
   {
     icon: "review",
-    title: "Ask your leader to check a story",
+    title: "Send this story to your leader",
     body:
-      "Ask my leader is beside Copy too. It makes a private link for your head teacher or mentor: they see your note beside the story and answer in about two minutes, with no account. The link opens that one story for 14 days and you can cancel it.",
+      "Send to my leader sits beside Copy, and every story in History has Send this story to your leader. It makes a private link for your head teacher or mentor: they see your note beside the story and answer in about two minutes, with no account. It lasts 14 days and you can cancel it.",
     href: "/history",
   },
   {
@@ -149,7 +149,7 @@ export const WHATS_NEW_ITEMS: WhatsNewItem[] = [
     icon: "centre",
     title: "Get your centre on board",
     body:
-      "If your centre subscribes using your code, you get three months of your own plan free. On the free plan they are held for you and applied the moment you start one. Centres now start with 30 days free and no card.",
+      "If your centre subscribes using your code, you get three months of your own plan free. On the free plan they are held for you and applied the moment you start one. Centres now start with at least 30 days free and no card.",
     href: "/support",
   },
 ];

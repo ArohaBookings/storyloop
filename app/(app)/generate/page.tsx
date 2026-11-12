@@ -1991,7 +1991,7 @@ export default function GeneratePage() {
                       <Heart className="w-3 h-3" /> Share with family
                     </button>
                     <button type="button" onClick={() => jumpTo("leader-check")} className={storyAction} data-testid="row-ask-leader">
-                      <UserCheck className="w-3 h-3" /> Ask my leader
+                      <UserCheck className="w-3 h-3" /> Send to my leader
                     </button>
                   </>
                 )}

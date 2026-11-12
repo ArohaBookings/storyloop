@@ -4,6 +4,7 @@ import type Stripe from "stripe";
 import { SITE_URL } from "@/lib/email/config";
 import { getPlanByKey, type CurrencyCode, type PlanKey } from "@/lib/plans";
 import { FOUNDING_DISCOUNT_PERCENT } from "@/lib/centre-offer";
+import { billingLongDate } from "@/lib/billing-dates";
 
 const FOUNDING_SHARE = (100 - FOUNDING_DISCOUNT_PERCENT) / 100;
 
@@ -56,8 +57,9 @@ export function isBrandingRefusal(error: unknown): boolean {
   return presentation.test(e.param ?? "") || presentation.test(e.message ?? "");
 }
 
-function day(date: Date) {
-  return new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long", year: "numeric", timeZone: "Pacific/Auckland" }).format(date);
+/** A charge or free-period end, named in the customer's part of the world (lib/billing-dates.ts). */
+function day(date: Date, currency: string | null | undefined) {
+  return billingLongDate(date, currency) ?? "";
 }
 
 function money(plan: PlanKey, currency: CurrencyCode, share = 1) {
@@ -113,19 +115,19 @@ export function checkoutTermsMessage(input: {
   if (input.trialDays <= 0) {
     return `${planName}, ${price} a month. Cancel any time in StoryLoop Billing. ${STATEMENT_LINE}`;
   }
-  const firstCharge = day(new Date(now.getTime() + input.trialDays * 86_400_000));
+  const firstCharge = day(new Date(now.getTime() + input.trialDays * 86_400_000), input.currency);
   if (input.noCardNeeded) {
     const then = input.founding
       ? `your first three paid months are half price at ${money(input.plan, input.currency, FOUNDING_SHARE)}, then ${price} a month`
       : `${price} a month`;
     if (input.trialEndsAt) {
-      return `Free until ${day(input.trialEndsAt)} with no card. To keep going after that, add a card in StoryLoop Billing (${then}). If you don't, the free period simply ends and nothing is charged.`;
+      return `Free until ${day(input.trialEndsAt, input.currency)} with no card. To keep going after that, add a card in StoryLoop Billing (${then}). If you don't, the free period simply ends and nothing is charged.`;
     }
     return `${input.trialDays} days free with no card. To keep going after ${firstCharge}, add a card in StoryLoop Billing (${then}). If you don't, the free month simply ends and nothing is charged.`;
   }
   const opener = input.offer === "pro_month" ? `Your free month of ${planName}` : `Your ${input.trialDays}-day free trial`;
   if (input.firstMonthFree) {
-    const paidFrom = day(addMonth(new Date(now.getTime() + input.trialDays * 86_400_000)));
+    const paidFrom = day(addMonth(new Date(now.getTime() + input.trialDays * 86_400_000)), input.currency);
     return `${opener} starts today, and your first month after it is free too, thanks to the educator who referred you. Nothing is charged until ${paidFrom}, then ${price} a month. Cancel before then in StoryLoop Billing and you pay nothing. ${STATEMENT_LINE}`;
   }
   if (input.activation) {
@@ -141,13 +143,13 @@ export function checkoutTermsMessage(input: {
  * Stripe's line (which names the account). Only when a card is being saved; a
  * no-card free month saves nothing. Pure.
  */
-export function checkoutAuthorisationMessage(input: { trialDays: number; noCardNeeded: boolean; firstMonthFree?: boolean; now?: Date }): string | null {
+export function checkoutAuthorisationMessage(input: { trialDays: number; noCardNeeded: boolean; firstMonthFree?: boolean; now?: Date; currency?: string | null }): string | null {
   if (input.noCardNeeded) return null;
   const now = input.now ?? new Date();
   const trialEnd = new Date(now.getTime() + input.trialDays * 86_400_000);
   const from = input.firstMonthFree
-    ? `from ${day(addMonth(trialEnd))}`
-    : input.trialDays > 0 ? `from ${day(trialEnd)}` : "from today";
+    ? `from ${day(addMonth(trialEnd), input.currency)}`
+    : input.trialDays > 0 ? `from ${day(trialEnd, input.currency)}` : "from today";
   return `By continuing, you authorise StoryLoop to save this card and charge it for your StoryLoop subscription each month ${from}, until you cancel in StoryLoop Billing.`;
 }
 

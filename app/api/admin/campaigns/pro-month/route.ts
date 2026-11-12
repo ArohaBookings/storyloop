@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/admin-auth";
+import { billingDay } from "@/lib/billing-dates";
 import { createAdminSupabase, logAdminAction } from "@/lib/supabase/admin";
 import { sendLifecycleEmail } from "@/lib/email/send";
 import { renderLifecycleEmail } from "@/lib/email/templates";
@@ -37,7 +38,8 @@ function emailContext(expiresAt: Date) {
   const prices = proMonthPrices();
   return {
     claimBy: day(expiresAt),
-    firstChargeIfToday: day(proMonthFirstChargeDate()),
+    // Never later than the charge, wherever the reader is (lib/billing-dates.ts).
+    firstChargeIfToday: billingDay(proMonthFirstChargeDate(), null),
     proPrice: prices.pro,
     educatorPrice: prices.educator,
   };

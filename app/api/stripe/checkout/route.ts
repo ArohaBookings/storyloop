@@ -224,7 +224,7 @@ export async function POST(request: NextRequest) {
       // StoryLoop's own authorisation line, in place of Stripe's (which names the
       // shared account). Only with the presentation, since that is what hides Stripe's.
       const firstMonthFree = !founding && Boolean(referralCoupon);
-      const authorisation = branded ? checkoutAuthorisationMessage({ trialDays: terms.trialDays, noCardNeeded: terms.noCardNeeded, firstMonthFree, now }) : null;
+      const authorisation = branded ? checkoutAuthorisationMessage({ trialDays: terms.trialDays, noCardNeeded: terms.noCardNeeded, firstMonthFree, now, currency: selectedCurrency }) : null;
       return stripe.checkout.sessions.create({
         ...(branded ? { branding_settings: CHECKOUT_BRANDING, ...CHECKOUT_PRESENTATION } : {}),
         custom_text: {

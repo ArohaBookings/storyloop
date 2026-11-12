@@ -1134,11 +1134,11 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     image: { src: "/images/scenes/team.jpg", alt: "Three educators planning together around a low table with a laptop showing StoryLoop", position: "50% 55%" },
     title: "Learning story software for ECE centres",
     description:
-      "Learning story software for ECE centres: stories drafted from your team's own notes, review evidence with the gaps first, one flat price. 30 days free, no card.",
+      "Learning story software for ECE centres: stories drafted from your team's own notes, review evidence with the gaps first, one flat price, at least 30 days free.",
     kicker: "For directors, owners and head teachers",
     heading: "Documentation done in the day, and a calmer review visit.",
     intro:
-      "Your educators jot a note after play and StoryLoop drafts the learning story from it, so writing stops eating their evenings. Every room writes to the same standard, you can see which children have gone unnoticed, and when ERO or an assessment and rating visit comes, the evidence is already counted from stories your team saved. One flat price for the whole team, 30 days free, no card.",
+      "Your educators jot a note after play and StoryLoop drafts the learning story from it, so writing stops eating their evenings. Every room writes to the same standard, you can see which children have gone unnoticed, and when ERO or an assessment and rating visit comes, the evidence is already counted from stories your team saved. One flat price for the whole team, at least 30 days free, no card.",
     reviewedAt: "2026-11-12",
     siblingLinks: {
       heading: "For the person who signs off",
@@ -1158,7 +1158,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       {
         title: "See it on your own children first",
         body:
-          "Do not judge it on our examples. Ask one of your educators to write a story about a child you know and send it to you with Ask my leader. You get a private link to that one story, with their note beside it. Checking it takes about two minutes and you do not need an account. Answer once: it looks good, or suggest a change. The link lasts 14 days and the educator can cancel it.",
+          "Do not judge it on our examples. Ask one of your educators to write a story about a child you know and send it to you with Send this story to your leader. You get a private link to that one story, with their note beside it. Checking it takes about two minutes and you do not need an account. Answer once: it looks good, or suggest a change. The link lasts 14 days and the educator can cancel it.",
       },
       {
         title: "What a leader gets",
@@ -1181,14 +1181,14 @@ export const SEO_PAGES: Record<string, SeoPage> = {
           "Centre Starter is NZ$109 or A$99 a month for up to 10 educators. Centre Growth is NZ$219 or A$199 a month for up to 25. Every educator on the plan gets unlimited stories and everything on Educator Pro, with their own login. Enrol more children and the price does not move. There is no per-child fee and no contract.",
       },
       {
-        title: "30 days free, no card",
+        title: "At least 30 days free, no card",
         body:
-          "Start a centre plan and invite your team from My centre. You get 30 days free, and no card is needed to start. If the month ends with no card added, nothing is charged: the plan simply ends and the account drops back to the free plan with every story kept. If you add a card, the plan carries on monthly and you can cancel any time from Billing.",
+          "Start a centre plan and invite your team from My centre. You get at least 30 days free, and no card is needed to start. If the free period ends with no card added, nothing is charged: the plan simply ends and the account drops back to the free plan with every story kept. If you add a card, the plan carries on monthly and you can cancel any time from Billing.",
       },
       {
         title: "For Australian services: your digital technologies policy",
         body:
-          "Since 1 September 2025, regulation 168 of the Education and Care Services National Regulations has required every service to have a policy and procedures for the safe use of digital technologies and online environments. ACECQA's Online Safety Guide asks how that policy makes clear when AI can and cannot be used. Our free AI policy generator writes one in about ten minutes, from published regulator guidance, to sit beside it.",
+          "Since 1 September 2025, regulation 168 of the Education and Care Services National Regulations has required every service to have a policy and procedures for the safe use of digital technologies and online environments. ACECQA's Online Safety Guide asks how that policy makes clear when AI can and cannot be used. Our free AI policy generator writes one from published regulator guidance, to sit beside it.",
       },
       {
         title: "Educators keep their drafts",

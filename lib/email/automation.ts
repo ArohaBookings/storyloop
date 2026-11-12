@@ -61,7 +61,8 @@ export async function trialDiscount(
       const dayOfMonth = d.getUTCDate();
       d.setUTCMonth(d.getUTCMonth() + 1);
       if (d.getUTCDate() < dayOfMonth) d.setUTCDate(0);
-      const firstChargeOn = formatDate(Math.floor(d.getTime() / 1000));
+      const currency = subs.data.find((sub) => sub.currency)?.currency ?? null;
+      const firstChargeOn = formatDate(Math.floor(d.getTime() / 1000), currency);
       return firstChargeOn ? { firstMonthFree: true, firstChargeOn } : null;
     }
     if (couponIds.has(ACTIVATION_COUPON_ID)) return { discountedMonths: ACTIVATION_MONTHS, discountPercent: ACTIVATION_PERCENT_OFF };
@@ -163,11 +164,26 @@ async function sendIfNeeded(
  */
 export const TRIAL_NOTICE_HOURS = 72;
 
-export function trialEndingContext(row: Pick<ProfileEmailRow, "plan" | "trial_ends_at">) {
+/**
+ * The currency of a customer's trialing subscription, so the trial's end is
+ * named in her own part of the world (lib/billing-dates.ts). Null when Stripe
+ * cannot say; the date is then named in Perth time, which is never later.
+ */
+export async function trialCurrency(customerId: string | null | undefined): Promise<string | null> {
+  if (!customerId) return null;
+  try {
+    const subs = await createStripe().subscriptions.list({ customer: customerId, status: "trialing", limit: 5 });
+    return subs.data.find((sub) => sub.currency)?.currency ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export function trialEndingContext(row: Pick<ProfileEmailRow, "plan" | "trial_ends_at">, currency?: string | null) {
   const endsAt = row.trial_ends_at ? Date.parse(row.trial_ends_at) : Number.NaN;
   const plan = normalizePlanKey(row.plan);
   return {
-    trialEndsOn: Number.isFinite(endsAt) ? (formatDate(Math.floor(endsAt / 1000)) ?? undefined) : undefined,
+    trialEndsOn: Number.isFinite(endsAt) ? (formatDate(Math.floor(endsAt / 1000), currency) ?? undefined) : undefined,
     planLabel: plan === "free" ? undefined : getPlanByKey(plan).name,
   };
 }
@@ -413,7 +429,7 @@ export async function runLifecycleAutomation() {
     // the plan price will be taken then" would be untrue for either.
     const discount = centre ? null : await trialDiscount(row.stripe_customer_id, row.trial_ends_at);
     const context = {
-      ...trialEndingContext(row),
+      ...trialEndingContext(row, await trialCurrency(row.stripe_customer_id)),
       ...(centre ? { centreTrial: true, cardOnFile: await cardOnFile(row.stripe_customer_id) } : {}),
       ...(discount ?? {}),
     };

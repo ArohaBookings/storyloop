@@ -1,6 +1,7 @@
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getPlanByKey, normalizePlanKey } from "@/lib/plans";
 import { sendLifecycleEmail } from "./send";
+import { billingLongDate } from "@/lib/billing-dates";
 import type { LifecycleEmailType } from "./templates";
 
 /**
@@ -44,21 +45,17 @@ export function formatAmount(amountInCents: number | null | undefined, currency:
 }
 
 /**
- * A date an educator would read: "14 October 2026". In New Zealand time, the
- * same calendar checkout's own wording uses (lib/stripe-branding.ts). It used
- * the server's clock, which is UTC in production: a free period ending at
- * 10am on 1 February in Auckland was emailed as ending on 31 January while
- * checkout had said 1 February.
+ * A date an educator would read: "14 October 2026", in the customer's own part
+ * of the world (lib/billing-dates.ts): New Zealand dollars in Auckland time,
+ * Australian dollars (and an unknown currency) in Perth time, so the day named
+ * is never later than the moment of the charge. It once used the server's
+ * clock (UTC), then Auckland for everyone, which told an Australian whose trial
+ * ended late in the evening the next day.
  */
-export function formatDate(seconds: number | null | undefined) {
+export function formatDate(seconds: number | null | undefined, currency?: string | null) {
   if (typeof seconds !== "number" || !Number.isFinite(seconds)) return null;
   try {
-    return new Date(seconds * 1000).toLocaleDateString("en-NZ", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      timeZone: "Pacific/Auckland",
-    });
+    return billingLongDate(seconds * 1000, currency);
   } catch {
     return null;
   }
@@ -241,8 +238,8 @@ export async function sendBillingEmail(params: {
       context: {
         amountLabel: formatAmount(params.amountInCents, params.currency) ?? undefined,
         planLabel: planKey === "free" ? undefined : getPlanByKey(planKey).name,
-        renewsOn: formatDate(params.renewsAtSeconds) ?? undefined,
-        endsOn: formatDate(params.endsAtSeconds) ?? undefined,
+        renewsOn: formatDate(params.renewsAtSeconds, params.currency) ?? undefined,
+        endsOn: formatDate(params.endsAtSeconds, params.currency) ?? undefined,
         trialLapsed: params.trialLapsed || undefined,
       },
     });

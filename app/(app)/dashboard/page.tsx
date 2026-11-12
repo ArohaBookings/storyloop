@@ -17,7 +17,8 @@ import { canManageTeam, countActiveMembers, getCentreCover, getMembership } from
 import TeamCard from "@/components/app/TeamCard";
 import CentreOnBoardCard from "@/components/app/CentreOnBoardCard";
 import { isCentrePlan } from "@/lib/centre-offer";
-import { CENTRE_CARD_DISMISSED_EVENT, ROLE_EVENT, cleanWorkRole, teamCardFor } from "@/lib/work-role";
+import { showsOnBoardCard, teamCardFor } from "@/lib/work-role";
+import { workRoleFacts } from "@/lib/work-role-server";
 
 /** Stories, and days since the first, before StoryLoop asks for a review. */
 const REVIEW_ASK_MIN_STORIES = 4;
@@ -82,17 +83,6 @@ export default async function DashboardPage({
     }
   }
 
-  // "Get your centre on board" (13 Nov 2026): for an educator in no centre and
-  // not on a centre plan, always here. Best effort: any failure means no card.
-  let showOnBoard = false;
-  if (!cover && !isCentrePlan(profile?.plan)) {
-    try {
-      showOnBoard = !(await getMembership(user.id));
-    } catch {
-      showOnBoard = false;
-    }
-  }
-
   // Whether to ask for a review: a few stories over a few days, never asked
   // of somebody who has already left one, and never of an internal account.
   // Best effort: any failure just means no ask today.
@@ -148,25 +138,30 @@ export default async function DashboardPage({
   // What this educator does, asked once (lib/work-role.ts). Best effort: any
   // failure means no card today.
   let teamCard: "ask" | "centre" | null = null;
+  let roleFacts: Awaited<ReturnType<typeof workRoleFacts>> | null = null;
   try {
-    const { data: answers } = await createAdminSupabase()
-      .from("page_events")
-      .select("event_type, metadata, created_at")
-      .eq("user_id", user.id)
-      .in("event_type", [ROLE_EVENT, CENTRE_CARD_DISMISSED_EVENT])
-      .order("created_at", { ascending: false })
-      .limit(20);
-    const rows = answers ?? [];
-    const role = cleanWorkRole((rows.find((row) => row.event_type === ROLE_EVENT)?.metadata as { role?: unknown } | null)?.role);
+    roleFacts = await workRoleFacts(user.id);
     teamCard = teamCardFor({
-      role,
+      role: roleFacts.role,
       stories: totalStories ?? 0,
       plan,
       coveredByCentre: Boolean(cover),
-      dismissed: rows.some((row) => row.event_type === CENTRE_CARD_DISMISSED_EVENT),
+      dismissed: roleFacts.dismissed,
     });
   } catch {
     teamCard = null;
+  }
+
+  // "Get your centre on board" (13 Nov 2026): for an educator in no centre, not
+  // on a centre plan, and not a leader or owner (who gets the centre card
+  // above instead). Best effort: any failure means no card.
+  let showOnBoard = false;
+  if (!cover && !isCentrePlan(profile?.plan) && roleFacts) {
+    try {
+      showOnBoard = showsOnBoardCard({ role: roleFacts.role, inCentre: Boolean(await getMembership(user.id)), centrePlan: false });
+    } catch {
+      showOnBoard = false;
+    }
   }
 
   // The greeting in the educator's own time. This used the server's clock,

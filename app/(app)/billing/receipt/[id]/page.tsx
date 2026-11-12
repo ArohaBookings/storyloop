@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { createStripe } from "@/lib/stripe-client";
 import { STATEMENT_LINE } from "@/lib/stripe-branding";
+import { billingLongDate } from "@/lib/billing-dates";
 import PrintButton from "@/components/app/PrintButton";
 
 export const metadata = { title: "Receipt" };
@@ -24,9 +25,10 @@ function money(cents: number, currency: string) {
   return `${sign}${symbol}${(Math.abs(cents) / 100).toFixed(2)}`;
 }
 
-function day(seconds: number | null | undefined) {
+/** In the customer's part of the world, as Billing and the emails name it (lib/billing-dates.ts). */
+function day(seconds: number | null | undefined, currency: string | null | undefined) {
   if (!seconds) return null;
-  return new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long", year: "numeric", timeZone: "Pacific/Auckland" }).format(new Date(seconds * 1000));
+  return billingLongDate(seconds * 1000, currency);
 }
 
 function discountName(amount: Stripe.Invoice.TotalDiscountAmount) {
@@ -57,7 +59,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   if (invoice.status !== "paid" && invoice.status !== "open") notFound();
 
   const paid = invoice.status === "paid";
-  const paidOn = day(invoice.status_transitions?.paid_at);
+  const paidOn = day(invoice.status_transitions?.paid_at, invoice.currency);
   const credit = (invoice.starting_balance ?? 0) < 0 ? Math.min(invoice.total, -(invoice.starting_balance ?? 0)) : 0;
 
   return (
@@ -78,7 +80,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
           <div className="text-right">
             <h1 className="font-display text-2xl font-bold text-ink-900">{paid ? "Receipt" : "Payment due"}</h1>
             {invoice.number && <p className="mt-1 text-xs text-ink-500">No. {invoice.number}</p>}
-            <p className="mt-1 text-xs text-ink-500">{paid ? `Paid ${paidOn ?? ""}` : `Issued ${day(invoice.created) ?? ""}`}</p>
+            <p className="mt-1 text-xs text-ink-500">{paid ? `Paid ${paidOn ?? ""}` : `Issued ${day(invoice.created, invoice.currency) ?? ""}`}</p>
           </div>
         </header>
 
@@ -101,7 +103,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
                 <td className="py-3 pr-4 text-ink-800">
                   {line.description}
                   {line.period?.start && line.period?.end && (
-                    <span className="block text-xs text-ink-500">{day(line.period.start)} to {day(line.period.end)}</span>
+                    <span className="block text-xs text-ink-500">{day(line.period.start, invoice.currency)} to {day(line.period.end, invoice.currency)}</span>
                   )}
                 </td>
                 <td className="py-3 text-right tabular-nums text-ink-800">{money(line.amount, invoice.currency)}</td>

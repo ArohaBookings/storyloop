@@ -25,7 +25,6 @@
  * attached through an offer reference that is not the link key and opens
  * nothing (lib/story-check-token.ts offerRefFor, lib/leader-offer-server.ts).
  */
-import { latestStartedTerm, localDate, workingDaysBetween, type Jurisdiction } from "@/lib/terms";
 
 export const CHECK_DAYS = 14;
 export const CHECK_NAME_MAX = 40;
@@ -34,8 +33,6 @@ export const CHECK_COMMENT_MAX = 600;
 export const CENTRE_NAME_MAX = 80;
 /** Fewer saved stories than this in the last 30 days, and the leader is shown no numbers at all. */
 export const COUNTS_MIN_STORIES = 3;
-/** Working days without a story before a child the educator wrote about this term counts as quiet. */
-export const COUNTS_QUIET_WORKING_DAYS = 10;
 /** After a check's own expiry, how long its centre offer can still pre-fill a centre's set-up. */
 export const OFFER_GRACE_DAYS = 30;
 
@@ -157,19 +154,16 @@ type StoryForLeader = {
 
 /**
  * The numbers an educator may choose to show her leader (13 Nov 2026), worked
- * out from her own saved stories when the leader's page opens. Numbers only:
- * never a child's name, never a comparison with anybody, never a score.
+ * out from her own saved stories when the leader's page opens. Exactly what
+ * the box she ticks promises, "how many children I have written about lately
+ * (numbers only, no names)", and nothing more: never a child's name, never a
+ * comparison with anybody, never a score, never a count of who has had nothing.
  */
 export type LeaderCounts = {
   /** Stories saved in the last 30 days. */
   stories30: number;
-  /** Different children in those stories, by the first name saved with each. */
+  /** About how many different children those stories are about, by the first name saved with each. */
   children30: number;
-  /**
-   * Of the children she has written about this term, how many have had no
-   * story in the last 10 working days. Null when the term is not known.
-   */
-  quietThisTerm: number | null;
 };
 
 function firstNameKey(name: string | null | undefined) {
@@ -178,15 +172,13 @@ function firstNameKey(name: string | null | undefined) {
 
 /**
  * The counts, or null when there is too little to say anything fair (fewer
- * than three stories in the last 30 days). Pure: the caller passes the stories,
- * today, and how to tell term from holiday (lib/terms.ts).
+ * than three stories in the last 30 days). Pure: the caller passes the stories
+ * and now.
  */
 export function leaderCounts(
   stories: Array<{ child_name: string | null; created_at: string }>,
-  options: { now: Date; jurisdiction: Jurisdiction; followsSchoolTerms: boolean },
+  options: { now: Date },
 ): LeaderCounts | null {
-  const today = localDate(options.now, options.jurisdiction);
-  if (!today) return null;
   const since30 = options.now.getTime() - 30 * 86_400_000;
   const recent = stories.filter((story) => {
     const at = Date.parse(story.created_at);
@@ -194,34 +186,14 @@ export function leaderCounts(
   });
   if (recent.length < COUNTS_MIN_STORIES) return null;
   const children30 = new Set(recent.map((story) => firstNameKey(story.child_name)).filter(Boolean)).size;
-
-  const term = latestStartedTerm(today, options.jurisdiction);
-  let quietThisTerm: number | null = null;
-  if (term) {
-    const lastInTerm = new Map<string, string>();
-    for (const story of stories) {
-      const key = firstNameKey(story.child_name);
-      const day = localDate(story.created_at, options.jurisdiction);
-      if (!key || !day || day < term.start || day > term.end || day > today) continue;
-      const previous = lastInTerm.get(key);
-      if (!previous || day > previous) lastInTerm.set(key, day);
-    }
-    quietThisTerm = [...lastInTerm.values()].filter(
-      (last) => workingDaysBetween(last, today, { jurisdiction: options.jurisdiction, followsSchoolTerms: options.followsSchoolTerms }) >= COUNTS_QUIET_WORKING_DAYS,
-    ).length;
-  }
-  return { stories30: recent.length, children30, quietThisTerm };
+  return { stories30: recent.length, children30 };
 }
 
 /** The one sentence of numbers on the leader's page. Pure. */
 export function leaderCountsSentence(educator: string, counts: LeaderCounts) {
   const stories = `${counts.stories30} ${counts.stories30 === 1 ? "story" : "stories"}`;
   const children = counts.children30 === 1 ? "1 child" : `${counts.children30} different children`;
-  const first = `In the last 30 days ${educator} saved ${stories} about ${children}`;
-  if (counts.quietThisTerm === null) return `${first}.`;
-  if (counts.quietThisTerm === 0) return `${first}, and every child ${educator} has written about this term has had a story in the last ${COUNTS_QUIET_WORKING_DAYS} working days.`;
-  const quiet = counts.quietThisTerm === 1 ? "1 of the children" : `${counts.quietThisTerm} of the children`;
-  return `${first}, and ${quiet} ${educator} has written about this term ${counts.quietThisTerm === 1 ? "has" : "have"} had nothing in the last ${COUNTS_QUIET_WORKING_DAYS} working days.`;
+  return `In the last 30 days ${educator} saved ${stories} about ${children}.`;
 }
 
 /** What the leader's page needs for the centre offer: never the link key, never anything about the account. */
@@ -251,10 +223,51 @@ export function offerSignupHref(offer: Pick<LeaderOffer, "code" | "ref">) {
   return `/signup?${params.toString()}${offer.ref && looksLikeOfferRef(offer.ref) ? `#lo=${offer.ref}` : ""}`;
 }
 
+/** Where an offer reference waits on one device between the leader's page, signup and My centre. */
+export const OFFER_STORAGE_KEY = "storyloop_leader_offer";
+/** How long it waits there. On a shared office computer, the next account to open My centre a day later must not claim it. */
+export const OFFER_STORAGE_HOURS = 24;
+
+/** The value to keep in browser storage: the reference and when it was kept. Pure. */
+export function offerStorageValue(ref: string, now = new Date()) {
+  return JSON.stringify({ ref, at: now.getTime() });
+}
+
+/**
+ * The reference from a stored value, or "" when it is older than a day, from
+ * the future, malformed, or a bare reference kept before it carried a time. Pure.
+ */
+export function offerRefFromStorage(raw: string | null | undefined, now = new Date()) {
+  if (!raw) return "";
+  try {
+    const value = JSON.parse(raw) as { ref?: unknown; at?: unknown };
+    const at = typeof value.at === "number" ? value.at : Number.NaN;
+    if (!Number.isFinite(at) || at > now.getTime() + 60_000 || now.getTime() - at > OFFER_STORAGE_HOURS * 3_600_000) return "";
+    return looksLikeOfferRef(value.ref) ? value.ref : "";
+  } catch {
+    return "";
+  }
+}
+
 /** The offer reference from a signup page's # part, or "". */
 export function offerRefFromHash(hash: string) {
   const match = /(?:^|[#&])lo=([A-Za-z0-9_-]{43})(?:&|$)/.exec(hash);
   return match ? match[1] : "";
+}
+
+/**
+ * What a check's offer reference becomes when the educator cancels her link or
+ * makes a new one: a value no reference can hash to (a hash is 43 URL-safe
+ * characters with no colon), unique per check for the column's unique index,
+ * and never filled in again with a live reference. Pure.
+ */
+export function offerEndedMarker(checkId: string) {
+  return `ended:${checkId}`;
+}
+
+/** Whether a stored offer reference hash is the ended marker. Pure. */
+export function offerEnded(storedHash: string | null | undefined) {
+  return typeof storedHash === "string" && storedHash.startsWith("ended:");
 }
 
 /**
@@ -277,7 +290,9 @@ export function canUseOffer(row: Pick<CheckRow, "expires_at" | "revoked_at">, no
 export function leaderView(input: { story: StoryForLeader; check: CheckRow; educatorName: string | null | undefined; now?: Date; offer?: LeaderOffer | null }) {
   const { story, check } = input;
   const now = input.now ?? new Date();
-  const offer = input.offer ?? null;
+  // null: no offer block at all (she ended it, or she is already in a centre).
+  // undefined: a row from before the offer existed, so the offer without a code.
+  const offer = input.offer;
   return {
     state: checkState(check, now),
     educator: educatorFirstName(input.educatorName),
@@ -293,11 +308,13 @@ export function leaderView(input: { story: StoryForLeader; check: CheckRow; educ
     comment: check.comment ?? "",
     centreName: cleanCentreName(check.centre_name ?? ""),
     // The numbers only if she ticked the box, and only if there are enough of them.
-    offer: {
-      code: offer?.code ?? null,
-      ref: offer?.ref ?? null,
-      counts: check.share_counts === true ? offer?.counts ?? null : null,
-    },
+    offer: offer === null
+      ? null
+      : {
+          code: offer?.code ?? null,
+          ref: offer?.ref ?? null,
+          counts: check.share_counts === true ? offer?.counts ?? null : null,
+        },
   };
 }
 

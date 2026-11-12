@@ -53,6 +53,8 @@ export async function GET() {
       cardOnFile,
       founding,
       trialEndsAt: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
+      // So Billing names the end in the customer's part of the world (lib/billing-dates.ts).
+      currency: sub.currency ?? null,
     });
   } catch {
     return NextResponse.json({ ...base, centreTrial: true });

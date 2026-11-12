@@ -25,6 +25,8 @@ import {
   leaderView,
   looksLikeCheckToken,
   looksLikeOfferRef,
+  offerEnded,
+  offerEndedMarker,
   offerRefFromHash,
   offerSignupHref,
   type CheckRow,
@@ -107,16 +109,19 @@ test("what checkout says, for a centre started on 13 November, 31 December and 2
 
 test("the dates in the emails, the bell and Billing name the same day as checkout, on any server clock", () => {
   // 13 Nov and 31 Dec: Stripe is given the end of 31 January.
-  assert.equal(formatDate(CENTRE_FREE_UNTIL.getTime() / 1000), "31 January 2027");
+  assert.equal(formatDate(CENTRE_FREE_UNTIL.getTime() / 1000, "nzd"), "31 January 2027");
+  assert.equal(formatDate(CENTRE_FREE_UNTIL.getTime() / 1000, "aud"), "31 January 2027");
   assert.equal(formatDay(CENTRE_FREE_UNTIL, "Pacific/Auckland"), "Sunday 31 January");
   // 2 Jan: 30 days from 10am, so 10am on 1 February in Auckland, still 31 January in UTC.
   const janEnd = new Date(JAN_2.getTime() + 30 * DAY);
   assert.equal(janEnd.toISOString(), "2027-01-31T21:00:00.000Z");
-  assert.equal(formatDate(janEnd.getTime() / 1000), "1 February 2027", "the reminder email, which used to read 31 January on a UTC server");
+  assert.equal(formatDate(janEnd.getTime() / 1000, "nzd"), "1 February 2027", "the reminder email, which used to read 31 January on a UTC server");
+  // An A$ centre is told 1 February too: 08:00 in Perth (lib/billing-dates.ts).
+  assert.equal(formatDate(janEnd.getTime() / 1000, "aud"), "1 February 2027");
   assert.equal(formatDay(janEnd, "Pacific/Auckland"), "Monday 1 February");
   const facts: NotificationFacts = {
     now: new Date(janEnd.getTime() - 2 * DAY), plan: "centre_starter", subscriptionStatus: "trialing", trialEndsAt: janEnd.toISOString(), trialCardOnFile: false,
-    storiesThisMonth: 0, usageResetAt: null, monthlyLimit: null, referrals: [], quiet: null, wall: null, term: null, invites: [],
+    storiesThisMonth: 0, usageResetAt: null, monthlyLimit: null, referrals: [], quiet: null, wall: null, term: null, invites: [], billingCurrency: "nzd",
   };
   assert.equal(buildNotifications(facts)[0]?.title, "Your centre's free month ends Monday 1 February");
   // The reminder and the lapsed email no longer state a length.
@@ -184,26 +189,25 @@ test("the numbers: fewer than three stories in 30 days says nothing at all", () 
   ], opts), null);
 });
 
-test("the numbers: stories, different children by first name, and children quiet for 10 working days this term", () => {
-  const opts = { now: NOW, jurisdiction: "NZ" as const, followsSchoolTerms: true };
+test("the numbers: stories and different children by first name, exactly what the box promises and nothing more", () => {
+  const opts = { now: NOW };
   const stories = [
     { child_name: "Ruby Smith", created_at: iso("2026-11-12") },
     { child_name: "ruby", created_at: iso("2026-11-02") },
     { child_name: "Tama", created_at: iso("2026-11-11") },
-    { child_name: "Mia", created_at: iso("2026-10-20") }, // Term 4 began 13 Oct: in term, quiet since
+    { child_name: "Mia", created_at: iso("2026-10-20") },
     { child_name: "Ari", created_at: iso("2026-10-14") },
-    { child_name: "Leo", created_at: iso("2026-09-15") }, // last term: not "this term", not in 30 days
+    { child_name: "Leo", created_at: iso("2026-09-15") }, // not in the last 30 days
   ];
   const counts = leaderCounts(stories, opts);
-  assert.deepEqual(counts, { stories30: 5, children30: 4, quietThisTerm: 2 });
+  assert.deepEqual(counts, { stories30: 5, children30: 4 }, "no count of children who have had nothing");
   const sentence = leaderCountsSentence("Sam", counts!);
-  assert.equal(sentence, "In the last 30 days Sam saved 5 stories about 4 different children, and 2 of the children Sam has written about this term have had nothing in the last 10 working days.");
+  assert.equal(sentence, "In the last 30 days Sam saved 5 stories about 4 different children.");
   for (const name of ["Ruby", "Tama", "Mia", "Ari", "Leo", "Smith"]) assert.ok(!sentence.includes(name), `names ${name}`);
-  assert.doesNotMatch(sentence, /score|rank|average|compared|than other|behind/i);
-  assert.equal(leaderCountsSentence("Sam", { stories30: 4, children30: 1, quietThisTerm: 0 }),
-    "In the last 30 days Sam saved 4 stories about 1 child, and every child Sam has written about this term has had a story in the last 10 working days.");
-  assert.equal(leaderCountsSentence("Sam", { stories30: 3, children30: 3, quietThisTerm: null }), "In the last 30 days Sam saved 3 stories about 3 different children.");
-  assert.match(leaderCountsSentence("Sam", { stories30: 3, children30: 2, quietThisTerm: 1 }), /1 of the children Sam has written about this term has had nothing/);
+  assert.doesNotMatch(sentence, /score|rank|average|compared|than other|behind|nothing|quiet|working days/i);
+  assert.equal(leaderCountsSentence("Sam", { stories30: 4, children30: 1 }), "In the last 30 days Sam saved 4 stories about 1 child.");
+  const source = readFileSync("lib/story-check.ts", "utf8");
+  assert.doesNotMatch(source, /quietThisTerm|COUNTS_QUIET_WORKING_DAYS|workingDaysBetween/, "the dropped number is not computed anywhere");
 });
 
 // ---------------------------------------------------------------- the leader's page
@@ -217,12 +221,17 @@ const story = { child_name: "Ruby Smith", observations: "note", story_text: "Rub
 const REF = "AbCdEfGhIjKlMnOpQrStUvWxYz0123456789_-AbCde";
 
 test("the leader's page gets the offer: numbers only when she ticked the box", () => {
-  const counts = { stories30: 5, children30: 4, quietThisTerm: 2 };
+  const counts = { stories30: 5, children30: 4 };
   const ticked = leaderView({ story, check: row({ share_counts: true, centre_name: "Little Kiwis" }), educatorName: "Sam Taylor", now: NOW, offer: { code: "ABC234", ref: REF, counts } });
   assert.deepEqual(ticked.offer, { code: "ABC234", ref: REF, counts });
   assert.equal(ticked.centreName, "Little Kiwis");
   const unticked = leaderView({ story, check: row({ share_counts: false, centre_name: "Little Kiwis" }), educatorName: "Sam Taylor", now: NOW, offer: { code: "ABC234", ref: REF, counts } });
-  assert.equal(unticked.offer.counts, null, "computed or not, unticked shows none");
+  assert.equal(unticked.offer?.counts, null, "computed or not, unticked shows none");
+  // Ended by the educator, or she is already in a centre: no offer block at all, the check itself unchanged.
+  const none = leaderView({ story, check: row({ share_counts: true, centre_name: "Little Kiwis" }), educatorName: "Sam Taylor", now: NOW, offer: null });
+  assert.equal(none.offer, null);
+  assert.equal(none.story, ticked.story);
+  assert.equal(none.state, ticked.state);
   const before = leaderView({ story, check: row(), educatorName: "Sam Taylor", now: NOW });
   assert.deepEqual(before.offer, { code: null, ref: null, counts: null }, "a row from before the migration: the offer without a code");
   assert.equal(before.centreName, "");
@@ -257,6 +266,28 @@ test("the offer reference is not the link key, cannot open a story, and is store
   assert.notEqual(hashOfferRef(ref), hashCheckToken(ref), "even passed as a key, it matches no stored key hash");
   assert.notEqual(offerRefFor(newCheckToken().token), ref);
   for (const bad of ["", token, "a".repeat(42), "a".repeat(44), null, 7]) assert.equal(looksLikeOfferRef(bad), false);
+});
+
+test("cancelling or replacing a link ends the offer on every check for the story, answered or not", () => {
+  const marker = offerEndedMarker("c1");
+  assert.equal(offerEnded(marker), true);
+  assert.equal(offerEnded(hashOfferRef(offerRefFor(newCheckToken().token))), false);
+  assert.equal(offerEnded(null), false);
+  assert.ok(!looksLikeOfferRef(marker), "the marker can never be claimed");
+  assert.notEqual(offerEndedMarker("c2"), marker, "unique per check, for the unique index");
+  const server = readFileSync("lib/story-check-server.ts", "utf8");
+  const ender = server.slice(server.indexOf("export async function endStoryLinks"));
+  assert.match(ender, /if \(mode === "replace"\) revoke = revoke\.in\("status", \["sent", "opened"\]\)/, "cancel revokes answered links too");
+  assert.match(ender, /offer_ref_hash: offerEndedMarker\(row\.id\), offer_claimed_by: null, offer_claimed_at: null/);
+  assert.doesNotMatch(ender.slice(ender.indexOf(".select(\"id, offer_ref_hash"), ender.indexOf("let ok")), /\.in\("status"/, "every check for the story, whatever its status");
+  assert.match(server, /if \(offerEnded\(offerRefHash\) \|\| \(await alreadyInCentre\(check\.user_id, profile\?\.plan\)\)\)/, "an ended offer is never filled in again; a centre member gets none");
+  const route = readFileSync("app/api/stories/[id]/check/route.ts", "utf8");
+  assert.match(route, /endStoryLinks\(own\.storyId, own\.user\.id, "replace", now\)/);
+  assert.match(route, /endStoryLinks\(own\.storyId, own\.user\.id, "cancel"\)/);
+  const panel = readFileSync("components/app/LeaderCheck.tsx", "utf8");
+  assert.match(panel, /\(waiting \|\| answered\) && \(\s*<button[\s\S]{0,200}data-testid="leader-check-cancel"/, "Cancel the link shows on an answered check");
+  const page = readFileSync("components/marketing/LeaderCheckPage.tsx", "utf8");
+  assert.match(page, /\{offer && \(\s*\{?\/?\*?[\s\S]{0,40}<section[^>]*data-testid="leader-check-centre"/);
 });
 
 test("a cancelled link ends the offer at once; an expired one keeps it 30 more days", () => {
@@ -322,4 +353,23 @@ test("the ready-made message asks for the room, under 120 words, naming no other
     assert.doesNotMatch(message, /\b(will save|guarantee|saves you|cut your|hours a week)\b/i, "no promised result");
     assert.doesNotMatch(message, /replace/i);
   }
+});
+
+test("an offer reference kept on a device counts for a day only, and the status follows only the one-tap invitation", async () => {
+  const { offerRefFromStorage, offerStorageValue, OFFER_STORAGE_HOURS } = await import("../lib/story-check");
+  const at = new Date("2026-11-13T08:00:00Z");
+  const kept = offerStorageValue(REF, at);
+  assert.equal(offerRefFromStorage(kept, new Date(at.getTime() + 23 * 3_600_000)), REF);
+  assert.equal(offerRefFromStorage(kept, new Date(at.getTime() + OFFER_STORAGE_HOURS * 3_600_000 + 1)), "", "a day later, the next account on a shared computer claims nothing");
+  assert.equal(offerRefFromStorage(REF, at), "", "a bare reference kept before it carried a time is ignored");
+  assert.equal(offerRefFromStorage(offerStorageValue("short", at), at), "");
+  assert.equal(offerRefFromStorage(offerStorageValue(REF, new Date(at.getTime() + 3_600_000)), at), "", "from the future");
+  for (const raw of [null, "", "{", "{}"]) assert.equal(offerRefFromStorage(raw, at), "");
+  const centre = readFileSync("app/(app)/centre/page.tsx", "utf8");
+  assert.match(centre, /offerRefFromStorage\(window\.localStorage\.getItem\(OFFER_STORAGE_KEY\)\)/);
+  assert.match(centre, /data-testid="centre-offer-unavailable"/, "unavailable: a sentence, not a dead button");
+  const server = readFileSync("lib/leader-offer-server.ts", "utf8");
+  const status = server.slice(server.indexOf("async function statusFor"), server.indexOf("async function summarise"));
+  assert.doesNotMatch(status, /centre_invites/, "a typed invitation to a guessed address never changes the status");
+  assert.match(status, /row\.offer_invited_at/);
 });

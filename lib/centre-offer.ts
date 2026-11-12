@@ -17,16 +17,33 @@ import { normalizePlanKey, type PlanKey } from "@/lib/plans";
  * a review, good or bad, which is published marked as a founding-centre review.
  * The discount never depends on what the review says.
  *
- * Exactly three paid months. Stripe counts a repeating coupon in billing
- * cycles after the free month, so a 3-month coupon gives the three paid months
- * and Stripe's own checkout line reads "50% off next 3 billing cycles", the same
- * as StoryLoop's wording. Proven with a test clock in Stripe test mode on
- * 10 Oct 2026: free month $0, then NZ$54.50 for Nov, Dec and Jan, then NZ$109.
+ * Exactly three paid months. What is KNOWN: a Stripe test clock in test mode
+ * on 10 Oct 2026, with a 30 day free month, gave $0 for the free month, then
+ * NZ$54.50 for Nov, Dec and Jan, then NZ$109. That fits both ways Stripe could
+ * count a 3 month repeating coupon: in billing cycles after the free period, or
+ * as three calendar months from the day it is applied at checkout. With 30
+ * free days the two agree. With a free period until 31 January (up to 80 days)
+ * they do not: counted from the day it is applied, a coupon attached on 13 Nov
+ * runs out on 13 Feb, after ONE paid month. That has not been tested against
+ * real Stripe, so it is guarded against rather than assumed.
+ *
+ * THE GUARD (settleFoundingDiscount, from the invoice.paid webhook and the
+ * six-hourly cron; the decision is foundingDiscountAction, pure and tested):
+ *   - REMOVE the founding discount once three paid months are counted, so a
+ *     coupon that runs longer (or an earlier 4 month one) gives exactly three.
+ *   - REPAIR: a founding subscription that is trialing, active or past due,
+ *     has fewer than three paid months and carries no founding discount any
+ *     more gets the founding coupon attached again. If Stripe counted the
+ *     months from checkout, the coupon is put back after it lapses, well before
+ *     the next monthly invoice (the cron runs every six hours), and comes off
+ *     again after the third paid month. Proven on the local payments mock both
+ *     ways (.test-local/t68-founding-repair.mjs): a centre started 13 Nov 2026
+ *     pays three half-price months, then full price.
+ *   - Only ever for a subscription marked founding_centre = "true" (set at
+ *     checkout only when the founding coupon was applied), and never when a
+ *     founding discount is already on it, so it cannot attach twice.
  * (The first founding coupon ran 4 months, which gave four half-price months
- * while the site said three.) As a backstop the discount also comes off the
- * moment a third paid month is paid (settleFoundingDiscount, from the
- * invoice.paid webhook and the six-hourly cron), which also caps any
- * subscription still carrying an earlier coupon.
+ * while the site said three.)
  *
  * Spots are counted from the founding subscriptions themselves, not from the
  * coupon's redemption counter. A coupon counts as redeemed the moment a trial
@@ -260,13 +277,35 @@ export function isFoundingDiscount(discount: string | Stripe.Discount, env: Reco
   return Boolean(id) && (id === foundingCouponId(env) || LEGACY_FOUNDING_COUPON_IDS.includes(id as string));
 }
 
+export type FoundingDiscountAction = "remove" | "attach" | "nothing";
+
+/** Statuses in which a founding centre still has its half-price months to come. */
+const REPAIR_STATUSES = new Set(["trialing", "active", "past_due"]);
+
 /**
- * Keep a founding centre's discount to exactly three paid months, and mark the
- * spot as used once they have paid. Safe to run any number of times.
+ * What to do with a FOUNDING subscription's discount (the caller has already
+ * checked founding_centre = "true"). Pure.
+ *
+ * Three paid months counted and the discount still on: remove it. Fewer than
+ * three, still live (trialing, active or past due), and no founding discount
+ * on it: attach it again (the coupon may have lapsed by the calendar during a
+ * long free period). Anything else: nothing.
+ */
+export function foundingDiscountAction(input: { status: string; paidMonths: number; hasFoundingDiscount: boolean }): FoundingDiscountAction {
+  if (input.paidMonths >= FOUNDING_DISCOUNT_MONTHS) return input.hasFoundingDiscount ? "remove" : "nothing";
+  if (!input.hasFoundingDiscount && REPAIR_STATUSES.has(input.status)) return "attach";
+  return "nothing";
+}
+
+/**
+ * Keep a founding centre's discount to exactly three paid months, put it back
+ * if it lapsed before then, and mark the spot as used once they have paid.
+ * Safe to run any number of times.
  */
 export async function settleFoundingDiscount(stripe: Stripe, subscriptionId: string) {
-  const result = { founding: false, paidMonths: 0, markedPaid: false, discountRemoved: false };
+  const result = { founding: false, paidMonths: 0, markedPaid: false, discountRemoved: false, discountAttached: false };
   const sub = await stripe.subscriptions.retrieve(subscriptionId, { expand: ["discounts"] });
+  // Never touches a subscription that was not started as a founding centre.
   if (sub.metadata?.founding_centre !== "true") return result;
   result.founding = true;
   const invoices = await stripe.invoices.list({ subscription: subscriptionId, status: "paid", limit: 24 });
@@ -277,23 +316,29 @@ export async function settleFoundingDiscount(stripe: Stripe, subscriptionId: str
   }
   const discounts = (sub.discounts ?? []) as Array<string | Stripe.Discount>;
   const founding = discounts.filter((discount) => isFoundingDiscount(discount));
-  if (result.paidMonths >= FOUNDING_DISCOUNT_MONTHS && founding.length) {
-    const keep = discounts.filter((discount) => !isFoundingDiscount(discount)).map((discount) => ({ discount: typeof discount === "string" ? discount : discount.id }));
+  const keep = discounts.filter((discount) => !isFoundingDiscount(discount)).map((discount) => ({ discount: typeof discount === "string" ? discount : discount.id }));
+  const action = foundingDiscountAction({ status: sub.status, paidMonths: result.paidMonths, hasFoundingDiscount: founding.length > 0 });
+  if (action === "remove") {
     await stripe.subscriptions.update(subscriptionId, { discounts: keep.length ? keep : "" });
     result.discountRemoved = true;
+  } else if (action === "attach") {
+    // `discounts` replaces the whole list, so even two runs at once leave one founding discount.
+    await stripe.subscriptions.update(subscriptionId, { discounts: [...keep, { coupon: foundingCouponId() }] });
+    result.discountAttached = true;
   }
   return result;
 }
 
-/** The six-hourly backstop: settle every founding centre that is paying. */
+/** The six-hourly backstop: settle (and repair) every founding centre still live. */
 export async function settleAllFoundingDiscounts(stripe: Stripe) {
-  const summary = { checked: 0, discountsRemoved: 0, markedPaid: 0, errors: 0 };
+  const summary = { checked: 0, discountsRemoved: 0, discountsAttached: 0, markedPaid: 0, errors: 0 };
   for (const sub of await listFoundingSubscriptions(stripe)) {
-    if (!["active", "past_due", "unpaid"].includes(sub.status)) continue;
+    if (!["trialing", "active", "past_due", "unpaid"].includes(sub.status)) continue;
     summary.checked += 1;
     try {
       const outcome = await settleFoundingDiscount(stripe, sub.id);
       if (outcome.discountRemoved) summary.discountsRemoved += 1;
+      if (outcome.discountAttached) summary.discountsAttached += 1;
       if (outcome.markedPaid) summary.markedPaid += 1;
     } catch (error) {
       summary.errors += 1;

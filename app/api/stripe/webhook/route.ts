@@ -335,6 +335,8 @@ async function processStripeEvent(admin: ReturnType<typeof createAdminSupabase>,
             userId: subscription.metadata?.user_id,
             customerId: typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id,
             endsAtSeconds: scheduled.endsAtSeconds,
+            // Names the end day in the customer's part of the world (lib/billing-dates.ts).
+            currency: subscription.currency,
             // The reason they picked in the portal, for the admin dashboard.
             extraMetadata: cancellationFeedbackMetadata(subscription.cancellation_details),
           });

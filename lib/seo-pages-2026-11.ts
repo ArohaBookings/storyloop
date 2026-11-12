@@ -228,7 +228,7 @@ export const NOV_2026_PAGES: Record<string, SeoPage> = {
       {
         title: "How StoryLoop does it",
         body:
-          "An educator taps Ask my leader on a finished story and sends you a private link. You see their note beside the story, with the child's first name and the educator's first name and nothing else about either of them. You tap Looks good, or Suggest a change and say what you would change, and you are done in about two minutes. You do not need an account. The link opens that one story, lasts 14 days, and the educator can cancel it.",
+          "An educator taps Send to my leader on a finished story and sends you a private link. You see their note beside the story, with the child's first name and the educator's first name and nothing else about either of them. You tap Looks good, or Suggest a change and say what you would change, and you are done in about two minutes. You do not need an account. The link opens that one story, lasts 14 days, and the educator can cancel it.",
       },
     ],
     faqs: [

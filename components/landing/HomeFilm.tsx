@@ -10,7 +10,8 @@ import { CUSTOMER_CLIP, HOME_FILM, filmVariantForZone, type FilmVariant } from "
  * The homepage film (lib/home-film.ts has what it is and is not).
  *
  * The poster is a small picture, and the film itself is only fetched when at
- * least 45% of the frame is on screen. It plays without sound and stops when
+ * least 45% of the frame is on screen (in the hero, after it has stayed there
+ * for HERO_FILM_DELAY_MS). It plays without sound and stops when
  * scrolled away. Somebody who asked their device for less motion or less data
  * gets the poster and a play button, and nothing more is fetched until they
  * press it.
@@ -28,6 +29,15 @@ import { CUSTOMER_CLIP, HOME_FILM, filmVariantForZone, type FilmVariant } from "
  * because then the still is what they read. The film file is still chosen by
  * country.
  */
+/**
+ * In the hero, how long the frame has to be on screen before the film is
+ * fetched (13 Nov 2026). Every phone visitor sees the hero, and the small film
+ * is about 1.7 MB: a visitor who leaves in a second should not pay for it. The
+ * still, rendered on the server with priority, shows meanwhile. Pressing play
+ * fetches it at once.
+ */
+const HERO_FILM_DELAY_MS = 1500;
+
 export default function HomeFilm({ inHero = false }: { inHero?: boolean }) {
   const frame = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
@@ -38,6 +48,8 @@ export default function HomeFilm({ inHero = false }: { inHero?: boolean }) {
   const [src, setSrc] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
   const wantsPlay = useRef(true);
+  // Once the film has been asked for, coming back on screen plays it straight away.
+  const fetchStarted = useRef(false);
   const counted = useRef({ play: false, complete: false });
 
   useEffect(() => {
@@ -55,24 +67,40 @@ export default function HomeFilm({ inHero = false }: { inHero?: boolean }) {
     const el = frame.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
     const small = window.innerWidth < 700;
+    let wait: number | undefined;
+    const start = () => {
+      setSrc((current) => current ?? HOME_FILM.file(chosen, small));
+      void video.current?.play().catch(() => {});
+    };
     const watcher = new IntersectionObserver(
       ([entry]) => {
         const v = video.current;
         if (entry.isIntersecting) {
           // Fetch only when it is wanted: on screen, and allowed to play by itself.
-          if (wantsPlay.current) {
-            setSrc((current) => current ?? HOME_FILM.file(chosen, small));
-            void v?.play().catch(() => {});
+          // In the hero, only once the frame has stayed on screen a moment (HERO_FILM_DELAY_MS).
+          if (!wantsPlay.current) return;
+          if (!inHero || fetchStarted.current) { fetchStarted.current = true; start(); return; }
+          if (wait === undefined) {
+            wait = window.setTimeout(() => {
+              wait = undefined;
+              if (!wantsPlay.current) return;
+              fetchStarted.current = true;
+              start();
+            }, HERO_FILM_DELAY_MS);
           }
         } else {
+          if (wait !== undefined) { window.clearTimeout(wait); wait = undefined; }
           v?.pause();
         }
       },
       { threshold: 0.45 },
     );
     watcher.observe(el);
-    return () => watcher.disconnect();
-  }, []);
+    return () => {
+      if (wait !== undefined) window.clearTimeout(wait);
+      watcher.disconnect();
+    };
+  }, [inHero]);
 
   // A source that arrives after the frame came on screen starts by itself.
   useEffect(() => {
@@ -83,7 +111,9 @@ export default function HomeFilm({ inHero = false }: { inHero?: boolean }) {
     const v = video.current;
     if (!v) return;
     if (!src) {
+      // Pressed play: fetched at once, whatever the wait.
       wantsPlay.current = true;
+      fetchStarted.current = true;
       setSrc(HOME_FILM.file(variant, window.innerWidth < 700));
       return;
     }

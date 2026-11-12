@@ -1,6 +1,6 @@
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { canManageTeam, countActiveMembers, getCentre, getMembership, seatsRemaining } from "@/lib/centres";
-import { createCentreInvite } from "@/lib/centre-invites";
+import { INVITE_DAYS, createCentreInvite } from "@/lib/centre-invites";
 import { canUseOffer, cleanCentreName, educatorFirstName, looksLikeOfferRef } from "@/lib/story-check";
 import { hashOfferRef } from "@/lib/story-check-token";
 
@@ -54,23 +54,19 @@ async function educatorAccount(userId: string): Promise<{ firstName: string; ema
   return { firstName: educatorFirstName(profile?.full_name ?? null), email: auth?.user?.email?.trim().toLowerCase() ?? null };
 }
 
-/** Where things stand between the claimer's centre and the educator. Never says anything about her account. */
+/** Where things stand between the claimer's centre and the educator. Never says anything about her account, or about an address the leader typed. */
 async function statusFor(claimerId: string, row: OfferRow, email: string | null): Promise<LeaderOfferStatus> {
   const membership = await getMembership(claimerId);
   if (!membership) return "ready";
   const theirs = await getMembership(row.user_id);
   if (theirs?.centreId === membership.centreId) return "joined";
   if (!email) return "unavailable";
-  const { data: pending } = await createAdminSupabase()
-    .from("centre_invites")
-    .select("id")
-    .eq("centre_id", membership.centreId)
-    .eq("email", email)
-    .is("accepted_at", null)
-    .is("revoked_at", null)
-    .gt("expires_at", new Date().toISOString())
-    .limit(1);
-  return pending?.length ? "invited" : "ready";
+  // Only the invitation made from this offer counts (the one tap, which stamps
+  // offer_invited_at), never the invitation table: an address typed into the
+  // email form, or a typed invitation replacing the one-tap one, must not
+  // change this status, or a leader could confirm a guessed address for her.
+  const invitedAt = row.offer_invited_at ? Date.parse(row.offer_invited_at) : Number.NaN;
+  return Number.isFinite(invitedAt) && Date.now() - invitedAt < INVITE_DAYS * 86_400_000 ? "invited" : "ready";
 }
 
 async function summarise(claimerId: string, row: OfferRow): Promise<LeaderOfferSummary> {

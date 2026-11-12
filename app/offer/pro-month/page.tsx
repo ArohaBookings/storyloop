@@ -7,6 +7,7 @@ import Footer from "@/components/landing/Footer";
 import PageTracker from "@/components/analytics/PageTracker";
 import ProMonthClaim from "@/components/offer/ProMonthClaim";
 import { createClient } from "@/lib/supabase/server";
+import { billingDay } from "@/lib/billing-dates";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import {
   OFFER_REASON_COPY,
@@ -41,7 +42,9 @@ export default async function ProMonthOfferPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const prices = proMonthPrices();
-  const firstCharge = day(proMonthFirstChargeDate());
+  // A charge date for a reader whose currency is not known yet: named in Perth
+  // time, which is never later than the charge for anyone in NZ or Australia (lib/billing-dates.ts).
+  const firstCharge = billingDay(proMonthFirstChargeDate(), null);
 
   let state: "signed_out" | "eligible" | "ineligible" = "signed_out";
   let reason: keyof typeof OFFER_REASON_COPY | null = null;

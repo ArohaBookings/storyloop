@@ -7,13 +7,13 @@ import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } fro
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
 import { ACTIVATION_OFFER_LABEL } from "@/lib/activation-offer";
 import { canOfferInAppSwitch } from "@/lib/plan-change";
-import { formatDay } from "@/lib/notifications";
+import { billingDay } from "@/lib/billing-dates";
 import { CANCELLATION_REASONS, type BillingSummary } from "@/lib/billing-manage";
 import { getSessionId, track } from "@/lib/analytics/client";
 import { getNextPlan, getPlanByKey, getPlanDefinitions, hasFeatureAccess, normalizePlanKey, planRank, requiredPlanForFeature, resolveFeatureParam, type CurrencyCode, type FeatureKey, type PlanKey } from "@/lib/plans";
 
-// A trial ends at a moment; it is named in New Zealand time, as checkout and the emails name it.
-const NZ_TIME = "Pacific/Auckland";
+// A charge or trial end is a moment; it is named in the customer's own part of
+// the world (lib/billing-dates.ts), as checkout, the emails and the bell name it.
 
 function formatMoney(cents: number, currency: string) {
   const symbol = currency.toLowerCase() === "nzd" ? "NZ$" : currency.toLowerCase() === "aud" ? "A$" : `${currency.toUpperCase()} `;
@@ -113,7 +113,7 @@ export default function BillingPage() {
   const [switchPreview, setSwitchPreview] = useState<{ plan: PlanKey; title: string; detail: string } | null>(null);
   const [switchNotice, setSwitchNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   // A centre's free month: whether a card is on file yet (from Stripe).
-  const [trialStatus, setTrialStatus] = useState<{ centreTrial: boolean; cardOnFile: boolean | null; founding: boolean; trialEndsAt: string | null } | null>(null);
+  const [trialStatus, setTrialStatus] = useState<{ centreTrial: boolean; cardOnFile: boolean | null; founding: boolean; trialEndsAt: string | null; currency?: string | null } | null>(null);
   // StoryLoop's own billing management (card, cancel or keep, receipts). Stripe's
   // portal is never used: it shows the shared Stripe account's business name.
   const [billing, setBilling] = useState<BillingSummary | null>(null);
@@ -247,7 +247,7 @@ export default function BillingPage() {
         setCardNotice({
           tone: "ok",
           text: action === "cancel"
-            ? `Done. Your plan stays on until ${data.subscription?.endsAt ? formatDay(data.subscription.endsAt) : "the end of this period"}, then ends. Nothing more is charged.`
+            ? `Done. Your plan stays on until ${data.subscription?.endsAt ? billingDay(data.subscription.endsAt, data.subscription.currency ?? billing?.subscription?.currency) : "the end of this period"}, then ends. Nothing more is charged.`
             : action === "restart_payments"
               ? "Done. Payments have restarted, and your plan carries on as normal."
               : "Done. Your plan carries on as normal.",
@@ -279,7 +279,7 @@ export default function BillingPage() {
       if (data.ok) {
         setCardNotice({
           tone: "ok",
-          text: `Done. Payments are paused${data.pausedUntil ? ` until ${formatDay(data.pausedUntil)}` : ""}. Nothing is charged until then, and your stories stay exactly as they are.`,
+          text: `Done. Payments are paused${data.pausedUntil ? ` until ${billingDay(data.pausedUntil, billing?.subscription?.currency)}` : ""}. Nothing is charged until then, and your stories stay exactly as they are.`,
         });
         setPauseOpen(false);
         await Promise.all([loadBilling(), loadProfile()]);
@@ -409,7 +409,7 @@ export default function BillingPage() {
       {trialStatus?.centreTrial && trialStatus.cardOnFile !== true && (
         <div className="mb-6 rounded-2xl border border-clay-200 bg-cream-50 p-5" data-testid="centre-trial-banner">
           <p className="font-display text-xl font-bold text-ink-900">
-            Your centre&apos;s free month{trialStatus.trialEndsAt ? ` ends ${formatDay(trialStatus.trialEndsAt, NZ_TIME)}` : " is running"}.
+            Your centre&apos;s free month{trialStatus.trialEndsAt ? ` ends ${billingDay(trialStatus.trialEndsAt, trialStatus.currency)}` : " is running"}.
           </p>
           <p className="mt-1.5 text-base leading-relaxed text-ink-700">
             {trialStatus.cardOnFile === null ? "If you have not added a card yet, add" : "Add"} one to keep your team going
@@ -609,11 +609,11 @@ export default function BillingPage() {
             <div className="min-w-0">
               <p className="text-sm font-semibold text-ink-900">
                 {billing.subscription.endsAt
-                  ? `Ends on ${formatDay(billing.subscription.endsAt)}`
+                  ? `Ends on ${billingDay(billing.subscription.endsAt, billing.subscription.currency)}`
                   : billing.subscription.paused
-                    ? billing.subscription.pausedUntil ? `Payments paused until ${formatDay(billing.subscription.pausedUntil)}` : "Payments paused"
+                    ? billing.subscription.pausedUntil ? `Payments paused until ${billingDay(billing.subscription.pausedUntil, billing.subscription.currency)}` : "Payments paused"
                   : billing.subscription.trialEndsAt
-                    ? `Free until ${formatDay(billing.subscription.trialEndsAt, NZ_TIME)}`
+                    ? `Free until ${billingDay(billing.subscription.trialEndsAt, billing.subscription.currency)}`
                     : billing.subscription.status === "past_due" || billing.subscription.status === "unpaid"
                       ? "Payment overdue"
                       : "Active"}
@@ -624,7 +624,7 @@ export default function BillingPage() {
                   : billing.subscription.paused
                     ? "Nothing is charged while payments are paused, and your account and stories stay as they are. They restart by themselves, or restart them now."
                   : billing.subscription.nextPayment
-                    ? `Next payment ${formatMoney(billing.subscription.nextPayment.amount, billing.subscription.nextPayment.currency)} on ${formatDay(billing.subscription.nextPayment.date)}.`
+                    ? `Next payment ${formatMoney(billing.subscription.nextPayment.amount, billing.subscription.nextPayment.currency)} on ${billingDay(billing.subscription.nextPayment.date, billing.subscription.nextPayment.currency)}.`
                     : billing.subscription.trialEndsAt
                       ? "Add a card to keep going after the free month. If you don't, it simply ends and nothing is charged."
                       : ""}
@@ -675,7 +675,7 @@ export default function BillingPage() {
               <ul className="mt-2 divide-y divide-clay-50" data-testid="receipts">
                 {billing.receipts.map((receipt) => (
                   <li key={receipt.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
-                    <span className="text-ink-700">{formatDay(receipt.paidAt ?? receipt.createdAt)}</span>
+                    <span className="text-ink-700">{billingDay(receipt.paidAt ?? receipt.createdAt, receipt.currency)}</span>
                     <span className="tabular-nums text-ink-900">{formatMoney(receipt.amount, receipt.currency)}{receipt.status === "open" ? " (due)" : ""}</span>
                     <Link href={`/billing/receipt/${receipt.id}`} className="inline-flex items-center gap-1 font-semibold text-clay-700 hover:underline">
                       <FileText className="h-4 w-4" /> {receipt.status === "open" ? "View" : "Receipt"}
@@ -722,7 +722,7 @@ export default function BillingPage() {
           <div role="dialog" aria-modal="true" aria-labelledby="cancel-title" className="w-full max-w-md rounded-3xl bg-white p-6 shadow-warm" onClick={(event) => event.stopPropagation()}>
             <h2 id="cancel-title" className="font-display text-2xl font-bold text-ink-900">Cancel your subscription?</h2>
             <p className="mt-2 text-sm leading-relaxed text-ink-600">
-              Your plan stays on until {billing.subscription.trialEndsAt ? formatDay(billing.subscription.trialEndsAt, NZ_TIME) : billing.subscription.currentPeriodEnd ? formatDay(billing.subscription.currentPeriodEnd) : "the end of this period"}, then ends. Nothing more is charged, and everything you've written stays yours.
+              Your plan stays on until {billing.subscription.trialEndsAt ? billingDay(billing.subscription.trialEndsAt, billing.subscription.currency) : billing.subscription.currentPeriodEnd ? billingDay(billing.subscription.currentPeriodEnd, billing.subscription.currency) : "the end of this period"}, then ends. Nothing more is charged, and everything you've written stays yours.
             </p>
             {/* Offered, never pushed: Cancel stays one click below (Leo, 20 Oct and 10 Nov 2026). */}
             {canPause && (

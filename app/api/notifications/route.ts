@@ -127,32 +127,40 @@ export async function GET() {
   const wallScans = wallRows.reduce((sum, row) => sum + (row.scan_count ?? 0), 0);
   const lastScannedAt = wallRows.map((row) => row.last_scanned_at).filter(Boolean).sort().pop() ?? null;
 
-  // A centre's free month asks for no card up front, so "nothing to do" would be
-  // untrue without one. Only asked of Stripe in the last days of such a trial.
+  // In the last days of a trial, Stripe is asked two things: the currency, so
+  // the end is named in the customer's own part of the world
+  // (lib/billing-dates.ts), and, for a centre's free month (which asks for no
+  // card up front, so "nothing to do" would be untrue without one), whether a
+  // card is on file now.
   let trialCardOnFile: boolean | null | undefined;
+  let billingCurrency: string | null = null;
   const trialEnds = extra.trial_ends_at ? Date.parse(extra.trial_ends_at) : Number.NaN;
   if (
     profile.subscription_status === "trialing" &&
-    isCentrePlan(plan) &&
     Number.isFinite(trialEnds) &&
     trialEnds - now.getTime() <= 3 * 86_400_000 &&
     profile.stripe_customer_id
   ) {
+    const centre = isCentrePlan(plan);
     try {
       const stripe = createStripe();
       const subs = await stripe.subscriptions.list({ customer: profile.stripe_customer_id, status: "trialing", limit: 5 });
-      trialCardOnFile = subs.data.some((sub) => Boolean(sub.default_payment_method));
-      if (!trialCardOnFile) {
-        const customer = await stripe.customers.retrieve(profile.stripe_customer_id);
-        trialCardOnFile = !("deleted" in customer && customer.deleted) && Boolean((customer as { invoice_settings?: { default_payment_method?: unknown } }).invoice_settings?.default_payment_method);
+      billingCurrency = subs.data.find((sub) => sub.currency)?.currency ?? null;
+      if (centre) {
+        trialCardOnFile = subs.data.some((sub) => Boolean(sub.default_payment_method));
+        if (!trialCardOnFile) {
+          const customer = await stripe.customers.retrieve(profile.stripe_customer_id);
+          trialCardOnFile = !("deleted" in customer && customer.deleted) && Boolean((customer as { invoice_settings?: { default_payment_method?: unknown } }).invoice_settings?.default_payment_method);
+        }
       }
     } catch {
-      trialCardOnFile = null;
+      if (centre) trialCardOnFile = null;
     }
   }
 
   const items = buildNotifications({
     trialCardOnFile,
+    billingCurrency,
     now,
     plan,
     subscriptionStatus: profile.subscription_status ?? null,

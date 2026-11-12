@@ -1,3 +1,4 @@
+import { billingDay } from "@/lib/billing-dates";
 import { createHmac, timingSafeEqual } from "crypto";
 import type Stripe from "stripe";
 import { findManageableSubscription, nextPaymentFor, ownsSubscription } from "@/lib/billing-manage";
@@ -166,12 +167,11 @@ export async function restartPayments(stripe: Stripe, input: { customerId: strin
 }
 
 /**
- * A charge or restart date in the customer's own time zone. formatDay is UTC,
- * and an evening renewal in UTC is the next morning in Aotearoa.
+ * A charge or restart date in the customer's own part of the world
+ * (lib/billing-dates.ts: Auckland for NZ$, Perth for A$, so the day named is
+ * never later than the charge). formatDay is UTC, and an evening renewal in
+ * UTC is the next morning in Aotearoa.
  */
 export function chargeDay(value: string, currency: string | null | undefined) {
-  const timeZone = String(currency ?? "").toLowerCase() === "aud" ? "Australia/Sydney" : "Pacific/Auckland";
-  const parts = new Intl.DateTimeFormat("en-NZ", { weekday: "long", day: "numeric", month: "long", timeZone }).formatToParts(new Date(value));
-  const part = (type: string) => parts.find((item) => item.type === type)?.value ?? "";
-  return `${part("weekday")} ${part("day")} ${part("month")}`;
+  return billingDay(value, currency);
 }

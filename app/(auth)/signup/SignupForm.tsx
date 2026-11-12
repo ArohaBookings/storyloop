@@ -14,7 +14,8 @@ import { reportSignupConversion } from "@/lib/analytics/google-ads";
 import { takeHumanPass, warmHumanPass } from "@/lib/auth/human-pass-client";
 import { readKeptStory } from "@/lib/keep-story";
 import { FIRST_STORY_PATH, signupDestination } from "@/lib/signup-next";
-import { offerRefFromHash } from "@/lib/story-check";
+import { OFFER_STORAGE_KEY, offerRefFromHash, offerStorageValue } from "@/lib/story-check";
+import CentreTrialWords from "@/components/centre/CentreTrialWords";
 
 function normaliseCurrency(value: string | null): CurrencyCode {
   return value === "NZD" ? "NZD" : "AUD";
@@ -86,7 +87,7 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
     // for the centre's set-up screen (app/(app)/centre, lib/leader-offer-server.ts).
     const offerRef = offerRefFromHash(window.location.hash);
     if (offerRef) {
-      try { window.localStorage.setItem("storyloop_leader_offer", offerRef); } catch {}
+      try { window.localStorage.setItem(OFFER_STORAGE_KEY, offerStorageValue(offerRef)); } catch {}
     }
     captureAttribution();
     track("signup_view");
@@ -187,7 +188,8 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
 
   const selectedPlan = getPlanByKey(plan);
   const isPaidPlan = plan !== "free";
-  // Centres start with 30 days free and no card (lib/centre-offer.ts).
+  // Centres start free with no card: until 31 January before 1 Jan 2027, 30 days after (lib/centre-offer.ts),
+  // in the same words as the leader's page and checkout (CentreTrialWords).
   const isCentre = plan === "centre_starter" || plan === "centre_growth";
   const selectedPrice = `$${selectedPlan.price[currency]}${selectedPlan.price[currency] > 0 ? ` ${currency}/month` : ""}`;
 
@@ -212,7 +214,7 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
           </h1>
           <p className="text-sm text-ink-500 mb-4">
             {isCentre
-              ? "Create your account, then confirm your centre’s free month on Stripe. No card is needed for the first 30 days."
+              ? <>Create your account, then confirm your centre’s free month on Stripe. It is <CentreTrialWords />, with no card needed.</>
               : isPaidPlan
                 ? "Create your account first, then you’ll go straight to secure Stripe checkout to start the 7-day trial."
                 : destination === "/statement"
@@ -267,7 +269,7 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
               </div>
               <div className="text-right">
                 <p className="font-bold text-ink-900">{selectedPrice}</p>
-                {isPaidPlan && <p className="text-xs text-clay-600">{isCentre ? "after 30 days free" : "after trial"}</p>}
+                {isPaidPlan && <p className="text-xs text-clay-600">{isCentre ? <CentreTrialWords capital /> : "after trial"}</p>}
               </div>
             </div>
             {isPaidPlan && (

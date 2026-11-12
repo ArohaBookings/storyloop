@@ -23,6 +23,7 @@
  */
 
 import { hasFeatureAccess, type PlanKey } from "@/lib/plans";
+import { billingDay } from "@/lib/billing-dates";
 
 export type NotificationKind = "billing" | "trial" | "referral" | "quiet" | "wall" | "term" | "allowance" | "invite" | "family";
 
@@ -48,6 +49,12 @@ export type NotificationFacts = {
    * is on file now (null when Stripe could not say). Undefined otherwise.
    */
   trialCardOnFile?: boolean | null;
+  /**
+   * The trial's currency ("nzd", "aud"), so its end is named in the customer's
+   * part of the world (lib/billing-dates.ts). Unknown names it in Perth time,
+   * which is never later than the charge.
+   */
+  billingCurrency?: string | null;
   storiesThisMonth: number;
   /**
    * When the monthly count was last reset (profiles.last_reset_at). The reset
@@ -154,8 +161,8 @@ export function buildNotifications(facts: NotificationFacts): AppNotification[] 
       out.push({
         id: `trial:${isoDate(ends)}`,
         kind: "trial",
-        // In New Zealand time, the calendar checkout and the emails use, so all three name the same day.
-        title: noCard ? `Your centre's free month ends ${formatDay(ends, "Pacific/Auckland")}` : `Your free trial ends ${formatDay(ends, "Pacific/Auckland")}`,
+        // In the customer's part of the world, as checkout, the emails and Billing name it.
+        title: noCard ? `Your centre's free month ends ${billingDay(ends, facts.billingCurrency)}` : `Your free trial ends ${billingDay(ends, facts.billingCurrency)}`,
         body: noCard
           ? "Add a card from Billing to keep your team going. Otherwise it simply ends, nothing is charged, and everything stays yours."
           : "Nothing to do if you want to keep going. If not, you can cancel from Billing before then and you will not be charged.",

@@ -50,3 +50,14 @@ export function teamCardFor(input: {
   if (decidesForCentre(input.role) && !input.dismissed) return "centre";
   return null;
 }
+
+/**
+ * "Get your centre on board" (components/app/CentreOnBoardCard.tsx), which asks
+ * an educator to send a story to her leader: only for someone in no centre, not
+ * on a centre plan, and not a leader or owner herself. A leader is shown her own
+ * centre card instead and is never told to "show your leader". Pure.
+ */
+export function showsOnBoardCard(input: { role: WorkRole | null; inCentre: boolean; centrePlan: boolean }): boolean {
+  if (input.inCentre || input.centrePlan) return false;
+  return !decidesForCentre(input.role);
+}

@@ -82,6 +82,10 @@ export default function LeaderCheck({ storyId, initial }: { storyId: string; ini
   const who = check.state !== "none" && check.leaderName ? check.leaderName : "Your leader";
   const waiting = check.state === "open";
   const answered = check.state === "answered";
+  // A cancelled link keeps showing what the leader said, if they answered first.
+  const cancelled = check.state === "cancelled";
+  const decision = check.state === "none" ? null : check.decision;
+  const hasAnswer = (answered || cancelled) && Boolean(decision);
 
   return (
     <section ref={panel} id={`leader-${storyId}`} className="mt-5 scroll-mt-24 rounded-2xl border border-clay-100 bg-cream-50/60 p-4 sm:p-5" data-testid="leader-check-panel">
@@ -89,7 +93,7 @@ export default function LeaderCheck({ storyId, initial }: { storyId: string; ini
         <UserCheck className="h-4 w-4 text-clay-700" /> Send this story to your leader
       </h3>
 
-      {answered && (
+      {hasAnswer && "decision" in check && (
         <div className="mt-3 rounded-xl border border-sage-200 bg-sage-50 p-3" data-testid="leader-check-result">
           <p className="flex items-start gap-2 text-sm font-semibold leading-relaxed text-sage-900">
             {check.decision === "approved" ? <CheckCircle2 className="mt-0.5 h-4 w-4 flex-none" /> : <MessageSquareText className="mt-0.5 h-4 w-4 flex-none" />}
@@ -131,7 +135,9 @@ export default function LeaderCheck({ storyId, initial }: { storyId: string; ini
                 : `Waiting for your leader to open it (link made ${day(check.sentAt)}).`
               : answered
                 ? "Edited it since? Send it again."
-                : "Send your head teacher or mentor a private link to this one story. They see your note beside the story and answer in about two minutes. They do not need an account."}
+                : cancelled && hasAnswer
+                  ? "You cancelled the link, so it no longer opens this story. Edited it since? Send it again."
+                  : "Send your head teacher or mentor a private link to this one story. They see your note beside the story and answer in about two minutes. They do not need an account."}
           </p>
           <div className="mt-3 grid gap-2 sm:max-w-md">
             <label htmlFor={`leader-centre-${storyId}`} className="text-xs font-semibold text-ink-700">
@@ -160,10 +166,11 @@ export default function LeaderCheck({ storyId, initial }: { storyId: string; ini
           <div className="mt-3 flex flex-wrap gap-2">
             <button type="button" onClick={() => call("POST")} disabled={busy} className="btn-secondary px-4 py-2 text-xs disabled:opacity-60" data-testid="leader-check-make">
               {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserCheck className="h-3.5 w-3.5" />}
-              {waiting || answered ? "Make a new link" : "Make the link"}
+              {waiting || answered || hasAnswer ? "Make a new link" : "Make the link"}
             </button>
-            {waiting && (
-              <button type="button" onClick={() => call("DELETE")} disabled={busy} className="btn-ghost px-3 py-2 text-xs">Cancel the link</button>
+            {/* Answered too: the educator can always end a link, and the centre offer it carried (lib/story-check-server.ts endStoryLinks). */}
+            {(waiting || answered) && (
+              <button type="button" onClick={() => call("DELETE")} disabled={busy} className="btn-ghost px-3 py-2 text-xs" data-testid="leader-check-cancel">Cancel the link</button>
             )}
           </div>
           {waiting && <p className="mt-2 text-xs text-ink-500">A new link stops the old one working.</p>}

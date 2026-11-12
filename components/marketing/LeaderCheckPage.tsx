@@ -5,11 +5,9 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, FileText, Loader2, MessageSquareText, ShieldCheck } from "lucide-react";
 import StoryText from "@/components/app/StoryText";
 import { track } from "@/lib/analytics/client";
-import { CHECK_COMMENT_MAX, CHECK_DAYS, CHECK_NAME_MAX, leaderCountsSentence, offerSignupHref, tokenFromHash, type LeaderView } from "@/lib/story-check";
+import { CHECK_COMMENT_MAX, CHECK_DAYS, CHECK_NAME_MAX, leaderCountsSentence, OFFER_STORAGE_KEY, offerSignupHref, offerStorageValue, tokenFromHash, type LeaderView } from "@/lib/story-check";
 import { useCentreTrialWords } from "@/components/centre/CentreTrialWords";
 
-/** Where a centre's offer reference waits between this page and the centre's set-up screen (app/(app)/centre). */
-const OFFER_KEY = "storyloop_leader_offer";
 
 type Phase = "loading" | "ready" | "gone";
 
@@ -112,6 +110,7 @@ export default function LeaderCheckPage() {
 
   const answered = Boolean(view.decision);
   const child = view.childName || "this child";
+  const offer = view.offer;
 
   return (
     <div className="wide-shell" data-testid="leader-check">
@@ -216,11 +215,13 @@ export default function LeaderCheckPage() {
           )}
         </section>
 
+        {/* No offer at all when the educator ended it or is already in a centre (lib/story-check-server.ts). */}
+        {offer && (
         <section className={`mt-5 rounded-3xl border p-6 sm:p-8 ${answered ? "border-clay-300 bg-paper shadow-soft" : "border-clay-100 bg-paper/70"}`} data-testid="leader-check-centre">
           <h2 className="font-display text-2xl font-bold text-ink-900" data-testid="leader-offer-heading">{view.educator} already writes with StoryLoop.</h2>
-          {view.offer.counts && (
+          {offer.counts && (
             <p className="mt-2 max-w-2xl text-base leading-relaxed text-ink-700" data-testid="leader-offer-counts">
-              {leaderCountsSentence(view.educator, view.offer.counts)}
+              {leaderCountsSentence(view.educator, offer.counts)}
             </p>
           )}
           <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-700" data-testid="leader-offer-terms">
@@ -230,11 +231,11 @@ export default function LeaderCheckPage() {
           </p>
           <div className="mt-5">
             <a
-              href={offerSignupHref(view.offer)}
+              href={offerSignupHref(offer)}
               onClick={() => {
                 // Kept on this device too, for a leader who signs up in this browser. Not the link key; opens nothing.
-                try { if (view.offer.ref) window.localStorage.setItem(OFFER_KEY, view.offer.ref); } catch { /* the link carries it as well */ }
-                track("leader_check_centre_click", { answered, to: "signup", counts: Boolean(view.offer.counts), named: Boolean(view.centreName) }, AT);
+                try { if (offer.ref) window.localStorage.setItem(OFFER_STORAGE_KEY, offerStorageValue(offer.ref)); } catch { /* the link carries it as well */ }
+                track("leader_check_centre_click", { answered, to: "signup", counts: Boolean(offer.counts), named: Boolean(view.centreName) }, AT);
               }}
               className="btn-primary w-full justify-center px-6 py-3 text-base sm:w-auto"
               data-testid="leader-check-centre-link"
@@ -254,6 +255,7 @@ export default function LeaderCheckPage() {
             <FileText className="h-3.5 w-3.5 flex-none" /> For your owner, board or approved provider: the one-page data sheet
           </Link>
         </section>
+        )}
 
         <p className="mt-5 text-xs leading-relaxed text-ink-500">
           This link opens this one story only, until {day(view.expiresAt)}. Please do not pass it on.

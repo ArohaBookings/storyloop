@@ -4,10 +4,9 @@ import { Building2, Check, Copy, Loader2, Mail, ShieldCheck, UserPlus } from "lu
 import StartCentreMonth from "@/components/app/StartCentreMonth";
 import CentreOnBoardCard from "@/components/app/CentreOnBoardCard";
 import { useCentreTrialWords } from "@/components/centre/CentreTrialWords";
-import { offerRefFromHash } from "@/lib/story-check";
+import { OFFER_STORAGE_KEY, offerRefFromHash, offerRefFromStorage } from "@/lib/story-check";
 
 /** Set by the leader's page and by signup (lib/story-check.ts offerSignupHref): a story an educator sent, waiting to be claimed. */
-const OFFER_KEY = "storyloop_leader_offer";
 
 type LeaderOffer = { educator: string; centreName: string; status: "ready" | "invited" | "joined" | "unavailable" };
 
@@ -61,7 +60,9 @@ export default function CentrePage() {
     let active = true;
     (async () => {
       let ref = "";
-      try { ref = offerRefFromHash(window.location.hash) || window.localStorage.getItem(OFFER_KEY) || ""; } catch { /* no storage */ }
+      // A reference kept on this device counts for a day only (lib/story-check.ts offerRefFromStorage).
+      try { ref = offerRefFromHash(window.location.hash) || offerRefFromStorage(window.localStorage.getItem(OFFER_STORAGE_KEY)); } catch { /* no storage */ }
+      if (!ref) { try { window.localStorage.removeItem(OFFER_STORAGE_KEY); } catch { /* ignore */ } }
       let found: LeaderOffer | null = null;
       try {
         if (ref) {
@@ -69,7 +70,7 @@ export default function CentrePage() {
           const data = await response.json().catch(() => ({}));
           found = data.offer ?? null;
           // Claimed by this account or not claimable at all: either way, done with it on this device.
-          try { window.localStorage.removeItem(OFFER_KEY); } catch { /* ignore */ }
+          try { window.localStorage.removeItem(OFFER_STORAGE_KEY); } catch { /* ignore */ }
         }
         if (!found) {
           const response = await fetch("/api/centres/leader-offer");
@@ -295,20 +296,29 @@ export default function CentrePage() {
               ) : (
                 <>
                   <h2 className="font-display text-lg font-bold text-ink-900">Bring {offer.educator} in first</h2>
-                  <p className="mt-1 text-sm leading-relaxed text-ink-700">
-                    {offer.educator} sent you the story. One tap invites {offer.educator}, with nothing to type. {offer.educator}&apos;s
-                    drafts stay private unless {offer.educator} chooses to share them.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={inviteFromOffer}
-                    disabled={inviting || offer.status === "unavailable"}
-                    className="btn-primary mt-3"
-                    data-testid="centre-offer-invite-button"
-                  >
-                    {inviting ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
-                    Invite {offer.educator}
-                  </button>
+                  {offer.status !== "unavailable" && (
+                    <p className="mt-1 text-sm leading-relaxed text-ink-700">
+                      {offer.educator} sent you the story. One tap invites {offer.educator}, with nothing to type. {offer.educator}&apos;s
+                      drafts stay private unless {offer.educator} chooses to share them.
+                    </p>
+                  )}
+                  {offer.status === "unavailable" ? (
+                    // The same sentence the server gives (lib/leader-offer-server.ts), in place of a button that cannot work.
+                    <p className="mt-3 text-sm font-semibold leading-relaxed text-ink-800" data-testid="centre-offer-unavailable">
+                      {offer.educator} could not be invited from here. Ask {offer.educator} for an email address and invite them below.
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={inviteFromOffer}
+                      disabled={inviting}
+                      className="btn-primary mt-3"
+                      data-testid="centre-offer-invite-button"
+                    >
+                      {inviting ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+                      Invite {offer.educator}
+                    </button>
+                  )}
                 </>
               )}
             </div>

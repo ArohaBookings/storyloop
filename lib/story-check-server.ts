@@ -8,6 +8,8 @@ import {
   leaderCounts,
   leaderView,
   looksLikeCheckToken,
+  offerEnded,
+  offerEndedMarker,
   type CheckDecision,
   type CheckRow,
   type EducatorCheckView,
@@ -16,8 +18,8 @@ import {
 } from "@/lib/story-check";
 import { hashCheckToken, hashOfferRef, offerRefFor } from "@/lib/story-check-token";
 import { getOrCreateReferralCode } from "@/lib/referrals";
-import { parseTermSettings } from "@/lib/term-settings";
-import { latestStartedTerm, localDate } from "@/lib/terms";
+import { getMembership } from "@/lib/centres";
+import { isCentrePlan } from "@/lib/centre-offer";
 
 export const CHECK_COLUMNS = "id, story_id, user_id, status, leader_name, comment, created_at, opened_at, decided_at, expires_at, revoked_at, centre_name, share_counts";
 const COLUMNS = CHECK_COLUMNS;
@@ -36,17 +38,8 @@ async function findCheck(token: string): Promise<FoundCheck | null> {
  */
 async function countsFor(userId: string, now: Date): Promise<LeaderCounts | null> {
   try {
-    const admin = createAdminSupabase();
-    const { data: profile } = await admin.from("profiles").select("term_settings, story_preferences").eq("id", userId).maybeSingle();
-    const framework = (profile?.story_preferences as { defaultFramework?: string } | null)?.defaultFramework ?? null;
-    const settings = parseTermSettings(profile?.term_settings, framework);
-    const today = localDate(now, settings.jurisdiction);
-    const term = today ? latestStartedTerm(today, settings.jurisdiction) : null;
-    // From whichever is earlier: 30 days ago, or the start of this term.
-    const since30 = new Date(now.getTime() - 31 * 86_400_000);
-    const termStart = term ? new Date(`${term.start}T00:00:00Z`) : since30;
-    const since = new Date(Math.min(since30.getTime(), termStart.getTime() - 86_400_000));
-    const { data: stories, error } = await admin
+    const since = new Date(now.getTime() - 31 * 86_400_000);
+    const { data: stories, error } = await createAdminSupabase()
       .from("stories")
       .select("child_name, created_at")
       .eq("user_id", userId)
@@ -54,14 +47,24 @@ async function countsFor(userId: string, now: Date): Promise<LeaderCounts | null
       .order("created_at", { ascending: false })
       .limit(2000);
     if (error || !stories) return null;
-    return leaderCounts(stories as Array<{ child_name: string | null; created_at: string }>, {
-      now,
-      jurisdiction: settings.jurisdiction,
-      followsSchoolTerms: settings.followsSchoolTerms,
-    });
+    return leaderCounts(stories as Array<{ child_name: string | null; created_at: string }>, { now });
   } catch (error) {
     console.error("Leader counts skipped:", error);
     return null;
+  }
+}
+
+/**
+ * Is the educator who sent this story already in a centre, or on a centre plan
+ * herself? Then the leader is offered nothing: the story check is all the page
+ * is. Errs towards no offer when it cannot tell.
+ */
+async function alreadyInCentre(userId: string, plan: string | null | undefined): Promise<boolean> {
+  if (isCentrePlan(plan)) return true;
+  try {
+    return Boolean(await getMembership(userId));
+  } catch {
+    return true;
   }
 }
 
@@ -75,9 +78,15 @@ async function viewFor(check: CheckRow, now: Date, token: string, offerRefHash: 
   const admin = createAdminSupabase();
   const [{ data: story }, { data: profile }] = await Promise.all([
     admin.from("stories").select("child_name, observations, story_text, outcomes, next_steps, created_at").eq("id", check.story_id).eq("user_id", check.user_id).maybeSingle(),
-    admin.from("profiles").select("full_name").eq("id", check.user_id).maybeSingle(),
+    admin.from("profiles").select("full_name, plan").eq("id", check.user_id).maybeSingle(),
   ]);
   if (!story) return null;
+  const educatorName = profile?.full_name ?? null;
+  // No offer at all when the educator ended it (lib/story-check.ts offerEnded),
+  // or when she is already in a centre or on a centre plan herself.
+  if (offerEnded(offerRefHash) || (await alreadyInCentre(check.user_id, profile?.plan))) {
+    return leaderView({ story, check, educatorName, now, offer: null });
+  }
   const ref = offerRefFor(token);
   if (!offerRefHash) {
     await admin.from("story_checks").update({ offer_ref_hash: hashOfferRef(ref) }).eq("id", check.id).is("offer_ref_hash", null)
@@ -87,7 +96,7 @@ async function viewFor(check: CheckRow, now: Date, token: string, offerRefHash: 
     getOrCreateReferralCode(check.user_id).catch(() => null),
     check.share_counts === true ? countsFor(check.user_id, now) : Promise.resolve(null),
   ]);
-  return leaderView({ story, check, educatorName: profile?.full_name ?? null, now, offer: { code, ref, counts } });
+  return leaderView({ story, check, educatorName, now, offer: { code, ref, counts } });
 }
 
 /**
@@ -164,4 +173,54 @@ export async function latestChecksByStory(userId: string, now = new Date()): Pro
   } catch {
     return {};
   }
+}
+
+/**
+ * The educator's own control over a story's links (13 Nov 2026 review).
+ *
+ * `cancel` (DELETE, "Cancel the link"): every link for this story stops
+ * opening it, answered or not. `replace` (a new link is being made): only the
+ * unanswered ones stop, as before. Either way, EVERY check for the story, in
+ * any state, loses its centre offer: the reference is replaced by a marker
+ * that matches no reference and is never filled in again, and any claim on it
+ * is cleared. A leader who had claimed it sees no educator to invite. No
+ * migration: the marker lives in the existing offer_ref_hash column.
+ */
+export async function endStoryLinks(storyId: string, userId: string, mode: "cancel" | "replace", now = new Date()): Promise<{ ok: boolean }> {
+  const admin = createAdminSupabase();
+  let revoke = admin
+    .from("story_checks")
+    .update({ revoked_at: now.toISOString() })
+    .eq("story_id", storyId)
+    .eq("user_id", userId)
+    .is("revoked_at", null);
+  if (mode === "replace") revoke = revoke.in("status", ["sent", "opened"]);
+  const { error: revokeError } = await revoke;
+  if (revokeError) {
+    console.error("Leader check revoke failed:", revokeError.message);
+    return { ok: false };
+  }
+  const { data: rows, error: listError } = await admin
+    .from("story_checks")
+    .select("id, offer_ref_hash, offer_claimed_by")
+    .eq("story_id", storyId)
+    .eq("user_id", userId)
+    .limit(200);
+  if (listError) {
+    console.error("Leader offer end failed:", listError.message);
+    return { ok: false };
+  }
+  let ok = true;
+  for (const row of (rows ?? []) as Array<{ id: string; offer_ref_hash: string | null; offer_claimed_by: string | null }>) {
+    if (offerEnded(row.offer_ref_hash) && !row.offer_claimed_by) continue;
+    const { error } = await admin
+      .from("story_checks")
+      .update({ offer_ref_hash: offerEndedMarker(row.id), offer_claimed_by: null, offer_claimed_at: null })
+      .eq("id", row.id);
+    if (error) {
+      console.error("Leader offer end failed:", error.message);
+      ok = false;
+    }
+  }
+  return { ok };
 }

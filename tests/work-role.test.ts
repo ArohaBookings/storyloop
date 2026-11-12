@@ -36,3 +36,18 @@ test("nobody already on, or covered by, a centre plan is asked or offered anythi
     assert.equal(teamCardFor({ ...base, role, coveredByCentre: true }), null);
   }
 });
+
+test("a leader or owner is never shown 'Get your centre on board'", async () => {
+  const { showsOnBoardCard } = await import("../lib/work-role");
+  for (const role of ["leader", "owner"] as const) {
+    assert.equal(showsOnBoardCard({ role, inCentre: false, centrePlan: false }), false, role);
+  }
+  for (const role of ["educator", "student", null] as const) {
+    assert.equal(showsOnBoardCard({ role, inCentre: false, centrePlan: false }), true, String(role));
+    assert.equal(showsOnBoardCard({ role, inCentre: true, centrePlan: false }), false);
+    assert.equal(showsOnBoardCard({ role, inCentre: false, centrePlan: true }), false);
+  }
+  const { readFileSync } = await import("node:fs");
+  assert.match(readFileSync("app/api/centres/route.ts", "utf8"), /showsOnBoardCard\(\{ role, inCentre: false, centrePlan: isCentrePlan\(profile\?\.plan\) \}\)/);
+  assert.match(readFileSync("app/(app)/dashboard/page.tsx", "utf8"), /showsOnBoardCard\(\{ role: roleFacts\.role/);
+});

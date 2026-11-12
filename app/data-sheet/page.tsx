@@ -146,7 +146,7 @@ const ROWS: Row[] = [
     label: "Billing",
     lines: [
       "Billed monthly by Stripe, in New Zealand or Australian dollars. No contract and no per-child fee.",
-      `Centre plans start with ${CENTRE_TRIAL_DAYS} days free, no card. If no card is added by the end, nothing is charged and the account drops back to the free plan with everything kept.`,
+      `Centre plans start with at least ${CENTRE_TRIAL_DAYS} days free, no card. If no card is added by the end, nothing is charged and the account drops back to the free plan with everything kept.`,
       "Cancel any time from the Billing page; cancellation takes effect at the end of the billing period. Only the centre's owner can change billing.",
     ],
   },

@@ -161,3 +161,24 @@ test("a centre with no card is told how to keep going, not that a payment will b
   const withCard = renderLifecycleEmail({ type: "trial_ending", userId: "u", recipient: "a@b.nz", name: "Aroha", context: { centreTrial: true, cardOnFile: true } });
   assert.match(withCard.text, /first payment/);
 });
+
+test("the founding discount: removed after three paid months, put back if it lapsed before then, never otherwise", async () => {
+  const { foundingDiscountAction } = await import("../lib/centre-offer");
+  const act = (status: string, paidMonths: number, hasFoundingDiscount: boolean) => foundingDiscountAction({ status, paidMonths, hasFoundingDiscount });
+  for (const status of ["trialing", "active", "past_due"]) {
+    for (const paid of [0, 1, 2]) {
+      assert.equal(act(status, paid, false), "attach", `${status} ${paid}`);
+      assert.equal(act(status, paid, true), "nothing", `${status} ${paid}: never attached twice`);
+    }
+    assert.equal(act(status, 3, true), "remove");
+    assert.equal(act(status, 4, true), "remove");
+    assert.equal(act(status, 3, false), "nothing");
+  }
+  for (const status of ["canceled", "unpaid", "incomplete", "incomplete_expired", "paused"]) {
+    assert.equal(act(status, 1, false), "nothing", `${status} is never repaired`);
+  }
+  assert.equal(act("unpaid", 3, true), "remove");
+  const source = (await import("node:fs")).readFileSync("lib/centre-offer.ts", "utf8");
+  const settle = source.slice(source.indexOf("export async function settleFoundingDiscount"));
+  assert.ok(settle.indexOf('sub.metadata?.founding_centre !== "true") return result') < settle.indexOf("foundingDiscountAction("), "only for subscriptions marked founding_centre");
+});

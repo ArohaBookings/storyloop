@@ -5,7 +5,7 @@ import { consumeRateLimit } from "@/lib/rate-limit";
 import { SITE_URL } from "@/lib/email/config";
 import { checkExpiry, checkUrl, cleanCentreName, educatorView, type CheckRow } from "@/lib/story-check";
 import { hashOfferRef, newCheckToken, offerRefFor } from "@/lib/story-check-token";
-import { CHECK_COLUMNS } from "@/lib/story-check-server";
+import { CHECK_COLUMNS, endStoryLinks } from "@/lib/story-check-server";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -49,7 +49,8 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 /**
  * Make a private link to this one story for a leader to check. The link is
  * returned once and never stored: only its hash is. Any earlier unanswered
- * link for the same story stops working, so there is one live link at a time.
+ * link for the same story stops working, so there is one live link at a time,
+ * and no earlier link for the story keeps a centre offer.
  */
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
@@ -67,13 +68,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     const admin = createAdminSupabase();
     const now = new Date();
-    await admin
-      .from("story_checks")
-      .update({ revoked_at: now.toISOString() })
-      .eq("story_id", own.storyId)
-      .eq("user_id", own.user.id)
-      .in("status", ["sent", "opened"])
-      .is("revoked_at", null);
+    // One live link at a time, and every earlier link's centre offer ends here.
+    await endStoryLinks(own.storyId, own.user.id, "replace", now);
 
     const { token, hash } = newCheckToken();
     const { data, error } = await admin
@@ -101,22 +97,17 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 }
 
-/** Cancel a link the leader has not answered yet. It stops opening the story straight away. */
+/**
+ * Cancel the link, answered or not. It stops opening the story straight away,
+ * and the centre offer it carried ends with it, claimed or not
+ * (lib/story-check-server.ts endStoryLinks).
+ */
 export async function DELETE(_request: NextRequest, context: RouteContext) {
   try {
     const own = await ownStory(context);
     if ("error" in own) return own.error;
-    const { error } = await createAdminSupabase()
-      .from("story_checks")
-      .update({ revoked_at: new Date().toISOString() })
-      .eq("story_id", own.storyId)
-      .eq("user_id", own.user.id)
-      .in("status", ["sent", "opened"])
-      .is("revoked_at", null);
-    if (error) {
-      console.error("Leader check cancel failed:", error.message);
-      return NextResponse.json({ error: "Could not cancel the link." }, { status: 500 });
-    }
+    const { ok } = await endStoryLinks(own.storyId, own.user.id, "cancel");
+    if (!ok) return NextResponse.json({ error: "Could not cancel the link." }, { status: 500 });
     return NextResponse.json({ check: educatorView(await latestCheck(own.storyId, own.user.id)) });
   } catch (error) {
     console.error("Leader check cancel error:", error);

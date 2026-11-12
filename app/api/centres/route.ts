@@ -5,6 +5,8 @@ import { getMembership, getCentre, countActiveMembers, canManageTeam, seatsRemai
 import { normalizePlanKey, getPlanByKey } from "@/lib/plans";
 import { isCentrePlan } from "@/lib/centre-offer";
 import { educatorFirstName } from "@/lib/story-check";
+import { showsOnBoardCard } from "@/lib/work-role";
+import { workRoleFacts } from "@/lib/work-role-server";
 
 /**
  * A centre, and who is in it.
@@ -86,8 +88,8 @@ export async function GET() {
 }
 
 /**
- * "Get your centre on board" (13 Nov 2026), for an educator in no centre and
- * not on a centre plan: where their newest saved story is, so the card's one
+ * "Get your centre on board" (13 Nov 2026), for an educator in no centre, not
+ * on a centre plan, and not a leader or owner (lib/work-role.ts): where their newest saved story is, so the card's one
  * button opens its "Send this story to your leader" panel. Null for anyone
  * the card is not for.
  */
@@ -98,7 +100,9 @@ async function onBoardFor(userId: string): Promise<{ newestStoryId: string | nul
       admin.from("profiles").select("plan").eq("id", userId).maybeSingle(),
       admin.from("stories").select("id").eq("user_id", userId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     ]);
-    if (isCentrePlan(profile?.plan)) return null;
+    // A leader or owner is shown her own centre's set-up, never "show your leader".
+    const { role } = await workRoleFacts(userId);
+    if (!showsOnBoardCard({ role, inCentre: false, centrePlan: isCentrePlan(profile?.plan) })) return null;
     return { newestStoryId: (newest?.id as string | undefined) ?? null };
   } catch {
     return null;
