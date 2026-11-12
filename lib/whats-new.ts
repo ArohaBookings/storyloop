@@ -32,7 +32,7 @@ export function whatsNewMonth(version: string = WHATS_NEW_VERSION): string {
  */
 // RELEASE STEP: set this to the day the notes actually go live. It decides who
 // counts as an existing user (accounts made before it) and starts the 21 days.
-export const WHATS_NEW_PUBLISHED = "2026-11-11";
+export const WHATS_NEW_PUBLISHED = "2026-11-13";
 
 /**
  * How long a set of notes stays news. After this the card is not shown to
