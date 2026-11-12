@@ -112,6 +112,13 @@ const GUIDES = [
     icon: FileCheck,
   },
   {
+    href: "/first-learning-story-of-the-year",
+    kicker: "Australia and Aotearoa · New",
+    title: "A new child's first learning story",
+    description: "Six settling-in stories from a baby to a four year old, what to ask families before day one, and what to leave out.",
+    icon: FileCheck,
+  },
+  {
     href: "/te-whariki-pdf",
     kicker: "Aotearoa · New",
     title: "The Te Whāriki PDF, page by page",

@@ -249,6 +249,8 @@ export const RELATED = {
   familyLanguages: { href: "/learning-stories-in-family-languages", title: "Stories in a family's language", body: "What to translate, what never to translate, and how families can write back." },
   secondLanguage: { href: "/writing-learning-stories-english-second-language", title: "Writing in a second language", body: "Start in the language you think in, then get it into English you can stand behind." },
   leaderCheck: { href: "/how-to-check-a-learning-story", title: "How to check a learning story", body: "Five questions a leader can ask in two minutes, and feedback that helps." },
+  // 13 Nov 2026: the first story for a new child (lib/seo-pages-2026-11.ts).
+  firstStory: { href: "/first-learning-story-of-the-year", title: "A new child's first learning story", body: "Six settling-in stories from a baby to a four year old, and what to ask families first." },
 } as const;
 
 export type RelatedKey = keyof typeof RELATED;

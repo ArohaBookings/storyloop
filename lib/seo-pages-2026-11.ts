@@ -1,4 +1,30 @@
 import type { SeoPage } from "./seo-pages";
+import { EYLF_OUTCOMES } from "./eylf-outcomes";
+import { TE_WHARIKI_STRANDS } from "./te-whariki-strands";
+
+/**
+ * An EYLF V2.0 key component written out in full from lib/eylf-outcomes.ts
+ * (the published wording), so an example can never misquote the framework.
+ */
+function eylfKeyComponent(code: string): string {
+  for (const outcome of EYLF_OUTCOMES) {
+    const sub = outcome.subs.find((item) => item.code === code);
+    if (sub) return `EYLF Outcome ${outcome.n}: ${outcome.title}, "${sub.text}" (${code})`;
+  }
+  throw new Error(`Unknown EYLF key component ${code}`);
+}
+
+/**
+ * A Te Whāriki learning outcome with its strand, from lib/te-whariki-strands.ts
+ * (copied from Te Whāriki 2017), found by its English wording.
+ */
+function teWharikiOutcome(english: string): string {
+  for (const strand of TE_WHARIKI_STRANDS) {
+    const outcome = strand.outcomes.find((item) => item.en === english);
+    if (outcome) return `${strand.maori} | ${strand.english}, "${outcome.mi} | ${outcome.en}"`;
+  }
+  throw new Error(`Unknown Te Whāriki learning outcome ${english}`);
+}
 
 /**
  * Guides added 12 Nov 2026: three questions the November features answer and
@@ -249,5 +275,178 @@ export const NOV_2026_PAGES: Record<string, SeoPage> = {
       },
     ],
     sources: [ACECQA_QA7, ACECQA_13],
+  },
+
+  // 13 Nov 2026 (staged for release before 15 Dec, so it is indexed when rooms
+  // restart in late January): the first learning story for a new child.
+  // Transition searches fall away from about 21 Dec; the next job educators
+  // search for is settling in. Read on 13 Nov 2026: EYLF V2.0 (full 2022 text,
+  // "Continuity of learning and transitions", page 24), Te Whāriki Online
+  // "Mana whenua | Belonging" (Te Whāriki pages 31 to 35) and ACECQA Quality
+  // Area 6 (Element 6.1.1). The six children are imagined, to show the shape.
+  // Outcome wording comes from lib/eylf-outcomes.ts and lib/te-whariki-strands.ts.
+  "first-learning-story-of-the-year": {
+    slug: "first-learning-story-of-the-year",
+    title: "First Learning Story of the Year: Settling-In Examples",
+    description:
+      "Settling-in learning story examples for a new child: six first stories from a baby to a 4 year old, with the EYLF or Te Whāriki link and a next step.",
+    kicker: "Educator guide · new children · EYLF and Te Whāriki",
+    heading: "The first learning story for a new child, written in their first weeks.",
+    intro:
+      "A new child, a family who wants to know they are all right, and nothing written down yet. The first story does not need to show much learning. It needs to show the family that someone noticed their child. Here is what the frameworks say about starting, what to ask families before the first day, six short examples from a baby to a four year old, and what to leave out.",
+    reviewedAt: "2026-11-13",
+    siblingLinks: {
+      heading: "Close to this",
+      links: [
+        { label: "EYLF learning story examples", href: "/learning-story-examples-eylf" },
+        { label: "NZ learning story examples", href: "/learning-story-examples-nz" },
+        { label: "Learning stories families actually read", href: "/parent-friendly-learning-stories" },
+      ],
+    },
+    sections: [
+      {
+        title: "Settle first, then write",
+        body:
+          "In the first weeks your job is the child, not the paperwork. Jot one line when something small happens: the first time they join a game, ask for help or go back to the same toy. One of those lines becomes the first story.",
+      },
+      {
+        title: "Start from what the family told you",
+        body:
+          "EYLF V2.0 says educators who know and build on what children bring from home help them feel secure, confident and connected. Te Whāriki says transitions into a setting recognise what children bring with them. Use the family's answers in the story.",
+      },
+      {
+        title: "Write what you saw, not how they felt",
+        body:
+          "\"Settled well\" and \"was sad\" tell a family very little. \"Watched the sandpit from the step, then took the red bucket in\" tells them a lot. Describe what the child did and said, and let the family read the feeling.",
+      },
+    ],
+    faqs: [
+      {
+        question: "When should I write a new child's first learning story?",
+        answer:
+          "Neither EYLF V2.0 nor Te Whāriki sets a deadline for a first story, so check your service's own policy. Write it when a real moment gives you something to say, usually within the first few weeks. A short true story in week two is worth more to a family than a long one in week six.",
+      },
+      {
+        question: "What should a settling-in learning story include?",
+        answer:
+          "One moment the child chose, told in order, with any words they said kept exactly. One line on what it shows, linked to an outcome only if it fits. Where to next, and one question for the family. It can be five or six sentences long.",
+      },
+      {
+        question: "Should I write about a hard drop-off or crying?",
+        answer:
+          "Only if it helps the family, and only briefly. Say what happened and what helped, in plain words (\"Sam cried when Dad left, then held my hand and watched the fish tank\"), and talk to the family before it goes in writing. A first story is better about something the child chose to do.",
+      },
+      {
+        question: "Which outcome fits a settling-in learning story?",
+        answer:
+          "In Australia it is often EYLF V2.0 Outcome 1, Children have a strong sense of identity, and especially 1.1, \"Children feel safe, secure and supported\". In Aotearoa it is often the Mana whenua | Belonging strand, for example \"Understanding how things work here and adapting to change\". Link what the moment actually shows, not what the week was about.",
+      },
+      {
+        question: "What should I ask a family before their child starts?",
+        answer:
+          "What do you call your child at home? What words, in any language, will they use for drink, toilet, sleep and help? What comforts them? What do they love doing right now? Who is in their family, and who might pick them up? Their answers give you the details that make the first story theirs.",
+      },
+      {
+        question: "Can StoryLoop write the first story from my notes?",
+        answer:
+          "Yes. Type the one line you jotted down and StoryLoop drafts the learning story with the EYLF V2.0 or Te Whāriki link the moment actually shows, keeps the child's words exactly as you wrote them, and adds where to next and a question for the family. Try it on this page without signing up, and check every word before anything is shared.",
+      },
+    ],
+    deepDive: [
+      {
+        heading: "What the frameworks say about starting",
+        paragraphs: [
+          "EYLF V2.0 has a practice called Continuity of learning and transitions. It says children bring their individual, family and community ways of being, belonging and becoming, often called funds of knowledge, and that \"Educators who know and build on children's funds of knowledge help them to feel secure, confident and connected to familiar people, places, events and understandings.\" It names starting at an early childhood setting as one of the bigger transitions.",
+          "Te Whāriki says it in the Mana whenua | Belonging strand: \"Transitions into and across settings are thoughtfully planned and recognise what children bring with them.\" For infants it describes language, key words, signs and routines from home being used in the setting, and a familiar and unhurried kaiako who has primary responsibility for each infant.",
+          "In Australia, Element 6.1.1 of the National Quality Standard reads: \"Families are supported from enrolment to be involved in the service and contribute to service decisions.\" A first story with a question at the end is one of the simplest ways to start that.",
+        ],
+      },
+      {
+        heading: "Before the first day: five questions for the family",
+        paragraphs: [
+          "Many services call this an \"all about me\" page. Keep it short enough that a tired parent will fill it in: what do you call your child at home; what words, in any language, will they use for drink, toilet, sleep and help; what comforts them; what do they love doing right now; and who is in their family.",
+          "Read the answers before the child arrives and keep them where every educator in the room can see them. Every example below uses one.",
+        ],
+      },
+      {
+        heading: "Baby: Theo, 9 months, week two (example, EYLF)",
+        paragraphs: [
+          "The note: \"Theo's mum said he settles to 'Twinkle Twinkle'. Fussing at 10.30 before sleep. Sang it, he stopped, watched my mouth, put his hand on my cheek. Asleep by the second verse.\"",
+          "The story: Theo's mum told us that \"Twinkle Twinkle\" is the song that settles him at home. This morning, when Theo was tired and fussing before his sleep, his educator sang it. Theo went quiet, watched her face and put his hand on her cheek. He was asleep before the second verse.",
+          `The learning: ${eylfKeyComponent("1.1")}. A song from home helped Theo feel safe with a new person in a new place, and he showed it by turning towards her.`,
+          "Where to next: sing the same song at every sleep this month, and keep the same educator for Theo's sleeps where we can. For the family: are there other songs or words you use at bedtime?",
+        ],
+      },
+      {
+        heading: "Toddler: Amara, 22 months, week one (example, Te Whāriki)",
+        paragraphs: [
+          "The note: \"Amara brought the photo of her nan from home. Carried it all morning. At kai she put it on the table next to her plate, pointed, 'Nana'. Showed Kauri.\"",
+          "The story: Amara, today you brought the photo of your nana from home. You carried it with you all morning, and at kai time you stood it on the table beside your plate. You pointed at it and said, \"Nana,\" and then you showed it to Kauri.",
+          `The learning: ${teWharikiOutcome("Making connections between people, places and things in their world")}. Amara brought someone important from home into her new place and shared her with a friend.`,
+          "Where to next: make a small space on the family wall for Amara's photo, and invite her whānau to send more. For the whānau: who is in the photo, and what does Amara call her other grandparents?",
+        ],
+      },
+      {
+        heading: "Toddler: Kai, 2 years 4 months, week three (example, EYLF)",
+        paragraphs: [
+          "The note: \"Family form: Kai loves trains. Day 1-3 stayed by the door. Today he found the train set, pushed the long train round the track, looked back at me each lap. Said 'choo choo' to Mila when she sat down.\"",
+          "The story: Kai's family told us he loves trains. For his first few days Kai stayed close to the door. This morning he found the train set, pushed the long train all the way around the track and looked back at his educator every time he came past. When Mila sat down beside him, he told her, \"Choo choo.\"",
+          `The learning: ${eylfKeyComponent("1.1")}. Kai used something he loves from home to find his place in the room, and checked back with a familiar adult while he did it.`,
+          "Where to next: leave the train set out near the door this week, and add a tunnel and bridge for Kai and Mila to build together. For the family: which trains does Kai know by name?",
+        ],
+      },
+      {
+        heading: "Preschooler: Hana, 3 years 6 months, week two (example, Te Whāriki)",
+        paragraphs: [
+          "The note: \"Hana moved from another centre. Knew straight away when kai was coming, got her drink bottle and sat at the table before we called. Asked 'Do we say karakia here?' We said one together.\"",
+          "The story: Hana, you have only been with us for two weeks, and already you know when kai time is coming. Today you fetched your drink bottle and sat at the table before anyone called. Then you asked, \"Do we say karakia here?\" We said one together.",
+          `The learning: ${teWharikiOutcome("Understanding how things work here and adapting to change")}. Hana is learning our routines and asking how they fit with what she knew at her last centre.`,
+          "Where to next: ask Hana to help start karakia before kai this week, and talk with her about what was the same and different at her old centre. For the whānau: what karakia or waiata does Hana know from home or her last centre?",
+        ],
+      },
+      {
+        heading: "Preschooler: Sofia, 4 years 1 month, week one (example, EYLF)",
+        paragraphs: [
+          "The note: \"Sofia's dad: she speaks Spanish at home. At the playdough table she made 'tortillas', patted them flat. Told Jack 'para ti'. He said 'thank you'. She laughed and made him another.\"",
+          "The story: At the playdough table Sofia rolled balls and patted them flat. \"Tortillas,\" she said. She handed one to Jack and said, \"Para ti.\" Jack said, \"Thank you,\" and Sofia laughed and made him another one.",
+          `The learning: ${eylfKeyComponent("1.3")}. Sofia brought her home language and something she knows from home into her play, and used them to make a new friend.`,
+          "Where to next: learn a few Spanish words from Sofia's family to use at meal times, and add a rolling pin and flat pans to the playdough table. For the family: what does Sofia like to cook or eat with you at home, and how do you say \"thank you\" in Spanish?",
+        ],
+      },
+      {
+        heading: "Preschooler: Oliver, 4 years 7 months, new room (example, EYLF)",
+        paragraphs: [
+          "The note: \"Oliver moved up from the toddler room. First morning: went back to the toddler room door twice. Third time I walked with him. He waved to Kate through the window, came back, joined the block corner with Ruby.\"",
+          "The story: This week Oliver moved up from the toddler room. On his first morning he walked back to his old room's door twice. The third time his educator walked with him, and Oliver waved to Kate through the window. Then he came back and joined Ruby in the block corner.",
+          `The learning: ${eylfKeyComponent("1.2")}. Oliver chose how to say goodbye to his old room and then made his own way into the new one.`,
+          "Where to next: invite Oliver to visit Kate and take her a message this week, and give him a job he can do each morning in his new room. For the family: has Oliver talked about his new room at home?",
+        ],
+      },
+      {
+        heading: "What to leave out of a first story",
+        paragraphs: [
+          "Comparisons with other children, guesses at feelings (\"she was missing Mum\"), \"settled well\" with nothing behind it, and words like clingy, shy or anxious. A family reads those as a verdict on their child in week one.",
+          "Leave out other children's surnames and anything private the family told you on the enrolment form unless you have checked with them first.",
+        ],
+      },
+      {
+        heading: "The first story starts the second",
+        paragraphs: [
+          "Every example ends with a question for the family. Their answer is the start of the next story: the songs Theo's family sings, the trains Kai knows by name, how to say thank you in Spanish. That is the planning cycle, started in a child's first weeks.",
+          "The note is the part only you can write. Type it into the box on this page and StoryLoop drafts the learning story with the EYLF V2.0 or Te Whāriki link the moment shows, where to next and a question for the family, keeping the child's words exactly as you wrote them. Use a first name only, and check every word before anything is shared.",
+        ],
+      },
+    ],
+    sources: [
+      {
+        label: "Belonging, Being and Becoming: The Early Years Learning Framework for Australia V2.0 (2022), Continuity of learning and transitions, page 24",
+        url: "https://www.acecqa.gov.au/sites/default/files/2023-01/EYLF-2022-V2.0.pdf",
+      },
+      {
+        label: "Te Whāriki Online: Mana whenua | Belonging, Strand 2 (Te Whāriki pages 31 to 35)",
+        url: "https://tewhariki.tahurangi.education.govt.nz/mana-whenua-belonging---strand-2/5637177578.p",
+      },
+      ACECQA_QA6,
+    ],
   },
 };
