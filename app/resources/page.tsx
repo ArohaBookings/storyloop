@@ -119,6 +119,13 @@ const GUIDES = [
     icon: FileCheck,
   },
   {
+    href: "/mtop-learning-stories",
+    kicker: "Australia · OSHC · New",
+    title: "My Time, Our Place learning stories",
+    description: "Six school age care stories from a Prep child to an 11 year old, each with the MTOP V2.0 outcome and the child's own words.",
+    icon: FileCheck,
+  },
+  {
     href: "/te-whariki-pdf",
     kicker: "Aotearoa · New",
     title: "The Te Whāriki PDF, page by page",

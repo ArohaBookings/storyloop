@@ -68,6 +68,92 @@ const EYLF_V2 = {
   url: "https://www.acecqa.gov.au/sites/default/files/2023-01/Belonging_Being_And_Becoming_V2.0.pdf",
 };
 
+const MTOP_V2 = {
+  label: "My Time, Our Place: Framework for School Age Care in Australia V2.0 (2022), Australian Government Department of Education for the Ministerial Council",
+  url: "https://www.acecqa.gov.au/sites/default/files/2023-01/MTOP-V2.0.pdf",
+};
+
+/**
+ * My Time, Our Place V2.0: the five outcomes and their key components, copied
+ * on 18 Nov 2026 from the framework PDF (MTOP_V2). Each key component is the
+ * heading of its own section (pages 35 to 62); the bullet lists at the top of
+ * each outcome word three of them slightly differently ("and agency", "a sense
+ * of positive self-worth", "the reciprocal rights"). Every key component starts
+ * "Children and young people".
+ */
+export const MTOP_OUTCOMES: Array<{ n: number; title: string; components: string[] }> = [
+  {
+    n: 1,
+    title: "Children and young people have a strong sense of identity",
+    components: [
+      "feel safe, secure and supported",
+      "develop their autonomy, interdependence, resilience and sense of agency",
+      "develop knowledgeable, confident self-identities and a positive sense of self-worth",
+      "learn to interact in relation to others with care, empathy and respect",
+    ],
+  },
+  {
+    n: 2,
+    title: "Children and young people are connected with and contribute to their world",
+    components: [
+      "develop a sense of belonging to groups and communities and an understanding of their reciprocal rights and responsibilities necessary as active and informed citizens",
+      "respond to diversity with respect",
+      "become aware of fairness",
+      "become socially responsible and show respect for the environment",
+    ],
+  },
+  {
+    n: 3,
+    title: "Children and young people have a strong sense of wellbeing",
+    components: [
+      "become strong in their social, emotional and mental wellbeing",
+      "become strong in their physical learning and wellbeing",
+      "are aware of and develop strategies to support their own mental and physical health, and personal safety",
+    ],
+  },
+  {
+    n: 4,
+    title: "Children and young people are confident and involved learners",
+    components: [
+      "develop a growth mindset and learning dispositions such as curiosity, cooperation, confidence, creativity, commitment, enthusiasm, persistence, imagination and reflexivity",
+      "develop a range of learning and thinking skills and processes such as problem solving, inquiry, experimentation, hypothesising, researching and investigating",
+      "transfer and adapt what they have learned from one context to another",
+      "resource their own learning through connecting with people, place, technologies and natural and processed materials",
+    ],
+  },
+  {
+    n: 5,
+    title: "Children and young people are effective communicators",
+    components: [
+      "interact verbally and non-verbally with others for a range of purposes",
+      "engage with and gain meaning from a range of visual images and texts",
+      "collaborate with others, express ideas and make meaning using a range of digital technologies and media and communication technologies",
+    ],
+  },
+];
+
+/** An MTOP V2.0 key component quoted in full, so an example cannot misquote it. */
+function mtopKeyComponent(n: number, component: string): string {
+  const outcome = MTOP_OUTCOMES.find((item) => item.n === n);
+  if (!outcome || !outcome.components.includes(component)) {
+    throw new Error(`Unknown MTOP key component ${n}: ${component}`);
+  }
+  return `MTOP Outcome ${n}: ${outcome.title}, "Children and young people ${component}"`;
+}
+
+/** One paragraph per MTOP outcome: its title, then its key components. */
+function mtopOutcomeList(): string[] {
+  return [
+    "My Time, Our Place V2.0 has five outcomes. Each has key components, and every key component begins \"Children and young people\". Quote the one the moment actually shows.",
+    ...MTOP_OUTCOMES.map(
+      (outcome) =>
+        `Outcome ${outcome.n}: ${outcome.title}. Key components: ${outcome.components
+          .map((component) => `\"${component}\"`)
+          .join("; ")}.`,
+    ),
+  ];
+}
+
 export const NOV_2026_PAGES: Record<string, SeoPage> = {
   "learning-stories-in-family-languages": {
     slug: "learning-stories-in-family-languages",
@@ -448,5 +534,171 @@ export const NOV_2026_PAGES: Record<string, SeoPage> = {
       },
       ACECQA_QA6,
     ],
+  },
+
+  // 18 Nov 2026 (staged, waiting for "release the pages"): learning stories in
+  // outside school hours care. Every MTOP line here was read on 18 Nov 2026 in
+  // the framework PDF on ACECQA's site (MTOP_V2 below): the five outcomes and
+  // key components (pages 34 to 63, wording from each key component's own
+  // heading), "Assessment and evaluation for wellbeing, learning and
+  // development" (pages 26 to 28) and the planning cycle (pages 30 and 31).
+  // The framework never uses the words "learning story". The six children are
+  // imagined, to show the shape. StoryLoop's writer links EYLF V2.0, not MTOP,
+  // and the page says so.
+  "mtop-learning-stories": {
+    slug: "mtop-learning-stories",
+    title: "MTOP Learning Stories: My Time, Our Place V2.0 Examples",
+    description:
+      "Learning stories for OSHC and vacation care under My Time, Our Place V2.0: six examples for 5 to 11 year olds, with the MTOP outcome and the child's voice.",
+    kicker: "OSHC educator guide · My Time, Our Place V2.0",
+    heading: "Learning stories in school age care, written the My Time, Our Place way.",
+    intro:
+      "You have the children for an hour before school and three after it, they are tired, and most of what they do is play. That is exactly what My Time, Our Place is about. Here is what the framework asks you to document, how its five outcomes differ from the EYLF's, six short stories from a Prep child to an 11 year old, and how to put the child's own voice in every one.",
+    reviewedAt: "2026-11-18",
+    siblingLinks: {
+      heading: "Close to this",
+      links: [
+        { label: "EYLF learning story examples", href: "/learning-story-examples-eylf" },
+        { label: "Where to next: examples", href: "/learning-story-next-steps-examples" },
+      ],
+    },
+    sections: [
+      {
+        title: "Keep it short and true",
+        body:
+          "An OSHC story can be five sentences: what the child did, anything they said, kept exactly, what it shows, and what you will offer next. The note you jot at 4.15pm is the evidence. Write the story from that, not from memory on Friday.",
+      },
+      {
+        title: "Write it with the child",
+        body:
+          "My Time, Our Place calls this assessment \"as learning\": educators include children and young people in documenting their own learning. School age children can read the story, disagree with it and add their own line. Ask them, and write down what they say.",
+      },
+      {
+        title: "Link the MTOP outcome, not the EYLF one",
+        body:
+          "The five outcomes line up with the EYLF by theme, but the words are different and Outcome 5 has three key components, not five. If your service runs school age care, quote MTOP V2.0's wording in the child's record.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Do OSHC services have to write learning stories?",
+        answer:
+          "No. My Time, Our Place V2.0 does not mention learning stories. It says documentation happens at every stage of the planning cycle and that educators gather information in a variety of ways. A learning story is one of those ways, and it suits school age care because children can read it and add to it. Follow your service's own documentation policy.",
+      },
+      {
+        question: "What are the five My Time, Our Place outcomes?",
+        answer:
+          "Outcome 1: Children and young people have a strong sense of identity. Outcome 2: Children and young people are connected with and contribute to their world. Outcome 3: Children and young people have a strong sense of wellbeing. Outcome 4: Children and young people are confident and involved learners. Outcome 5: Children and young people are effective communicators.",
+      },
+      {
+        question: "What is the difference between MTOP and EYLF outcomes?",
+        answer:
+          "Both V2.0 frameworks have the same five outcome themes, but MTOP says \"children and young people\" throughout and puts play and leisure at the centre. Outcome 2's first key component is about belonging to groups and communities, where the EYLF says connectedness. Outcome 5 has three key components in MTOP (interacting with others, visual images and texts, and digital technologies) where the EYLF has five.",
+      },
+      {
+        question: "How often should I write a learning story for each child in OSHC?",
+        answer:
+          "My Time, Our Place sets no number. It asks that children's views are visible in the program plan and that documentation happens at every stage of the planning cycle. Your service's policy decides how often. Fewer, true stories that a child has read and added to are worth more than a story for everyone every week.",
+      },
+      {
+        question: "Can StoryLoop link My Time, Our Place outcomes?",
+        answer:
+          "Not yet. StoryLoop's Australian drafts link EYLF V2.0 wording. The outcome themes match MTOP's, so the draft gives you a start, but change the outcome line to the MTOP wording on this page before it goes in a child's record, and check every word.",
+      },
+      {
+        question: "What should a school age learning story include?",
+        answer:
+          "One moment, told in order. Anything the child said, word for word. One line on what it shows, linked to an MTOP key component only if it fits. What you will offer next. The child's own comment after they have read it, and a question for the family.",
+      },
+    ],
+    deepDive: [
+      {
+        heading: "What My Time, Our Place asks you to document",
+        paragraphs: [
+          "MTOP V2.0 calls this \"Assessment and evaluation for wellbeing, learning and development\". It describes an ongoing cycle \"that includes observing, documenting, analysing, planning, implementing and critical reflection\", and says \"documentation occurs at every stage of the planning cycle.\"",
+          "It names three kinds of assessment. Assessment \"as learning\" includes children and young people in documenting their own learning. Assessment \"of wellbeing and learning\" reviews achievements and capabilities at selected timepoints. Assessment \"for wellbeing and learning\" gathers what children feel, know, can do and understand, to inform planning for play and leisure. One good learning story can do all three.",
+          "On planning, it says: \"Children and young people's views are visible in the program plan.\" A story that ends with the child's own words, and a next step built from them, is that sentence on paper.",
+        ],
+      },
+      {
+        heading: "The five outcomes and their key components",
+        paragraphs: mtopOutcomeList(),
+      },
+      {
+        heading: "Prep: Ava, 5, before school care (example)",
+        paragraphs: [
+          "The note: \"Ava's first weeks at before care. Stood by the sign-in table every morning until Mum left. Today saw Lucas from her class at the Lego table and went straight over. 'Can I make the roof?' Built until the bell, walked to class with Lucas.\"",
+          "The story: For her first few mornings Ava stayed near the sign-in table until Mum had gone. Today she spotted Lucas from her class at the Lego table and walked straight over. \"Can I make the roof?\" she asked. They built together until the bell, then walked to class side by side.",
+          `The learning: ${mtopKeyComponent(1, "feel safe, secure and supported")}. Ava found a familiar face and used it to make a new place her own.`,
+          "Ava's words, when we read it with her: \"Lucas is my friend at school and here.\"",
+          "Where to next: keep the Lego out near the sign-in table first thing, and ask Ava to show the next new Prep child where it lives. For the family: what does Ava tell you about before care at home?",
+        ],
+      },
+      {
+        heading: "Year 2: Noah, 7, the quiet corner after school (example)",
+        paragraphs: [
+          "The note: \"Noah came in from school, didn't want afternoon tea, went straight to the beanbags with a book. About 20 min. Then came out and joined soccer. Said 'I needed my quiet bit first.'\"",
+          "The story: Noah came in from school today and went straight to the beanbags with a book. He read for about twenty minutes. Then he put the book back, came outside and joined the soccer game. \"I needed my quiet bit first,\" he told us.",
+          `The learning: ${mtopKeyComponent(3, "become strong in their social, emotional and mental wellbeing")}. MTOP says passive leisure helps children relax and refresh in the hours outside school. Noah knows what he needs after a big day and chose it for himself.`,
+          "Noah's words: \"Can the beanbags stay there?\"",
+          "Where to next: keep the quiet corner open for the first half hour every afternoon, and ask the children what else should be in it. For the family: what helps Noah wind down at home?",
+        ],
+      },
+      {
+        heading: "Year 3: Mateo, 8, a fairer handball serve (example)",
+        paragraphs: [
+          "The note: \"Handball. Mateo said Jai's serve was 'too fast for the little kids, not fair'. Big argument. Mateo suggested 'a slow serve when Preps are in'. Wrote it on the whiteboard himself. Played 20 min, no more arguing.\"",
+          "The story: In handball today, Mateo said Jai's serve was \"too fast for the little kids, not fair.\" The group argued about it for a while. Then Mateo suggested a new rule: \"a slow serve when Preps are in.\" He wrote it on the whiteboard himself, and the game went for twenty minutes without another argument.",
+          `The learning: ${mtopKeyComponent(2, "become aware of fairness")}. Mateo noticed who was being left out and found a rule that kept the game going for everyone.`,
+          "Mateo's words: \"It's still hard, just not impossible.\"",
+          "Where to next: take the rule to Friday's children's meeting so the group decides whether it stays. For the family: are there games at home where Mateo makes up the rules?",
+        ],
+      },
+      {
+        heading: "Year 4: Ethan, 9, a stop-motion film (example)",
+        paragraphs: [
+          "The note: \"Ethan and Zara, stop motion on the service tablet with Lego figures, 46 photos. Ethan: 'If we move it less it looks smoother.' Reshot the start. Added a title. Showed the group at 5pm.\"",
+          "The story: Ethan and Zara made a stop-motion film on the tablet with Lego figures, 46 photos in all. Halfway through, Ethan said, \"If we move it less it looks smoother,\" so they went back and shot the start again. They added a title and showed the whole group at five o'clock.",
+          `The learning: ${mtopKeyComponent(5, "collaborate with others, express ideas and make meaning using a range of digital technologies and media and communication technologies")}. Ethan worked out how the technique works and used it to tell a story with a friend.`,
+          "Ethan's words: \"Next one is going to have sound.\"",
+          "Where to next: show Ethan and Zara how to record a voice track, and set up a small film corner for the holidays. For the family: does Ethan make videos or comics at home?",
+        ],
+      },
+      {
+        heading: "Year 5: Priya, 10, the marble run in vacation care (example)",
+        paragraphs: [
+          "The note: \"Priya, marble run on the wall, cardboard tubes and tape. Marble kept flying out at the corner. Tried more tape, then steeper, then a cup at the bend. Cup worked. Timed it on my phone: 4 seconds. 'Can I make it slower?'\"",
+          "The story: Priya built a marble run on the wall from cardboard tubes and tape. The marble kept flying out at the corner, so she tried three fixes: more tape, a steeper tube, then a paper cup at the bend. The cup worked. We timed it at four seconds, and Priya asked straight away, \"Can I make it slower?\"",
+          `The learning: ${mtopKeyComponent(4, "develop a range of learning and thinking skills and processes such as problem solving, inquiry, experimentation, hypothesising, researching and investigating")}. Priya tested one change at a time until she found what worked, then set herself a harder problem.`,
+          "Priya's words: \"Next time I want it to take ten seconds.\"",
+          "Where to next: leave the wall up for the rest of the week and add funnels, more cups and a stopwatch. For the family: what does Priya like to build or fix at home?",
+        ],
+      },
+      {
+        heading: "Year 6: Isla, 11, running the veggie patch (example)",
+        paragraphs: [
+          "The note: \"Isla and three other Year 6s asked to run the veggie patch roster. Made a chart, asked each younger child what they wanted to plant. Isla to a Year 1: 'You can pick strawberries, you just have to water them on Tuesday.'\"",
+          "The story: Isla and three friends asked if they could run the veggie patch. They made a roster and asked each younger child what they wanted to grow. When a Year 1 child asked for strawberries, Isla said, \"You can pick strawberries, you just have to water them on Tuesday.\"",
+          `The learning: ${mtopKeyComponent(2, "develop a sense of belonging to groups and communities and an understanding of their reciprocal rights and responsibilities necessary as active and informed citizens")}. Isla took on a job for the whole service and made sure the youngest children had a say and a part.`,
+          "Isla's words: \"Can we sell some at pick-up?\"",
+          "Where to next: help Isla's group plan a small pick-up stall and decide together what the money is for. For the family: does Isla grow or cook anything at home?",
+        ],
+      },
+      {
+        heading: "Putting the child's voice in",
+        paragraphs: [
+          "Read the story with the child before it goes anywhere. Ask: \"Is this right? Is there anything you would change? What do you want to do next?\" Write their answer under the story in their exact words, even when it is one line. If they say it is wrong, fix it.",
+          "Older children may want to write their own part, take the photo or choose which moment the story is about. That is assessment \"as learning\" in the framework's own words, and it is often the line a family reads first.",
+        ],
+      },
+      {
+        heading: "Writing it with StoryLoop",
+        paragraphs: [
+          "Type the note you jotted, the way you jotted it, into the box on this page. StoryLoop drafts a short learning story with what it shows, where to next and a question for the family, and keeps anything the child said exactly as you wrote it. No signup.",
+          "Be clear on one thing: StoryLoop's Australian drafts link EYLF V2.0 today, not My Time, Our Place. The themes match, so change the outcome line to the MTOP wording above, add the child's own comment, and check every word before anything is shared. Use first names only.",
+        ],
+      },
+    ],
+    sources: [MTOP_V2],
   },
 };

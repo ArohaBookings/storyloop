@@ -251,6 +251,8 @@ export const RELATED = {
   leaderCheck: { href: "/how-to-check-a-learning-story", title: "How to check a learning story", body: "Five questions a leader can ask in two minutes, and feedback that helps." },
   // 13 Nov 2026: the first story for a new child (lib/seo-pages-2026-11.ts).
   firstStory: { href: "/first-learning-story-of-the-year", title: "A new child's first learning story", body: "Six settling-in stories from a baby to a four year old, and what to ask families first." },
+  // 18 Nov 2026: learning stories in school age care (lib/seo-pages-2026-11.ts).
+  mtop: { href: "/mtop-learning-stories", title: "My Time, Our Place learning stories", body: "Six OSHC and vacation care stories for 5 to 11 year olds, with the MTOP outcome." },
 } as const;
 
 export type RelatedKey = keyof typeof RELATED;

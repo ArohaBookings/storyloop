@@ -26,7 +26,7 @@ export const SLUG_PRINTABLES: Record<string, PrintableKey[]> = {
 // to Google, and search engines saw no clusters. Six per page, never itself.
 export const SLUG_RELATED: Record<string, RelatedKey[]> = {
   "eylf-principles-and-practices": ["eylf", "eylfV2", "intentional", "reflection", "planning", "template"],
-  "eylf-v2-changes": ["eylf", "eylfPrinciples", "eylfStories", "intentional", "template", "examples"],
+  "eylf-v2-changes": ["eylf", "eylfPrinciples", "eylfStories", "intentional", "template", "mtop"],
   "eylf-learning-stories": ["auExamples", "eylf", "eylfPrinciples", "template", "examples", "nextSteps"],
   "australia-eylf-learning-stories": ["eylfStories", "auExamples", "eylf", "template", "examples", "transition"],
   "eylf-planning-cycle": ["nqs13", "summative", "eylf", "intentional", "reflection", "nextSteps"],
@@ -54,6 +54,8 @@ export const SLUG_RELATED: Record<string, RelatedKey[]> = {
   "for-centres": ["leaderCheck", "nqs13", "reflection", "safety", "accuracy", "examples"],
   // 13 Nov 2026: the first story for a new child, linked from both examples pages.
   "first-learning-story-of-the-year": ["auExamples", "nzExamples", "observation", "nextSteps", "familyLanguages", "whatIs"],
+  // 18 Nov 2026: school age care stories, linked from /eylf-v2-changes (which covers MTOP V2.0 too).
+  "mtop-learning-stories": ["auExamples", "eylf", "eylfV2", "nextSteps", "reflection", "planning"],
   "learning-story-examples-preschool": ["examples", "auExamples", "template", "nextSteps", "eylf", "teWhariki"],
   "learning-story-next-steps-examples": ["examples", "preschoolExamples", "template", "whatIs", "intentional", "eylf"],
   "learning-story-generator": ["examples", "preschoolExamples", "nextSteps", "template", "accuracy", "safety"],

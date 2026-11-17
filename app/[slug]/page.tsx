@@ -54,6 +54,7 @@ const AU_SLUGS = new Set([
   "qld-kindergarten-transition-statement",
   "transition-statement-consent-form",
   "eylf-observation-examples",
+  "mtop-learning-stories",
 ]);
 // Aotearoa-only guides: their "try your own note" draft is always Te Whāriki.
 // Every other guide that is not in AU_SLUGS serves both countries, so the
