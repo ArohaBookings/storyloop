@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Check, Link2, Loader2 } from "lucide-react";
 import { getAttribution, getSessionId, track } from "@/lib/analytics/client";
+import { trackEvent } from "@/lib/analytics/track-event";
 import { reportSignupConversion } from "@/lib/analytics/google-ads";
 import { clearOAuthContext, readOAuthContext, type OAuthIntent } from "@/lib/auth/oauth";
 import { safeRedirectPath } from "@/lib/safe-redirect";
@@ -65,11 +66,13 @@ function Finish() {
       if (res.status === 401) {
         // The Google step did not leave a session (cancelled, or blocked cookies).
         track("oauth_error", { provider: "google", stage: "no_session", intent });
-        window.location.replace(`${intent === "signup" ? "/signup" : "/login"}?oauth=failed`);
+        window.location.replace(`${intent === "signup" ? "/signup" : "/login"}?oauth=${intent === "signup" ? "nosession" : "failed"}`);
         return;
       }
       if (!res.ok) throw new Error(`oauth-complete ${res.status}`);
       const data = await res.json();
+      // Back from Google with a session (the signup page records the cancels).
+      if (!confirm) trackEvent("oauth_returned", { provider: "google", intent, new_account: Boolean(data.isNew) });
 
       if (data.needsConfirm) {
         setView({ kind: "confirm", email: typeof data.email === "string" ? data.email : "" });
