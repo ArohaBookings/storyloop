@@ -86,3 +86,44 @@ test("email-me-a-link: OFF by default, and the session is read from the link's r
   assert.ok(order.every((i) => i >= 0), JSON.stringify(order));
   assert.deepEqual([...order].sort((a, b) => a - b), order);
 });
+
+test("'Did you mean' on leaving the email box only when she moves to another box, never as she taps Create", async () => {
+  const { suggestOnBlur } = await import("../lib/signup-form");
+  assert.equal(suggestOnBlur({ tagName: "INPUT" } as unknown as EventTarget), true);
+  assert.equal(suggestOnBlur({ tagName: "BUTTON" } as unknown as EventTarget), false);
+  assert.equal(suggestOnBlur({ tagName: "A" } as unknown as EventTarget), false);
+  assert.equal(suggestOnBlur(null), false);
+});
+
+test("a Google or emailed-link trip that did not finish goes back to its start page with the page she came for", async () => {
+  const { authStartPage } = await import("../lib/auth/start-page");
+  const signupTo = (next: string) => `/auth/finish?next=${encodeURIComponent(next)}&intent=signup`;
+  assert.equal(authStartPage(signupTo("/statement"), "cancelled"), "/signup?oauth=cancelled&next=%2Fstatement");
+  assert.equal(authStartPage(signupTo("/generate?welcome=1"), "cancelled"), "/signup?oauth=cancelled");
+  assert.equal(authStartPage(signupTo("/today"), "nosession"), "/signup?oauth=nosession&next=%2Ftoday");
+  assert.equal(authStartPage(`${signupTo("/statement")}&method=link`, "expired"), "/signup?link=expired&next=%2Fstatement");
+  assert.equal(authStartPage(signupTo("https://evil.example/statement"), "failed"), "/signup?oauth=failed");
+  const loginTo = (next: string) => `/auth/finish?next=${encodeURIComponent(next)}&intent=login`;
+  assert.equal(authStartPage(loginTo("/statement"), "cancelled"), "/login?oauth=cancelled&redirect=%2Fstatement");
+  assert.equal(authStartPage(loginTo("/dashboard"), "nosession"), "/login?oauth=failed");
+  assert.equal(authStartPage(loginTo("/billing?offer=activation"), "different"), "/login?oauth=different&redirect=%2Fbilling%3Foffer%3Dactivation");
+  assert.equal(authStartPage(loginTo("//evil.example/x"), "failed"), "/login?oauth=failed");
+  assert.equal(authStartPage(loginTo("/login?redirect=/x"), "failed"), "/login?oauth=failed");
+  // No finish address at all (Supabase's own default): the sign-in page, as before.
+  assert.equal(authStartPage("/dashboard", "cancelled"), "/login?oauth=cancelled");
+});
+
+test("sign-in with a page to go to offers a free account as clearly, and every way between them keeps the page", () => {
+  const login = readFileSync("app/(auth)/login/LoginForm.tsx", "utf8");
+  assert.ok(login.includes("signupPathFor(initialRedirect)"), "the create link carries the redirect");
+  assert.ok(login.includes('data-testid="login-create-account"'), "a full-width Create a free account");
+  const page = readFileSync("app/(auth)/login/page.tsx", "utf8");
+  assert.ok(page.includes("isAppDestination("), "decided on the server, so the first frame is right");
+  const signup = readFileSync("app/(auth)/signup/SignupForm.tsx", "utf8");
+  assert.ok(!signup.includes('href="/login?email_link=1"'), "the email-link way in keeps the page");
+  assert.ok(!/href="\/login"/.test(signup), "no bare sign-in link on the signup page");
+  const finish = readFileSync("app/auth/finish/page.tsx", "utf8");
+  assert.ok(!finish.includes('"/signup?link=expired"') && !finish.includes('"/login?oauth=different"'), "finish keeps the page on every way back");
+  const callback = readFileSync("app/auth/callback/route.ts", "utf8");
+  assert.ok(callback.includes("authStartPage("), "a cancelled Google signup keeps the page");
+});

@@ -84,6 +84,17 @@ export function signupErrorView(code: string, serverMessage: string): SignupErro
   }
 }
 
+/**
+ * "Did you mean …?" as she leaves the email box: only when she moves on to
+ * another box. Shown while she was tapping Create, the new line pushed the
+ * button down from under her finger and the tap was lost (19 Nov 2026), so
+ * nothing happened. Create checks the address itself and asks then.
+ */
+export function suggestOnBlur(next: EventTarget | null): boolean {
+  const tag = (next as { tagName?: unknown } | null)?.tagName;
+  return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+}
+
 /** The kind of screen, from its width (the same breaks as the page's layout). */
 export function deviceForWidth(width: number): "mobile" | "tablet" | "desktop" {
   if (width < 640) return "mobile";

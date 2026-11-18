@@ -16,7 +16,8 @@ import { takeHumanPass, warmHumanPass } from "@/lib/auth/human-pass-client";
 import { confirmKeptDrafts, readKeptStatement, readKeptStory } from "@/lib/keep-story";
 import { trackEvent } from "@/lib/analytics/track-event";
 import type { SIGNUP_ERROR_CODES } from "@/lib/analytics/events";
-import { FIRST_STORY_PATH, signupDestination } from "@/lib/signup-next";
+import { createClient } from "@/lib/supabase/client";
+import { FIRST_STORY_PATH, existingAccountDestination, loginPathForDestination, signupDestination } from "@/lib/signup-next";
 import { OFFER_STORAGE_KEY, offerRefFromHash, offerStorageValue } from "@/lib/story-check";
 import { educatorOffer } from "@/lib/offer-wording";
 import CentreTrialWords from "@/components/centre/CentreTrialWords";
@@ -25,6 +26,7 @@ import {
   checkSignupForm,
   deviceForWidth,
   signupErrorView,
+  suggestOnBlur,
   type SignupErrorView,
   type SignupField,
   type SignupLeftState,
@@ -95,6 +97,9 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
   const [notNow, setNotNow] = useState<"closed" | "open" | "answered">("closed");
   // "Email me a link" (lib/auth/signup-link.ts, OFF until Leo switches it on).
   const [mode, setMode] = useState<"password" | "link" | "link_sent">("password");
+  // Create works once the page's script is running. Before that a tap would
+  // reload the page with the boxes empty and the plan and destination gone.
+  const [ready, setReady] = useState(false);
 
   // Why she leaves (signup_left), and where she stopped.
   const openedAt = useRef(0);
@@ -137,7 +142,9 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
     const kept = keptStory ? "story" : keptStatement ? (keptStatement.mode === "summary" ? "summary" : "statement") : null;
     setKeptWaiting(kept);
     if (kept) trackEvent("signup_draft_carried", { kind: kept });
-    setDestination(keptStatement && !params.get("next") ? "/statement" : signupDestination(params.get("next")));
+    // A kept statement is shown on /statement, as the line above the form promises;
+    // otherwise the page she came for (a listed page of the app), else the first story.
+    setDestination(keptStatement ? "/statement" : signupDestination(params.get("next")));
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     setPlan(selectedPlan);
     if (selectedPlan !== "free") setPaidOption(selectedPlan);
@@ -203,6 +210,7 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
     document.addEventListener("visibilitychange", onHidden);
     window.addEventListener("pagehide", leave);
     window.addEventListener("pageshow", onShow);
+    setReady(true);
     return () => {
       document.removeEventListener("visibilitychange", onHidden);
       window.removeEventListener("pagehide", leave);
@@ -316,16 +324,66 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
         if (code === "human_check_failed" || code === "human_check_reused" || code === "bot_check") {
           trackEvent("signup_bot_check_failed", { code });
         }
+        // The account was made but the server could not start her session (an
+        // auth hiccup): start it from this browser with what she just typed.
+        if (code === "session_failed" && (await signInHere())) {
+          await afterAccount();
+          return;
+        }
+        // Her own email with her own password (an earlier try that did finish,
+        // or an account she forgot she had): sign her in instead of stopping her.
+        if (code === "email_exists" && (await signInHere())) {
+          done.current = true;
+          trackEvent("signup_error", { code: "email_exists", side: "server", status: res.status, plan });
+          trackEvent("ui_action", { action: "signup_existing_signed_in", page: "/signup" });
+          window.location.replace(existingAccountDestination(destination, plan));
+          return;
+        }
         // A reason code and status only: never the email or the password.
-        showError(signupErrorView(code, typeof data.error === "string" ? data.error : ""), "server", res.status);
+        const view = signupErrorView(code, typeof data.error === "string" ? data.error : "");
+        showError(
+          code === "rate_limited" && googleOn && !inApp
+            ? { ...view, message: "Too many sign-ups from this internet connection in the last hour. Use Continue with Google above, or try again in an hour." }
+            : view,
+          "server",
+          res.status,
+        );
         finish();
         warmHumanPass(); // ready for their next try
         return;
       }
+      await afterAccount();
+    } catch (err) {
+      const timedOut = err instanceof DOMException && err.name === "AbortError";
+      showError(signupErrorView(timedOut ? "timeout" : "network", ""), "server", 0);
+      finish();
+      warmHumanPass();
+    }
+
+    /** Signs in from this browser with what she just typed. True when it worked; never throws. */
+    async function signInHere(): Promise<boolean> {
+      try {
+        const { error: signInError } = await createClient().auth.signInWithPassword({ email: email.trim(), password });
+        return !signInError;
+      } catch {
+        return false;
+      }
+    }
+
+    // The account exists: record it, then checkout for a paid plan or the page she came for.
+    async function afterAccount() {
       done.current = true;
       track("signup_completed", { plan, method: "email" });
       // Tell Google Ads (if this visit came from an ad) before the page changes.
       await reportSignupConversion();
+
+      // Cookies refused: the app cannot keep her signed in, and every page would
+      // send her back to sign in. Say so once, with the way on.
+      if (navigator.cookieEnabled === false && !hasSignedInHint()) {
+        setError({ code: "session_failed", action: "sign_in", message: "Your account is ready, but this browser is blocking cookies, so it can't keep you signed in. Turn cookies on for this site (or open it in another browser), then sign in." });
+        finish();
+        return;
+      }
 
       if (plan !== "free") {
         // The account exists now: whatever happens to checkout, Billing is the way on.
@@ -345,14 +403,9 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
         return;
       }
 
-      // Land new free educators straight in the guided first-story flow. A
-      // reader who came from a statement guide goes to /statement.
+      // Land new free educators straight in the guided first-story flow, or on
+      // the page they came for (a statement guide's reader goes to /statement).
       window.location.replace(destination);
-    } catch (err) {
-      const timedOut = err instanceof DOMException && err.name === "AbortError";
-      showError(signupErrorView(timedOut ? "timeout" : "network", ""), "server", 0);
-      finish();
-      warmHumanPass();
     }
   };
 
@@ -423,7 +476,8 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
   const paidPrice = `$${paidPlan.price[currency]} ${currency} a month`;
   const individualOffer = !paidIsCentre ? educatorOffer(currency, paidOption === "educator_pro" ? "educator_pro" : "educator") : null;
   const fieldError = (field: SignupField) => (error?.field === field ? error : null);
-  const loginHref = destination === FIRST_STORY_PATH ? "/login" : `/login?redirect=${encodeURIComponent(destination)}`;
+  // Every way to sign in from here keeps the page she came for.
+  const loginHref = loginPathForDestination(destination);
 
   const googleButton = (placement: "top" | "after") => (
     <GoogleButton
@@ -492,7 +546,7 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
           {signedIn && (
             <p role="status" className="mb-3 rounded-xl border border-sage-200 bg-sage-50 px-3 py-2 text-sm text-ink-800">
               You&apos;re already signed in on this device.{" "}
-              <Link href="/dashboard" className="font-semibold text-clay-700 underline underline-offset-2" data-track="signup_open_app">
+              <Link href={existingAccountDestination(destination, "free")} className="font-semibold text-clay-700 underline underline-offset-2" data-track="signup_open_app">
                 Open StoryLoop
               </Link>
             </p>
@@ -539,7 +593,7 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
             </div>
             <div>
               <label htmlFor="signup-email" className="label">Email</label>
-              <input id="signup-email" data-field="email" type="email" inputMode="email" autoCapitalize="none" spellCheck={false} value={email} onChange={e => { setEmail(e.target.value); setEmailSuggestion(null); typed(); if (error?.field === "email") setError(null); }} onBlur={() => setEmailSuggestion(suggestEmailFix(email))} autoComplete="email" className="input" placeholder={currency === "NZD" ? "you@centre.co.nz" : "you@centre.com.au"} aria-invalid={Boolean(fieldError("email"))} aria-describedby={fieldError("email") ? "signup-email-error" : undefined} />
+              <input id="signup-email" data-field="email" type="email" inputMode="email" autoCapitalize="none" spellCheck={false} value={email} onChange={e => { setEmail(e.target.value); setEmailSuggestion(null); typed(); if (error?.field === "email") setError(null); }} onBlur={e => { if (suggestOnBlur(e.relatedTarget)) setEmailSuggestion(suggestEmailFix(email)); }} autoComplete="email" className="input" placeholder={currency === "NZD" ? "you@centre.co.nz" : "you@centre.com.au"} aria-invalid={Boolean(fieldError("email"))} aria-describedby={fieldError("email") ? "signup-email-error" : undefined} />
               {/* "Did you mean …@gmail.com?" A mistyped domain loses the account's emails and sign-in links. */}
               {emailSuggestion ? (
                 <p role="status" className="mt-1.5 text-sm text-ink-700" data-testid="signup-email-typo">
@@ -666,7 +720,7 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
                     Reset your password
                   </Link>
                   {" "}or{" "}
-                  <Link href="/login?email_link=1" className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900" data-track="signup_exists_email_link">
+                  <Link href={loginPathForDestination(destination, { email_link: "1" })} className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900" data-track="signup_exists_email_link">
                     email me a sign-in link
                   </Link>
                   .
@@ -693,7 +747,7 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
                 )}
               </div>
             )}
-            <button type="submit" disabled={loading} aria-busy={loading} className="btn-primary w-full py-3">
+            <button type="submit" disabled={loading || !ready} aria-busy={loading} className="btn-primary w-full py-3 disabled:opacity-80" data-testid="signup-submit">
               {loading ? <><Loader2 className="h-4 w-4 animate-spin" /><span className="sr-only">Creating your account</span></> : mode === "link" ? "Email me a link" : isCentre ? "Create account and start free month" : isPaidPlan ? "Create account and start trial" : "Create free account"}
             </button>
             {mode === "link" && (

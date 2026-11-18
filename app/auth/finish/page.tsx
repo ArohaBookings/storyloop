@@ -12,6 +12,7 @@ import { clearOAuthContext, readOAuthContext, type OAuthIntent } from "@/lib/aut
 import { safeRedirectPath } from "@/lib/safe-redirect";
 import { signupDestination } from "@/lib/signup-next";
 import { linkErrorFromHash, sessionFromHash } from "@/lib/auth/signup-link";
+import { authStartPage, type AuthOutcome } from "@/lib/auth/start-page";
 import { createClient } from "@/lib/supabase/client";
 import { GoogleMark } from "@/components/auth/GoogleButton";
 import PageTracker from "@/components/analytics/PageTracker";
@@ -50,6 +51,14 @@ function Finish() {
   const intent: OAuthIntent = (params.get("intent") ?? context?.intent) === "login" ? "login" : "signup";
   const plan = context?.plan ?? "free";
   const viaLink = params.get("method") === "link";
+  // Back to signup or sign-in with a note, still carrying the page she was heading for.
+  const startPage = useCallback(
+    (outcome: AuthOutcome) => {
+      const finishPath = `/auth/finish?${new URLSearchParams({ next: params.get("next") ?? context?.next ?? "", intent }).toString()}`;
+      return authStartPage(finishPath, outcome);
+    },
+    [context, intent, params],
+  );
 
   const complete = useCallback(
     async (confirm: boolean) => {
@@ -68,7 +77,7 @@ function Finish() {
       if (res.status === 401) {
         // The Google step did not leave a session (cancelled, or blocked cookies).
         track("oauth_error", { provider: "google", stage: "no_session", intent });
-        window.location.replace(viaLink ? "/signup?link=expired" : `${intent === "signup" ? "/signup" : "/login"}?oauth=${intent === "signup" ? "nosession" : "failed"}`);
+        window.location.replace(startPage(viaLink ? "expired" : "nosession"));
         return;
       }
       if (!res.ok) throw new Error(`oauth-complete ${res.status}`);
@@ -115,7 +124,7 @@ function Finish() {
       track("oauth_signed_in", { provider: "google", intent });
       window.location.replace(target);
     },
-    [context, intent, params, plan, viaLink],
+    [context, intent, params, plan, startPage, viaLink],
   );
 
   useEffect(() => {
@@ -126,7 +135,7 @@ function Finish() {
     const hash = window.location.hash;
     const fromLink = viaLink ? sessionFromHash(hash) : null;
     if (viaLink && !fromLink && linkErrorFromHash(hash)) {
-      window.location.replace("/signup?link=expired");
+      window.location.replace(startPage("expired"));
       return;
     }
     const ready = fromLink
@@ -135,8 +144,8 @@ function Finish() {
           if (error) throw error;
         })
       : Promise.resolve();
-    ready.then(() => complete(false)).catch(() => (viaLink ? window.location.replace("/signup?link=expired") : setView({ kind: "failed" })));
-  }, [complete, viaLink]);
+    ready.then(() => complete(false)).catch(() => (viaLink ? window.location.replace(startPage("expired")) : setView({ kind: "failed" })));
+  }, [complete, startPage, viaLink]);
 
   // Linked: give them a moment to read it, then carry on.
   useEffect(() => {
@@ -159,7 +168,7 @@ function Finish() {
     track("oauth_new_declined", { provider: "google" });
     clearOAuthContext();
     await createClient().auth.signOut().catch(() => {});
-    window.location.replace("/login?oauth=different");
+    window.location.replace(startPage("different"));
   };
 
   return (
@@ -268,7 +277,10 @@ function Finish() {
                 Google signed you in, but we couldn&apos;t finish opening your account. Your account is safe.
               </p>
               <div className="mt-6 space-y-3">
-                <Link href="/dashboard" className="btn-primary w-full py-3">
+                <Link
+                  href={intent === "signup" ? signupDestination(params.get("next") ?? context?.next ?? null) : safeRedirectPath(params.get("next") ?? context?.next ?? null)}
+                  className="btn-primary w-full py-3"
+                >
                   Open StoryLoop
                 </Link>
                 <button
