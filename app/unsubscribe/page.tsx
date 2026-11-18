@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CheckCircle2, XCircle } from "lucide-react";
 
 import { applyUnsubscribe } from "@/lib/email/unsubscribe-apply";
+import PageTracker from "@/components/analytics/PageTracker";
 
 export const metadata = {
   title: "Unsubscribe",
@@ -19,6 +20,7 @@ export default async function UnsubscribePage({
 
   return (
     <main className="min-h-screen bg-paper px-4 py-12">
+      <PageTracker mode="private" />
       <div className="mx-auto max-w-lg rounded-3xl border border-clay-100 bg-white p-8 text-center shadow-soft">
         <div className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${result.ok ? "bg-sage-100 text-sage-700" : "bg-red-50 text-red-700"}`}>
           <Icon className="h-6 w-6" />

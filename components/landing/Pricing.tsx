@@ -3,6 +3,8 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Check, ShieldCheck } from "lucide-react";
 import { getPlanDefinitions, type CurrencyCode } from "@/lib/plans";
+import { currencyForTimeZone, educatorTrialLine } from "@/lib/offer-wording";
+import { useCentreTrialWords } from "@/components/centre/CentreTrialWords";
 
 /**
  * `audience="individuals"` shows only the plans one educator chooses between.
@@ -13,11 +15,14 @@ export default function Pricing({ audience = "all" }: { audience?: "all" | "indi
   const [currency, setCurrency] = useState<CurrencyCode>("AUD");
   // Founding spots left, from the Stripe coupon (null until known).
   const [spotsLeft, setSpotsLeft] = useState<number | null>(null);
+  // The centre's free period on the day it is read (lib/offer-wording.ts).
+  const centreTrialCapital = useCentreTrialWords(undefined, true);
+  const centreTrial = useCentreTrialWords();
 
   useEffect(() => {
     // Auto-detect by timezone
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (tz?.includes("Auckland") || tz?.includes("Pacific/Auckland")) setCurrency("NZD");
+    if (currencyForTimeZone(tz) === "NZD") setCurrency("NZD");
     fetch("/api/centre-offer")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setSpotsLeft(typeof data?.founding?.spotsLeft === "number" ? data.founding.spotsLeft : null))
@@ -37,7 +42,7 @@ export default function Pricing({ audience = "all" }: { audience?: "all" | "indi
           <h2 className="font-display text-4xl md:text-5xl font-bold text-ink-900 mb-4">
             Free to start. One flat price for unlimited.
           </h2>
-          <p className="text-ink-600 text-base md:text-lg mb-6">Three stories a month stay free. Paid plans start with a 7-day free trial and cancel anytime.</p>
+          <p className="text-ink-600 text-base md:text-lg mb-6">Three stories a month stay free. Paid plans start with a {educatorTrialLine()} and cancel anytime.</p>
 
           {/* Currency toggle */}
           <div className="inline-flex bg-white border border-clay-200 rounded-xl p-1">
@@ -73,7 +78,7 @@ export default function Pricing({ audience = "all" }: { audience?: "all" | "indi
                 )}
                 {plan.seats && (
                   <p className="mb-2 text-sm font-semibold text-sage-800">
-                    30 days free, no card needed
+                    {centreTrialCapital}, no card needed
                     {spotsLeft !== 0 && (
                       <span className="block font-normal text-ink-600">
                         Founding centres then pay half for 3 months{typeof spotsLeft === "number" ? ` (${spotsLeft} of 10 spots left)` : ""}.
@@ -123,7 +128,7 @@ export default function Pricing({ audience = "all" }: { audience?: "all" | "indi
           <div className="mx-auto mt-8 max-w-2xl rounded-2xl border border-clay-200 bg-white p-5 text-center shadow-soft">
             <p className="font-display text-lg font-bold text-ink-900">Running a centre?</p>
             <p className="mt-1.5 text-base leading-relaxed text-ink-600">
-              Your whole team and unlimited children from ${centreStarter.displayPrice} {currency} a month, with 30 days free and no card.
+              Your whole team and unlimited children from ${centreStarter.displayPrice} {currency} a month, {centreTrial} with no card.
               {spotsLeft !== 0 && (
                 <> The first ten centres then pay half for three months{typeof spotsLeft === "number" ? `, and ${spotsLeft} spots are left` : ""}.</>
               )}

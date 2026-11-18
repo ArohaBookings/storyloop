@@ -4,6 +4,7 @@ import Navbar from "@/components/landing/Navbar";
 import PageTracker from "@/components/analytics/PageTracker";
 import Footer from "@/components/landing/Footer";
 import PolicyGenerator from "@/components/policy/PolicyGenerator";
+import CentreTrialWords from "@/components/centre/CentreTrialWords";
 
 export const metadata: Metadata = {
   title: "Free AI Policy Template for Early Childhood Services",
@@ -95,7 +96,7 @@ export default function AiPolicyPage() {
             every line. First names only, stored in Sydney, never used to train AI. An educator can send you any story to check, with
             their note beside it, and you do not need an account to look.
           </p>
-          <p className="mt-2 text-base font-semibold leading-relaxed text-ink-900">A whole centre can try it for 30 days free, with no card.</p>
+          <p className="mt-2 text-base font-semibold leading-relaxed text-ink-900">A whole centre can try it <CentreTrialWords />, with no card.</p>
           <div className="mt-5 flex flex-col gap-3 sm:flex-row">
             <Link href="/for-centres?utm_source=ai_policy&utm_medium=site" className="btn-primary px-6 py-3 text-base" data-track="ai_policy_centre">See it for your centre</Link>
             <Link href="/safety" className="btn-secondary px-6 py-3 text-base" data-track="ai_policy_safety">How children&apos;s information is kept</Link>

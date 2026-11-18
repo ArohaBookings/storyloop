@@ -4,6 +4,7 @@ import { createStripe } from "@/lib/stripe-client";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { loadPauseView, verifyPauseToken, type PauseView } from "@/lib/billing-pause";
 import PauseForm from "./PauseForm";
+import PageTracker from "@/components/analytics/PageTracker";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -43,6 +44,7 @@ export default async function PausePage({ searchParams }: { searchParams?: Promi
 
   return (
     <main className="min-h-screen bg-paper px-4 py-12">
+      <PageTracker mode="private" />
       <div className="mx-auto max-w-lg rounded-3xl border border-clay-100 bg-white p-6 shadow-soft sm:p-8">
         <p className="section-title mb-2">StoryLoop billing</p>
         {loaded && token ? (

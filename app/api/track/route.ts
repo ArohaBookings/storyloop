@@ -3,6 +3,7 @@ import { createAdminSupabase } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { effectiveConsent, parseRegion, REGION_COOKIE } from "@/lib/analytics/consent-region";
+import { CONSENT_REQUIRED_EVENTS, EVENT_NAMES, NEW_EVENT_NAMES, sanitizeEventMetadata } from "@/lib/analytics/events";
 
 // Anonymous funnel tracking. This is deliberately minimal and privacy-safe:
 // we store an ephemeral browser-generated session id, the page, the traffic
@@ -114,12 +115,19 @@ const ALLOWED_EVENTS = new Set([
   "copy",
   "form_abandon",
   "js_error",
+  // The December 2026 release's events (lib/analytics/events.ts): one list for
+  // the browser helper, this endpoint and the ops notes.
+  ...EVENT_NAMES,
 ]);
+
+// The new events' metadata is cleaned here as well as in the browser: only
+// listed keys, and only ids, numbers, yes/no and listed values.
+const CLEANED_EVENTS = new Set<string>(NEW_EVENT_NAMES);
 
 // Behaviour, as opposed to the funnel. The browser only sends these after the
 // visitor chose "Allow" on the cookie banner; this is the server-side backstop
 // so a stale tab or a hand-made request cannot record them without consent.
-const BEHAVIOUR_EVENTS = new Set(["click", "scroll_depth", "section_view", "page_exit", "rage_click", "copy", "form_abandon", "js_error"]);
+const BEHAVIOUR_EVENTS = new Set<string>(["click", "scroll_depth", "section_view", "page_exit", "rage_click", "copy", "form_abandon", "js_error", ...CONSENT_REQUIRED_EVENTS]);
 
 // What a page view may carry with consent: screen, language, time zone,
 // connection and returning-visit counts. Anything else is dropped.
@@ -178,7 +186,11 @@ function deviceFrom(userAgent: string | null) {
 }
 
 function metadataFor(eventType: string, raw: unknown, consent: "all" | "essential" | "unset", userAgent: string | null) {
-  const metadata: Record<string, unknown> = raw && typeof raw === "object" && !Array.isArray(raw) ? { ...(raw as Record<string, unknown>) } : {};
+  const given: Record<string, unknown> = raw && typeof raw === "object" && !Array.isArray(raw) ? { ...(raw as Record<string, unknown>) } : {};
+  const metadata: Record<string, unknown> = CLEANED_EVENTS.has(eventType)
+    // A scripted browser's mark (lib/analytics/client.ts) is kept, so reports can leave our own checks out.
+    ? { ...sanitizeEventMetadata(eventType, given), ...(given.auto === true ? { auto: true } : {}) }
+    : given;
   if (eventType === "page_view") {
     for (const key of Object.keys(metadata)) {
       // Screen and visit details only with consent.
@@ -239,7 +251,7 @@ export async function POST(request: NextRequest) {
     if (!sessionAllowed || !ipAllowed) return NextResponse.json({ ok: true });
 
     const admin = createAdminSupabase();
-    await admin.from("page_events").insert({
+    const { error: insertError } = await admin.from("page_events").insert({
       event_type: eventType,
       session_id: sessionId,
       // The signed-in account, read from this browser's own session cookie (no
@@ -256,10 +268,16 @@ export async function POST(request: NextRequest) {
       country: request.headers.get("x-vercel-ip-country")?.slice(0, 4) ?? null,
       metadata: metadataFor(eventType, body.metadata, consent, request.headers.get("user-agent")),
     });
+    // A refused row used to vanish without a trace (P15, Nov 2026). One short,
+    // readable line: the event name and the database's code, never the row.
+    if (insertError) {
+      console.warn(`[track] row not stored: event=${eventType} code=${insertError.code ?? "none"} message=${String(insertError.message ?? "").slice(0, 160)}`);
+    }
 
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (error) {
     // Analytics must never break a page or block a visitor.
+    console.warn(`[track] request dropped: ${error instanceof Error ? error.name : "unknown"}`);
     return NextResponse.json({ ok: true });
   }
 }

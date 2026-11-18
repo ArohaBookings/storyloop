@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import LeaderCheckPage from "@/components/marketing/LeaderCheckPage";
+import PageTracker from "@/components/analytics/PageTracker";
 
 /**
  * Where a leader checks one story an educator sent them (lib/story-check.ts).
@@ -18,6 +19,8 @@ export const metadata: Metadata = {
 export default function CheckPage() {
   return (
     <>
+      {/* The visit and taps only: the story and the note are never recorded. */}
+      <PageTracker mode="private" />
       <Navbar />
       <main className="bg-cream-50/60 pb-16 pt-24 sm:pt-28">
         <LeaderCheckPage />

@@ -1,3 +1,5 @@
+import { CENTRE_TRIAL_EVERGREEN } from "./offer-wording";
+
 export type SeoPage = {
   slug: string;
   title: string;
@@ -686,7 +688,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     // the entire first screen of the one page people open to see a number.
     heading: "Start free. Upgrade when it is worth it.",
     intro:
-      "Free for 3 learning stories a month, no card. Unlimited stories for one educator is NZ$21 a month in New Zealand or A$19 in Australia, after a 7-day free trial. Centres pay one price for the whole team, from NZ$109 or A$99 a month, with 30 days free and no card.",
+      "Free for 3 learning stories a month, no card. Unlimited stories for one educator is NZ$21 a month in New Zealand or A$19 in Australia, after a 7-day free trial. Centres pay one price for the whole team, from NZ$109 or A$99 a month, {centre_trial} with no card.",
     sections: [
       {
         title: "Free",
@@ -706,12 +708,12 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       {
         title: "Centre Starter: NZ$109 or A$99 a month",
         body:
-          "Ten educator seats and any number of children, with shared centre voice, planning and documentation coverage for the team. 30 days free, no card needed.",
+          "Ten educator seats and any number of children, with shared centre voice, planning and documentation coverage for the team. {Centre_trial}, no card needed.",
       },
       {
         title: "Centre Growth: NZ$219 or A$199 a month",
         body:
-          "Twenty-five educator seats and any number of children, with the director's dashboard. 30 days free, no card needed.",
+          "Twenty-five educator seats and any number of children, with the director's dashboard. {Centre_trial}, no card needed.",
       },
       {
         title: "No surprises",
@@ -723,12 +725,12 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       {
         question: "How much does StoryLoop cost in New Zealand?",
         answer:
-          "Free for 3 stories a month. Educator is NZ$21 a month and Educator Pro NZ$33, each after a 7-day free trial. Centre plans are NZ$109 a month for 10 educators or NZ$219 for 25, with 30 days free.",
+          "Free for 3 stories a month. Educator is NZ$21 a month and Educator Pro NZ$33, each after a 7-day free trial. Centre plans are NZ$109 a month for 10 educators or NZ$219 for 25, {centre_trial} with no card.",
       },
       {
         question: "How much does StoryLoop cost in Australia?",
         answer:
-          "Free for 3 stories a month. Educator is A$19 a month and Educator Pro A$29, each after a 7-day free trial. Centre plans are A$99 a month for 10 educators or A$199 for 25, with 30 days free.",
+          "Free for 3 stories a month. Educator is A$19 a month and Educator Pro A$29, each after a 7-day free trial. Centre plans are A$99 a month for 10 educators or A$199 for 25, {centre_trial} with no card.",
       },
       { question: "Can I manage my subscription?", answer: "Yes. In Billing & plan you can update your card, see your next payment, download receipts, and cancel or keep your plan, all inside StoryLoop." },
       { question: "Do upgrade prompts block history?", answer: "No. Upgrade prompts are dismissible and never block existing story history." },
@@ -1134,11 +1136,11 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     image: { src: "/images/scenes/team.jpg", alt: "Three educators planning together around a low table with a laptop showing StoryLoop", position: "50% 55%" },
     title: "Learning story software for ECE centres",
     description:
-      "Learning story software for ECE centres: stories drafted from your team's own notes, review evidence with the gaps first, one flat price, at least 30 days free.",
+      `Learning story software for ECE centres: stories drafted from your team's own notes, review evidence with the gaps first, one flat price, ${CENTRE_TRIAL_EVERGREEN}.`,
     kicker: "For directors, owners and head teachers",
     heading: "Documentation done in the day, and a calmer review visit.",
     intro:
-      "Your educators jot a note after play and StoryLoop drafts the learning story from it, so writing stops eating their evenings. Every room writes to the same standard, you can see which children have gone unnoticed, and when ERO or an assessment and rating visit comes, the evidence is already counted from stories your team saved. One flat price for the whole team, at least 30 days free, no card.",
+      "Your educators jot a note after play and StoryLoop drafts the learning story from it, so writing stops eating their evenings. Every room writes to the same standard, you can see which children have gone unnoticed, and when ERO or an assessment and rating visit comes, the evidence is already counted from stories your team saved. One flat price for the whole team, {centre_trial}, no card.",
     reviewedAt: "2026-11-12",
     siblingLinks: {
       heading: "For the person who signs off",
@@ -1181,9 +1183,9 @@ export const SEO_PAGES: Record<string, SeoPage> = {
           "Centre Starter is NZ$109 or A$99 a month for up to 10 educators. Centre Growth is NZ$219 or A$199 a month for up to 25. Every educator on the plan gets unlimited stories and everything on Educator Pro, with their own login. Enrol more children and the price does not move. There is no per-child fee and no contract.",
       },
       {
-        title: "At least 30 days free, no card",
+        title: "{Centre_trial}, no card",
         body:
-          "Start a centre plan and invite your team from My centre. You get at least 30 days free, and no card is needed to start. If the free period ends with no card added, nothing is charged: the plan simply ends and the account drops back to the free plan with every story kept. If you add a card, the plan carries on monthly and you can cancel any time from Billing.",
+          "Start a centre plan and invite your team from My centre. It is {centre_trial}, and no card is needed to start. If the free period ends with no card added, nothing is charged: the plan simply ends and the account drops back to the free plan with every story kept. If you add a card, the plan carries on monthly and you can cancel any time from Billing.",
       },
       {
         title: "For Australian services: your digital technologies policy",

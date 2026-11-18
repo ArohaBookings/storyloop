@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { isWallCode, type PublicWallCard } from "@/lib/wall-card";
+import PageTracker from "@/components/analytics/PageTracker";
 import {
   findWallLanguage,
   preferredLanguage,
@@ -116,6 +117,8 @@ export default async function WallCardPage({
       dir={language?.rtl ? "rtl" : "ltr"}
       className="mx-auto min-h-screen max-w-2xl bg-paper px-5 py-10 sm:py-16"
     >
+      {/* Filed as /w/:code, so the card's code never reaches an event. */}
+      <PageTracker mode="private" path="/w/:code" />
       <p className="text-xs font-bold uppercase tracking-[0.18em] text-clay-700">The learning behind this</p>
       <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-ink-900 text-balance sm:text-4xl">
         {card.heading}

@@ -12,6 +12,7 @@ import { safeRedirectPath } from "@/lib/safe-redirect";
 import { signupDestination } from "@/lib/signup-next";
 import { createClient } from "@/lib/supabase/client";
 import { GoogleMark } from "@/components/auth/GoogleButton";
+import PageTracker from "@/components/analytics/PageTracker";
 
 /**
  * Where "Continue with Google" lands after Supabase has set the session
@@ -270,6 +271,7 @@ function Finish() {
 export default function FinishPage() {
   return (
     <Suspense fallback={null}>
+      <PageTracker />
       <Finish />
     </Suspense>
   );

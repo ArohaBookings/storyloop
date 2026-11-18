@@ -28,7 +28,13 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.json({ ...result, founding, ran_at: new Date().toISOString() });
+    const ranAt = new Date().toISOString();
+    // One line per run, so a quiet day (nothing worth sending, or every send
+    // held by the frequency cap) can be told apart from a run that never
+    // happened (P15, Nov 2026). Counts by outcome only: no address, no name.
+    console.log(`[email-cron] ran ${ranAt} ${JSON.stringify({ summary: result.summary, errors: result.errors.length, founding: founding && "error" in founding ? "error" : founding ? founding.checked : null })}`);
+
+    return NextResponse.json({ ...result, founding, ran_at: ranAt });
   } catch (error) {
     console.error("Email automation error:", error);
     return NextResponse.json(

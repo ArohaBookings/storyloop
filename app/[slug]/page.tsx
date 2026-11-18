@@ -8,6 +8,8 @@ import Footer from "@/components/landing/Footer";
 import Pricing from "@/components/landing/Pricing";
 import FoundingCentreOffer from "@/components/centre/FoundingCentreOffer";
 import PageTracker from "@/components/analytics/PageTracker";
+import OfferText from "@/components/offer/OfferText";
+import { fillOfferText } from "@/lib/offer-wording";
 import GuideProof from "@/components/marketing/GuideProof";
 import InternationalTry from "@/components/marketing/InternationalTry";
 import TransitionDemo from "@/components/marketing/TransitionDemo";
@@ -204,7 +206,8 @@ export default async function SeoPage({ params }: PageProps) {
       name: faq.question,
       acceptedAnswer: {
         "@type": "Answer",
-        text: faq.answer,
+        // Built ahead of time, so the wording that is true on every date.
+        text: fillOfferText(faq.answer, new Date(), { evergreen: true }),
       },
     })),
   };
@@ -303,7 +306,7 @@ export default async function SeoPage({ params }: PageProps) {
                 )}
               </div>
             )}
-            <p className="mt-6 text-lg text-ink-600 max-w-3xl leading-relaxed">{page.intro}</p>
+            <p className="mt-6 text-lg text-ink-600 max-w-3xl leading-relaxed"><OfferText text={page.intro} /></p>
             {/* Buttons straight under the intro, so they are on a phone's first
                 screen. Below the tips they started at 932px on an 844px phone. */}
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
@@ -489,8 +492,8 @@ export default async function SeoPage({ params }: PageProps) {
           <div className={`wide-shell grid gap-5 ${page.sections.length % 3 === 0 ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
             {page.sections.map((section) => (
               <article key={section.title} className="card p-6">
-                <h2 className="font-display text-xl font-bold text-ink-900 mb-3">{section.title}</h2>
-                <p className="text-sm text-ink-600 leading-relaxed">{section.body}</p>
+                <h2 className="font-display text-xl font-bold text-ink-900 mb-3"><OfferText text={section.title} /></h2>
+                <p className="text-sm text-ink-600 leading-relaxed"><OfferText text={section.body} /></p>
               </article>
             ))}
           </div>
@@ -505,7 +508,7 @@ export default async function SeoPage({ params }: PageProps) {
                     <h2 className="font-display text-2xl font-bold text-ink-900 md:text-3xl">{block.heading}</h2>
                     <div className="mt-4 space-y-4 text-[17px] leading-relaxed text-ink-700">
                       {block.paragraphs.map((paragraph, index) => (
-                        <p key={index}>{paragraph}</p>
+                        <p key={index}><OfferText text={paragraph} /></p>
                       ))}
                     </div>
                   </div>
@@ -573,7 +576,7 @@ export default async function SeoPage({ params }: PageProps) {
                     {faq.question}
                     <span className="text-clay-500 text-xl flex-shrink-0 group-open:rotate-45 transition-transform">+</span>
                   </summary>
-                  <p className="mt-3 text-sm text-ink-600 leading-relaxed">{faq.answer}</p>
+                  <p className="mt-3 text-sm text-ink-600 leading-relaxed"><OfferText text={faq.answer} /></p>
                 </details>
               ))}
             </div>

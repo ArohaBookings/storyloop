@@ -10,6 +10,7 @@ import FAQ from "@/components/landing/FAQ";
 import CTA from "@/components/landing/CTA";
 import Footer from "@/components/landing/Footer";
 import { LANDING_FAQS } from "@/lib/landing-faqs";
+import { fillOfferText } from "@/lib/offer-wording";
 import Reviews from "@/components/landing/Reviews";
 import AccuracyProof from "@/components/landing/AccuracyProof";
 import Founder from "@/components/landing/Founder";
@@ -30,21 +31,25 @@ export const metadata: Metadata = {
 };
 
 // FAQPage structured data so search and answer engines can surface accurate
-// answers about StoryLoop directly. Mirrors the visible FAQ on the page.
-const faqJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: LANDING_FAQS.map((faq) => ({
-    "@type": "Question",
-    name: faq.q,
-    acceptedAnswer: { "@type": "Answer", text: faq.a },
-  })),
-};
+// answers about StoryLoop directly. Mirrors the visible FAQ on the page,
+// including the centre offer's words on the day (lib/offer-wording.ts); the
+// page is rebuilt every five minutes, so the day is today.
+function faqJsonLd(now: Date) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: LANDING_FAQS.map((faq) => ({
+      "@type": "Question",
+      name: faq.q,
+      acceptedAnswer: { "@type": "Answer", text: fillOfferText(faq.a, now) },
+    })),
+  };
+}
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-paper overflow-x-hidden">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(new Date())) }} />
       <PageTracker />
       <Navbar />
       <main>

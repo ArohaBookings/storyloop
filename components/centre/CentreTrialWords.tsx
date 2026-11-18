@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { centreTrialWords, centreTrialWordsCapital } from "@/lib/centre-offer";
+import { centreOfferWording, type CentreOfferWording } from "@/lib/offer-wording";
 
 /**
  * How long a centre that starts now is free: "free until 31 January" before
@@ -25,4 +26,13 @@ export function useCentreTrialWords(initial?: string, capital = false) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [capital]);
   return words;
+}
+
+/** Everything lib/offer-wording.ts says about the centre offer, for the day it is read in this browser. */
+export function useCentreOfferWording(): CentreOfferWording {
+  const [wording, setWording] = useState(() => centreOfferWording(new Date()));
+  useEffect(() => {
+    setWording(centreOfferWording(new Date()));
+  }, []);
+  return wording;
 }

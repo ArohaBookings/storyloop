@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, Check, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import PageTracker from "@/components/analytics/PageTracker";
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
@@ -84,6 +85,7 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="min-h-screen bg-paper flex items-center justify-center px-4 paper-texture">
+      <PageTracker />
       <div className="absolute inset-0 bg-warm-mesh pointer-events-none" />
       <div className="w-full max-w-md relative z-10">
         <div className="card p-8">

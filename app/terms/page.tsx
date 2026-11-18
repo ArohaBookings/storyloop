@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
+import PageTracker from "@/components/analytics/PageTracker";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
@@ -32,6 +33,7 @@ export default function TermsPage() {
 
   return (
     <div className="min-h-screen bg-paper">
+      <PageTracker />
       <Navbar />
       <main className="pt-32 pb-20">
         <div className="reading-shell">

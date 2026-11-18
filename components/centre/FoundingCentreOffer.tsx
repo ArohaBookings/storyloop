@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight, Check, Mail } from "lucide-react";
 import { getPlanByKey } from "@/lib/plans";
+import { useCentreOfferWording } from "@/components/centre/CentreTrialWords";
 
 const STARTER = getPlanByKey("centre_starter");
 const NZD = STARTER.price.NZD;
@@ -30,6 +31,9 @@ const STATIC: Offer = { trialDays: 30, founding: { totalSpots: 10, spotsLeft: nu
  */
 export default function FoundingCentreOffer({ id = "founding" }: { id?: string }) {
   const [offer, setOffer] = useState<Offer>(STATIC);
+  // How long the free period is on the day it is read (lib/offer-wording.ts),
+  // not the API's floor of 30 days: a 2026 start is free until 31 January.
+  const free = useCentreOfferWording();
 
   useEffect(() => {
     let active = true;
@@ -64,12 +68,12 @@ export default function FoundingCentreOffer({ id = "founding" }: { id?: string }
           </h2>
           <p className="mt-4 max-w-xl text-lg leading-relaxed text-ink-700">
             {soldOut
-              ? `All ${totalSpots} founding spots have gone. Every centre still gets ${offer.trialDays} days free, with no card needed.`
-              : `The first ${totalSpots} centres get ${offer.trialDays} days free with no card, then ${discountPercent}% off their first ${discountMonths} months. In return we ask for honest feedback and a review, good or bad.`}
+              ? `All ${totalSpots} founding spots have gone. Every centre still starts ${free.words}, with no card needed.`
+              : `The first ${totalSpots} centres start ${free.words} with no card, then ${discountPercent}% off their first ${discountMonths} months. In return we ask for honest feedback and a review, good or bad.`}
           </p>
           <ul className="mt-6 grid gap-3 text-base text-ink-800 sm:grid-cols-2">
             {[
-              `${offer.trialDays} days free, no card needed`,
+              free.line,
               `Up to ${SEATS} educators, unlimited children`,
               "Do nothing and nothing is charged",
               "Educators' drafts stay private unless they share",
@@ -100,7 +104,7 @@ export default function FoundingCentreOffer({ id = "founding" }: { id?: string }
           <p className="text-sm font-semibold text-ink-500">Centre Starter, {SEATS} educators, unlimited children</p>
           <dl className="mt-4 divide-y divide-clay-100">
             <div className="flex items-baseline justify-between gap-4 py-3">
-              <dt className="text-base text-ink-700">First {offer.trialDays} days</dt>
+              <dt className="text-base text-ink-700">{free.periodLabel}</dt>
               <dd className="font-display text-2xl font-bold text-ink-900">Free</dd>
             </div>
             {!soldOut && (

@@ -11,6 +11,7 @@ import { billingDay } from "@/lib/billing-dates";
 import { CANCELLATION_REASONS, type BillingSummary } from "@/lib/billing-manage";
 import { getSessionId, track } from "@/lib/analytics/client";
 import { getNextPlan, getPlanByKey, getPlanDefinitions, hasFeatureAccess, normalizePlanKey, planRank, requiredPlanForFeature, resolveFeatureParam, type CurrencyCode, type FeatureKey, type PlanKey } from "@/lib/plans";
+import CentreTrialWords from "@/components/centre/CentreTrialWords";
 
 // A charge or trial end is a moment; it is named in the customer's own part of
 // the world (lib/billing-dates.ts), as checkout, the emails and the bell name it.
@@ -823,7 +824,7 @@ export default function BillingPage() {
               {plan.priceNote && <p className={`-mt-1 mb-2 text-xs ${plan.popular ? "text-ink-300" : "text-ink-500"}`}>{plan.priceNote}</p>}
               {plan.key.startsWith("centre_") && (
                 <div className="mb-3 rounded-xl border border-sage-200 bg-sage-50 px-3 py-2 text-xs leading-relaxed text-sage-900">
-                  <p className="font-semibold">30 days free, no card needed</p>
+                  <p className="font-semibold"><CentreTrialWords capital />, no card needed</p>
                   {centreOffer?.founding.spotsLeft !== 0 && (
                     <p className="mt-0.5">
                       Founding centres then pay {100 - (centreOffer?.founding.discountPercent ?? 50)}% for their first {centreOffer?.founding.discountMonths ?? 3} paid months

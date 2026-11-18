@@ -23,6 +23,14 @@ import { useConsent } from "@/components/consent/useConsent";
  * - "app": signed-in pages, where visible text can be a child's name or a line
  *   from a story. A click records ONLY the link path (ids replaced) and an
  *   explicit data-track name. Never text, never a form value.
+ * - "private": public pages that show one child's story to someone without
+ *   an account (the family page, the leader's check, a wall card, a centre
+ *   invite). The same rules as "app" (taps and reading depth, never text, never
+ *   a form, never a link's # part, where these pages keep their keys), with
+ *   the window as the scroller.
+ *
+ * In-app events with meaning (a story copied, an export) are not guessed
+ * from clicks: components send them with trackEvent (lib/analytics/track-event.ts).
  *
  * Every listener is passive and every send is a beacon, so none of this can
  * slow a click or break a page. Caps keep one long session from flooding the
@@ -37,13 +45,13 @@ const DEPTHS = [25, 50, 75, 90];
 // for later in-app navigations, so it is measured once per load.
 let vitalsTaken = false;
 
-function cleanPath(href: string | null): string | undefined {
+function cleanPath(href: string | null, withHash = true): string | undefined {
   if (!href) return undefined;
   try {
     const url = new URL(href, window.location.origin);
     if (url.origin !== window.location.origin) return url.hostname.replace(/^www\./, "");
     // UUIDs and long ids in a path are records, not places.
-    return url.pathname.replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/gi, ":id").replace(/\/\d{3,}/g, "/:id") + (url.hash || "");
+    return url.pathname.replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/gi, ":id").replace(/\/\d{3,}/g, "/:id") + (withHash ? url.hash || "" : "");
   } catch {
     return undefined;
   }
@@ -104,7 +112,13 @@ function watchVitals(): { read: () => Vitals; stop: () => void } {
   return { read: () => vitals, stop: () => observers.forEach((observer) => observer.disconnect()) };
 }
 
-export default function EngagementTracker({ mode = "marketing" }: { mode?: "marketing" | "app" }) {
+export type EngagementMode = "marketing" | "app" | "private";
+
+/**
+ * `path`: what to file the page under when its address holds a code (a wall
+ * card's /w/ABC123 is filed as /w/:code), so no event carries it.
+ */
+export default function EngagementTracker({ mode = "marketing", path }: { mode?: EngagementMode; path?: string }) {
   const pathname = usePathname();
   const consent = useConsent();
 
@@ -113,7 +127,8 @@ export default function EngagementTracker({ mode = "marketing" }: { mode?: "mark
 
     const started = Date.now();
     // Captured now, for the page this effect belongs to (see page_exit below).
-    const pagePath = pathname ?? window.location.pathname;
+    const pagePath = path ?? pathname ?? window.location.pathname;
+    const at = path ? { path } : {};
     let clicks = 0;
     let errors = 0;
     let maxDepth = 0;
@@ -147,7 +162,7 @@ export default function EngagementTracker({ mode = "marketing" }: { mode?: "mark
           tag: (control ?? target)?.tagName.toLowerCase(),
           section: sectionOf(target),
           clickable: Boolean(control),
-        });
+        }, at);
       }
 
       if (clicks >= MAX_CLICKS) return;
@@ -159,7 +174,7 @@ export default function EngagementTracker({ mode = "marketing" }: { mode?: "mark
       const name = control.getAttribute("data-track") ?? undefined;
       if (privateZone && !name) return;
       clicks += 1;
-      const href = !privateZone && control instanceof HTMLAnchorElement ? cleanPath(control.getAttribute("href")) : undefined;
+      const href = !privateZone && control instanceof HTMLAnchorElement ? cleanPath(control.getAttribute("href"), mode !== "private") : undefined;
       track("click", {
         name,
         label: mode === "marketing" && !privateZone ? labelOf(control) : undefined,
@@ -167,7 +182,7 @@ export default function EngagementTracker({ mode = "marketing" }: { mode?: "mark
         tag: control.tagName.toLowerCase(),
         section: sectionOf(control),
         y: Math.round(((window.scrollY + (event.clientY || 0)) / Math.max(1, document.documentElement.scrollHeight)) * 100),
-      });
+      }, at);
     };
 
     const scroller = () => {
@@ -181,7 +196,7 @@ export default function EngagementTracker({ mode = "marketing" }: { mode?: "mark
       for (const mark of DEPTHS) {
         if (depth >= mark && !reached.has(mark)) {
           reached.add(mark);
-          track("scroll_depth", { depth: mark });
+          track("scroll_depth", { depth: mark }, at);
         }
       }
     };
@@ -192,7 +207,7 @@ export default function EngagementTracker({ mode = "marketing" }: { mode?: "mark
       const selection = window.getSelection();
       const anchor = selection?.anchorNode instanceof Element ? selection.anchorNode : selection?.anchorNode?.parentElement ?? null;
       if (!anchor || anchor.closest("[data-private], .story-safe, form")) return;
-      track("copy", { section: sectionOf(anchor), chars: Math.min(5000, selection?.toString().length ?? 0) });
+      track("copy", { section: sectionOf(anchor), chars: Math.min(5000, selection?.toString().length ?? 0) }, at);
     };
 
     // Form drop-off: which fields someone reached before leaving without
@@ -223,7 +238,7 @@ export default function EngagementTracker({ mode = "marketing" }: { mode?: "mark
       } catch {
         file = undefined;
       }
-      track("js_error", { message: String(event.message || "error").slice(0, 140), file, line: event.lineno || undefined });
+      track("js_error", { message: String(event.message || "error").slice(0, 140), file, line: event.lineno || undefined }, at);
     };
 
     const closeDwell = () => {
@@ -280,7 +295,7 @@ export default function EngagementTracker({ mode = "marketing" }: { mode?: "mark
               if (!visibleSince.has(id)) visibleSince.set(id, now);
               if (!seen.has(id)) {
                 seen.add(id);
-                track("section_view", { section: id, seconds: Math.round((now - started) / 1000) });
+                track("section_view", { section: id, seconds: Math.round((now - started) / 1000) }, at);
               }
             } else if (visibleSince.has(id)) {
               dwell.set(id, (dwell.get(id) ?? 0) + (now - (visibleSince.get(id) ?? now)));
@@ -317,7 +332,7 @@ export default function EngagementTracker({ mode = "marketing" }: { mode?: "mark
       document.removeEventListener("submit", onSubmit, { capture: true } as EventListenerOptions);
       window.removeEventListener("error", onError);
     };
-  }, [pathname, mode, consent]);
+  }, [pathname, mode, consent, path]);
 
   return null;
 }

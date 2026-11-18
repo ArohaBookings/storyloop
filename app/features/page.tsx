@@ -9,6 +9,8 @@ import { EDUCATOR_ASSISTANT_MONTHLY, hasFeatureAccess, minimumPlanFor, PLAN_DEFI
 import { ACCURACY_REPORT as R } from "@/lib/accuracy-report";
 import { WALL_LANGUAGES } from "@/lib/wall-languages";
 import TrustStatement from "@/components/marketing/TrustStatement";
+import OfferText from "@/components/offer/OfferText";
+import { CENTRE_TRIAL_TOKEN_CAPITAL, educatorTrialLine } from "@/lib/offer-wording";
 
 export const metadata: Metadata = {
   title: { absolute: "Every StoryLoop feature, and which plan it is on" },
@@ -26,12 +28,14 @@ const SHORT_NAME: Record<PlanKey, string> = {
   centre_growth: "Centre Growth",
 };
 
+// From lib/offer-wording.ts: the trial checkout gives, and the centre's free
+// period on the day it is read (the {Centre_trial} token, filled by OfferText).
 const TRIAL: Record<PlanKey, string> = {
   free: "No card",
-  educator: "7-day free trial",
-  educator_pro: "7-day free trial",
-  centre_starter: "30 days free, no card",
-  centre_growth: "30 days free, no card",
+  educator: educatorTrialLine(),
+  educator_pro: educatorTrialLine(),
+  centre_starter: `${CENTRE_TRIAL_TOKEN_CAPITAL}, no card`,
+  centre_growth: `${CENTRE_TRIAL_TOKEN_CAPITAL}, no card`,
 };
 
 // Rows that are not a single feature key, but matter most when choosing.
@@ -165,7 +169,7 @@ export default function FeaturesPage() {
                         {plan.price.NZD === 0 ? "Free" : `NZ$${plan.price.NZD}`}
                       </span>
                       <span className="block text-xs text-ink-500">{plan.price.AUD === 0 ? "forever" : `or A$${plan.price.AUD}`}</span>
-                      <span className="mt-2 block text-xs font-semibold text-sage-700">{TRIAL[plan.key]}</span>
+                      <span className="mt-2 block text-xs font-semibold text-sage-700"><OfferText text={TRIAL[plan.key]} /></span>
                     </th>
                   ))}
                 </tr>

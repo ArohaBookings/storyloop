@@ -9,6 +9,7 @@ import { shouldForward } from "@/lib/auth/forward-guard";
 import SignInLinkForm from "@/components/auth/SignInLinkForm";
 import GoogleButton from "@/components/auth/GoogleButton";
 import { googleSignInEnabled } from "@/lib/auth/oauth";
+import PageTracker from "@/components/analytics/PageTracker";
 
 const DEFAULT_REDIRECT = "/dashboard";
 
@@ -95,6 +96,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-paper flex items-center justify-center px-4 paper-texture">
+      <PageTracker />
       <div className="absolute inset-0 bg-warm-mesh pointer-events-none" />
       <div className="w-full max-w-md relative z-10">
         <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6">

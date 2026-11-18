@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Loader2, Check } from "lucide-react";
+import PageTracker from "@/components/analytics/PageTracker";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -25,6 +26,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen bg-paper flex items-center justify-center px-4 paper-texture">
+      <PageTracker />
       <div className="absolute inset-0 bg-warm-mesh pointer-events-none" />
       <div className="w-full max-w-md relative z-10">
         <Link href="/login" className="inline-flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-900 transition-colors mb-6">

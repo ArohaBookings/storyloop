@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
+import PageTracker from "@/components/analytics/PageTracker";
 
 /**
  * Accepting a centre invitation.
@@ -128,6 +129,7 @@ function JoinInner() {
 export default function JoinPage() {
   return (
     <main className="min-h-screen bg-cream-50">
+      <PageTracker mode="private" />
       <Navbar />
       <Suspense fallback={<p className="p-16 text-center text-ink-500">Loading…</p>}>
         <JoinInner />

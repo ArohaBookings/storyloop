@@ -3,6 +3,7 @@ import Link from "next/link";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import { CookiePreferencesButton } from "@/components/consent/CookieBanner";
+import PageTracker from "@/components/analytics/PageTracker";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -40,6 +41,7 @@ export default function PrivacyPage() {
 
   return (
     <div className="min-h-screen bg-paper">
+      <PageTracker />
       <Navbar />
       <main className="pt-32 pb-20">
         <div className="reading-shell">

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LANDING_FAQS as FAQS } from "@/lib/landing-faqs";
+import OfferText from "@/components/offer/OfferText";
 
 export default function FAQ() {
   return (
@@ -17,7 +18,7 @@ export default function FAQ() {
                   +
                 </span>
               </summary>
-              <p className="pb-5 text-base leading-relaxed text-ink-600">{faq.a}</p>
+              <p className="pb-5 text-base leading-relaxed text-ink-600"><OfferText text={faq.a} /></p>
             </details>
           ))}
         </div>
