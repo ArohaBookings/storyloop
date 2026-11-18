@@ -4,12 +4,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Whether an account has written a story, asked of the stories table (fault
  * P11, 18 Nov 2026).
  *
- * profiles.total_stories is a running counter. Accounts made from 18 May to 16
- * June 2026 wrote stories before the story routes kept it, so four of them
- * still read 0 with stories saved, and on 17 June 2026 each was emailed that they had
- * not written a first story. A counter above zero is trusted (stories are never
- * written without it now); a zero is checked against the table before anything
- * tells an educator she has no stories.
+ * profiles.total_stories is a running counter. Until 19 May 2026 the generate
+ * route never wrote it, so no story saved before then was counted: four real
+ * accounts made on 18 May still read 0 with stories saved, and on 17 June 2026
+ * each was emailed that she had not written a first story. A counter above
+ * zero is trusted (every story route has kept it since); a zero is checked
+ * against the table before anything tells an educator she has no stories.
  */
 
 /** The most rows the database hands back in one request (Supabase's default cap). */

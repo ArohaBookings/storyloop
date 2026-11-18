@@ -96,3 +96,14 @@ test("the email rules that say 'no story yet' ask the table; the writer itself i
   const route = readFileSync("app/api/generate/route.ts", "utf8");
   assert.match(route, /import \{ sendStoryMilestoneEmails \} from "@\/lib\/email\/automation";/);
 });
+
+test("a kept demo story is her first only when the stories table agrees; the counter still goes up by one", () => {
+  const keep = readFileSync("app/api/stories/keep/route.ts", "utf8");
+  assert.match(keep, /import \{ hasOtherStories \} from "@\/lib\/story-count";/);
+  assert.match(keep, /total_stories: \(profile\.total_stories \?\? 0\) \+ 1, last_story_at: now/, "the counter is kept exactly as before");
+  assert.match(
+    keep,
+    /if \(\(profile\.total_stories \?\? 0\) === 0 && \(await hasOtherStories\(supabase, user\.id, saved\.id\)\) !== true\) \{\n {4}update\.first_story_created_at = now;/,
+    "the first date is only stamped when no other story row exists (unsure keeps the old rule)",
+  );
+});
