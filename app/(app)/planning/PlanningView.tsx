@@ -149,7 +149,7 @@ export default function PlanningView({ team = null }: { team?: TeamPlanning | nu
               <>
                 <h1 className="font-display text-4xl font-bold text-ink-900">Turn your team&apos;s stories into next-week planning.</h1>
                 <p className="mt-3 text-sm text-ink-600 md:text-base" data-testid="planning-team-line">
-                  Read from your stories and those {team!.sharing === 1 ? "1 educator shares" : `${team!.sharing} educators share`} with
+                  Read from your stories and from {team!.sharing === 1 ? "1 educator who shares" : `${team!.sharing} educators who share`} with
                   you, a few from each, newest first.
                 </p>
               </>
