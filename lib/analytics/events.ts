@@ -240,7 +240,7 @@ export const EVENTS = {
     keys: { story_id: ID, rating: num(5, 1) },
   },
   review_ask_dismissed: {
-    where: "the review ask: Not now",
+    where: "the review ask: No thanks (never asked again)",
     consent: "any",
     isNew: true,
     keys: { story_id: ID },
