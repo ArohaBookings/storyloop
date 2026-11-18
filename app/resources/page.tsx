@@ -24,7 +24,7 @@ const GUIDES = [
     href: "/learning-story-template",
     kicker: "Every educator · Free template",
     title: "Learning story template",
-    description: "Te Whāriki and EYLF versions with a prompt under every heading, to copy into Word, Canva or your centre's platform.",
+    description: "Te Whāriki and EYLF versions with a prompt under every heading, to copy into Word, Canva or the app your centre uses.",
     icon: BookOpen,
   },
   {

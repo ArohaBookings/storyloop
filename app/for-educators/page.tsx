@@ -36,11 +36,11 @@ const FAQS = [
     a: "Yes. It works in the browser on any phone, tablet or computer; there is nothing to install. Record the voice memo on your phone, check the draft on your laptop later if you prefer.",
   },
   {
-    q: "My centre already uses a documentation platform. Can I still use this?",
+    q: "My centre already has an app for stories. Can I still use this?",
     a: (
       <>
-        Yes. You can start on your own today (check your centre&apos;s policy on children&apos;s information first), and any story pastes into your centre&apos;s
-        platform in one tap. Nothing has to change for anyone else, and nothing is shared until you choose.
+        Yes. You can start on your own today (check your centre&apos;s policy on children&apos;s information first), and any story pastes into the app your centre
+        uses in one tap. Nothing has to change for anyone else, and nothing is shared until you choose.
       </>
     ),
   },

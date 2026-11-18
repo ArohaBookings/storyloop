@@ -33,7 +33,7 @@ export default function CentreMonthBand({ what }: { what: "statements" | "summar
             </p>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link href="/signup?plan=centre_starter" className="btn-primary justify-center" data-track="guide_centre_month">
-                Start your centre&apos;s free month
+                Start your centre free
               </Link>
               <Link
                 href="/for-centres?utm_source=guide&utm_medium=centre_band"

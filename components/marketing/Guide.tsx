@@ -208,7 +208,7 @@ export function RelatedGuides({ links }: { links: { href: string; title: string;
 export const RELATED = {
   whatIs: { href: "/what-is-a-learning-story", title: "What is a learning story?", body: "Where they came from, the three parts, and how they differ from an observation." },
   eylf: { href: "/eylf-learning-outcomes", title: "The 5 EYLF learning outcomes", body: "All 20 V2.0 sub-outcomes in plain English, with what each looks like in play." },
-  template: { href: "/learning-story-template", title: "Learning story template", body: "Te Whāriki and EYLF versions to print as a PDF or copy into Word or your centre's platform." },
+  template: { href: "/learning-story-template", title: "Learning story template", body: "Te Whāriki and EYLF versions to print as a PDF or copy into Word or the app your centre uses." },
   examples: { href: "/examples", title: "Learning story examples", body: "12 real notes and the drafts StoryLoop wrote from them, unedited." },
   accuracy: { href: "/accuracy", title: "The accuracy report", body: "How every draft is tested, and what we are still improving." },
   safety: { href: "/safety", title: "Children's information and AI", body: "Where information goes, what the AI can and cannot do with it, and your choices." },

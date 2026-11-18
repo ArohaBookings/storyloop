@@ -173,7 +173,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       {
         title: "Price the learning story work, not the platform",
         body:
-          "Most documentation platforms charge per child whether or not the writing gets easier. StoryLoop charges per team with unlimited children, and its value is in the hours a story no longer takes. Compare what each option costs per educator per month against the time it gives back, and include the cost of moving any history you need to keep.",
+          "Per-child pricing grows with your roll whether or not the writing gets easier. StoryLoop charges per team with unlimited children, and its value is in the hours a story no longer takes. Compare what each option costs per educator per month against the time it gives back, and include the cost of moving any history you need to keep.",
       },
       {
         title: "Compare against relief cover, not against other software",
@@ -190,7 +190,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       {
         question: "What does learning story software cost a centre?",
         answer:
-          "Most platforms charge per child per month, so the figure depends on your roll. StoryLoop charges a flat centre fee: NZ$109 a month for ten educator seats and unlimited children, or NZ$219 for twenty-five seats.",
+          "Per-child pricing moves with your roll. StoryLoop charges a flat centre fee: NZ$109 a month for ten educator seats and unlimited children, or NZ$219 for twenty-five seats.",
       },
       {
         question: "Is it cheaper to buy a centre plan or individual educator plans?",
@@ -1140,7 +1140,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     kicker: "For directors, owners and head teachers",
     heading: "Documentation done in the day, and a calmer review visit.",
     intro:
-      "Your educators jot a note after play and StoryLoop drafts the learning story from it, so writing stops eating their evenings. Every room writes to the same standard, you can see which children have gone unnoticed, and when ERO or an assessment and rating visit comes, the evidence is already counted from stories your team saved. One flat price for the whole team, {centre_trial}, no card.",
+      "Your educators jot a note after play and StoryLoop drafts the learning story from it, so writing stops eating their evenings. Each educator sees which of her children have gone unnoticed lately, you see who on the team is writing and when, and when ERO or an assessment and rating visit comes, each educator's evidence is already counted from the stories she saved. One flat price for the whole team, {centre_trial}, no card.",
     reviewedAt: "2026-11-12",
     siblingLinks: {
       heading: "For the person who signs off",
@@ -1165,7 +1165,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       {
         title: "What a leader gets",
         body:
-          "The evidence pack counts what your team already saved, the way a review visit asks to see it: each child's coverage, next steps revisited, reflection and family voice, with the gaps named first. The quiet child radar names children with no captured moment in 8 working days. The reliever brief puts your room on one page. Shared centre voice and quality calibration keep every room writing to the same standard. These tools count children and gaps, never people.",
+          "A leader sees who on the team is writing and when each educator last wrote, and reads a story when an educator shares it or sends it to be checked. Each educator gets tools for her own documentation: an evidence pack counting each child's coverage, next steps revisited, reflection and family voice, gaps first; a quiet child radar naming children in her notes with no captured moment in 8 working days; a reliever brief for her room on one page. These count children and gaps, never people.",
       },
       {
         title: "Nothing changes for families",
@@ -1222,7 +1222,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       {
         question: "Will it make our next review visit calmer?",
         answer:
-          "It cannot make you compliant, and nothing honest claims to. It counts what your team already recorded, child by child, and shows the gaps first, so you find them early instead of in the fortnight before a visit. The judgement and the practice stay yours.",
+          "It cannot make you compliant, and nothing honest claims to. Each educator's evidence pack counts what she already recorded, child by child, and shows the gaps first, so they are found early instead of in the fortnight before a visit. The judgement and the practice stay yours.",
       },
       {
         question: "Is it cheaper than buying individual plans?",
