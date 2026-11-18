@@ -113,7 +113,7 @@ export const WHATS_NEW_ITEMS: WhatsNewItem[] = [
     icon: "guides",
     title: "Statements for the whole class, one child after another",
     body:
-      "Statement or summary, in the menu: paste what you know about one child and get it back outcome by outcome. Then tap Next child. The notes, name and draft clear, your document and curriculum stay, and you paste the next one. Two a month on the free plan; Educator covers as many as you need.",
+      "Statement or summary, in the menu: paste what you know about one child and get it back outcome by outcome. Then tap Next child. The notes, name and draft clear, your document and curriculum stay, and you paste the next one. Three an hour on the free plan; Educator covers as many as you need.",
     href: "/statement",
   },
   {

@@ -57,7 +57,7 @@ export default async function TransitionPackPage({
 
   const profile = await getOrCreateProfile(user);
   // The statement or summary drafted from this child's saved notes (lib/child-statement.ts):
-  // offered on every plan, free twice a month, so the end-of-year job is one step.
+  // offered on every plan, free three an hour, so the end-of-year job is one step.
   const statementFramework = statementFrameworkFor((profile.story_preferences as { defaultFramework?: string } | null)?.defaultFramework ?? null);
   const { count: childStoryCount } = await supabase
     .from("stories")
