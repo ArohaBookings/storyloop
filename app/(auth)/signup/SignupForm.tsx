@@ -12,7 +12,8 @@ import { googleSignInEnabled } from "@/lib/auth/oauth";
 import { suggestEmailFix } from "@/lib/email-typo";
 import { reportSignupConversion } from "@/lib/analytics/google-ads";
 import { takeHumanPass, warmHumanPass } from "@/lib/auth/human-pass-client";
-import { readKeptStory } from "@/lib/keep-story";
+import { confirmKeptDrafts, readKeptStatement, readKeptStory } from "@/lib/keep-story";
+import { trackEvent } from "@/lib/analytics/track-event";
 import { FIRST_STORY_PATH, signupDestination } from "@/lib/signup-next";
 import { OFFER_STORAGE_KEY, offerRefFromHash, offerStorageValue } from "@/lib/story-check";
 import CentreTrialWords from "@/components/centre/CentreTrialWords";
@@ -49,9 +50,9 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
   const [showPassword, setShowPassword] = useState(false);
   const [suggested, setSuggested] = useState(false);
   const [plan, setPlan] = useState<PlanKey>(() => normalizePlanKey(initialPlan));
-  // A story written in the demo before signing up, waiting to be saved (lib/keep-story.ts).
-  const [keptWaiting, setKeptWaiting] = useState(false);
-  useEffect(() => setKeptWaiting(Boolean(readKeptStory())), []);
+  // A story written in the demo, or a statement drafted on a guide, before
+  // signing up, waiting for the new account (lib/keep-story.ts).
+  const [keptWaiting, setKeptWaiting] = useState<"story" | "statement" | "summary" | null>(null);
   const [currency, setCurrency] = useState<CurrencyCode>("AUD");
   const [referralCode, setReferralCode] = useState("");
   // Where a free account lands: the first story, unless the link asked for a
@@ -67,7 +68,16 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
     const selectedPlan = normalizePlanKey(params.get("plan"));
     const selectedCurrency = params.get("currency");
     const code = params.get("code");
-    setDestination(signupDestination(params.get("next")));
+    // A kept statement opens on /statement, where it is shown again; a kept story goes to the first story as before.
+    // Drafts kept without a tap count too (lib/keep-story.ts); having been shown
+    // here, they go into the new account on its first load.
+    const keptStory = readKeptStory({ includeUnconfirmed: true });
+    const keptStatement = keptStory ? null : readKeptStatement({ includeUnconfirmed: true });
+    confirmKeptDrafts();
+    const kept = keptStory ? "story" : keptStatement ? (keptStatement.mode === "summary" ? "summary" : "statement") : null;
+    setKeptWaiting(kept);
+    if (kept) trackEvent("signup_draft_carried", { kind: kept });
+    setDestination(keptStatement && !params.get("next") ? "/statement" : signupDestination(params.get("next")));
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     setPlan(selectedPlan);
     setCurrency(selectedCurrency ? normaliseCurrency(selectedCurrency) : tz?.includes("Auckland") ? "NZD" : "AUD");
@@ -226,7 +236,9 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
           )}
           {keptWaiting && (
             <p role="status" className="mb-4 rounded-xl border border-sage-200 bg-sage-50 px-3 py-2 text-sm text-ink-800" data-testid="kept-story-waiting">
-              Your story is waiting. Create your account and it goes straight into your stories, free.
+              {keptWaiting === "story"
+                ? "Your story is waiting. Create your account and it goes straight into your stories, free."
+                : `Your ${keptWaiting} draft is waiting. Create your account and it opens straight away, ready to copy.`}
             </p>
           )}
           {signedIn && (

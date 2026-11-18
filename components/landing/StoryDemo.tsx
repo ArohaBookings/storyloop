@@ -4,6 +4,7 @@ import { Sparkles, Loader2, Copy, Check, HelpCircle, ListChecks, Quote } from "l
 import Link from "next/link";
 import GeneratingIndicator from "@/components/app/GeneratingIndicator";
 import { track } from "@/lib/analytics/client";
+import { trackEvent } from "@/lib/analytics/track-event";
 import { frameworkFromStory, rememberStory } from "@/lib/keep-story";
 import { heroRegionForZone } from "@/lib/hero-proofs";
 
@@ -282,6 +283,7 @@ export default function StoryDemo({
       setError("");
       setLimitHit(true);
       track("demo_limit");
+      trackEvent("wall_shown", { wall: "demo" });
       return;
     }
     setLoading(true); setError(""); setOutput(""); setClarify(null);
@@ -299,6 +301,14 @@ export default function StoryDemo({
         }),
       });
       const data = await res.json();
+      // The server's own limit (this hour's tries, or the day's): the same
+      // one-button offer as the limit above, not an error with nowhere to go.
+      if (res.status === 429) {
+        setLimitHit(true);
+        track("demo_limit");
+        trackEvent("wall_shown", { wall: "demo" });
+        return;
+      }
       if (!res.ok) throw new Error(data.error ?? "Something went wrong. Please try again.");
       if (data.needsClarification) {
         setClarify({
@@ -312,6 +322,8 @@ export default function StoryDemo({
       }
       if (!data.story) throw new Error("No story came back. Please try again.");
       setOutput(data.story); setOutputNote(input); setUsage(usage + 1);
+      // Remembered as she writes it, so any way she goes to signup carries it (lib/keep-story.ts).
+      rememberStory(input, data.story, framework ?? frameworkFromStory(data.story), true);
       setBasicDraft(data.basicDraft === true);
       setEvidence({
         anchors: stringList(data.evidenceAnchors),
@@ -410,8 +422,20 @@ export default function StoryDemo({
         )}
         {limitHit && (
           <div className="mt-3 rounded-xl border border-sage-200 bg-sage-50 px-3 py-3 text-sm text-ink-800" data-testid="demo-limit">
-            <p>That was your free try here. Keep {ownDraft ? "the story you wrote" : "going"} and write 3 stories a month free, no card.</p>
-            <Link href="/signup?keep=1" onClick={() => { if (ownDraft) keepThis(); }} className="btn-primary mt-2 inline-flex px-4 py-2 text-xs" data-track="demo_limit_keep">
+            <p>
+              {ownDraft
+                ? "That was your free try here. Keep the story you wrote and write 3 stories a month free, no card."
+                : "The free tries here are used up for now. Write 3 stories a month free in your own account, no card."}
+            </p>
+            <Link
+              href="/signup?keep=1"
+              onClick={() => {
+                if (ownDraft) keepThis();
+                trackEvent("guide_limit_tap", { page: window.location.pathname, wall: "demo" });
+              }}
+              className="btn-primary mt-2 inline-flex px-4 py-2 text-xs"
+              data-track="demo_limit_keep"
+            >
               {ownDraft ? "Keep my story" : "Start free"}
             </Link>
           </div>

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getAccessProfile } from "@/lib/supabase/profiles";
 import { hasFeatureAccess } from "@/lib/plans";
 import StatementFromNotes from "@/components/app/StatementFromNotes";
+import KeptStatement from "@/components/app/KeptStatement";
 
 export const metadata = { title: "Statement or summary from your notes" };
 
@@ -26,6 +27,8 @@ export default async function StatementPage() {
         Paste what you know about one child. You get it back outcome by outcome: what your notes show, and a strategy or next step for
         each. It writes only from your notes and leaves an outcome for you when they show nothing. Then tap Next child and do the next one.
       </p>
+      {/* A draft written on a guide before signing up (lib/keep-story.ts). */}
+      <KeptStatement />
       <StatementFromNotes freePlan={freePlan} />
     </div>
   );
