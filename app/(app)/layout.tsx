@@ -10,6 +10,7 @@ import AppTopBar from "@/components/app/AppTopBar";
 import { PLAN_DEFINITIONS, normalizePlanKey } from "@/lib/plans";
 import EngagementTracker from "@/components/analytics/EngagementTracker";
 import KeepStoryImporter from "@/components/app/KeepStoryImporter";
+import FirstSessionTracker from "@/components/app/FirstSessionTracker";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -60,6 +61,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <WhatsNewModal />
       {/* Paths and named controls only, never visible text. */}
       <EngagementTracker mode="app" />
+      {/* A new account's first page, so the review can see where first sessions stop. */}
+      <FirstSessionTracker noStoryYet={(profile?.total_stories ?? 0) === 0} signedUpAt={user.created_at ?? null} />
     </div>
   );
 }

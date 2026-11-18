@@ -9,7 +9,8 @@ export async function GET() {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const profile = await getAccessProfile(user);
     await supabase.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", user.id);
-    return NextResponse.json({ profile });
+    // When the account was made, for the first-session events (a time, never anything typed).
+    return NextResponse.json({ profile, signedUpAt: user.created_at ?? null });
   } catch (error) {
     console.error("Profile fetch error:", error);
     return NextResponse.json({ error: "Failed to fetch profile" }, { status: 500 });

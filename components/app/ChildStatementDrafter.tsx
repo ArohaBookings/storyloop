@@ -1,8 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Check, Copy, Loader2, Sparkles } from "lucide-react";
 import { track } from "@/lib/analytics/client";
+import AppLimitWall from "@/components/app/AppLimitWall";
+import CheckoutReturn from "@/components/app/CheckoutReturn";
+import { keepWallWork, takeWallWork } from "@/lib/app-wall";
 import type { TransitionDraft, TransitionFramework, TransitionMode } from "@/lib/ai/transition-draft";
 
 const FRAMEWORK_LABEL: Record<TransitionFramework, string> = {
@@ -39,9 +42,31 @@ export default function ChildStatementDrafter({
   const [mode, setMode] = useState<TransitionMode>("transition");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  // The free allowance is used up: the wall (lib/app-wall.ts) instead of a red line.
+  const [limitHit, setLimitHit] = useState(false);
   const [draft, setDraft] = useState<TransitionDraft | null>(null);
   const [used, setUsed] = useState(0);
   const [copied, setCopied] = useState(false);
+  // Back from a wall's checkout (lib/app-wall.ts): the draft on screen is put back.
+  const [returned, setReturned] = useState<{ status: "upgraded" | "cancelled"; plan: string | null; sessionId: string | null } | null>(null);
+  const [paidNow, setPaidNow] = useState(false);
+  const page = `/children/${childId}/transition`.toLowerCase();
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const upgraded = params.get("upgraded") === "true";
+    if (!upgraded && params.get("checkout") !== "cancelled") return;
+    setReturned({ status: upgraded ? "upgraded" : "cancelled", plan: params.get("plan"), sessionId: params.get("session_id") });
+    const work = takeWallWork(page);
+    const kept = work?.draft as TransitionDraft | null | undefined;
+    if (kept && Array.isArray(kept.outcomes)) {
+      setDraft(kept);
+      if (work?.mode === "transition" || work?.mode === "summary") setMode(work.mode);
+      if (work?.framework && work.framework in FRAMEWORK_LABEL) setFramework(work.framework as TransitionFramework);
+    }
+    window.history.replaceState(null, "", window.location.pathname);
+    // Once, when the page opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const strategyLabel = draft ? (draft.mode === "summary" ? "Next step" : STRATEGY_LABEL[draft.framework]) : "";
   const canDraft = storyCount >= 2;
 
@@ -49,6 +74,7 @@ export default function ChildStatementDrafter({
     if (loading || !canDraft) return;
     setLoading(true);
     setError("");
+    setLimitHit(false);
     try {
       const res = await fetch(`/api/children/${encodeURIComponent(childId)}/statement`, {
         method: "POST",
@@ -58,6 +84,7 @@ export default function ChildStatementDrafter({
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.draft) {
         setError(data.error ?? "Something went wrong. Try again in a minute.");
+        setLimitHit(!paid && data.code === "free_limit");
         track("statement_error", { status: res.status, code: data.code ?? null });
         return;
       }
@@ -87,6 +114,11 @@ export default function ChildStatementDrafter({
 
   return (
     <section id="draft" className="card mt-5 scroll-mt-24 p-5 sm:p-6 print:hidden">
+      {returned && (
+        <div className="mb-4">
+          <CheckoutReturn status={returned.status} plan={returned.plan} sessionId={returned.sessionId} onPlan={() => setPaidNow(true)} />
+        </div>
+      )}
       <p className="section-title mb-1">From {childName}&apos;s stories</p>
       <h2 className="font-display text-xl font-bold text-ink-900">Draft {childName}&apos;s transition statement or end-of-year summary</h2>
       <p className="mt-2 text-sm leading-relaxed text-ink-600">
@@ -114,9 +146,9 @@ export default function ChildStatementDrafter({
       <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs leading-relaxed text-ink-500">
           {canDraft
-            ? paid
+            ? paid || paidNow
               ? `Uses up to the last ${storyCount} notes about ${childName}.`
-              : "Included on the free plan twice a month. Educator includes as many as you need."
+              : "A free account drafts three an hour. Educator includes as many as you need."
             : `Save at least two stories about ${childName} first.`}
         </p>
         <button type="button" onClick={run} disabled={loading || !canDraft} className="btn-primary w-full justify-center text-sm sm:w-auto" data-track="statement_draft_run">
@@ -124,7 +156,7 @@ export default function ChildStatementDrafter({
           {mode === "summary" ? "Draft the summary" : "Draft the statement"}
         </button>
       </div>
-      {error && (
+      {error && !limitHit && (
         <p role="alert" className="mt-3 rounded-lg border border-clay-200 bg-clay-50 px-3 py-2 text-xs text-clay-700">
           {error}
           {!paid && /free plan/i.test(error) && (
@@ -185,6 +217,22 @@ export default function ChildStatementDrafter({
           </div>
         )}
       </div>
+      {/* Under her draft, which stays on screen (18 Nov 2026). */}
+      {limitHit && (
+        <div className="mt-4">
+          <AppLimitWall
+            wall="statement"
+            returnTo={page}
+            heading="You've used this hour's free drafts."
+            line={`${childName}'s stories are all saved. Try again in an hour, or keep going now: Educator includes as many as you need.`}
+            onBeforeCheckout={() => keepWallWork({ page, note: "", storyId: null, draft, framework, mode })}
+            onDismiss={() => {
+              setLimitHit(false);
+              setError("");
+            }}
+          />
+        </div>
+      )}
     </section>
   );
 }

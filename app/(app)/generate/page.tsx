@@ -37,6 +37,11 @@ import FamilyTranslationPanel from "@/components/app/FamilyTranslationPanel";
 import LeaderCheck from "@/components/app/LeaderCheck";
 import FamilyShare from "@/components/app/FamilyShare";
 import StoryReviewAsk from "@/components/app/StoryReviewAsk";
+import AppLimitWall from "@/components/app/AppLimitWall";
+import PriceReminder from "@/components/app/PriceReminder";
+import CheckoutReturn from "@/components/app/CheckoutReturn";
+import { trackEvent } from "@/lib/analytics/track-event";
+import { keepWallWork, takeWallWork } from "@/lib/app-wall";
 import { looksNonLatin } from "@/lib/note-language";
 import { ROOM_HANDOFF_STORY } from "@/lib/room-mode";
 import type { ChildProfile } from "@/lib/children";
@@ -223,7 +228,12 @@ export default function GeneratePage() {
   const [recording, setRecording] = useState(false);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [upgradePromptKind, setUpgradePromptKind] = useState<"first_story" | "one_left">("one_left");
+  // The free-limit wall (lib/app-wall.ts): in the page, under her work, never a pop-up.
   const [showLimitModal, setShowLimitModal] = useState(false);
+  // Back from a wall's checkout: "upgraded" or "cancelled", read once from the address.
+  const [checkoutReturn, setCheckoutReturn] = useState<{ status: "upgraded" | "cancelled"; plan: string | null; sessionId: string | null } | null>(null);
+  // For the first-session events: what the account looked like when the page loaded.
+  const [accountAtLoad, setAccountAtLoad] = useState<{ id: string; totalStories: number; signedUpAt: number | null } | null>(null);
   const [placeholder, setPlaceholder] = useState(PLACEHOLDERS[0]);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -306,6 +316,14 @@ export default function GeneratePage() {
         // default, which would drop a sample observation onto the page of an
         // educator with hundreds of stories.
         const loadedProfile = accountData?.profile;
+        if (loadedProfile && typeof loadedProfile.id === "string") {
+          const signedUp = typeof accountData?.signedUpAt === "string" ? Date.parse(accountData.signedUpAt) : NaN;
+          setAccountAtLoad((previous) => previous ?? {
+            id: loadedProfile.id,
+            totalStories: loadedProfile.total_stories ?? 0,
+            signedUpAt: Number.isFinite(signedUp) ? signedUp : null,
+          });
+        }
         if (loadedProfile && (loadedProfile.total_stories ?? 0) === 0 && typeof window !== "undefined") {
           // Arriving straight from signup (?welcome=1) always gets the guided
           // first-story wizard, even if it was dismissed in a past session.
@@ -466,6 +484,26 @@ export default function GeneratePage() {
     setFollowUpPrompt("");
   };
 
+  // The story on screen when Generate is pressed. A free-limit refusal puts it
+  // back, so her finished work stays on screen above the wall (18 Nov 2026: it
+  // used to be wiped before the refusal arrived, leaving an empty panel).
+  const snapshotOutput = () => ({
+    story, storyTitle, storyId, storyDraft, basicDraft, outcomes, curriculumLinks, nextSteps, learningSummary, childVoice,
+    learningDispositions, socialEmotionalLinks, culturalConnections, assumptions, whanauConnection, evidenceAnchors,
+    educatorChecks, pedagogyLinks, frameworkEvidence, storyQuality, privacyGuardian, parentFriendlyVersion, familyPack,
+    familyQuestion, followUpPrompt,
+  });
+  const restoreOutput = (o: ReturnType<typeof snapshotOutput>) => {
+    setStory(o.story); setStoryTitle(o.storyTitle); setStoryId(o.storyId); setStoryDraft(o.storyDraft); setBasicDraft(o.basicDraft);
+    setOutcomes(o.outcomes); setCurriculumLinks(o.curriculumLinks); setNextSteps(o.nextSteps); setLearningSummary(o.learningSummary);
+    setChildVoice(o.childVoice); setLearningDispositions(o.learningDispositions); setSocialEmotionalLinks(o.socialEmotionalLinks);
+    setCulturalConnections(o.culturalConnections); setAssumptions(o.assumptions); setWhanauConnection(o.whanauConnection);
+    setEvidenceAnchors(o.evidenceAnchors); setEducatorChecks(o.educatorChecks); setPedagogyLinks(o.pedagogyLinks);
+    setFrameworkEvidence(o.frameworkEvidence); setStoryQuality(o.storyQuality); setPrivacyGuardian(o.privacyGuardian);
+    setParentFriendlyVersion(o.parentFriendlyVersion); setFamilyPack(o.familyPack); setFamilyQuestion(o.familyQuestion);
+    setFollowUpPrompt(o.followUpPrompt);
+  };
+
   const resetClarification = () => {
     setClarification(null);
     setClarificationAnswers([]);
@@ -496,6 +534,70 @@ export default function GeneratePage() {
           .slice(0, 4)
       )
     );
+
+  // First-session steps (18 Nov 2026): 11 of 29 new accounts opened the app and
+  // never wrote a story, and nothing recorded where they stopped. A flag when
+  // the first note is started and the id of the first story: never any text.
+  const firstStoryLogged = useRef(false);
+  const noteFirstStory = (newStoryId: string) => {
+    if (firstStoryLogged.current || !accountAtLoad || accountAtLoad.totalStories !== 0) return;
+    firstStoryLogged.current = true;
+    trackEvent("app_first_story_done", {
+      story_id: newStoryId || null,
+      seconds_since_signup: accountAtLoad.signedUpAt ? Math.round((Date.now() - accountAtLoad.signedUpAt) / 1000) : null,
+    });
+  };
+  const firstNoteLogged = useRef(false);
+  useEffect(() => {
+    if (firstNoteLogged.current || !accountAtLoad || accountAtLoad.totalStories !== 0) return;
+    const note = observations.trim();
+    // The example put in the box for a new account is not her note.
+    if (!note || note === SAMPLE_OBSERVATION.trim()) return;
+    firstNoteLogged.current = true;
+    const key = `storyloop_first_note_${accountAtLoad.id}`;
+    try {
+      if (window.localStorage.getItem(key)) return;
+      window.localStorage.setItem(key, "1");
+    } catch {
+      /* storage blocked: sent once for this page load */
+    }
+    const method = inputMethod === "voice" ? "voice" : inputMethod === "photo" ? "photo" : inputMethod === "sample" ? "example" : "typed";
+    trackEvent("app_first_note_started", { method });
+  }, [observations, inputMethod, accountAtLoad]);
+
+  // Back from a wall's checkout (lib/app-wall.ts): her note and her story are put back.
+  useEffect(() => {
+    const upgraded = searchParams.get("upgraded") === "true";
+    const cancelled = searchParams.get("checkout") === "cancelled";
+    if (!upgraded && !cancelled) return;
+    setCheckoutReturn({ status: upgraded ? "upgraded" : "cancelled", plan: searchParams.get("plan"), sessionId: searchParams.get("session_id") });
+    const work = takeWallWork("/generate");
+    if (work?.note) {
+      setObservations(work.note);
+      setInputMethod("typed");
+    }
+    if (work?.storyId) {
+      const keptId = work.storyId;
+      void fetch(`/api/stories/${encodeURIComponent(keptId)}`)
+        .then((response) => (response.ok ? response.json() : null))
+        .then((data) => {
+          const saved = data?.story;
+          if (!saved || typeof saved.story_text !== "string") return;
+          setStory(saved.story_text);
+          setStoryDraft(saved.story_text);
+          setStoryId(keptId);
+          if (typeof saved.child_name === "string") setChildName(saved.child_name);
+          if (Array.isArray(saved.next_steps)) setNextSteps(saved.next_steps.filter((item: unknown): item is string => typeof item === "string"));
+        })
+        .catch(() => {});
+    }
+    // A reload must not count the return twice.
+    window.history.replaceState(null, "", "/generate");
+  }, [searchParams]);
+
+  const keepWorkForCheckout = () => {
+    keepWallWork({ page: "/generate", note: observations, storyId: storyId || null, draft: null, framework: null, mode: null });
+  };
 
   const handleGenerate = async (
     clarificationAnswersOverride: string[] = [],
@@ -529,6 +631,7 @@ export default function GeneratePage() {
     setLoading(true);
     setError("");
     resetClarification();
+    const onScreen = snapshotOutput();
     resetOutput();
     setUpgradeRequired(false);
     setBillingRequired(false);
@@ -585,6 +688,7 @@ export default function GeneratePage() {
           setBillingRequired(true);
         }
         if (data.upgradeRequired) {
+          restoreOutput(onScreen);
           setUpgradeRequired(true);
           setShowLimitModal(true);
         }
@@ -617,6 +721,7 @@ export default function GeneratePage() {
       setFollowUpPrompt(data.followUpPrompt ?? "");
       setAccountPlan(normalizePlanKey(data.plan));
       setRemaining(data.remaining);
+      noteFirstStory(typeof data.storyId === "string" ? data.storyId : "");
       // The page moves while a story is written (cards close, the panel grows), so
       // on a phone or tablet the finished story is brought to the top of the screen
       // once more when it arrives. Without this it sat two screens below the button.
@@ -786,14 +891,30 @@ export default function GeneratePage() {
     window.setTimeout(() => panel.focus({ preventScroll: true }), reduce ? 0 : 400);
   };
 
+  // Was it used (18 Nov 2026, fault P05): Copy, Edit, Regenerate and Export each
+  // record the story's id and nothing else. The story panel is a private zone
+  // for automatic click tracking, so these are sent from the handlers.
+  const copiedStories = useRef(new Set<string>());
+  const editedStories = useRef(new Set<string>());
+  const regenerations = useRef(0);
+
   const handleCopy = async () => {
     await navigator.clipboard.writeText(story);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    trackEvent("app_story_copied", { story_id: storyId || null, how: "button", first: !copiedStories.current.has(storyId) });
+    copiedStories.current.add(storyId);
+  };
+
+  const handleRegenerate = () => {
+    regenerations.current += 1;
+    trackEvent("app_story_regenerated", { story_id: storyId || null, n: regenerations.current });
+    void handleGenerate();
   };
 
   const handleDownload = () => {
     if (!story || typeof window === "undefined") return;
+    trackEvent("app_export", { story_id: storyId || null, format: "txt" });
     const blob = new Blob([story], { type: "text/plain;charset=utf-8" });
     const url = window.URL.createObjectURL(blob);
     const anchor = document.createElement("a");
@@ -825,6 +946,10 @@ export default function GeneratePage() {
   };
 
   const startStoryEdit = () => {
+    if (!editedStories.current.has(storyId)) {
+      editedStories.current.add(storyId);
+      trackEvent("app_story_edit_started", { story_id: storyId || null });
+    }
     setStoryDraft(story);
     setStorySaveMessage("");
     setEditingStory(true);
@@ -1294,8 +1419,43 @@ export default function GeneratePage() {
             ? "If the microphone is blocked, upload a voice memo instead."
             : "";
 
+  // The free-limit wall sits in the story panel, under the story she just
+  // finished (or in place of the empty panel), never over the note box.
+  const limitWall = showLimitModal ? (
+    <AppLimitWall
+      wall="story"
+      returnTo="/generate"
+      heading="You've used this month's free stories."
+      line={
+        story
+          ? "This story is saved with the rest, and your note is still in the box. Educator gives you as many as you need."
+          : "Every story you wrote is saved, and your note is still in the box. Educator gives you as many as you need."
+      }
+      onBeforeCheckout={keepWorkForCheckout}
+      onDismiss={() => {
+        setShowLimitModal(false);
+        setError("");
+      }}
+    />
+  ) : null;
+
   return (
     <div className="w-full max-w-none p-4 sm:p-6 md:p-8">
+      {checkoutReturn && (
+        <div className="mb-4">
+          <CheckoutReturn
+            status={checkoutReturn.status}
+            plan={checkoutReturn.plan}
+            sessionId={checkoutReturn.sessionId}
+            onPlan={(plan) => {
+              setAccountPlan(plan);
+              setShowLimitModal(false);
+              setUpgradeRequired(false);
+              setError("");
+            }}
+          />
+        </div>
+      )}
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0">
           <h1 className="font-display text-3xl font-bold text-ink-900">New learning story</h1>
@@ -1941,7 +2101,7 @@ export default function GeneratePage() {
             </div>
           )}
 
-          {error && (
+          {error && !showLimitModal && (
             <div className="flex items-start gap-2 text-xs text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <div>
@@ -1998,7 +2158,7 @@ export default function GeneratePage() {
                 <button type="button" onClick={startStoryEdit} disabled={editingStory || savingStory} className={storyAction}>
                   <Pencil className="w-3 h-3" /> Edit
                 </button>
-                <button type="button" onClick={() => handleGenerate()} className={storyAction}>
+                <button type="button" onClick={handleRegenerate} className={storyAction}>
                   <RefreshCw className="w-3 h-3" /> Regenerate
                 </button>
                 <button type="button" onClick={handleDownload} className={storyAction}>
@@ -2171,6 +2331,7 @@ export default function GeneratePage() {
                   {storySaveMessage}
                 </p>
               )}
+              {limitWall && <div className="mt-4">{limitWall}</div>}
 
               <StoryIntelligence
                 evidenceAnchors={evidenceAnchors}
@@ -2185,6 +2346,7 @@ export default function GeneratePage() {
               />
 
               <ExportPackPanel
+                storyId={storyId || undefined}
                 plan={accountPlan}
                 childName={childName}
                 ageGroup={ageGroup}
@@ -2406,7 +2568,8 @@ export default function GeneratePage() {
             </div>
           ) : (
             <div className="flex-1 px-0 py-1 sm:p-2">
-              <div className="w-full rounded-2xl border border-clay-100 bg-white/75 p-4 text-left shadow-soft sm:ml-auto sm:max-w-sm">
+              {limitWall}
+              <div hidden={Boolean(limitWall)} className="w-full rounded-2xl border border-clay-100 bg-white/75 p-4 text-left shadow-soft sm:ml-auto sm:max-w-sm">
                 <div className="flex items-start gap-3">
                   <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-cream-100 text-clay-700">
                     <Sparkles className="h-4 w-4" />
@@ -2419,6 +2582,8 @@ export default function GeneratePage() {
                   </div>
                 </div>
               </div>
+              {/* After a wall on an earlier visit: one quiet line, away from the note box. */}
+              {!showLimitModal && !checkoutReturn && <PriceReminder free={accountAtLoad !== null && accountPlan === "free"} returnTo="/generate" className="mt-3 w-full sm:ml-auto sm:max-w-sm" />}
             </div>
           )}
           {/* Outside the branches above and never keyed, so it stays mounted through
@@ -2430,43 +2595,6 @@ export default function GeneratePage() {
         </div>
       </div>
 
-      {showLimitModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/50 px-4 py-6">
-          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-clay-100 p-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-bold text-clay-600 uppercase tracking-wider mb-2">Free story limit reached</p>
-                <h2 className="font-display text-2xl font-bold text-ink-900 leading-tight">You&apos;ve used your 3 free stories this month.</h2>
-              </div>
-              <button
-                onClick={() => setShowLimitModal(false)}
-                className="w-8 h-8 flex-shrink-0 rounded-lg border border-clay-200 flex items-center justify-center text-ink-500 hover:text-ink-900 hover:bg-cream-50"
-                aria-label="Close limit message"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <p className="text-sm text-ink-600 mt-3">
-              Upgrade to keep creating learning stories now, or come back next month. Your existing stories and history stay available either way.
-            </p>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              <Link
-                href="/billing?offer=activation"
-                onClick={() => setShowLimitModal(false)}
-                className="btn-primary justify-center py-3 text-sm"
-              >
-                Upgrade for unlimited stories <ArrowRight className="w-4 h-4" />
-              </Link>
-              <button
-                onClick={() => setShowLimitModal(false)}
-                className="btn-secondary justify-center py-3 text-sm"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
