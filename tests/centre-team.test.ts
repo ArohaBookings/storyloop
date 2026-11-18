@@ -19,7 +19,7 @@ import {
   leaderTeamScopes,
   type TeamAccess,
 } from "../lib/centre-team";
-import { isSampleId, sampleEvidence, sampleQueue, SAMPLE_CHILDREN, SAMPLE_EDUCATORS } from "../lib/sample-team";
+import { isSampleId, sampleCountryFor, sampleEvidence, sampleQueue, SAMPLE_CHILDREN, SAMPLE_EDUCATORS } from "../lib/sample-team";
 import { buildEvidencePack, evidenceStoryFromRow } from "../lib/evidence-pack";
 import { agoLabel, waitingCount, whenLabel } from "../lib/team-queue";
 
@@ -397,4 +397,20 @@ test("the whole team switch needs someone sharing, and a scope for the same cent
   const shared = decideTeamScope({ viewerId: "owner-a", viewer: OWNER, access: TEAM, readableIds: ["edu-share"], members: MEMBERS })!;
   assert.deepEqual(leaderTeamScopes({ access: { kind: "team", centreId: "centre-b", plan: "centre_starter" }, scope: shared }), [], "a scope from another centre opens nothing");
   assert.deepEqual(leaderTeamScopes({ access: { kind: "lapsed", centreId: "centre-a" }, scope: shared }), []);
+});
+
+test("the sample speaks the leader's curriculum: the EYLF in Australia, Te Whāriki otherwise", () => {
+  assert.equal(sampleCountryFor("AU"), "AU");
+  for (const other of ["NZ", "UK", "IE", null, undefined, "", 7]) assert.equal(sampleCountryFor(other), "NZ");
+  const now = new Date("2026-11-19T00:00:00Z");
+  const nz = sampleQueue(now);
+  const au = sampleQueue(now, "AU");
+  assert.deepEqual(au.map((item) => item.id), nz.map((item) => item.id), "the same six moments, in the same order");
+  const auText = JSON.stringify(au);
+  assert.equal(/Mana |waiata/.test(auText), false, "no New Zealand strands or words in the Australian sample");
+  assert.ok(au.every((item) => item.outcomes.length > 0 && item.outcomes.every((outcome) => /^Outcome [1-5]: Children /.test(outcome))));
+  assert.ok(nz.every((item) => item.outcomes.every((outcome) => / \| Mana /.test(outcome))), "New Zealand unchanged");
+  const pack = sampleEvidence(now, undefined, "AU");
+  assert.equal(/Mana |waiata/.test(JSON.stringify(pack)), false);
+  assert.deepEqual(pack.children, sampleEvidence(now).children, "the same invented children");
 });

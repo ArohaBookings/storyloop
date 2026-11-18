@@ -14,7 +14,7 @@ import TeamChildJoin from "@/components/app/TeamChildJoin";
 import { SampleTeamBanner } from "@/components/app/SampleTeam";
 import { getTeamContext, loadTeamEvidence, type TeamEvidence } from "@/lib/centre-team-server";
 import { pickTeamViewScope, teamViewScopes, type TeamViewScope } from "@/lib/centre-team";
-import { sampleEvidence } from "@/lib/sample-team";
+import { sampleCountryFor, sampleEvidence } from "@/lib/sample-team";
 
 export const metadata = { title: "Evidence pack" };
 
@@ -107,7 +107,7 @@ export default async function EvidencePackPage({
     teamEvidence = await loadTeamEvidence(team, `${periodStart}T00:00:00.000Z`, localDay);
     pack = buildEvidencePack({ children: teamEvidence.children, stories: teamEvidence.stories, periodLabel, periodStart, periodEnd });
   } else if (scope === "sample") {
-    const sample = sampleEvidence(new Date(), (day) => localDay(day) ?? day.toISOString().slice(0, 10));
+    const sample = sampleEvidence(new Date(), (day) => localDay(day) ?? day.toISOString().slice(0, 10), sampleCountryFor(defaultFramework));
     pack = buildEvidencePack({ children: sample.children, stories: sample.stories, periodLabel, periodStart, periodEnd });
   } else {
     // The educator's own pack, read exactly as it always has been.

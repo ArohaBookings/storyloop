@@ -3,7 +3,7 @@ import { ArrowRight, Eye, FileCheck2, Lock } from "lucide-react";
 import { redirectToLogin } from "@/lib/auth/login-redirect";
 import { createClient } from "@/lib/supabase/server";
 import { countPrivateStories, getTeamContext, loadTeamQueue } from "@/lib/centre-team-server";
-import { SAMPLE_PRIVATE_STORIES, sampleQueue } from "@/lib/sample-team";
+import { SAMPLE_PRIVATE_STORIES, sampleCountryFor, sampleQueue } from "@/lib/sample-team";
 import TeamReviewQueue from "@/components/app/TeamReviewQueue";
 import { SampleTeamBanner, SampleTeamOffer } from "@/components/app/SampleTeam";
 
@@ -77,6 +77,8 @@ export default async function TeamPage() {
 
   // A leader. The sample team shows only while nobody else is in the centre.
   if (ctx.sample.show) {
+    const { data: prefs } = await supabase.from("profiles").select("story_preferences").eq("id", user.id).maybeSingle();
+    const country = sampleCountryFor((prefs?.story_preferences as { defaultFramework?: unknown } | null)?.defaultFramework);
     return (
       <Shell>
         <p className="mt-2 text-sm leading-relaxed text-ink-600">
@@ -84,7 +86,7 @@ export default async function TeamPage() {
         </p>
         <div className="mt-5">
           <SampleTeamBanner />
-          <TeamReviewQueue items={sampleQueue()} sample />
+          <TeamReviewQueue items={sampleQueue(new Date(), country)} sample />
           <p className="mt-4 rounded-2xl bg-cream-50 p-3 text-sm leading-relaxed text-ink-700" data-testid="team-private-count">
             <Lock className="mr-1 inline h-3.5 w-3.5 align-[-2px] text-ink-500" />
             1 educator keeps their stories private. You see only how many: {SAMPLE_PRIVATE_STORIES} stories in the last 30 days,
