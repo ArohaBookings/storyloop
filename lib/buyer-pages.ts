@@ -1,4 +1,5 @@
 import type { AnswerBlockId } from "@/lib/answer-blocks";
+import { educatorOffer } from "@/lib/offer-wording";
 
 /**
  * Pages for the people who buy (18 Nov 2026, the search re-aim).
@@ -90,6 +91,10 @@ export type BuyerPage = {
 
 const REVIEWED = "2026-11-18";
 
+// Prices and the trial from lib/plans.ts and lib/offer-wording.ts, never typed out.
+const EDUCATOR_AU = educatorOffer("AUD");
+const EDUCATOR_NZ = educatorOffer("NZD");
+
 const NZEI_RELEASE = {
   label: "NZEI Te Riu Roa: largest ECE survey in years highlights teachers under pressure",
   url: "https://www.nzeiteriuroa.org.nz/mi/about-us/media-releases/largest-ece-survey-in-years-kōriporipo-highlights-teachers-under-pressure",
@@ -107,12 +112,12 @@ const ACECQA_QA7 = {
   url: "https://www.acecqa.gov.au/nqf/national-quality-standard/quality-area-7-governance-and-leadership",
 };
 const ACECQA_13 = {
-  label: "ACECQA: Standard 1.3, Assessment and planning",
-  url: "https://www.acecqa.gov.au/national-quality-framework/guide-nqf/section-3-national-quality-standard-and-assessment-and-rating/quality-area-1-educational-program-and-practice/standard-13-assessment-and-planning",
+  label: "ACECQA: Element 1.3.1 Assessment and planning cycle",
+  url: "https://www.acecqa.gov.au/national-quality-framework/guide-nqf/section-3-national-quality-standard-and-assessment-and-rating/quality-area-1-educational-program-and-practice/standard-13-assessment-and-planning/element-131-assessment-and-planning-cycle",
 };
 const ACECQA_NQS = {
-  label: "ACECQA Guide to the NQF: the National Quality Standard",
-  url: "https://www.acecqa.gov.au/national-quality-framework/guide-nqf/section-3-national-quality-standard-and-assessment-and-rating/national-quality-standard",
+  label: "ACECQA: the National Quality Standard",
+  url: "https://www.acecqa.gov.au/nqf/national-quality-standard",
 };
 const SECTOR_EXCEEDING = {
   label: "The Sector: Exceeding NQS in 2026, what the latest ACECQA data tells us",
@@ -142,7 +147,7 @@ const PAGES = {
           "Learning stories: you jot a note after play, and StoryLoop drafts the story, the learning, the curriculum links and where to next.",
           "No typing: say the note out loud, or photograph the page you jotted it on.",
           "Child statements and end-of-year summaries, drafted from what you have already written.",
-          "A version for families in plain words, on the Educator plan and up.",
+          "A family message and a question to ask at home, from the saved story, on the Educator plan and up.",
         ],
       },
       {
@@ -231,7 +236,7 @@ const PAGES = {
         id: "cost",
         heading: "What it costs",
         paragraphs: [
-          "Free for 3 stories a month, no card. Educator is A$19 a month for unlimited stories (NZ$21 in New Zealand), after a 7-day free trial.",
+          `Free for 3 stories a month, no card. Educator is ${EDUCATOR_AU.perMonth} for unlimited stories (${EDUCATOR_NZ.priceLabel} in New Zealand), after a ${EDUCATOR_AU.trialLine}.`,
         ],
         link: { href: "/pricing", label: "Every plan and price" },
       },
@@ -462,7 +467,7 @@ const PAGES = {
         id: "information",
         heading: "What happens to your child's information",
         paragraphs: [
-          "Teachers use your child's first name only. Notes are stored in Sydney, Australia. To write a draft, a note goes to an AI provider in the United States, under business terms that do not allow it to be used to train their models. A teacher checks every word, and nothing is shared until a teacher chooses.",
+          "StoryLoop asks teachers to use your child's first name only. Notes are stored in Sydney, Australia. To write a draft, a note goes to an AI provider in the United States, under business terms that do not allow it to be used to train their models. A teacher checks every word, and nothing is shared until a teacher chooses.",
         ],
         link: { href: "/safety", label: "Children's information and AI, in plain words" },
       },
@@ -614,7 +619,7 @@ const PAGES = {
         list: [
           "Stories that describe the activity, not the child.",
           "Curriculum links with no reason.",
-          "Next steps nobody comes back to (\"continue to support\").",
+          "Next steps too vague to act on, that nobody comes back to.",
           "Family voice that never reaches the next story.",
           "Reflection written once a term, not part of the week.",
         ],
