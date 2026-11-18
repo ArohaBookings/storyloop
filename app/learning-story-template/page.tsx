@@ -62,7 +62,7 @@ const FAQS = [
     a: "Yes. The copy button copies plain text, so it pastes cleanly anywhere. In Canva, paste each heading into its own text box on your service's story layout.",
   },
   {
-    q: "Can I use it in my centre's platform?",
+    q: "Can I use it in the app my centre uses?",
     a: (
       <>
         Yes. The template is plain text, so it pastes into any story editor. Or let StoryLoop fill it in from your
@@ -90,7 +90,7 @@ export default function LearningStoryTemplatePage() {
           <p>
             Two versions, one for Te Whāriki in Aotearoa New Zealand and one for the EYLF V2.0 in Australia. Each follows
             notice, recognise, respond: what happened, what learning it shows, and where to next, with a prompt under every
-            heading. Copy it into Word, Google Docs, Canva or your centre's platform.
+            heading. Copy it into Word, Google Docs, Canva or the app your centre uses.
           </p>
         }
       >

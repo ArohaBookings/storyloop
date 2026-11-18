@@ -9,6 +9,7 @@ import { EDUCATOR_ASSISTANT_MONTHLY, hasFeatureAccess, minimumPlanFor, PLAN_DEFI
 import { ACCURACY_REPORT as R } from "@/lib/accuracy-report";
 import { WALL_LANGUAGES } from "@/lib/wall-languages";
 import TrustStatement from "@/components/marketing/TrustStatement";
+import ExitFeedback from "@/components/landing/ExitFeedback";
 import OfferText from "@/components/offer/OfferText";
 import { CENTRE_TRIAL_TOKEN_CAPITAL, educatorTrialLine } from "@/lib/offer-wording";
 
@@ -207,6 +208,15 @@ export default function FeaturesPage() {
             &ldquo;One moment, many children&rdquo; is on every plan and uses one story per child. Individual plans are for one
             educator; centre plans cover the whole team with no per-child fee.
           </p>
+        </div>
+      </section>
+
+      {/* The one-tap "what is stopping you?" (lib/exit-feedback.ts, fault P07): quiet, in the page, once per visitor. */}
+      <section className="pt-12 md:pt-16">
+        <div className="wide-shell">
+          <div className="mx-auto max-w-3xl">
+            <ExitFeedback surface="features" />
+          </div>
         </div>
       </section>
 

@@ -37,27 +37,173 @@ export function keptStoryTitle(story: string): string {
   return first.trim().slice(0, 80) || "My first learning story";
 }
 
-export function rememberStory(note: string, story: string, framework: KeptFramework | null) {
+/**
+ * Kept without a tap (18 Nov 2026). Until now a draft was kept only when she
+ * tapped "Keep this story"; 0 of 29 new accounts arrived with one, because a
+ * visitor who wrote a draft and then tapped Start free anywhere else lost it.
+ * Now every draft she writes herself is remembered as she writes it, marked
+ * `auto`. An auto draft is shown on the signup page ("your story is waiting")
+ * and only goes into an account after the signup page has shown it
+ * (confirmKeptDrafts), so a signed-in visitor trying the demo never finds a
+ * draft dropped into her account unasked. It is forgotten after
+ * KEEP_AUTO_MAX_AGE_MS, so a shared centre tablet does not hand one person's
+ * draft to the next. A tap on Keep stores it as before, for the full week.
+ */
+export const KEEP_AUTO_MAX_AGE_MS = 2 * 3_600_000;
+
+/** Whether a stored draft may be used: an auto draft only while fresh, and for an account only once confirmed. */
+export function keptDraftUsable(raw: unknown, now = Date.now(), includeUnconfirmed = false): boolean {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return false;
+  const value = raw as Record<string, unknown>;
+  if (value.auto !== true) return true;
+  const at = typeof value.at === "number" ? value.at : NaN;
+  if (!Number.isFinite(at) || now - at > KEEP_AUTO_MAX_AGE_MS) return false;
+  return includeUnconfirmed;
+}
+
+export function rememberStory(note: string, story: string, framework: KeptFramework | null, auto = false) {
   try {
-    window.localStorage.setItem(KEEP_STORY_KEY, JSON.stringify({ note: note.slice(0, KEEP_NOTE_MAX), story: story.slice(0, KEEP_STORY_MAX), framework, at: Date.now() }));
+    const kept: Record<string, unknown> = { note: note.slice(0, KEEP_NOTE_MAX), story: story.slice(0, KEEP_STORY_MAX), framework, at: Date.now() };
+    if (auto) kept.auto = true;
+    window.localStorage.setItem(KEEP_STORY_KEY, JSON.stringify(kept));
     return true;
   } catch {
     return false;
   }
 }
 
-export function readKeptStory(): KeptStory | null {
+/** The kept story, for an account (confirmed only) or, with `includeUnconfirmed`, for the signup page. */
+export function readKeptStory({ includeUnconfirmed = false }: { includeUnconfirmed?: boolean } = {}): KeptStory | null {
   try {
     const raw = window.localStorage.getItem(KEEP_STORY_KEY);
-    return raw ? cleanKeptStory(JSON.parse(raw)) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return keptDraftUsable(parsed, Date.now(), includeUnconfirmed) ? cleanKeptStory(parsed) : null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * The signup page has told her the draft is waiting: from here it goes into
+ * the new account on its first load. Clears the auto mark and keeps the time
+ * it was written, so the week's limit still runs from the draft itself.
+ */
+export function confirmKeptDrafts() {
+  for (const key of [KEEP_STORY_KEY, KEEP_STATEMENT_KEY]) {
+    try {
+      const raw = window.localStorage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object" || parsed.auto !== true) continue;
+      if (!keptDraftUsable(parsed, Date.now(), true)) {
+        window.localStorage.removeItem(key);
+        continue;
+      }
+      delete parsed.auto;
+      window.localStorage.setItem(key, JSON.stringify(parsed));
+    } catch {
+      /* nothing to confirm */
+    }
   }
 }
 
 export function forgetKeptStory() {
   try {
     window.localStorage.removeItem(KEEP_STORY_KEY);
+  } catch {
+    /* nothing to forget */
+  }
+}
+
+/**
+ * "Keep my draft" for the statement and summary drafter on the guides (18 Nov
+ * 2026). The guide drafter writes a transition statement or an end-of-year
+ * summary, not a story, so it cannot go through the story keep above: a
+ * statement is not a story and must not count as one. In the app a statement
+ * is not saved either (the page says so: copy what you want to keep), so the
+ * kept draft waits in this browser and is shown again on /statement after
+ * signup, ready to copy. Only the draft is kept, never the notes it came from.
+ */
+export const KEEP_STATEMENT_KEY = "storyloop_keep_statement";
+const KEEP_OUTCOMES_MAX = 8;
+const KEEP_FIELD_MAX = 1500;
+const KEEP_CHECKS_MAX = 8;
+
+export type KeptStatementFramework = "VEYLDF" | "EYLF" | "QKLG" | "TW";
+export type KeptStatementMode = "transition" | "summary";
+export type KeptStatementOutcome = { outcome: string; seen: string; strategy: string; gap: string };
+export type KeptStatement = {
+  framework: KeptStatementFramework;
+  mode: KeptStatementMode;
+  outcomes: KeptStatementOutcome[];
+  checks: string[];
+  at: number;
+};
+
+const STATEMENT_FRAMEWORKS = new Set<string>(["VEYLDF", "EYLF", "QKLG", "TW"]);
+const STATEMENT_MODES = new Set<string>(["transition", "summary"]);
+const field = (value: unknown) => (typeof value === "string" ? value.trim().slice(0, KEEP_FIELD_MAX) : "");
+
+/** A kept statement draft as it may be trusted: known curriculum and kind, sane sizes, recent, at least one outcome with words. */
+export function cleanKeptStatement(raw: unknown, now = Date.now()): KeptStatement | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const value = raw as Record<string, unknown>;
+  const framework = typeof value.framework === "string" && STATEMENT_FRAMEWORKS.has(value.framework) ? (value.framework as KeptStatementFramework) : null;
+  const mode = typeof value.mode === "string" && STATEMENT_MODES.has(value.mode) ? (value.mode as KeptStatementMode) : null;
+  const at = typeof value.at === "number" && Number.isFinite(value.at) ? value.at : NaN;
+  if (!framework || !mode) return null;
+  if (!Number.isFinite(at) || at > now + 60_000 || now - at > KEEP_STORY_MAX_AGE_MS) return null;
+  const outcomes = (Array.isArray(value.outcomes) ? value.outcomes : [])
+    .slice(0, KEEP_OUTCOMES_MAX)
+    .filter((o): o is Record<string, unknown> => Boolean(o) && typeof o === "object" && !Array.isArray(o))
+    .map((o) => ({ outcome: field(o.outcome), seen: field(o.seen), strategy: field(o.strategy), gap: field(o.gap) }))
+    .filter((o) => o.outcome && (o.seen || o.gap));
+  if (!outcomes.some((o) => o.seen)) return null;
+  const checks = (Array.isArray(value.checks) ? value.checks : []).map(field).filter(Boolean).slice(0, KEEP_CHECKS_MAX);
+  return { framework, mode, outcomes, checks, at };
+}
+
+/** The label the drafter puts before each strategy line, so the kept copy reads exactly as the draft did. */
+export function keptStrategyLabel(framework: KeptStatementFramework, mode: KeptStatementMode): string {
+  if (mode === "summary") return "Next step";
+  return { VEYLDF: "Strategy for the Prep teacher", EYLF: "Strategy for the school teacher", QKLG: "Suggestion for continuity", TW: "Strategy for the new entrant teacher" }[framework];
+}
+
+/** The same text the drafter's Copy all gives. */
+export function keptStatementText(kept: KeptStatement): string {
+  const label = keptStrategyLabel(kept.framework, kept.mode);
+  return kept.outcomes
+    .map((o) => [o.outcome, o.seen ? `What I saw: ${o.seen}` : `Not in my notes yet: ${o.gap}`, o.strategy ? `${label}: ${o.strategy}` : ""].filter(Boolean).join("\n"))
+    .join("\n\n");
+}
+
+export function rememberStatement(draft: Omit<KeptStatement, "at">, auto = false) {
+  try {
+    const clean = cleanKeptStatement({ ...draft, at: Date.now() });
+    if (!clean) return false;
+    window.localStorage.setItem(KEEP_STATEMENT_KEY, JSON.stringify(auto ? { ...clean, auto: true } : clean));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** The kept statement, for an account (confirmed only) or, with `includeUnconfirmed`, for the signup page. */
+export function readKeptStatement({ includeUnconfirmed = false }: { includeUnconfirmed?: boolean } = {}): KeptStatement | null {
+  try {
+    const raw = window.localStorage.getItem(KEEP_STATEMENT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return keptDraftUsable(parsed, Date.now(), includeUnconfirmed) ? cleanKeptStatement(parsed) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function forgetKeptStatement() {
+  try {
+    window.localStorage.removeItem(KEEP_STATEMENT_KEY);
   } catch {
     /* nothing to forget */
   }

@@ -274,17 +274,17 @@ export const SEO_DEEP_DIVES: Record<string, Array<{ heading: string; paragraphs:
     {
       heading: "What a centre is actually buying",
       paragraphs: [
-        "Not another platform. Your service already has somewhere families see photos and records, and moving that is a project nobody in a centre wants. StoryLoop is the step before it: turning what an educator noticed into a draft worth editing, then exporting it into whatever you already run.",
+        "Time back for the writing. StoryLoop turns what an educator noticed into a learning story draft worth editing, linked to your curriculum, and ready to paste into the app your centre uses. Families see it where they always do, and nobody has to move a record or learn a new system to start.",
         "The flat price is the part that matters to a budget. Per-child pricing punishes you for enrolling children, which is the opposite of how a service earns. Centre Starter covers ten educators and unlimited children for NZ$109 a month, Centre Growth twenty-five educators for NZ$219. Per educator that is about half the individual plan, and it does not move when your roll does.",
       ],
     },
     {
       heading: "The moments a centre feels this",
       paragraphs: [
-        "The regulator calls. ACECQA's own process page says a service generally gets one to five days' notice of a site visit, which is not enough time to assemble a term of evidence by hand, and the fortnight of scrambling most directors remember is a fortnight they did not actually have. The evidence pack counts what the team already saved and names the gaps first: children with nothing recorded, next steps nobody came back to, stories with no reflection, periods with no family voice.",
-        "A reliever walks in cold. The room's documentation either stops for the day or arrives generic, and the child who never makes a fuss goes unseen again. The reliever brief prints one page of what the team already wrote: who to notice today, what each child is into, languages at home, the next steps already planned. It is deliberately not a full history, because a brief nobody reads before the children arrive is no use.",
+        "The regulator calls. ACECQA's own process page says a service generally gets one to five days' notice of a site visit, which is not enough time to assemble a term of evidence by hand, and the fortnight of scrambling most directors remember is a fortnight they did not actually have. Each educator's evidence pack counts what she already saved and names the gaps first: children with nothing recorded, next steps nobody came back to, stories with no reflection, periods with no family voice.",
+        "A reliever walks in cold. The room's documentation either stops for the day or arrives generic, and the child who never makes a fuss goes unseen again. The reliever brief prints one page from what the room's educator already wrote: who to notice today, what each child is into, languages at home, the next steps already planned. It is deliberately not a full history, because a brief nobody reads before the children arrive is no use.",
         "Planning day arrives and someone reads back through a term of stories. The planning brief pulls recent stories into emerging interests, environment ideas and the response ideas that were planned but never tried, so the conversation starts from evidence rather than memory.",
-        "Someone asks what the documentation shows. The documentation radar shows which children have not had a moment recorded lately, and each child's term report describes how dispositions showed up, with no scores and no comparisons between children.",
+        "Someone asks what the documentation shows. The documentation radar shows an educator which of her children have not had a moment recorded lately, and each child's term report describes how dispositions showed up, with no scores and no comparisons between children.",
       ],
     },
     {
@@ -299,7 +299,7 @@ export const SEO_DEEP_DIVES: Record<string, Array<{ heading: string; paragraphs:
       heading: "How to try it without a meeting",
       paragraphs: [
         "Every centre plan starts {centre_trial}, with no card. Invite your team, write with it for a few weeks in one room, and look at three things: how long a story takes now, whether the drafts sound like your educators, and whether the planning brief said anything you did not already know.",
-        "If the answer to any of those is no, do nothing. With no card on file the month simply ends, nothing is charged, and everything your team wrote stays yours. There is no contract, no per-child fee and no onboarding project. The documentation time calculator on this site will tell you, with your own numbers, whether the maths works before you start.",
+        "If the answer to any of those is no, do nothing. With no card on file the free period simply ends, nothing is charged, and everything your team wrote stays yours. There is no contract, no per-child fee and no onboarding project. The documentation time calculator on this site will tell you, with your own numbers, whether the maths works before you start.",
       ],
     },
   ],
