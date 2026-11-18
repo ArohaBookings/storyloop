@@ -373,7 +373,7 @@ const PAGES = {
     audience: {
       buyer: "centre",
       who: "A centre owner, manager or head teacher who wants her team's paperwork out of their evenings",
-      typed: ["child care paperwork software", "documentation workload", "early childhood teacher workload nz"],
+      typed: ["child care paperwork software", "documentation workload", "early childhood teacher workload"],
       firstScreen: "Read in one line what StoryLoop does for her team (a learning story drafted from a short note, in the day) and start her centre's free period with one button, no card.",
     },
     title: "Cutting documentation time in early childhood, not quality",
@@ -516,7 +516,7 @@ const PAGES = {
     audience: {
       buyer: "centre",
       who: "A head teacher, manager or owner of an early learning service in Aotearoa who has been asked how the team uses AI",
-      typed: ["ai policy template nz", "ai policy early childhood nz", "early years ai policy"],
+      typed: ["ai policy template nz", "early years ai policy"],
       firstScreen: "Start her service's AI policy straight away: type the service's name and the policy writes itself below, in kaiako, tamariki and whānau terms, with StoryLoop already listed as an approved tool she can change.",
     },
     title: "AI policy template for NZ early childhood services",

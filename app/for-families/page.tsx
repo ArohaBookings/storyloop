@@ -62,7 +62,12 @@ export default function ForFamiliesPage() {
         image="/images/scenes/family.jpg"
         imageAlt="A parent on the couch smiling at a StoryLoop wall card on her phone, a toddler leaning on her arm, seen from behind"
         imagePosition="50% 30%"
-      />
+      >
+        {/* 18 Nov 2026, the parent path: the one thing a parent can do, on the first screen. */}
+        <Link href="/ask-your-centre" className="btn-primary mt-5 inline-flex justify-center" data-track="for_families_hero_ask">
+          Ask your centre for more stories
+        </Link>
+      </GuideHero>
 
       <GuideSection id="what-you-see" kicker="What changes for you" title="What you will notice">
         <ul className="grid gap-4 sm:grid-cols-2">

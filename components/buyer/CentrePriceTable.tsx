@@ -1,10 +1,12 @@
 import { getPlanByKey } from "@/lib/plans";
+import CentreStart from "@/components/buyer/CentreStart";
 
 /**
  * StoryLoop's two centre prices as a plain table, on the first screen of the
  * page a director (or an AI assistant) reads for "what does it cost a
- * centre". Built from lib/plans.ts, so it can never show a price checkout
- * does not charge. StoryLoop's own prices only: no other pricing model shown.
+ * centre", with the one button to start under it. Built from lib/plans.ts, so
+ * it can never show a price checkout does not charge. StoryLoop's own prices
+ * only: no other pricing model shown (correction C10 of the 18 Nov 2026 check).
  */
 export default function CentrePriceTable() {
   const rows = (["centre_starter", "centre_growth"] as const).map((key) => getPlanByKey(key));
@@ -32,6 +34,9 @@ export default function CentrePriceTable() {
         </tbody>
       </table>
       <p className="mt-2 text-sm font-semibold text-ink-700">Unlimited children, no per-child fee. GST inclusive.</p>
+      <div className="mt-4">
+        <CentreStart />
+      </div>
     </div>
   );
 }

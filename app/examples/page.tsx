@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: "Learning story examples: 12 real notes and drafts",
   // 18 Nov 2026 re-aim: the page is also the best proof the product works, so it ends on trying it.
   description:
-    "Twelve real educator notes, from babies to five-year-olds, and the unedited learning story drafts StoryLoop wrote from them. Try it with your own note, free.",
+    "Twelve real educator notes, from babies to five-year-olds, and the unedited drafts StoryLoop wrote from them. Try it with your own note, free.",
   alternates: { canonical: "https://storyloop.space/examples" },
   openGraph: {
     title: "Learning story examples: 12 real notes and drafts",

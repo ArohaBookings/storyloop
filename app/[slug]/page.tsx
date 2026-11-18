@@ -421,6 +421,11 @@ export default async function SeoPage({ params }: PageProps) {
                     Setting it up for a whole centre?
                   </Link>
                 </>
+              ) : page.slug === "learning-story-software-cost-for-centres" ? (
+                // The start button is under the price table, on the first screen (CentrePriceTable).
+                <Link href="#founding" className="btn-secondary justify-center">
+                  See the founding offer
+                </Link>
               ) : CENTRE_SLUGS.has(page.slug) ? (
                 <>
                   <span className="flex flex-col gap-1">
