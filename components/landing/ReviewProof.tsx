@@ -15,7 +15,7 @@ export default async function ReviewProof({ limit = 2, className = "" }: { limit
   if (reviews.length === 0) return null;
 
   return (
-    <section aria-label="What educators say" className={`bg-paper px-4 pb-10 ${className}`} data-testid="review-proof">
+    <section aria-label="What educators say" className={`bg-paper px-4 pb-10 pt-4 ${className}`} data-testid="review-proof">
       <div className="mx-auto grid w-full max-w-md min-w-0 gap-3">
         {reviews.map((review) => (
           <figure key={review.id} className="min-w-0 rounded-2xl border border-clay-100 bg-white p-4 shadow-soft">

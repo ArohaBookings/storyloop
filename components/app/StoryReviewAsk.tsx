@@ -78,6 +78,8 @@ export default function StoryReviewAsk({ storyId, copies, page = "/generate" }: 
       {rating === 0 ? (
         <>
           <h3 id={`story-review-title-${askedFor}`} className="pr-10 text-sm font-bold text-ink-900">How is StoryLoop working for you?</h3>
+          {/* A named group: in History the story card is itself a "group", and hovering
+              anywhere on it must not light up all five stars. */}
           <div className="mt-2 flex items-center gap-0.5" role="radiogroup" aria-label="Star rating">
             {[1, 2, 3, 4, 5].map((n) => (
               <button
@@ -88,9 +90,9 @@ export default function StoryReviewAsk({ storyId, copies, page = "/generate" }: 
                 aria-label={`${n} star${n === 1 ? "" : "s"}`}
                 onClick={() => rate(n)}
                 data-testid={`story-review-star-${n}`}
-                className="group flex h-11 w-11 items-center justify-center rounded-lg"
+                className="group/star flex h-11 w-11 items-center justify-center rounded-lg"
               >
-                <Star className="h-7 w-7 text-clay-200 transition-colors group-hover:fill-clay-500 group-hover:text-clay-500" />
+                <Star className="h-7 w-7 text-clay-200 transition-colors group-hover/star:fill-clay-500 group-hover/star:text-clay-500" />
               </button>
             ))}
           </div>
