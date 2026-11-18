@@ -433,6 +433,15 @@ export function checkMyStory(input: StoryCheckInput): StoryCheckResult {
   return { items, looks, summary: looks === 0 ? "Nothing to query." : `${looks} ${looks === 1 ? "thing" : "things"} worth a look.` };
 }
 
+/**
+ * A team review queue item with its check added (lib/team-queue.ts), for a
+ * real shared story or a sample one alike. Run on the server, so the check's
+ * code never has to reach a leader's browser. Pure.
+ */
+export function withStoryCheck<T extends { storyText: string; note: string | null; outcomes: string[]; childName: string | null }>(item: T): T & { check: StoryCheckResult } {
+  return { ...item, check: checkMyStory({ story: item.storyText, note: item.note, outcomes: item.outcomes, childName: item.childName }) };
+}
+
 /** Why a pasted story and note cannot be checked, or null when they can. Pure. */
 export function checkInputProblem(story: unknown, note: unknown): string | null {
   if (typeof story !== "string" || story.trim().length < CHECK_STORY_MIN) return "Paste the whole learning story first.";

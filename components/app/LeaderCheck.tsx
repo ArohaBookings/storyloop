@@ -1,14 +1,29 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { Check, CheckCircle2, Copy, Loader2, MessageSquareText, Share2, UserCheck } from "lucide-react";
 import { trackEvent } from "@/lib/analytics/track-event";
 import { CENTRE_NAME_MAX, CHECK_DAYS, type EducatorCheckView } from "@/lib/story-check";
-import { checkMyStory, type StoryCheckInput } from "@/lib/check-my-story";
+import type { StoryCheckInput, StoryCheckResult } from "@/lib/check-my-story";
 import StoryCheckList, { StoryCheckSummary } from "@/components/app/StoryCheckList";
 
 function strings(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+/** True once the element has come near the screen (a closed Story history item never does). */
+function useSeen(node: RefObject<HTMLElement | null>) {
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    if (seen || !node.current) return;
+    if (typeof IntersectionObserver === "undefined") { setSeen(true); return; }
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) { setSeen(true); observer.disconnect(); }
+    }, { rootMargin: "300px" });
+    observer.observe(node.current);
+    return () => observer.disconnect();
+  }, [node, seen]);
+  return seen;
 }
 
 /**
@@ -17,12 +32,17 @@ function strings(value: unknown): string[] {
  * lines open when something is worth a look and one tap away when nothing is.
  * Story history passes the saved story in; /generate passes nothing and the
  * saved story is read once, so the check is of exactly what the leader gets.
+ *
+ * Nothing happens until the panel comes near the screen, and the check's code
+ * is fetched then, on its own: the story page and Story history load exactly
+ * as fast as before, and a closed story in a long history costs nothing.
  */
-function useOwnStoryCheck(storyId: string, review: StoryCheckInput | undefined, refreshKey: string | undefined) {
+function useOwnStoryCheck(storyId: string, review: StoryCheckInput | undefined, refreshKey: string | undefined, seen: boolean) {
   const [fetched, setFetched] = useState<StoryCheckInput | null>(null);
+  const [result, setResult] = useState<StoryCheckResult | null>(null);
   const given = Boolean(review);
   useEffect(() => {
-    if (given) return;
+    if (given || !seen) return;
     let live = true;
     fetch(`/api/stories/${encodeURIComponent(storyId)}`)
       .then((response) => (response.ok ? response.json() : null))
@@ -39,19 +59,24 @@ function useOwnStoryCheck(storyId: string, review: StoryCheckInput | undefined, 
       })
       .catch(() => {});
     return () => { live = false; };
-  }, [storyId, given, refreshKey]);
+  }, [storyId, given, refreshKey, seen]);
   const story = review?.story ?? fetched?.story ?? "";
   const note = review?.note ?? fetched?.note ?? null;
   const outcomes = (review?.outcomes ?? []).join("\n");
   const links = (review?.curriculumLinks ?? fetched?.curriculumLinks ?? []).join("\n");
   const childName = review?.childName ?? fetched?.childName ?? null;
-  return useMemo(
-    () =>
-      story
-        ? checkMyStory({ story, note, outcomes: outcomes ? outcomes.split("\n") : [], curriculumLinks: links ? links.split("\n") : [], childName })
-        : null,
-    [story, note, outcomes, links, childName],
-  );
+  useEffect(() => {
+    if (!seen || !story) return;
+    let live = true;
+    import("@/lib/check-my-story")
+      .then(({ checkMyStory }) => {
+        if (!live) return;
+        setResult(checkMyStory({ story, note, outcomes: outcomes ? outcomes.split("\n") : [], curriculumLinks: links ? links.split("\n") : [], childName }));
+      })
+      .catch(() => {});
+    return () => { live = false; };
+  }, [seen, story, note, outcomes, links, childName]);
+  return result;
 }
 
 function day(value: string | null | undefined) {
@@ -87,14 +112,14 @@ export default function LeaderCheck({
   refreshKey?: string;
 }) {
   const [check, setCheck] = useState<EducatorCheckView>(initial ?? { state: "none" });
-  const storyCheck = useOwnStoryCheck(storyId, review, refreshKey);
+  const panel = useRef<HTMLElement>(null);
+  const storyCheck = useOwnStoryCheck(storyId, review, refreshKey, useSeen(panel));
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
   const [centreName, setCentreName] = useState("");
   const [shareCounts, setShareCounts] = useState(false);
-  const panel = useRef<HTMLElement>(null);
 
   // Arriving from "Send a story to your leader": open this story and bring the panel into view.
   useEffect(() => {

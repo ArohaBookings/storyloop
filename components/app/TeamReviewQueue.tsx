@@ -130,7 +130,7 @@ function QueueCard({
           {open ? "Show less" : "Read it all"}
         </button>
         {/* Check my story: the one-line answer always, the four questions with Read it all. */}
-        {!open && <StoryCheckSummary check={item.check} />}
+        {!open && item.check && <StoryCheckSummary check={item.check} />}
       </div>
       {open && item.note && (
         <div className="mt-1 rounded-xl bg-cream-50 p-3">
@@ -138,7 +138,7 @@ function QueueCard({
           <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-ink-700">{item.note}</p>
         </div>
       )}
-      {open && <StoryCheckList check={item.check} className="mt-2" />}
+      {open && item.check && <StoryCheckList check={item.check} className="mt-2" />}
 
       {answered && review ? (
         <div className="mt-3 rounded-xl border border-clay-100 bg-cream-50/60 p-3" data-testid="team-queue-answer">

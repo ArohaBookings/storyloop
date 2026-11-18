@@ -18,8 +18,12 @@ export type TeamQueueItem = {
   note: string | null;
   outcomes: string[];
   review: TeamReviewView | null;
-  /** Check my story (19 Nov 2026): what a leader looks for, worked out on the server from the story and its note. */
-  check: StoryCheckResult;
+  /**
+   * Check my story (19 Nov 2026): what a leader looks for, worked out on the
+   * server from the story and its note (lib/check-my-story.ts withStoryCheck).
+   * Every item a page shows carries it.
+   */
+  check?: StoryCheckResult;
 };
 
 export type TeamReviewView = {

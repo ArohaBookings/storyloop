@@ -7,6 +7,7 @@ import {
   findCurriculumLinks,
   findFullNames,
   hasPhoneNumber,
+  withStoryCheck,
   CHECK_NOTE_MAX,
   CHECK_STORY_MAX,
 } from "../lib/check-my-story";
@@ -132,7 +133,7 @@ test("anything made up: quoted words the note never had, talk about the note, st
 
 test("the sample team gets the same check, and only the story made to show a query has one", () => {
   for (const country of ["NZ", "AU"] as const) {
-    const queue = sampleQueue(new Date("2026-11-19T00:00:00Z"), country);
+    const queue = sampleQueue(new Date("2026-11-19T00:00:00Z"), country).map(withStoryCheck);
     assert.equal(queue.length, 6);
     for (const item of queue) {
       assert.equal(item.check.items.length, 4, `${country} ${item.id} has the four answers`);
@@ -144,6 +145,13 @@ test("the sample team gets the same check, and only the story made to show a que
       }
     }
   }
+});
+
+test("the sample's own file never carries the check to the browser (components/app/SampleTeam.tsx imports it)", () => {
+  const sample = readFileSync(new URL("../lib/sample-team.ts", import.meta.url), "utf8");
+  assert.equal(/from "@\/lib\/check-my-story"/.test(sample), false);
+  const page = readFileSync(new URL("../app/(app)/team/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /sampleQueue\(new Date\(\), country\)\.map\(withStoryCheck\)/);
 });
 
 test("every real draft on the site passes: no false queries on real StoryLoop stories", () => {

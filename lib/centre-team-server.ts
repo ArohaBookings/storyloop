@@ -172,17 +172,18 @@ export async function loadTeamQueue(ctx: TeamContext, limit = 40): Promise<TeamQ
       const storyText = (row.story_text as string) ?? "";
       const note = (row.observations as string | null) ?? null;
       const outcomes = asStrings(row.outcomes);
+      const childName = (row.child_name as string | null) ?? null;
       return {
         id: row.id as string,
         author: names.get(row.user_id as string) ?? "An educator",
-        childName: (row.child_name as string | null) ?? null,
+        childName,
         createdAt: row.created_at as string,
         storyText,
         note,
         outcomes: outcomes.slice(0, 4),
         review: view,
-        // What a leader looks for, from the story and the note it came from (deterministic, no model).
-        check: checkMyStory({ story: storyText, note, outcomes, childName: (row.child_name as string | null) ?? null }),
+        // What a leader looks for, from the story and the note it came from (deterministic, no model), on every saved outcome.
+        check: checkMyStory({ story: storyText, note, outcomes, childName }),
       };
     });
   } catch (error) {

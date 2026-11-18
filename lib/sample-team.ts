@@ -1,6 +1,5 @@
 import type { EvidenceChild, EvidenceStory } from "@/lib/evidence-pack";
 import type { TeamQueueItem } from "@/lib/team-queue";
-import { checkMyStory } from "@/lib/check-my-story";
 
 /**
  * The sample team (18 Nov 2026): what a leader sees before she has invited
@@ -198,7 +197,12 @@ function localised(story: SampleStory, country: SampleCountry) {
   return { note: story.au?.note ?? story.note, story: story.au?.story ?? story.story, outcomes: story.outcomesAU };
 }
 
-/** The sample review queue, newest first, dated from today. */
+/**
+ * The sample review queue, newest first, dated from today. The page adds each
+ * story's check on the server (lib/check-my-story.ts withStoryCheck), exactly as
+ * for a real story; it is not worked out here, because this file also reaches
+ * the browser (components/app/SampleTeam.tsx) and the check need not.
+ */
 export function sampleQueue(now = new Date(), country: SampleCountry = "NZ"): TeamQueueItem[] {
   return STORIES.map((story) => {
     const local = localised(story, country);
@@ -211,8 +215,6 @@ export function sampleQueue(now = new Date(), country: SampleCountry = "NZ"): Te
       note: local.note,
       outcomes: local.outcomes,
       review: story.reviewed ? { status: "looks_good" as const, note: null, reviewer: "You", at: daysBefore(now, story.daysAgo - 1).toISOString() } : null,
-      // The same check a real story gets, run on the invented note and story.
-      check: checkMyStory({ story: local.story, note: local.note, outcomes: local.outcomes, childName: story.childName }),
     };
   }).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
 }
