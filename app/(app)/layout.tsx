@@ -11,6 +11,8 @@ import { PLAN_DEFINITIONS, normalizePlanKey } from "@/lib/plans";
 import EngagementTracker from "@/components/analytics/EngagementTracker";
 import KeepStoryImporter from "@/components/app/KeepStoryImporter";
 import FirstSessionTracker from "@/components/app/FirstSessionTracker";
+import { canManageTeam, getMembership } from "@/lib/centres";
+import { isCentrePlan } from "@/lib/centre-offer";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -36,6 +38,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     redirect("/login?disabled=1");
   }
 
+  // A centre's owner or admin on a centre plan sees Team stories in the menu
+  // (18 Nov 2026). Asked only of centre plans, so nobody else pays for the lookup.
+  let teamLeader = false;
+  if (isCentrePlan(profile?.plan)) {
+    try {
+      teamLeader = canManageTeam(await getMembership(user.id));
+    } catch {
+      teamLeader = false;
+    }
+  }
+
   const planKey = normalizePlanKey(profile?.plan);
   const planLabel = PLAN_DEFINITIONS.find((plan) => plan.key === planKey)?.name ?? "Free";
   const userName = profile?.full_name ?? user.email ?? "";
@@ -50,6 +63,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         monthlyStoryLimitOverride={profile?.monthly_story_limit_override ?? null}
         appliedAccessCode={profile?.applied_access_code ?? null}
         subscriptionStatus={profile?.subscription_status ?? null}
+        teamLeader={teamLeader}
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <AppTopBar userName={userName} planLabel={planLabel} />

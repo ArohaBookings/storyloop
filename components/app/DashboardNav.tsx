@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, GraduationCap, UsersRound, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, AlertTriangle, Brain, Users, ClipboardList, MessageSquareText, BarChart3, SlidersHorizontal, Lock, Sunrise, Building2, UserPlus, FileCheck2, QrCode, Mic, DoorOpen, Repeat, CalendarRange, AudioLines } from "lucide-react";
+import { LayoutDashboard, GraduationCap, UsersRound, Sparkles, History, CreditCard, LogOut, Menu, ShieldAlert, X, LifeBuoy, AlertTriangle, Brain, Users, ClipboardList, MessageSquareText, BarChart3, SlidersHorizontal, Lock, Sunrise, Building2, UserPlus, FileCheck2, QrCode, Mic, DoorOpen, Repeat, CalendarRange, AudioLines, Inbox } from "lucide-react";
 import AnimatedLogo from "@/components/brand/AnimatedLogo";
 import { createClient } from "@/lib/supabase/client";
 import { getMonthlyStoryLimit, getStoryAllowanceLabel } from "@/lib/story-limits";
@@ -20,6 +20,8 @@ type NavItem = {
   // When set, the item is gated: users without access see a lock and are
   // routed to an upgrade view that highlights exactly what unlocks it.
   feature?: FeatureKey;
+  // Only for a centre's owner or admin (18 Nov 2026): hidden from everyone else.
+  leaderOnly?: boolean;
 };
 
 /**
@@ -86,6 +88,7 @@ const NAV_GROUPS: NavGroup[] = [
       // one, which is the upgrade prompt: they see what a team would look like
       // and hit "upgrade to invite" exactly when they want to add someone.
       { href: "/centre", icon: Building2, label: "My centre" },
+      { href: "/team", icon: Inbox, label: "Team stories", leaderOnly: true },
       { href: "/evidence", icon: FileCheck2, label: "Evidence pack", feature: "evidencePack" },
       { href: "/centre-tools", icon: SlidersHorizontal, label: "Centre tools", feature: "adminOversight" },
       { href: "/roi", icon: BarChart3, label: "ROI dashboard", feature: "directorRoiDashboard" },
@@ -125,6 +128,7 @@ export default function DashboardNav({
   monthlyStoryLimitOverride,
   appliedAccessCode,
   subscriptionStatus,
+  teamLeader = false,
 }: {
   userName: string;
   isAdminUser: boolean;
@@ -133,6 +137,7 @@ export default function DashboardNav({
   monthlyStoryLimitOverride: number | null;
   appliedAccessCode: string | null;
   subscriptionStatus: string | null;
+  teamLeader?: boolean;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -179,7 +184,7 @@ export default function DashboardNav({
   const initials = userName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
   const groups = NAV_GROUPS.map((group) => ({
     ...group,
-    items: group.items.filter((item) => navItemVisible(planKey, item.feature)),
+    items: group.items.filter((item) => navItemVisible(planKey, item.feature) && (!item.leaderOnly || teamLeader)),
   })).filter((group) => group.items.length > 0);
   const footerItems: NavItem[] = isAdminUser
     ? [...FOOTER_NAV, { href: "/api/admin/session", activePath: "/admin", icon: ShieldAlert, label: "Admin" }]

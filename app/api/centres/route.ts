@@ -7,6 +7,8 @@ import { isCentrePlan } from "@/lib/centre-offer";
 import { educatorFirstName } from "@/lib/story-check";
 import { showsOnBoardCard } from "@/lib/work-role";
 import { workRoleFacts } from "@/lib/work-role-server";
+import { getTeamContext, loadTeamQueue } from "@/lib/centre-team-server";
+import { waitingCount } from "@/lib/team-queue";
 
 /**
  * A centre, and who is in it.
@@ -80,10 +82,35 @@ export async function GET() {
         sharesStories: membership.sharesStories,
       },
       members,
+      team: canManageTeam(membership) ? await teamSummary(user.id) : null,
     });
   } catch (error) {
     console.error("Centre fetch error:", error);
     return NextResponse.json({ error: "Could not load centre" }, { status: 500 });
+  }
+}
+
+/**
+ * Team stories at a glance for a leader (18 Nov 2026): how many shared stories
+ * wait for her, how many educators share and how many keep their stories
+ * private (a count, never a story), and whether the sample team is offered or
+ * open. Null on any failure: the page then shows what it showed before.
+ */
+async function teamSummary(userId: string) {
+  try {
+    const ctx = await getTeamContext(userId);
+    if (!ctx.isLeader) return null;
+    const items = ctx.access.kind === "team" ? await loadTeamQueue(ctx) : [];
+    return {
+      open: ctx.access.kind === "team",
+      sharing: ctx.scope?.reviewAuthorIds.length ?? 0,
+      private: ctx.scope?.privateMemberIds.length ?? 0,
+      waiting: waitingCount(items),
+      otherMembers: ctx.otherMembers,
+      sample: ctx.sample,
+    };
+  } catch {
+    return null;
   }
 }
 

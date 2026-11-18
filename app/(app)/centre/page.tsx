@@ -1,6 +1,8 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { Building2, Check, Copy, Loader2, Mail, ShieldCheck, UserPlus } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Building2, Check, Copy, Inbox, Loader2, Mail, ShieldCheck, UserPlus } from "lucide-react";
+import { SampleTeamOffer } from "@/components/app/SampleTeam";
 import StartCentreMonth from "@/components/app/StartCentreMonth";
 import CentreOnBoardCard from "@/components/app/CentreOnBoardCard";
 import { useCentreTrialWords } from "@/components/centre/CentreTrialWords";
@@ -21,10 +23,21 @@ type Member = {
   last_story_at: string | null;
 };
 
+type TeamSummary = {
+  open: boolean;
+  sharing: number;
+  private: number;
+  waiting: number;
+  otherMembers: number;
+  sample: { offer: boolean; show: boolean };
+};
+
 type CentreState = {
   centre: { id: string; name: string; plan: string | null; seatLimit: number; seatsUsed: number; seatsRemaining: number } | null;
   membership: { role: string; sharesStories: boolean } | null;
   members: Member[];
+  /** For a leader: team stories at a glance (app/api/centres/route.ts teamSummary). */
+  team?: TeamSummary | null;
   /** For an educator in no centre and not on a centre plan: the "Get your centre on board" card. */
   onBoard?: { newestStoryId: string | null } | null;
 };
@@ -263,6 +276,8 @@ export default function CentrePage() {
             </span>
           </div>
 
+          {isLeader && state?.team && <TeamStoriesCard team={state.team} />}
+
           {/* The consent switch. Every member sees this, including leadership. */}
           <div className="card p-5">
             <div className="flex items-start gap-3">
@@ -400,6 +415,44 @@ export default function CentrePage() {
           {copied ? <Check className="h-3.5 w-3.5 text-sage-600" /> : <Copy className="h-3.5 w-3.5" />}
           {copied ? "Link copied" : "Copy centre link"}
         </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Team stories, from My centre (18 Nov 2026): one card, one button. What waits
+ * for the leader, or, before anyone has joined, the sample team.
+ */
+function TeamStoriesCard({ team }: { team: TeamSummary }) {
+  if (team.sample.show) {
+    return (
+      <div className="card p-5" data-testid="centre-team-card">
+        <h2 className="font-display text-lg font-bold text-ink-900">Team stories</h2>
+        <p className="mt-1 text-sm leading-relaxed text-ink-600">The sample team is open. Try it, then remove it with one tap.</p>
+        <Link href="/team" className="btn-primary mt-3 inline-flex text-sm" data-testid="centre-team-open">
+          <Inbox className="h-4 w-4" /> Open team stories
+        </Link>
+      </div>
+    );
+  }
+  if (team.otherMembers === 0) {
+    return team.sample.offer ? <SampleTeamOffer /> : null;
+  }
+  if (!team.open) return null;
+  const line = team.sharing === 0
+    ? "Nobody has shared their stories with you yet. Each educator chooses that for themselves."
+    : team.waiting > 0
+      ? `${team.waiting} shared ${team.waiting === 1 ? "story is" : "stories are"} waiting for you.`
+      : "You are up to date with the stories your team shares.";
+  return (
+    <div className="card p-5" data-testid="centre-team-card">
+      <h2 className="font-display text-lg font-bold text-ink-900">Team stories</h2>
+      <p className="mt-1 text-sm leading-relaxed text-ink-600" data-testid="centre-team-line">{line}</p>
+      {team.sharing > 0 && (
+        <Link href="/team" className="btn-primary mt-3 inline-flex text-sm" data-testid="centre-team-open">
+          <Inbox className="h-4 w-4" /> Open team stories <ArrowRight className="h-4 w-4" />
+        </Link>
       )}
     </div>
   );

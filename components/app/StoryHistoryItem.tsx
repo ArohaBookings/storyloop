@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import LeaderCheck from "@/components/app/LeaderCheck";
 import FamilyShare from "@/components/app/FamilyShare";
 import type { EducatorCheckView } from "@/lib/story-check";
+import type { AuthorReviewView } from "@/lib/team-queue";
+import CentreReviewNote from "@/components/app/CentreReviewNote";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Copy, Download, Loader2, Pencil, RefreshCw, Save, X } from "lucide-react";
@@ -29,6 +31,8 @@ import type { PrivacyGuardianResult } from "@/lib/privacy-guardian";
 type StoryHistoryItemProps = {
   /** Where this story's leader check stands (lib/story-check.ts). */
   check?: EducatorCheckView;
+  /** What her centre's leader said about this story in team stories (lib/centre-team-server.ts). */
+  centreReview?: AuthorReviewView;
   story: {
     id: string;
     child_name: string | null;
@@ -65,7 +69,7 @@ function toDownloadName(childName?: string | null) {
   return (childName || "learning-story").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "learning-story";
 }
 
-export default function StoryHistoryItem({ story, plan = "free", check }: StoryHistoryItemProps) {
+export default function StoryHistoryItem({ story, plan = "free", check, centreReview }: StoryHistoryItemProps) {
   const router = useRouter();
   const initialMetadata = asRecord(story.metadata);
   const initialSettings = asRecord(initialMetadata.storySettings);
@@ -356,6 +360,7 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
             {story.age_group && <span className="text-xs text-ink-500">· {story.age_group}</span>}
             <span className="text-xs text-ink-400">· Created {formatDate(story.created_at)}</span>
             {wasEdited && <span className="text-xs text-clay-600">· Edited {formatDate(currentUpdatedAt)}</span>}
+            {centreReview && <CentreReviewNote review={centreReview} compact />}
           </div>
           <p className="text-sm text-ink-600 line-clamp-2">{storyText.slice(0, 200)}...</p>
           {currentOutcomes.length > 0 && (
@@ -615,6 +620,7 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
           followUpPrompt={followUpPrompt}
         />
 
+        {centreReview && <CentreReviewNote review={centreReview} />}
         <LeaderCheck storyId={story.id} initial={check} />
         <FamilyShare storyId={story.id} childName={story.child_name} />
 
