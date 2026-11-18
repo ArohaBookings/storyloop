@@ -567,7 +567,9 @@ export default function GeneratePage() {
     if (lastStoryNote.current === note) return;
     lastStoryNote.current = note;
     notesSoFar.current += 1;
-    if (notesSoFar.current === 1) firstNoteWasExample.current = method === "sample";
+    // The example only while the box still holds it word for word: typing over
+    // the example leaves the input method at "sample", but the note is hers.
+    if (notesSoFar.current === 1) firstNoteWasExample.current = method === "sample" && note === SAMPLE_OBSERVATION.trim();
     else setNextStory((state) => (state === "started" ? state : "gone"));
   };
   /** She copied, exported or saved the story on screen: under her first story, offer the next one. */

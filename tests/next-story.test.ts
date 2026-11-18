@@ -68,6 +68,9 @@ test("the story page wires the card without touching the note box", () => {
   assert.match(page, /offerNextStory\(\);\n {2}\};\n\n {2}const handleRegenerate/, "Copy offers it");
   assert.match(page, /onTakenAway=\{offerNextStory\}/, "a copied export pack offers it");
   assert.match(page, /accountData\?\.hasStories !== true/, "a new account is read from the stories table, not the counter alone");
+  // Typing over the example keeps the input method at "sample" (the protected
+  // note box), so the example is only the example while its words are unchanged.
+  assert.match(page, /firstNoteWasExample\.current = method === "sample" && note === SAMPLE_OBSERVATION\.trim\(\);/);
   const me = readFileSync("app/api/me/route.ts", "utf8");
   assert.match(me, /accountHasStories\(/);
 });
