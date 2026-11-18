@@ -60,6 +60,23 @@ export async function accountsWithStories(db: SupabaseClient, userIds: string[])
   }
 }
 
+/**
+ * Whether this account has a story other than this one, asked of the stories
+ * table: so "your first story" is never said to someone whose counter reads 0
+ * with stories saved. Null when the table could not be read.
+ */
+export async function hasOtherStories(db: SupabaseClient, userId: string, storyId?: string | null): Promise<boolean | null> {
+  try {
+    let query = db.from("stories").select("id", { count: "exact", head: true }).eq("user_id", userId);
+    if (storyId) query = query.neq("id", storyId);
+    const { count, error } = await query;
+    if (error) return null;
+    return (count ?? 0) > 0;
+  } catch {
+    return null;
+  }
+}
+
 /** The rows that really have no story: everything when none of them has one, nothing when the table could not be read (pure). */
 export function withoutStories<T extends { id: string }>(rows: T[], withStories: Set<string> | null): T[] {
   if (!withStories) return [];
