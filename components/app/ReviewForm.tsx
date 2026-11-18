@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Check, Loader2, Star } from "lucide-react";
 
-/** Educators leave a review from Support, or from the dashboard ask
- *  (ReviewPrompt), which embeds this form once a star is tapped. It is held for
+/** Educators leave a review from Support, or from the ask at the moment they
+ *  copy a story (StoryReviewAsk), which embeds this form once a star is tapped. It is held for
  *  moderation, so the form is honest about that: it thanks them and says a
  *  human will read it. Every rating goes to the same place: low ones are not
  *  routed away from the public review queue. */

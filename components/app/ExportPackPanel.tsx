@@ -25,6 +25,8 @@ type ExportPackPanelProps = {
   framework?: StoryFrameworkId | string | null;
   /** Called after a pack is copied or downloaded (the story page offers the next story then). */
   onTakenAway?: () => void;
+  /** Called after a pack is copied (a copy: the review ask may follow, lib/review-ask.ts). */
+  onCopied?: () => void;
 };
 
 const PLATFORM_ORDER: ExportPlatform[] = ["storypark", "educa", "kinderloop", "brightwheel"];
@@ -44,6 +46,7 @@ export default function ExportPackPanel({
   familyQuestion = "",
   framework = "AU",
   onTakenAway,
+  onCopied,
 }: ExportPackPanelProps) {
   const [platform, setPlatform] = useState<ExportPlatform>("storypark");
   const [copied, setCopied] = useState(false);
@@ -75,6 +78,7 @@ export default function ExportPackPanel({
     trackEvent("copy_pack_copied", { story_id: storyId ?? null, pack: packName });
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
+    onCopied?.();
     onTakenAway?.();
   };
 

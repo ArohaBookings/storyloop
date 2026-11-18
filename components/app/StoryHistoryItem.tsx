@@ -12,6 +12,7 @@ import StoryText from "@/components/app/StoryText";
 import LearningLoopPanel from "@/components/app/LearningLoopPanel";
 import ExportPackPanel from "@/components/app/ExportPackPanel";
 import CopyPackButton from "@/components/app/CopyPackButton";
+import StoryReviewAsk from "@/components/app/StoryReviewAsk";
 import { showCopyPackBeside } from "@/lib/copy-pack";
 import FamilyTranslationPanel from "@/components/app/FamilyTranslationPanel";
 import { trackEvent } from "@/lib/analytics/track-event";
@@ -80,6 +81,8 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
   const [copied, setCopied] = useState(false);
   // Once copied, the copy pack button sits beside Copy (lib/copy-pack.ts).
   const [copiedOnce, setCopiedOnce] = useState(false);
+  // Each copy here (Copy or a copy pack): the review ask may follow it (lib/review-ask.ts).
+  const [reviewCopies, setReviewCopies] = useState(0);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [upgradeRequired, setUpgradeRequired] = useState(false);
@@ -337,6 +340,7 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
     setTimeout(() => setCopied(false), 2000);
     trackEvent("app_story_copied", { story_id: story.id, how: "button" });
     setCopiedOnce(true);
+    setReviewCopies((n) => n + 1);
   };
 
   const downloadStory = () => {
@@ -397,6 +401,9 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
             </button>
           </div>
         </div>
+
+        {/* The review ask, right under Copy at the moment she copies (lib/review-ask.ts). */}
+        <StoryReviewAsk storyId={story.id} copies={reviewCopies} page="/history" />
 
         {editing ? (
           <div className="space-y-3">
@@ -641,6 +648,7 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
           nextSteps={currentNextSteps}
           familyQuestion={familyQuestion}
           framework={currentFramework}
+          onCopied={() => setReviewCopies((n) => n + 1)}
         />
         </div>
 

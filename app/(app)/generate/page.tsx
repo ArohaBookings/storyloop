@@ -958,6 +958,13 @@ export default function GeneratePage() {
   const regenerations = useRef(0);
   // The story she last copied: the copy pack button sits beside Copy for it (lib/copy-pack.ts).
   const [packBesideCopy, setPackBesideCopy] = useState("");
+  // Each copy on this page (Copy or a copy pack): the review ask may follow it
+  // (lib/review-ask.ts). Never beside the next-story card or a wall: one thing at a time.
+  const [reviewCopies, setReviewCopies] = useState(0);
+  const noteReviewCopy = () => {
+    if (nextStory === "offered" || showLimitModal) return;
+    setReviewCopies((n) => n + 1);
+  };
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(story);
@@ -966,6 +973,7 @@ export default function GeneratePage() {
     trackEvent("app_story_copied", { story_id: storyId || null, how: "button", first: !copiedStories.current.has(storyId) });
     copiedStories.current.add(storyId);
     setPackBesideCopy(storyId);
+    noteReviewCopy();
     offerNextStory();
   };
 
@@ -2246,6 +2254,14 @@ export default function GeneratePage() {
             )}
           </div>
 
+          {/* The review ask, right under Copy at the moment she copies (lib/review-ask.ts).
+              Outside the branches below and never keyed, so it stays mounted through
+              Regenerate: a half-written review survives a new story. Hidden, not
+              removed, while a story is being written. */}
+          <div hidden={loading || !story}>
+            <StoryReviewAsk storyId={storyId} copies={reviewCopies} />
+          </div>
+
           {loading ? (
             <div className="flex-1 flex flex-col items-center justify-center px-4 text-center">
               <Loader2 className="w-10 h-10 animate-spin text-clay-500 mb-4" />
@@ -2435,6 +2451,7 @@ export default function GeneratePage() {
                 familyQuestion={familyQuestion}
                 framework={location}
                 onTakenAway={offerNextStory}
+                onCopied={noteReviewCopy}
               />
               </div>
 
@@ -2663,12 +2680,6 @@ export default function GeneratePage() {
               {!showLimitModal && !checkoutReturn && <PriceReminder free={accountAtLoad !== null && accountPlan === "free"} returnTo="/generate" className="mt-3 w-full sm:ml-auto sm:max-w-sm" />}
             </div>
           )}
-          {/* Outside the branches above and never keyed, so it stays mounted through
-              Regenerate: a half-written review survives a new story. Hidden, not
-              removed, while a story is being written. */}
-          <div hidden={loading || !story}>
-            <StoryReviewAsk storyId={storyId} />
-          </div>
         </div>
       </div>
 

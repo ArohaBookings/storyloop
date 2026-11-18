@@ -7,7 +7,6 @@ import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/bi
 import { PLAN_DEFINITIONS, getPlanByKey, normalizePlanKey } from "@/lib/plans";
 import { headers } from "next/headers";
 import { createAdminSupabase } from "@/lib/supabase/admin";
-import ReviewPrompt from "@/components/app/ReviewPrompt";
 import DashboardInsights, { topCurriculumLinks, type DashboardInsightsData } from "@/components/app/DashboardInsights";
 import { PRO_MONTH_OFFER_ID, longDay } from "@/lib/offers";
 import TrackOnce from "@/components/analytics/TrackOnce";
@@ -19,10 +18,6 @@ import CentreOnBoardCard from "@/components/app/CentreOnBoardCard";
 import { isCentrePlan } from "@/lib/centre-offer";
 import { showsOnBoardCard, teamCardFor } from "@/lib/work-role";
 import { workRoleFacts } from "@/lib/work-role-server";
-
-/** Stories, and days since the first, before StoryLoop asks for a review. */
-const REVIEW_ASK_MIN_STORIES = 4;
-const REVIEW_ASK_MIN_DAYS = 3;
 
 export const metadata = { title: "Dashboard" };
 
@@ -80,29 +75,6 @@ export default async function DashboardPage({
       else if (canManageTeam(membership) && (await countActiveMembers(membership.centreId)) <= 1) centreSetup = "invite";
     } catch {
       centreSetup = null;
-    }
-  }
-
-  // Whether to ask for a review: a few stories over a few days, never asked
-  // of somebody who has already left one, and never of an internal account.
-  // Best effort: any failure just means no ask today.
-  let askForReview = false;
-  if ((totalStories ?? 0) >= REVIEW_ASK_MIN_STORIES) {
-    try {
-      const admin = createAdminSupabase();
-      const [{ data: firstStory }, { count: reviewCount, error: reviewError }, { data: internal }] = await Promise.all([
-        admin.from("stories").select("created_at").eq("user_id", user.id).order("created_at", { ascending: true }).limit(1).maybeSingle(),
-        admin.from("reviews").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-        admin.from("profiles").select("is_internal").eq("id", user.id).maybeSingle(),
-      ]);
-      const firstAt = firstStory?.created_at ? new Date(firstStory.created_at).getTime() : Date.now();
-      askForReview =
-        !reviewError &&
-        (reviewCount ?? 0) === 0 &&
-        !internal?.is_internal &&
-        Date.now() - firstAt >= REVIEW_ASK_MIN_DAYS * 86_400_000;
-    } catch {
-      askForReview = false;
     }
   }
 
@@ -424,7 +396,7 @@ export default async function DashboardPage({
         </div>
       )}
 
-      {askForReview && <ReviewPrompt />}
+      {/* The review ask moved to the moment a story is copied (lib/review-ask.ts): one ask, one set of rules. */}
 
       <div className="card animate-fade-up-3 overflow-hidden">
         <div className="px-6 py-4 border-b border-clay-100 flex items-center justify-between">
