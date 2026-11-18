@@ -5,6 +5,7 @@ import { recordServerEvent } from "@/lib/analytics/server";
 import { looksLikeFamilyToken } from "@/lib/family-link";
 import { hashCheckToken } from "@/lib/story-check-token";
 import { openFamilyLink, replyThroughFamilyLink } from "@/lib/family-link-server";
+import { tellCentreForToken } from "@/lib/family-tell-centre-server";
 
 export const maxDuration = 60;
 
@@ -44,7 +45,9 @@ export async function POST(request: NextRequest) {
     if (!allowed) return NextResponse.json({ error: "Too many tries. Wait a little and open the link again." }, { status: 429, headers: NO_STORE });
     const view = await openFamilyLink(token);
     if (!view) return NextResponse.json(GONE, { status: 404, headers: NO_STORE });
-    return NextResponse.json({ view }, { headers: NO_STORE });
+    // Tell your centre (lib/family-tell-centre.ts): true only where the educator switched it on for this link.
+    const tellCentre = await tellCentreForToken(token);
+    return NextResponse.json({ view, tellCentre }, { headers: NO_STORE });
   } catch (error) {
     console.error("Family link error:", error);
     return NextResponse.json({ error: "Something went wrong. Try again." }, { status: 500, headers: NO_STORE });

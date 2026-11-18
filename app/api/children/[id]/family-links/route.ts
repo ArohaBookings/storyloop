@@ -4,6 +4,7 @@ import { consumeRateLimit } from "@/lib/rate-limit";
 import { SITE_URL } from "@/lib/email/config";
 import { familyUrl } from "@/lib/family-link";
 import { cancelFamilyLink, createFamilyLink } from "@/lib/family-link-server";
+import { setTellCentre } from "@/lib/family-tell-centre-server";
 
 export const maxDuration = 60;
 
@@ -34,6 +35,33 @@ export async function POST(request: NextRequest, context: RouteContext) {
   } catch (error) {
     console.error("Family link create error:", error);
     return NextResponse.json({ error: "Could not make the link. Try again." }, { status: 500 });
+  }
+}
+
+/**
+ * Tell your centre (lib/family-tell-centre.ts): the educator switches it on or
+ * off for one of her own open links. Off by default; nothing else changes.
+ */
+export async function PATCH(request: NextRequest, context: RouteContext) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+
+    const allowed = await consumeRateLimit({ scope: "family-tell-centre", key: user.id, limit: 100, windowSeconds: 24 * 60 * 60 });
+    if (!allowed) return NextResponse.json({ error: "That is a lot of changes for one day. Try again tomorrow." }, { status: 429 });
+
+    const { id } = await context.params;
+    const body = await request.json().catch(() => ({}));
+    const linkId = typeof body?.linkId === "string" ? body.linkId : "";
+    if (!/^[0-9a-f-]{36}$/i.test(linkId) || !/^[0-9a-f-]{36}$/i.test(id) || typeof body?.tellCentre !== "boolean") {
+      return NextResponse.json({ error: "Link not found." }, { status: 404 });
+    }
+    if (!(await setTellCentre(user.id, id, linkId, body.tellCentre))) return NextResponse.json({ error: "Link not found." }, { status: 404 });
+    return NextResponse.json({ ok: true, tellCentre: body.tellCentre });
+  } catch (error) {
+    console.error("Family link switch error:", error);
+    return NextResponse.json({ error: "Could not change that. Try again." }, { status: 500 });
   }
 }
 
