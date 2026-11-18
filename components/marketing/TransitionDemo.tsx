@@ -4,6 +4,8 @@ import { useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Check, Copy, Loader2, Sparkles, UserRoundPlus } from "lucide-react";
 import { track } from "@/lib/analytics/client";
+import { trackEvent } from "@/lib/analytics/track-event";
+import { rememberStatement } from "@/lib/keep-story";
 import type { TransitionDraft, TransitionFramework, TransitionMode } from "@/lib/ai/transition-draft";
 import { STATEMENT_SIGNUP_HREF } from "@/lib/signup-next";
 
@@ -51,6 +53,7 @@ export default function TransitionDemo({
   childName = "",
   onNextChild,
   allowanceNote,
+  hero = false,
 }: {
   framework: TransitionFramework;
   mode: TransitionMode;
@@ -70,6 +73,12 @@ export default function TransitionDemo({
   onNextChild?: () => void;
   /** A quiet line under the notes box (the free plan's allowance, in the app). */
   allowanceNote?: ReactNode;
+  /**
+   * At the top of a guide (18 Nov 2026): the same box and the same request,
+   * laid out so the box and its button sit on a phone's first screen. Only the
+   * wrapper spacing and the order of the button row change.
+   */
+  hero?: boolean;
 }) {
   const [framework, setFramework] = useState<TransitionFramework>(initialFramework);
   const [notes, setNotes] = useState("");
@@ -79,7 +88,13 @@ export default function TransitionDemo({
   const [draft, setDraft] = useState<TransitionDraft | null>(null);
   const [copied, setCopied] = useState(false);
   const [limitHit, setLimitHit] = useState(false);
+  // The public drafter's hourly or daily limit (18 Nov 2026): one button that
+  // keeps the draft on screen and opens a free account, instead of a dead end.
+  const [publicLimit, setPublicLimit] = useState(false);
   const notesBox = useRef<HTMLTextAreaElement>(null);
+  const startedAt = useRef(0);
+  const kind = mode === "summary" ? "summary" : "statement";
+  const pagePath = () => (typeof window === "undefined" ? "/" : window.location.pathname);
   // The public demo and the signed-in page are counted apart in admin.
   const ev = inApp ? "app_statement" : "transition_demo";
   // From the draft on screen, not the picker: switching the picker after a
@@ -90,7 +105,10 @@ export default function TransitionDemo({
     if (loading) return;
     setError("");
     setLimitHit(false);
+    setPublicLimit(false);
     setLoading(true);
+    startedAt.current = Date.now();
+    if (!inApp) trackEvent("guide_drafter_started", { page: pagePath(), kind });
     // Own event names, so the learning-story demo's numbers in admin stay its own.
     track(`${ev}_started`, { mode, framework, sample: usingSample, inputWords: notes.trim().split(/\s+/).length });
     try {
@@ -103,22 +121,38 @@ export default function TransitionDemo({
       if (!res.ok || !data.draft) {
         setError(data.error ?? "Something went wrong. Try again in a minute.");
         setLimitHit(data.code === "free_limit");
+        if (!inApp && (data.code === "limit" || data.code === "daily_limit")) {
+          setPublicLimit(true);
+          trackEvent("wall_shown", { wall: "guide_drafter" });
+        }
         track(`${ev}_error`, { status: res.status, code: data.code ?? null });
         return;
       }
       setDraft(data.draft);
+      // On a guide, her own draft is remembered as she writes it, so any way she
+      // goes to signup carries it (lib/keep-story.ts). The sample child is not.
+      if (!inApp && !usingSample) {
+        const d = data.draft as TransitionDraft;
+        rememberStatement({ framework: d.framework, mode: d.mode, outcomes: d.outcomes, checks: d.checks }, true);
+      }
       track(`${ev}_completed`, {
         mode,
         framework,
         sample: usingSample,
         filled: (data.draft as TransitionDraft).outcomes.filter((o) => o.seen).length,
       });
+      if (!inApp) trackEvent("guide_drafter_finished", { page: pagePath(), kind, seconds: Math.round((Date.now() - startedAt.current) / 1000) });
     } catch {
       setError("Something went wrong. Try again in a minute.");
       track(`${ev}_error`, { status: 0 });
     } finally {
       setLoading(false);
     }
+  };
+
+  // Kept in this browser and shown again on /statement after signup (lib/keep-story.ts).
+  const keepDraft = () => {
+    if (draft) rememberStatement({ framework: draft.framework, mode: draft.mode, outcomes: draft.outcomes, checks: draft.checks });
   };
 
   const copyAll = async () => {
@@ -153,10 +187,11 @@ export default function TransitionDemo({
 
   return (
     <div className="grid min-w-0 gap-4 lg:grid-cols-2 lg:items-start">
-      <div className="card-warm min-w-0 p-5 sm:p-6">
+      <div className={`card-warm min-w-0 ${hero ? "p-3.5" : "p-5"} sm:p-6`} data-testid={hero ? "guide-hero-drafter" : undefined}>
         {choices && choices.length > 1 && (
-          <div className="mb-4">
-            <label htmlFor="transition-framework" className="section-title">Where you teach</label>
+          // At the top of a guide the picker sits on one line beside its label, so the note box and its button fit the first phone screen.
+          <div className={hero ? "mb-3 flex items-center gap-2 [&>select]:mt-0 [&>select]:min-w-0 [&>select]:flex-1 [&>select]:py-2 [&>select]:text-sm" : "mb-4"}>
+            <label htmlFor="transition-framework" className={hero ? "section-title flex-none" : "section-title"}>Where you teach</label>
             <select
               id="transition-framework"
               value={framework}
@@ -183,7 +218,8 @@ export default function TransitionDemo({
           className="input mt-2 min-h-[11rem] resize-y font-mono text-[14px] leading-relaxed"
           placeholder="Two or three moments from your documentation, a few lines each: what they did, anything they said, and what helped. First name only."
         />
-        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        {/* At the top of a guide the button comes first on a phone, straight under the box. */}
+        <div className={`mt-3 flex gap-2 sm:flex-row sm:items-center sm:justify-between ${hero ? "flex-col-reverse" : "flex-col"}`}>
           {inApp ? (
             // No sample in the app: a free account would spend one of its two
             // monthly drafts (a paid model call) on a child who is not theirs.
@@ -230,6 +266,22 @@ export default function TransitionDemo({
               </Link>
             )}
           </p>
+        )}
+        {publicLimit && !inApp && (
+          <div className="mt-3 rounded-xl border border-sage-200 bg-sage-50 px-3 py-3 text-sm text-ink-800" data-testid="transition-limit">
+            <p>{draft ? "Keep this draft in a free account, no card, and carry on there." : "Carry on in a free account, no card."}</p>
+            <Link
+              href={STATEMENT_SIGNUP_HREF}
+              onClick={() => {
+                keepDraft();
+                trackEvent("guide_limit_tap", { page: pagePath(), wall: "guide_drafter" });
+              }}
+              className="btn-primary mt-2 inline-flex px-4 py-2 text-xs"
+              data-track="transition_limit_keep"
+            >
+              {draft ? "Keep my draft, start free" : "Start free"}
+            </Link>
+          </div>
         )}
       </div>
 
@@ -320,8 +372,9 @@ export default function TransitionDemo({
                     Got a whole class to write? Paste each child&apos;s notes and have every one drafted tonight.
                   </p>
                   <p className="mb-3 text-sm text-ink-600">Two a month are free. Educator covers as many as you need.</p>
-                  <Link href={STATEMENT_SIGNUP_HREF} className="btn-primary px-4 py-2 text-sm" data-track="transition_demo_signup">
-                    Start free
+                  {/* Keeps this draft for her new account (lib/keep-story.ts): it is waiting on /statement after signup. */}
+                  <Link href={STATEMENT_SIGNUP_HREF} onClick={keepDraft} className="btn-primary px-4 py-2 text-sm" data-track="transition_demo_signup">
+                    Keep this draft, start free
                   </Link>
                 </>
               )}

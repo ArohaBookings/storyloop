@@ -22,6 +22,9 @@ import { RelatedGuides } from "@/components/marketing/Guide";
 import { SLUG_PRINTABLES, relatedFor } from "@/components/marketing/guide-links";
 import { INTERNATIONAL_SLUG_FRAMEWORK } from "@/lib/seo-pages-international";
 import TransitionExample from "@/components/marketing/TransitionExample";
+import GuideHeroDrafter, { type HeroExample } from "@/components/marketing/GuideHeroDrafter";
+import ExitFeedback from "@/components/landing/ExitFeedback";
+import PlanChooser from "@/components/landing/PlanChooser";
 
 // Guides a director reads. They get the founding-centre offer under the hero
 // and a primary button that starts a centre's free month, not an individual
@@ -134,6 +137,24 @@ const TRANSITION_DEMOS: Record<string, {
     intro: "Pick where you teach and paste what you have documented about one child. StoryLoop drafts what your notes show for each outcome and a strategy the school teacher can use, from your notes. It is told to write only from what you give it and to leave an outcome for you when your notes show nothing.",
   },
 };
+// The statement guides that open on the drafter itself (18 Nov 2026, proposal A
+// and fault P08; components/marketing/GuideHeroDrafter has the numbers): on a
+// phone the first screen is the headline, a short finished example and the
+// drafter's box and button. Everything that was in the hero follows, unchanged
+// and in the same order. Titles, descriptions, headings and URLs are untouched.
+const HERO_DRAFTER_SLUGS = new Set([
+  "transition-to-school-statement",
+  "tlds-examples",
+  "nsw-transition-to-school-statement",
+  "qld-kindergarten-transition-statement",
+  "end-of-year-learning-summary",
+]);
+// The pages that carry the one-tap "what is stopping you?" (fault P07).
+const EXIT_SURFACES: Record<string, "pricing" | "for_centres"> = { pricing: "pricing", "for-centres": "for_centres" };
+/** A page's own heading as an anchor, so the short example can link to the full one. */
+function anchorFor(heading: string) {
+  return heading.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
+}
 // Pages with their own job: prices first, or a list of answers.
 const NO_PROOF_SLUGS = new Set(["pricing", "faq"]);
 // Regulation guides shared in educator Facebook groups. Directors read them
@@ -239,6 +260,18 @@ export default async function SeoPage({ params }: PageProps) {
   const hasTry = !NO_PROOF_SLUGS.has(page.slug) || Boolean(INTERNATIONAL_SLUG_FRAMEWORK[page.slug]);
   // The statement guides that open with a finished example (TransitionExample).
   const hasExample = TRANSITION_DEMOS[page.slug]?.mode === "transition";
+  const demo = TRANSITION_DEMOS[page.slug];
+  const heroDrafter = HERO_DRAFTER_SLUGS.has(page.slug) && demo ? demo : null;
+  // The short example on the first screen: the start of the real draft below,
+  // or, on the end-of-year guide, the start of its own example paragraph.
+  const exampleBlock = page.deepDive?.find((block) => block.heading.startsWith("Example paragraph"));
+  const heroExample: HeroExample | null = !heroDrafter
+    ? null
+    : hasExample
+      ? { kind: "draft", framework: heroDrafter.framework }
+      : exampleBlock
+        ? { kind: "paragraph", text: exampleBlock.paragraphs[0].replace(/^[^"]*"/, "\u201c").replace(/"$/, "\u201d"), href: `#${anchorFor(exampleBlock.heading)}` }
+        : null;
 
   return (
     <div className="min-h-screen bg-paper">
@@ -247,7 +280,7 @@ export default async function SeoPage({ params }: PageProps) {
           invisible, and their source was lost before they reached signup. */}
       <PageTracker />
       <Navbar />
-      <main className="pt-28">
+      <main className={heroDrafter ? "pt-[68px] sm:pt-28" : "pt-28"}>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
         {articleJsonLd && (
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
@@ -255,15 +288,27 @@ export default async function SeoPage({ params }: PageProps) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
         <section className="pb-16 paper-texture">
           <div className="wide-shell">
-            <p className="section-title mb-4">{page.kicker}</p>
-            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-ink-900 tracking-tight max-w-5xl">
+            <p className={`section-title ${heroDrafter ? "mb-1.5 sm:mb-4" : "mb-4"}`}>{page.kicker}</p>
+            <h1 className={`font-display font-bold text-ink-900 tracking-tight max-w-5xl ${heroDrafter ? "text-[24px] leading-[1.15] sm:text-5xl md:text-6xl" : "text-4xl sm:text-5xl md:text-6xl"}`}>
               {page.heading}
             </h1>
+            {heroDrafter && (
+              <GuideHeroDrafter
+                framework={heroDrafter.framework}
+                mode={heroDrafter.mode}
+                choices={heroDrafter.choices}
+                example={heroExample}
+                official={page.officialLinks?.heading}
+              />
+            )}
+            {/* /pricing: every plan and its button on the first screen (fault P09).
+                The full cards, with everything in each plan, follow as before. */}
+            {page.slug === "pricing" && <PlanChooser />}
             {/* The official login, form or guide the searcher came for, before
                 anything else asks for their attention. New tab, so this page and
                 its draft box are still here when they come back. */}
             {page.officialLinks && (
-              <div className="mt-6 max-w-3xl rounded-3xl border border-sage-200 bg-white p-5 shadow-soft" data-testid="official-links">
+              <div id="official-links" className="mt-6 max-w-3xl scroll-mt-24 rounded-3xl border border-sage-200 bg-white p-5 shadow-soft" data-testid="official-links">
                 <p className="text-xs font-bold uppercase tracking-wider text-sage-700">{page.officialLinks.heading}</p>
                 <ul className="mt-3 space-y-2.5">
                   {page.officialLinks.links.map((link) => (
@@ -331,8 +376,9 @@ export default async function SeoPage({ params }: PageProps) {
               ) : CENTRE_SLUGS.has(page.slug) ? (
                 <>
                   <span className="flex flex-col gap-1">
+                    {/* The free period is said once, from the shared wording, in the line under the button. */}
                     <Link href="/signup?plan=centre_starter" className="btn-primary justify-center" data-track="guide_hero_centre_month">
-                      Start your centre&apos;s free month
+                      Start your centre free
                     </Link>
                     {/* How long it is free, worked out again in the browser: this page is built ahead of time. */}
                     <span className="text-center text-sm text-ink-600" data-testid="guide-centre-trial">
@@ -440,10 +486,11 @@ export default async function SeoPage({ params }: PageProps) {
         {page.slug === "pricing" && <Pricing />}
 
         {/* A finished example first: these readers searched for one (TransitionExample has the numbers). */}
-        {TRANSITION_DEMOS[page.slug]?.mode === "transition" && <TransitionExample framework={TRANSITION_DEMOS[page.slug].framework} />}
+        {/* On the guides that open on the drafter, the example is at the top already (GuideHeroDrafter). */}
+        {TRANSITION_DEMOS[page.slug]?.mode === "transition" && !heroDrafter && <TransitionExample framework={TRANSITION_DEMOS[page.slug].framework} />}
 
         {TRANSITION_DEMOS[page.slug] && (
-          <section id="transition-try" aria-labelledby="transition-try-title" className="scroll-mt-24 border-y border-clay-100 bg-white py-12 md:py-16">
+          <section id={heroDrafter ? "transition-how" : "transition-try"} aria-labelledby="transition-try-title" className="scroll-mt-24 border-y border-clay-100 bg-white py-12 md:py-16">
             <div className="wide-shell">
               <div className="max-w-3xl">
                 <p className="section-title mb-3">No signup · first name only · not saved to an account</p>
@@ -452,13 +499,20 @@ export default async function SeoPage({ params }: PageProps) {
                 </h2>
                 <p className="mt-3 text-base leading-relaxed text-ink-600 md:text-lg">{TRANSITION_DEMOS[page.slug].intro}</p>
               </div>
-              <div className="mt-8">
-                <TransitionDemo
-                  framework={TRANSITION_DEMOS[page.slug].framework}
-                  mode={TRANSITION_DEMOS[page.slug].mode}
-                  choices={TRANSITION_DEMOS[page.slug].choices}
-                />
-              </div>
+              {heroDrafter ? (
+                // The drafter itself is at the top of the page now; this section keeps what it says about it.
+                <a href="#transition-try" className="btn-primary mt-6 inline-flex justify-center" data-track="guide_how_to_drafter">
+                  {heroDrafter.button}
+                </a>
+              ) : (
+                <div className="mt-8">
+                  <TransitionDemo
+                    framework={TRANSITION_DEMOS[page.slug].framework}
+                    mode={TRANSITION_DEMOS[page.slug].mode}
+                    choices={TRANSITION_DEMOS[page.slug].choices}
+                  />
+                </div>
+              )}
             </div>
           </section>
         )}
@@ -504,7 +558,7 @@ export default async function SeoPage({ params }: PageProps) {
             <div className="reading-shell">
               <div className="space-y-12">
                 {page.deepDive.map((block) => (
-                  <div key={block.heading}>
+                  <div key={block.heading} id={anchorFor(block.heading)} className="scroll-mt-24">
                     <h2 className="font-display text-2xl font-bold text-ink-900 md:text-3xl">{block.heading}</h2>
                     <div className="mt-4 space-y-4 text-[17px] leading-relaxed text-ink-700">
                       {block.paragraphs.map((paragraph, index) => (
@@ -560,6 +614,15 @@ export default async function SeoPage({ params }: PageProps) {
             </div>
           </section>
         ) : null}
+
+        {EXIT_SURFACES[page.slug] && (
+          // The one-tap "what is stopping you?" (lib/exit-feedback.ts, fault P07): quiet, in the page, once per visitor.
+          <section className="pb-12">
+            <div className="reading-shell">
+              <ExitFeedback surface={EXIT_SURFACES[page.slug]} />
+            </div>
+          </section>
+        )}
 
         <section className="py-16 bg-cream-50 border-y border-clay-100">
           <div className="reading-shell">
