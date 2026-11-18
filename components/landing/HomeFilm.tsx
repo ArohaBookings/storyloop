@@ -309,7 +309,9 @@ export default function HomeFilm({ inHero = false }: { inHero?: boolean }) {
               onClick={() => choose(i)}
               aria-pressed={i === index}
               data-testid={`home-film-label-${f.code}`}
-              className={`relative flex min-h-[44px] items-center justify-center overflow-hidden rounded-xl px-1.5 text-center text-[13px] font-semibold leading-tight transition-colors ${
+              // A 320px phone gives each label about 90px: 12px type keeps "From a photo" on one line there.
+              // The bottom padding keeps the words clear of the progress line, even if a label ever wraps.
+              className={`relative flex min-h-[44px] items-center justify-center overflow-hidden rounded-xl px-1 pb-2 text-center text-[12px] font-semibold leading-tight transition-colors min-[360px]:text-[13px] ${
                 i === index ? "bg-cream-100 text-ink-900" : "text-ink-500 hover:bg-cream-50 hover:text-ink-800"
               }`}
             >
