@@ -71,6 +71,8 @@ export default function ExportPackPanel({
   const copyPack = async () => {
     await navigator.clipboard.writeText(selected.text);
     trackEvent("app_export", { story_id: storyId ?? null, format: "pack_copy", pack: packName });
+    // Copy for my centre's app (lib/copy-pack.ts): which layout, by its neutral name.
+    trackEvent("copy_pack_copied", { story_id: storyId ?? null, pack: packName });
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
     onTakenAway?.();

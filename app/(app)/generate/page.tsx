@@ -41,6 +41,8 @@ import AppLimitWall from "@/components/app/AppLimitWall";
 import PriceReminder from "@/components/app/PriceReminder";
 import CheckoutReturn from "@/components/app/CheckoutReturn";
 import NextStoryCard from "@/components/app/NextStoryCard";
+import CopyPackButton from "@/components/app/CopyPackButton";
+import { showCopyPackBeside } from "@/lib/copy-pack";
 import { nextStoryCard, shouldOfferNextStory, type NextStoryChoice } from "@/lib/next-story";
 import { trackEvent } from "@/lib/analytics/track-event";
 import { keepWallWork, takeWallWork } from "@/lib/app-wall";
@@ -954,6 +956,8 @@ export default function GeneratePage() {
   const copiedStories = useRef(new Set<string>());
   const editedStories = useRef(new Set<string>());
   const regenerations = useRef(0);
+  // The story she last copied: the copy pack button sits beside Copy for it (lib/copy-pack.ts).
+  const [packBesideCopy, setPackBesideCopy] = useState("");
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(story);
@@ -961,6 +965,7 @@ export default function GeneratePage() {
     setTimeout(() => setCopied(false), 2000);
     trackEvent("app_story_copied", { story_id: storyId || null, how: "button", first: !copiedStories.current.has(storyId) });
     copiedStories.current.add(storyId);
+    setPackBesideCopy(storyId);
     offerNextStory();
   };
 
@@ -2205,6 +2210,10 @@ export default function GeneratePage() {
                   {copied ? <Check className="w-3 h-3 text-sage-600" /> : <Copy className="w-3 h-3" />}
                   {copied ? "Copied" : "Copy"}
                 </button>
+                {/* Once she has copied: the same story laid out for her centre's app, right beside Copy. */}
+                {showCopyPackBeside({ plan: accountPlan, storyId, copiedStoryId: packBesideCopy }) && (
+                  <CopyPackButton storyId={storyId} targetId="copy-pack" className={storyAction} />
+                )}
                 {storyId && (
                   <>
                     {/* The two things worth doing with a finished story sat a screen below it, where nobody scrolled. */}
@@ -2410,6 +2419,7 @@ export default function GeneratePage() {
                 followUpPrompt={followUpPrompt}
               />
 
+              <div id="copy-pack" tabIndex={-1} className="scroll-mt-24 rounded-3xl focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay-600">
               <ExportPackPanel
                 storyId={storyId || undefined}
                 plan={accountPlan}
@@ -2426,6 +2436,7 @@ export default function GeneratePage() {
                 framework={location}
                 onTakenAway={offerNextStory}
               />
+              </div>
 
               {parentFriendlyVersion && (
                 <div className="story-safe mt-5 max-w-full overflow-hidden rounded-3xl border border-clay-200 bg-white p-5 shadow-soft">
