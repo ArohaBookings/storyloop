@@ -1,0 +1,66 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { UserCheck, X } from "lucide-react";
+import { trackEvent } from "@/lib/analytics/track-event";
+
+/**
+ * "Send this to my leader" (lib/leader-card.ts): mounted under a story only
+ * after she copies it. It asks the server once whether to show, and shows
+ * quietly in the page, never over it. "Send it to my leader" opens the
+ * story's own leader check (the caller's onSend); "No thanks" hides it for good.
+ * Events: ui_action with the story's id only.
+ */
+export default function LeaderCard({ storyId, onSend }: { storyId: string; onSend: () => void }) {
+  const [show, setShow] = useState(false);
+  const asked = useRef("");
+
+  useEffect(() => {
+    if (!storyId || asked.current === storyId) return;
+    asked.current = storyId;
+    fetch("/api/leader-card", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "check", storyId }) })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (data?.show !== true) return;
+        setShow(true);
+        trackEvent("ui_action", { action: "leader_card_shown", story_id: storyId });
+      })
+      .catch(() => {});
+  }, [storyId]);
+
+  if (!show) return null;
+
+  const send = () => {
+    trackEvent("ui_action", { action: "leader_card_send", story_id: storyId });
+    setShow(false);
+    onSend();
+  };
+
+  const noThanks = () => {
+    trackEvent("ui_action", { action: "leader_card_no", story_id: storyId });
+    setShow(false);
+    void fetch("/api/leader-card", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "dismiss" }) }).catch(() => {});
+  };
+
+  return (
+    <section className="min-w-0 rounded-2xl border border-sage-200 bg-sage-50/70 p-3.5 sm:p-4" aria-label="Send this to your leader" data-testid="leader-card">
+      <div className="flex items-start justify-between gap-2">
+        <p className="min-w-0 text-sm font-bold text-ink-900">Want your leader to see this one?</p>
+        <button type="button" onClick={noThanks} aria-label="No thanks" className="-mr-1 -mt-1 flex h-9 w-9 flex-none items-center justify-center rounded-full text-ink-400 hover:bg-sage-100 hover:text-ink-700">
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+      <p className="mt-0.5 text-sm leading-relaxed text-ink-700">
+        Send it for a quick look. They read it with your note beside it, need no account, and can answer in about two minutes.
+      </p>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button type="button" onClick={send} className="btn-primary min-h-[44px] px-4 text-sm" data-testid="leader-card-send">
+          <UserCheck className="h-4 w-4" /> Send it to my leader
+        </button>
+        <button type="button" onClick={noThanks} className="btn-ghost min-h-[44px] px-3 text-sm" data-testid="leader-card-no">
+          No thanks
+        </button>
+      </div>
+    </section>
+  );
+}

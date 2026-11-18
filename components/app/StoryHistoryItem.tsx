@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import LeaderCheck from "@/components/app/LeaderCheck";
+import LeaderCard from "@/components/app/LeaderCard";
 import FamilyShare from "@/components/app/FamilyShare";
 import type { EducatorCheckView } from "@/lib/story-check";
 import type { AuthorReviewView } from "@/lib/team-queue";
@@ -80,6 +81,7 @@ export default function StoryHistoryItem({ story, plan = "free", check, centreRe
   const [saving, setSaving] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedOnce, setCopiedOnce] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [upgradeRequired, setUpgradeRequired] = useState(false);
@@ -336,6 +338,16 @@ export default function StoryHistoryItem({ story, plan = "free", check, centreRe
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
     trackEvent("app_story_copied", { story_id: story.id, how: "button" });
+    setCopiedOnce(true);
+  };
+
+  // "Send this to my leader" (lib/leader-card.ts): the card's button opens this story's own leader check.
+  const openLeaderCheck = () => {
+    const panel = document.getElementById(`leader-${story.id}`);
+    if (!panel) return;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    panel.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    window.setTimeout(() => panel.focus({ preventScroll: true }), reduce ? 0 : 400);
   };
 
   const downloadStory = () => {
@@ -394,6 +406,12 @@ export default function StoryHistoryItem({ story, plan = "free", check, centreRe
             </button>
           </div>
         </div>
+
+        {copiedOnce && (
+          <div className="mb-4 min-w-0">
+            <LeaderCard storyId={story.id} onSend={openLeaderCheck} />
+          </div>
+        )}
 
         {editing ? (
           <div className="space-y-3">

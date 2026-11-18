@@ -35,6 +35,7 @@ import QuillAssistant from "@/components/app/QuillAssistant";
 import ExportPackPanel from "@/components/app/ExportPackPanel";
 import FamilyTranslationPanel from "@/components/app/FamilyTranslationPanel";
 import LeaderCheck from "@/components/app/LeaderCheck";
+import LeaderCard from "@/components/app/LeaderCard";
 import FamilyShare from "@/components/app/FamilyShare";
 import StoryReviewAsk from "@/components/app/StoryReviewAsk";
 import AppLimitWall from "@/components/app/AppLimitWall";
@@ -897,6 +898,8 @@ export default function GeneratePage() {
   const copiedStories = useRef(new Set<string>());
   const editedStories = useRef(new Set<string>());
   const regenerations = useRef(0);
+  // The story she last copied: "Send this to my leader" may follow it (19 Nov 2026).
+  const [copiedStoryId, setCopiedStoryId] = useState("");
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(story);
@@ -904,6 +907,7 @@ export default function GeneratePage() {
     setTimeout(() => setCopied(false), 2000);
     trackEvent("app_story_copied", { story_id: storyId || null, how: "button", first: !copiedStories.current.has(storyId) });
     copiedStories.current.add(storyId);
+    if (storyId) setCopiedStoryId(storyId);
   };
 
   const handleRegenerate = () => {
@@ -2175,6 +2179,13 @@ export default function GeneratePage() {
               </div>
             )}
           </div>
+
+          {/* "Send this to my leader" (lib/leader-card.ts): only after she copies this story, in the page, never over it. */}
+          {storyId && copiedStoryId === storyId && !loading && (
+            <div className="mb-4 min-w-0">
+              <LeaderCard key={storyId} storyId={storyId} onSend={() => jumpTo("leader-check")} />
+            </div>
+          )}
 
           {loading ? (
             <div className="flex-1 flex flex-col items-center justify-center px-4 text-center">
