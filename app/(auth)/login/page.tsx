@@ -13,6 +13,7 @@ import { isAppDestination } from "@/lib/signup-next";
 export default async function LoginPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const params = await searchParams;
   const raw = typeof params.redirect === "string" ? params.redirect : null;
-  const redirect = raw ? safeRedirectPath(raw) : null;
+  // Anything off this site counts as no redirect at all (sign-in then goes home).
+  const redirect = raw ? safeRedirectPath(raw, "") || null : null;
   return <LoginForm initialRedirect={redirect} offerSignup={isAppDestination(redirect)} />;
 }

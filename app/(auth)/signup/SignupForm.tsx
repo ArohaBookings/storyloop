@@ -17,7 +17,7 @@ import { confirmKeptDrafts, readKeptStatement, readKeptStory } from "@/lib/keep-
 import { trackEvent } from "@/lib/analytics/track-event";
 import type { SIGNUP_ERROR_CODES } from "@/lib/analytics/events";
 import { createClient } from "@/lib/supabase/client";
-import { FIRST_STORY_PATH, existingAccountDestination, loginPathForDestination, signupDestination } from "@/lib/signup-next";
+import { existingAccountDestination, loginPathForDestination, signupDestination } from "@/lib/signup-next";
 import { OFFER_STORAGE_KEY, offerRefFromHash, offerStorageValue } from "@/lib/story-check";
 import { educatorOffer } from "@/lib/offer-wording";
 import CentreTrialWords from "@/components/centre/CentreTrialWords";
@@ -59,7 +59,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | "timeout">
  * The plan arrives from the server with the page, so a director who clicked
  * "Claim a founding spot" sees the centre wording from the first frame.
  */
-export default function SignupForm({ initialPlan = null }: { initialPlan?: string | null }) {
+export default function SignupForm({ initialPlan = null, initialNext = null }: { initialPlan?: string | null; initialNext?: string | null }) {
   const [name, setName] = useState("");
   // Already signed in on this device: point them back into the app.
   const [signedIn, setSignedIn] = useState(false);
@@ -92,8 +92,10 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
   const [currency, setCurrency] = useState<CurrencyCode>("AUD");
   const [referralCode, setReferralCode] = useState("");
   // Where a free account lands: the first story, unless the link asked for a
-  // page on the short list in lib/signup-next.ts (the statement guides send /statement).
-  const [destination, setDestination] = useState(FIRST_STORY_PATH);
+  // page on the list in lib/signup-next.ts (the statement guides send /statement,
+  // a signed-out visit to a page of the app sends that page). Known from the
+  // first frame, so the sign-in links keep it even before the script runs.
+  const [destination, setDestination] = useState(() => signupDestination(initialNext));
   const [notNow, setNotNow] = useState<"closed" | "open" | "answered">("closed");
   // "Email me a link" (lib/auth/signup-link.ts, OFF until Leo switches it on).
   const [mode, setMode] = useState<"password" | "link" | "link_sent">("password");

@@ -10,7 +10,10 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
           2026 the signup page had no tracker, so nobody could tell how long
           people spent here before leaving. */}
       <EngagementTracker mode="marketing" />
-      <SignupForm initialPlan={typeof params.plan === "string" ? params.plan : null} />
+      <SignupForm
+        initialPlan={typeof params.plan === "string" ? params.plan : null}
+        initialNext={typeof params.next === "string" ? params.next : null}
+      />
     </>
   );
 }
