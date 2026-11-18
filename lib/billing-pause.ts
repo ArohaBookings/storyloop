@@ -1,15 +1,12 @@
 import { billingDay } from "@/lib/billing-dates";
-import { createHmac, timingSafeEqual } from "crypto";
 import type Stripe from "stripe";
 import { findManageableSubscription, nextPaymentFor, ownsSubscription } from "@/lib/billing-manage";
 
 /**
- * Pause payments for a month or a few, from a link in an email (Oct 2026).
- *
- * Built for paying educators who are not using StoryLoop yet: offering a pause
- * is kinder than charging in silence, and keeps the account. The link only
- * opens a page that says what would happen. Nothing changes until the person
- * presses the button, because email security scanners open links on their own.
+ * Pause payments for a month or a few, from the Billing page only (Leo, 10 Nov
+ * 2026; proposal M, 18 Nov 2026). It began in Oct 2026 as a link in an email;
+ * that email, its signed link and the page it opened are gone, because pause
+ * and cancel are never offered outside Billing. Pause sits before Cancel there.
  *
  * Stripe "pause_collection" with behavior "void": the subscription stays
  * active, invoices due during the pause are voided (nothing is charged), and
@@ -18,51 +15,12 @@ import { findManageableSubscription, nextPaymentFor, ownsSubscription } from "@/
 
 export const PAUSE_MONTH_OPTIONS = [1, 2, 3] as const;
 export type PauseMonths = (typeof PAUSE_MONTH_OPTIONS)[number];
-export const PAUSE_LINK_DAYS = 30;
 /** One pause per subscription in this many days, so a pause cannot become free use. */
 export const PAUSE_COOLDOWN_DAYS = 180;
 const DAY = 24 * 60 * 60;
 
 export function isPauseMonths(value: unknown): value is PauseMonths {
   return PAUSE_MONTH_OPTIONS.includes(Number(value) as PauseMonths);
-}
-
-function secret() {
-  // Same chain as unsubscribe links, so production signs both with one secret
-  // (production sets only CRON_SECRET, checked 19 Oct 2026).
-  const configured = process.env.EMAIL_UNSUBSCRIBE_SECRET ?? process.env.ADMIN_SESSION_SECRET ?? process.env.CRON_SECRET;
-  if (configured) return configured;
-  // A well-known fallback would let anyone forge a pause link, so production refuses it.
-  if (process.env.NODE_ENV === "production") throw new Error("Pause links need EMAIL_UNSUBSCRIBE_SECRET or CRON_SECRET.");
-  return "storyloop-dev-unsubscribe";
-}
-
-type PausePayload = { userId: string; exp: number };
-
-function sign(payload: PausePayload) {
-  // "pause:" keeps this signature from ever matching an unsubscribe signature.
-  return createHmac("sha256", secret()).update(`pause:${payload.userId}:${payload.exp}`).digest("base64url");
-}
-
-export function createPauseToken(userId: string, nowSeconds = Math.floor(Date.now() / 1000)) {
-  const payload: PausePayload = { userId, exp: nowSeconds + PAUSE_LINK_DAYS * DAY };
-  return Buffer.from(JSON.stringify({ ...payload, sig: sign(payload) }), "utf8").toString("base64url");
-}
-
-export function verifyPauseToken(token: string | null | undefined, nowSeconds = Math.floor(Date.now() / 1000)): PausePayload | null {
-  if (!token || token.length > 600) return null;
-  let parsed: (PausePayload & { sig?: string }) | null = null;
-  try {
-    parsed = JSON.parse(Buffer.from(token, "base64url").toString("utf8"));
-  } catch {
-    return null;
-  }
-  if (!parsed || typeof parsed.userId !== "string" || typeof parsed.exp !== "number" || typeof parsed.sig !== "string") return null;
-  if (parsed.exp < nowSeconds) return null;
-  const expected = Buffer.from(sign({ userId: parsed.userId, exp: parsed.exp }));
-  const actual = Buffer.from(parsed.sig);
-  if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) return null;
-  return { userId: parsed.userId, exp: parsed.exp };
 }
 
 function addMonths(seconds: number, months: number) {
