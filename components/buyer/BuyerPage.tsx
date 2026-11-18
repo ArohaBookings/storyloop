@@ -199,6 +199,8 @@ export default function BuyerPage({ slug }: { slug: BuyerSlug }) {
   const policy = page.action.kind === "policy";
   const note = page.action.kind === "note";
   const blocks = answerBlocks(page.answers);
+  // What prints: the H1 and these sections (a leader printing her checklist), or else only the action.
+  const printable = new Set(page.printSections ?? []);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-paper print:bg-white">
@@ -221,29 +223,29 @@ export default function BuyerPage({ slug }: { slug: BuyerSlug }) {
                     : "grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center lg:gap-12"
               }
             >
-              <div className="min-w-0 print:hidden">
-                <p className="section-title mb-1.5 sm:mb-3">{page.kicker}</p>
+              <div className={`min-w-0 ${printable.size ? "" : "print:hidden"}`}>
+                <p className="section-title mb-1.5 sm:mb-3 print:hidden">{page.kicker}</p>
                 <h1 className="max-w-4xl font-display text-[1.65rem] font-bold leading-[1.12] tracking-tight text-ink-900 text-balance sm:text-5xl lg:text-[3.25rem]">
                   {page.h1}
                 </h1>
-                {page.lead && <p className="mt-2.5 max-w-2xl text-base leading-relaxed text-ink-700 sm:mt-4 sm:text-lg">{page.lead}</p>}
+                {page.lead && <p className="mt-2.5 max-w-2xl text-base leading-relaxed text-ink-700 sm:mt-4 sm:text-lg print:hidden">{page.lead}</p>}
                 {note && (
                   <div className="mt-3 max-w-xl sm:mt-5">
                     <Proof page={page} />
                   </div>
                 )}
               </div>
-              <div className={policy ? "mt-4 sm:mt-8" : "min-w-0"}>
+              <div className={`${policy ? "mt-4 sm:mt-8" : "min-w-0"} ${printable.size ? "print:hidden" : ""}`}>
                 <Action page={page} />
               </div>
             </div>
           </div>
         </section>
 
-        <section className="py-12 md:py-16 print:hidden">
-          <div className="reading-shell space-y-10">
+        <section className={`py-12 md:py-16 ${printable.size ? "print:py-2" : "print:hidden"}`}>
+          <div className="reading-shell space-y-10 print:space-y-5">
             {page.sections.map((section) => (
-              <div key={section.id} id={section.id} className="scroll-mt-24">
+              <div key={section.id} id={section.id} className={`scroll-mt-24 ${printable.has(section.id) ? "" : "print:hidden"}`}>
                 <h2 className="font-display text-2xl font-bold text-ink-900 md:text-3xl">{section.heading}</h2>
                 {section.list && (
                   <ul className="mt-4 space-y-2.5">
@@ -261,7 +263,7 @@ export default function BuyerPage({ slug }: { slug: BuyerSlug }) {
                   </p>
                 ))}
                 {section.link && (
-                  <Link href={section.link.href} className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900" data-track={`buyer_link_${section.id.replace(/-/g, "_")}`}>
+                  <Link href={section.link.href} className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900 print:hidden" data-track={`buyer_link_${section.id.replace(/-/g, "_")}`}>
                     {section.link.label} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                   </Link>
                 )}

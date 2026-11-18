@@ -86,6 +86,12 @@ export type BuyerPage = {
   faqs: Array<{ q: string; a: string }>;
   related: Array<{ href: string; title: string; body: string }>;
   sources?: Array<{ label: string; url: string }>;
+  /**
+   * Sections that print, with the H1, when someone prints the page (a print
+   * stylesheet, never a download or a Print button on the first screen).
+   * Without it nothing but the page's own action prints.
+   */
+  printSections?: string[];
   reviewedAt: string;
 };
 
@@ -188,7 +194,7 @@ const PAGES = {
     ],
     related: [
       { href: "/for-educators", title: "What StoryLoop does for you", body: "From a quick note after play to a finished story, before you leave." },
-      { href: "/ai-childcare-observations", title: "AI childcare observations", body: "A jotting in, an EYLF V2.0 observation out, with the reason for each link." },
+      { href: "/ai-childcare-observations", title: "AI childcare observations", body: "A jotting in, an EYLF V2.0 learning story out, with the reason for each outcome link." },
       { href: "/safety", title: "Children's information and AI", body: "Where a note goes, what the AI can and cannot do with it, and your choices." },
       { href: "/examples", title: "12 real notes and drafts", body: "Real notes and the drafts StoryLoop wrote from them, unedited." },
     ],
@@ -357,6 +363,8 @@ const PAGES = {
       { href: "/critical-reflection-early-childhood", title: "Critical reflection", body: "Three examples, a filled-in template and the NQS 1.3.2 evidence list." },
     ],
     sources: [ACECQA_QA7, ACECQA_13],
+    // Correction C19: no Print link on screen one; the print stylesheet stays, for the three lists.
+    printSections: ["weekly", "monthly", "each-term"],
     reviewedAt: REVIEWED,
   },
 
@@ -592,13 +600,15 @@ const PAGES = {
       buyer: "centre",
       who: "An Australian director or educational leader working towards an Exceeding rating",
       typed: ["exceeding nqs themes", "exceeding nqs meaning", "exceeding nqs theme guidance", "nqf exceeding themes"],
-      firstScreen: "Read the three Exceeding themes in one line each and start her centre's free period with one button, no card (or jump to a real story that shows them).",
+      firstScreen: "Read the three Exceeding themes in one sentence and start her centre's free period with one button, no card (or jump to a real story that shows them).",
     },
     title: "Exceeding NQS: what your documentation needs to show",
     description:
       "The three Exceeding themes in plain words, and what an assessor looks for in your learning stories, planning and reflection to see them.",
     kicker: "For directors and educational leaders · NQS",
     h1: "Exceeding the NQS: what your documentation has to show.",
+    // The three themes, as ACECQA names them (checked against ACECQA's own documents, 19 Nov 2026).
+    lead: "For a Standard to be rated Exceeding, an assessor must see three themes in practice: embedded in service operations, informed by critical reflection, and shaped by meaningful engagement with families and/or the community.",
     action: { kind: "centre" },
     sections: [
       {

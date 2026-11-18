@@ -62,6 +62,19 @@ export default function AiPolicyPage() {
 
         <PolicyGenerator />
 
+        {/* 18 Nov 2026 re-aim: one quiet line under the generator for the leader who came for the policy. */}
+        <p className="mx-auto mt-6 max-w-3xl text-center text-sm leading-relaxed text-ink-600 print:hidden" data-testid="ai-policy-storyloop-line">
+          Using AI for learning stories?{" "}
+          <Link href="/safety" className="font-semibold text-clay-700 underline underline-offset-2" data-track="ai_policy_line_safety">
+            See how StoryLoop keeps children&apos;s notes private
+          </Link>
+          , and{" "}
+          <Link href="/for-centres?utm_source=ai_policy&utm_medium=site" className="font-semibold text-clay-700 underline underline-offset-2" data-track="ai_policy_line_centre">
+            what it does for a whole centre
+          </Link>
+          .
+        </p>
+
         {/* 12 Nov 2026: leaders now arrive asking whether a rule makes them have one. Each line below
             was checked on the official page it links to that day; see the header of lib/ai-policy.ts. */}
         <section className="mx-auto mt-12 max-w-3xl rounded-3xl border border-clay-100 bg-paper p-6 sm:p-8 print:hidden" data-testid="ai-policy-rules">

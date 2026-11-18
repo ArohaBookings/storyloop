@@ -121,8 +121,8 @@ export function answerBlocks(ids: AnswerBlockId[]): AnswerBlock[] {
  * The existing pages the corrected plan names, and the blocks each shows (the
  * new buyer pages list theirs in lib/buyer-pages.ts). On a guide the blocks
  * open its questions; on the homepage, /safety and /ai-policy they join the
- * page's own questions; on the examples post they follow the post, so the
- * post's own answer still comes first.
+ * page's own questions; on the examples post they follow its first worked
+ * example (splitAfterFirstExample), so the post's own answer still comes first.
  */
 export const ANSWER_BLOCKS_BY_PATH: Record<string, AnswerBlockId[]> = {
   "/": ["A"],
@@ -138,6 +138,26 @@ export const ANSWER_BLOCKS_BY_PATH: Record<string, AnswerBlockId[]> = {
 /** The blocks an existing page shows, or none. Pure. */
 export function answerBlocksFor(path: string): AnswerBlock[] {
   return answerBlocks(ANSWER_BLOCKS_BY_PATH[path] ?? []);
+}
+
+/**
+ * Where the answer block goes in a post that teaches through worked examples
+ * (correction C17 of the 18 Nov 2026 check): directly after the first example,
+ * not above it, so the post's own answer still comes first and the opening
+ * that assistants cite (Copilot, 202 times in October) is untouched.
+ *
+ * Splits the markdown, at a block boundary, before the heading that follows the
+ * first heading starting with "Example". Null when there is no such heading or
+ * nothing after it: the block then follows the whole post. Pure.
+ */
+export function splitAfterFirstExample(markdown: string): { before: string; after: string } | null {
+  const blocks = markdown.replace(/\r\n/g, "\n").split(/\n{2,}/);
+  const heading = (block: string) => /^#{1,3}\s+/.test(block.trim());
+  const first = blocks.findIndex((block) => /^#{1,3}\s+example\b/i.test(block.trim()));
+  if (first < 0) return null;
+  const next = blocks.findIndex((block, index) => index > first && heading(block));
+  if (next < 0) return null;
+  return { before: blocks.slice(0, next).join("\n\n"), after: blocks.slice(next).join("\n\n") };
 }
 
 /**

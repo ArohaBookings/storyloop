@@ -251,7 +251,7 @@ export const RELATED = {
   leaderCheck: { href: "/how-to-check-a-learning-story", title: "How to check a learning story", body: "Five questions a leader can ask in two minutes, and feedback that helps." },
   // The pages for the people who buy (lib/buyer-pages.ts, 18 Nov 2026), linked from the free guides nearest each.
   aiEducators: { href: "/ai-for-early-childhood-educators", title: "AI for early childhood educators", body: "What helps, what never goes in, and how to keep your own voice." },
-  aiObservations: { href: "/ai-childcare-observations", title: "AI childcare observations", body: "A jotting in, an EYLF V2.0 observation out, with the reason for each link." },
+  aiObservations: { href: "/ai-childcare-observations", title: "AI childcare observations", body: "A jotting in, an EYLF V2.0 learning story out, with the reason for each outcome link." },
   leaderChecklist: { href: "/educational-leader-checklist", title: "Educational leader checklist", body: "What to check each week, month and term, in two minutes a story." },
   workload: { href: "/documentation-workload-early-childhood", title: "Documentation workload", body: "Getting documentation out of your team's evenings, and what a centre can change this term." },
   askCentre: { href: "/ask-your-centre", title: "Ask your centre", body: "A short message a family can send their centre about learning stories." },

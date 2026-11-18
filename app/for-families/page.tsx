@@ -4,10 +4,12 @@ import { BookHeart, Languages, MessageCircleQuestion, ShieldCheck } from "lucide
 import { GuideFaq, GuideFigure, GuideHero, GuidePage, GuideSection, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 import ShareWithCentre from "@/components/marketing/ShareWithCentre";
 
+// 18 Nov 2026 re-aim (the parent path): what a parent would type about her own
+// child's stories, not the product's name. 19 impressions and no clicks before.
 export const metadata: Metadata = {
-  title: { absolute: "What StoryLoop means for your child's learning stories" },
+  title: { absolute: "Learning stories about your child: what to look for" },
   description:
-    "What families see when educators use StoryLoop: stories in plain words, a question for home, wall cards in your language, and your child's data protected.",
+    "What a learning story tells you about your child, how to read one, and how to ask your centre for more stories like it.",
   alternates: { canonical: "https://storyloop.space/for-families" },
   openGraph: { title: "StoryLoop for families", description: "More stories about your child's learning, in plain words and your own language.", url: "https://storyloop.space/for-families", type: "website" },
 };

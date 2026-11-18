@@ -125,14 +125,16 @@ test("no page states the old centre trial any more", () => {
   }
 });
 
-test("the centre and pricing guides carry the day's words, and their search text is unchanged", () => {
+test("the centre and pricing guides carry the day's words, and their search text names no free period", () => {
   const centres = SEO_PAGES["for-centres"];
-  assert.ok(hasOfferToken(centres.intro));
+  // 18 Nov 2026 re-aim: the intro says what it is and how to judge it; the free
+  // period is in the line under the button (CentreTrialWords) and in a section.
   assert.ok(centres.sections.some((section) => hasOfferToken(section.title) && hasOfferToken(section.body)));
   assert.equal(
     centres.description,
-    "Learning story software for ECE centres: stories drafted from your team's own notes, review evidence with the gaps first, one flat price, at least 30 days free.",
+    "Your team writes learning stories in the day from a short note, linked to Te Whāriki or the EYLF. One flat price, no per-child fee, and no card to start.",
   );
+  assert.doesNotMatch(`${centres.title} ${centres.description} ${centres.intro}`, /\d+ days|free until/i);
   const pricing = SEO_PAGES["pricing"];
   assert.ok(pricing.faqs.filter((faq) => hasOfferToken(faq.answer)).length === 2);
   assert.ok(LANDING_FAQS.some((faq) => hasOfferToken(faq.a)));

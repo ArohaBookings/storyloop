@@ -30,7 +30,8 @@ function routeExists(href: string) {
 
 test("the centre page fits in a search result", () => {
   assert.ok(page.title.length <= 60, `title is ${page.title.length} characters`);
-  assert.match(page.title, /learning story software for ECE centres/i);
+  // Re-aimed 18 Nov 2026 (search research, check.json: low risk, 25 impressions): both countries in the title.
+  assert.match(page.title, /learning story software for centres in NZ and Australia/i);
   assert.ok(page.description.length >= 150 && page.description.length <= 160, `description is ${page.description.length} characters`);
 });
 
@@ -40,12 +41,17 @@ test("the centre page has no em dash and names no other product", () => {
   assert.deepEqual(rivalNames(text), []);
 });
 
-test("the centre page has six to nine short sections and five or six questions", () => {
-  assert.ok(page.sections.length >= 6 && page.sections.length <= 9, `${page.sections.length} sections`);
+test("the centre page has six to ten short sections and five or six questions", () => {
+  // Ten since 18 Nov 2026: "For your educational leader" (the re-aim), a short card whose links do the work.
+  assert.ok(page.sections.length >= 6 && page.sections.length <= 10, `${page.sections.length} sections`);
   for (const section of page.sections) {
     const words = section.body.split(/\s+/).filter(Boolean).length;
-    assert.ok(words >= 40 && words <= 90, `"${section.title}" is ${words} words`);
+    const least = section.links?.length ? 20 : 40;
+    assert.ok(words >= least && words <= 90, `"${section.title}" is ${words} words`);
   }
+  const leader = page.sections.find((section) => section.title === "For your educational leader");
+  assert.deepEqual(leader?.links?.map((link) => link.href), ["/educational-leader-checklist", "/how-to-check-a-learning-story"]);
+  for (const link of leader?.links ?? []) assert.ok(routeExists(link.href), `${link.href} does not exist`);
   assert.ok(page.faqs.length >= 5 && page.faqs.length <= 6, `${page.faqs.length} FAQs`);
   const questions = page.faqs.map((f) => f.question);
   for (const q of [

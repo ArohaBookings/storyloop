@@ -13,6 +13,7 @@ import { fillOfferText } from "@/lib/offer-wording";
 import { withAnswerBlocks } from "@/lib/answer-blocks";
 import ProductHero, { type ProductHeroRegion } from "@/components/buyer/ProductHero";
 import CentrePriceTable from "@/components/buyer/CentrePriceTable";
+import FamilyArrival from "@/components/buyer/FamilyArrival";
 import GuideProof from "@/components/marketing/GuideProof";
 import InternationalTry from "@/components/marketing/InternationalTry";
 import TransitionDemo from "@/components/marketing/TransitionDemo";
@@ -181,7 +182,7 @@ const EDUCATOR_FIRST_SLUGS = new Set([
   "nqs-standards",
 ]);
 import { DEDICATED_ROUTE_SLUGS, SEO_PAGES, SEO_PAGE_SLUGS } from "@/lib/seo-pages";
-import { ExternalLink, PenLine, ShieldCheck } from "lucide-react";
+import { ArrowRight, Check, ExternalLink, PenLine, ShieldCheck } from "lucide-react";
 import { ORGANIZATION_REF } from "@/lib/site-identity";
 
 const SITE_URL = "https://storyloop.space";
@@ -279,7 +280,9 @@ export default async function SeoPage({ params }: PageProps) {
   const heroDrafter = HERO_DRAFTER_SLUGS.has(page.slug) && demo ? demo : null;
   const productHero = PRODUCT_HERO[page.slug] ?? null;
   // A first screen with a tool on it, or a centre's one button: less space above on a phone.
-  const tightHero = Boolean(heroDrafter || productHero || CENTRE_SLUGS.has(page.slug));
+  const tightHero = Boolean(heroDrafter || productHero || page.checklist || CENTRE_SLUGS.has(page.slug));
+  // A product hero or a first-screen checklist needs a two-line heading on a phone to fit.
+  const compactHeading = Boolean(productHero || page.checklist);
   // The short example on the first screen: the start of the real draft below,
   // or, on the end-of-year guide, the start of its own example paragraph.
   const exampleBlock = page.deepDive?.find((block) => block.heading.startsWith("Example paragraph"));
@@ -306,11 +309,35 @@ export default async function SeoPage({ params }: PageProps) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
         <section className="pb-16 paper-texture">
           <div className="wide-shell">
+            {/* Someone sent here by a family's message from /ask-your-centre (nothing shows otherwise). */}
+            {page.slug === "for-centres" && <FamilyArrival />}
             <p className={`section-title ${tightHero ? "mb-1.5 sm:mb-4" : "mb-4"}`}>{page.kicker}</p>
-            <h1 className={`font-display font-bold text-ink-900 tracking-tight max-w-5xl ${heroDrafter ? "text-[24px] leading-[1.15] sm:text-5xl md:text-6xl" : productHero ? "text-[1.65rem] leading-[1.12] text-balance sm:text-5xl md:text-6xl" : "text-4xl sm:text-5xl md:text-6xl"}`}>
+            <h1 className={`font-display font-bold text-ink-900 tracking-tight max-w-5xl ${heroDrafter ? "text-[24px] leading-[1.15] sm:text-5xl md:text-6xl" : compactHeading ? "text-[1.65rem] leading-[1.12] text-balance sm:text-5xl md:text-6xl" : "text-4xl sm:text-5xl md:text-6xl"}`}>
               {page.heading}
             </h1>
             {productHero && <ProductHero region={productHero} />}
+            {/* The checklist the title promises, on the first screen, then what StoryLoop does for that job. */}
+            {page.checklist && (
+              <div className="mt-3 max-w-2xl rounded-3xl border border-sage-200 bg-white px-4 py-3.5 shadow-soft sm:mt-6 sm:p-5" data-testid="first-screen-checklist">
+                <p className="text-xs font-bold uppercase tracking-wider text-sage-700">{page.checklist.heading}</p>
+                <ul className="mt-2 space-y-1.5">
+                  {page.checklist.items.map((item) => (
+                    <li key={item} className="flex gap-2.5 text-[15px] leading-snug text-ink-800">
+                      <Check className="mt-0.5 h-4 w-4 flex-none text-sage-600" aria-hidden="true" />
+                      <span className="min-w-0">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2.5 border-t border-sage-100 pt-2.5 text-sm leading-relaxed text-ink-700">{page.checklist.note}</p>
+                <Link
+                  href={page.checklist.link.href}
+                  className="inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900"
+                  data-track="guide_checklist_link"
+                >
+                  {page.checklist.link.label} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+              </div>
+            )}
             {/* The plain price answer, first: StoryLoop's own two centre prices (no other pricing model shown). */}
             {page.slug === "learning-story-software-cost-for-centres" && <CentrePriceTable />}
             {heroDrafter && (
@@ -575,6 +602,17 @@ export default async function SeoPage({ params }: PageProps) {
               <article key={section.title} className="card p-6">
                 <h2 className="font-display text-xl font-bold text-ink-900 mb-3"><OfferText text={section.title} /></h2>
                 <p className="text-sm text-ink-600 leading-relaxed"><OfferText text={section.body} /></p>
+                {section.links?.length ? (
+                  <ul className="mt-2">
+                    {section.links.map((link) => (
+                      <li key={link.href}>
+                        <Link href={link.href} className="inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900">
+                          {link.label} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </article>
             ))}
           </div>

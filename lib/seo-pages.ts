@@ -16,7 +16,8 @@ export type SeoPage = {
   kicker: string;
   heading: string;
   intro: string;
-  sections: Array<{ title: string; body: string }>;
+  /** `links`: pages a section points on to, shown under its text (18 Nov 2026). */
+  sections: Array<{ title: string; body: string; links?: Array<{ label: string; href: string }> }>;
   faqs: Array<{ question: string; answer: string }>;
   reviewedAt?: string;
   sources?: Array<{ label: string; url: string }>;
@@ -44,6 +45,14 @@ export type SeoPage = {
    * showed for NSW searches), so each now says plainly which page is which.
    */
   siblingLinks?: { heading: string; links: Array<{ label: string; href: string }> };
+  /**
+   * A short checklist on the first screen, for a page whose title promises one
+   * (18 Nov 2026 re-aim: "assessment and rating checklist" is what directors
+   * type). Each tick is something the page itself explains further down. The
+   * note under it says, truthfully, what StoryLoop does for that job, and the
+   * link goes on to the page for buyers.
+   */
+  checklist?: { heading: string; items: string[]; note: string; link: { label: string; href: string } };
 };
 
 const sharedFaqs = [
@@ -555,7 +564,8 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     description:
       "Learning stories linked to Te Whāriki strands and outcomes, written from a quick note or voice memo. You check every word. Free for 3 stories a month.",
     kicker: "Te Whāriki",
-    heading: "Te Whāriki learning stories, from the note you already wrote.",
+    // Two lines on a 393px phone, so the note box and its Write button fit on the first screen.
+    heading: "Te Whāriki learning stories from your own note.",
     intro:
       "StoryLoop helps kaiako describe observed learning through Te Whāriki strands, outcome ideas, dispositions, working theories, and practical next steps.",
     sections: [
@@ -588,7 +598,8 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     description:
       `Write EYLF V2.0 learning stories and observations from a quick note or voice memo. Outcome links with a reason. Free for 3 a month, then ${EDU_AU} a month.`,
     kicker: "EYLF V2.0",
-    heading: "EYLF learning stories and observations, from your note.",
+    // Two lines on a 393px phone, so the note box and its Write button fit on the first screen.
+    heading: "EYLF learning stories from your own note.",
     intro:
       "StoryLoop supports EYLF-aligned story drafts that stay grounded in the observation, so educators can review, edit, and share with confidence.",
     sections: [
@@ -1076,6 +1087,22 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     },
     kicker: "Director guide · Australia and Aotearoa",
     heading: "You get a few days' notice, not a few weeks.",
+    // The title promises a checklist, so it is on the first screen (18 Nov 2026
+    // re-aim). Every tick is from "A sequence that fits in the notice period" and
+    // "The four gaps" below; the note is what the centre plan's evidence pack does.
+    checklist: {
+      heading: "In the days before the visit",
+      items: [
+        "List every child and the date of their last story.",
+        "Give the children with least written to the educators who know them best.",
+        "Walk the open next steps and record what was actually tried.",
+        "Write down the reflections that only happened in conversation.",
+        "Bring family voice back into each child's records.",
+        "Talk through one child's cycle, start to end, as an assessor would.",
+      ],
+      note: "On a centre plan, each educator's evidence pack counts her children's stories, next steps, reflection and family voice, with the gaps first.",
+      link: { label: "What a centre plan gives a leader", href: "/for-centres" },
+    },
     intro:
       "ACECQA's process page says regulatory authorities generally provide one to five days' notice that a site visit will occur, and an assessment that starts in response to compliance issues may start with no notice at all. That is the real constraint. Nobody rebuilds a term of documentation in five days, so the evidence either exists by then or it does not. This page sets out what to have ready and where the gaps usually are.",
     reviewedAt: "2026-09-22",
@@ -1167,8 +1194,11 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       "Your team writes learning stories in the day from a short note, linked to Te Whāriki or the EYLF. One flat price, no per-child fee, and no card to start.",
     kicker: "For directors, owners and head teachers",
     heading: "Documentation done in the day, and a calmer review visit.",
+    // 18 Nov 2026 re-aim: the first screen says what it is and the cheapest way
+    // to judge it, then one button. What a leader gets, the price and the free
+    // period are each in their own section below and in the line under the button.
     intro:
-      "Your educators jot a note after play and StoryLoop drafts the learning story from it, so writing stops eating their evenings. Each educator sees which of her children have gone unnoticed lately, you see who on the team is writing and when, and when ERO or an assessment and rating visit comes, each educator's evidence is already counted from the stories she saved. One flat price for the whole team, {centre_trial}, no card.",
+      "Your educators jot a note after play and StoryLoop drafts the learning story from it, so writing stops eating their evenings. Ask one of them to send you a story about a child you know: checking it takes about two minutes, and you need no account.",
     reviewedAt: "2026-11-12",
     siblingLinks: {
       heading: "For the person who signs off",
@@ -1194,6 +1224,15 @@ export const SEO_PAGES: Record<string, SeoPage> = {
         title: "What a leader gets",
         body:
           "A leader sees who on the team is writing and when each educator last wrote, and reads a story when an educator shares it or sends it to be checked. Each educator gets tools for her own documentation: an evidence pack counting each child's coverage, next steps revisited, reflection and family voice, gaps first; a quiet child radar naming children in her notes with no captured moment in 8 working days; a reliever brief for her room on one page. These count children and gaps, never people.",
+      },
+      {
+        title: "For your educational leader",
+        body:
+          "The person who checks your team's stories gets two short pages: what to look at each week, month and term, and five questions that check one story in about two minutes.",
+        links: [
+          { label: "An educational leader checklist", href: "/educational-leader-checklist" },
+          { label: "How to check a learning story", href: "/how-to-check-a-learning-story" },
+        ],
       },
       {
         title: "Nothing changes for families",

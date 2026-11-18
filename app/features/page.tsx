@@ -11,12 +11,13 @@ import { WALL_LANGUAGES } from "@/lib/wall-languages";
 import TrustStatement from "@/components/marketing/TrustStatement";
 import ExitFeedback from "@/components/landing/ExitFeedback";
 import OfferText from "@/components/offer/OfferText";
-import { CENTRE_TRIAL_TOKEN_CAPITAL, educatorTrialLine } from "@/lib/offer-wording";
+import { CENTRE_TRIAL_TOKEN_CAPITAL, educatorOffer, educatorTrialLine } from "@/lib/offer-wording";
 
 export const metadata: Metadata = {
   title: { absolute: "Every StoryLoop feature, and which plan it is on" },
+  // 18 Nov 2026 re-aim: the free allowance and the price first, from lib/plans.ts.
   description:
-    "Every StoryLoop feature for NZ and Australian educators and centres, the checks behind every draft, and a plan-by-plan table from Free to Centre Growth.",
+    `Free for 3 learning stories a month, then ${educatorOffer("NZD").priceLabel} or ${educatorOffer("AUD").priceLabel} a month. Every StoryLoop feature, the checks behind every draft, and which plan includes what.`,
   alternates: { canonical: "https://storyloop.space/features" },
   openGraph: { title: "StoryLoop features and plans", description: "Every feature, the tech behind every draft, and which plan includes what.", url: "https://storyloop.space/features", type: "website" },
 };
@@ -72,7 +73,7 @@ export default function FeaturesPage() {
         answer={
           <p>
             At its heart, StoryLoop turns a quick note, a voice memo or a photo of your written notes into a checked learning story with Te Whāriki or EYLF
-            V2.0 links. Around that are tools for the rest of the day: following each child&apos;s learning, sharing with
+            V2.0 links, ready to copy into the app your centre uses. Around that are tools for the rest of the day: following each child&apos;s learning, sharing with
             families in their own language, and running a centre on one price with unlimited children.
           </p>
         }
