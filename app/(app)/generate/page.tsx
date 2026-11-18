@@ -40,6 +40,8 @@ import StoryReviewAsk from "@/components/app/StoryReviewAsk";
 import AppLimitWall from "@/components/app/AppLimitWall";
 import PriceReminder from "@/components/app/PriceReminder";
 import CheckoutReturn from "@/components/app/CheckoutReturn";
+import NextStoryCard from "@/components/app/NextStoryCard";
+import { nextStoryCard, shouldOfferNextStory, type NextStoryChoice } from "@/lib/next-story";
 import { trackEvent } from "@/lib/analytics/track-event";
 import { keepWallWork, takeWallWork } from "@/lib/app-wall";
 import { looksNonLatin } from "@/lib/note-language";
@@ -316,15 +318,19 @@ export default function GeneratePage() {
         // default, which would drop a sample observation onto the page of an
         // educator with hundreds of stories.
         const loadedProfile = accountData?.profile;
+        // The counter alone is not trusted with a zero (fault P11: a few early
+        // accounts have stories and a counter of 0): /api/me checks the stories
+        // table, and an account it says has stories is never treated as new.
+        const noStoryYet = Boolean(loadedProfile) && (loadedProfile.total_stories ?? 0) === 0 && accountData?.hasStories !== true;
         if (loadedProfile && typeof loadedProfile.id === "string") {
           const signedUp = typeof accountData?.signedUpAt === "string" ? Date.parse(accountData.signedUpAt) : NaN;
           setAccountAtLoad((previous) => previous ?? {
             id: loadedProfile.id,
-            totalStories: loadedProfile.total_stories ?? 0,
+            totalStories: noStoryYet ? 0 : Math.max(1, loadedProfile.total_stories ?? 0),
             signedUpAt: Number.isFinite(signedUp) ? signedUp : null,
           });
         }
-        if (loadedProfile && (loadedProfile.total_stories ?? 0) === 0 && typeof window !== "undefined") {
+        if (loadedProfile && noStoryYet && typeof window !== "undefined") {
           // Arriving straight from signup (?welcome=1) always gets the guided
           // first-story wizard, even if it was dismissed in a past session.
           const justSignedUp = searchParams.get("welcome") === "1";
@@ -547,6 +553,56 @@ export default function GeneratePage() {
       seconds_since_signup: accountAtLoad.signedUpAt ? Math.round((Date.now() - accountAtLoad.signedUpAt) / 1000) : null,
     });
   };
+  // The next story (lib/next-story.ts, proposal C). How many different notes
+  // became stories on this page (Regenerate keeps the same note, so the same
+  // story), whether the first was the example, and the card's state.
+  const lastStoryNote = useRef<string | null>(null);
+  const notesSoFar = useRef(0);
+  const firstNoteWasExample = useRef(false);
+  // "gone": a second note became a story without the card, so the first is behind her.
+  const [nextStory, setNextStory] = useState<"none" | "offered" | "started" | "gone">("none");
+  const noteStoryNote = (note: string, method: InputMethod) => {
+    if (lastStoryNote.current === note) return;
+    lastStoryNote.current = note;
+    notesSoFar.current += 1;
+    if (notesSoFar.current === 1) firstNoteWasExample.current = method === "sample";
+    else setNextStory((state) => (state === "started" ? state : "gone"));
+  };
+  /** She copied, exported or saved the story on screen: under her first story, offer the next one. */
+  const offerNextStory = () => {
+    if (nextStory !== "none") return;
+    const offer = shouldOfferNextStory({
+      newAccount: accountAtLoad !== null && accountAtLoad.totalStories === 0,
+      notesSoFar: notesSoFar.current,
+      hasStory: Boolean(story),
+      takenAway: true,
+      started: false,
+      walled: showLimitModal || Boolean(clarification),
+    });
+    if (!offer) return;
+    setNextStory("offered");
+    trackEvent("second_story_offered", { story_id: storyId || null });
+  };
+  const startNextStory = (choice: NextStoryChoice) => {
+    trackEvent("second_story_started", { story_id: storyId || null, child: choice });
+    setNextStory("started");
+    setMode("story");
+    resetClarification();
+    setError("");
+    setObservations("");
+    setInputMethod("typed");
+    if (choice === "another") {
+      setSelectedChildId("");
+      setChildName("");
+      setAgeGroup("");
+    }
+    // Focus inside the tap so a phone opens its keyboard, then bring the box into view.
+    const box = document.getElementById("gen-observations") as HTMLTextAreaElement | null;
+    box?.focus({ preventScroll: true });
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    window.requestAnimationFrame(() => box?.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" }));
+  };
+
   const firstNoteLogged = useRef(false);
   useEffect(() => {
     if (firstNoteLogged.current || !accountAtLoad || accountAtLoad.totalStories !== 0) return;
@@ -722,6 +778,7 @@ export default function GeneratePage() {
       setAccountPlan(normalizePlanKey(data.plan));
       setRemaining(data.remaining);
       noteFirstStory(typeof data.storyId === "string" ? data.storyId : "");
+      noteStoryNote(observations.trim(), inputMethod);
       // The page moves while a story is written (cards close, the panel grows), so
       // on a phone or tablet the finished story is brought to the top of the screen
       // once more when it arrives. Without this it sat two screens below the button.
@@ -904,6 +961,7 @@ export default function GeneratePage() {
     setTimeout(() => setCopied(false), 2000);
     trackEvent("app_story_copied", { story_id: storyId || null, how: "button", first: !copiedStories.current.has(storyId) });
     copiedStories.current.add(storyId);
+    offerNextStory();
   };
 
   const handleRegenerate = () => {
@@ -925,6 +983,7 @@ export default function GeneratePage() {
     anchor.click();
     anchor.remove();
     window.URL.revokeObjectURL(url);
+    offerNextStory();
   };
 
   const handleQuillApply = async (newStory: string) => {
@@ -997,6 +1056,7 @@ export default function GeneratePage() {
       setStoryDraft(savedStory);
       setEditingStory(false);
       setStorySaveMessage("Saved to story history.");
+      offerNextStory();
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Could not save story edits.");
     } finally {
@@ -2074,7 +2134,8 @@ export default function GeneratePage() {
             </div>
           )}
 
-          {showUpgradePrompt && (
+          {/* The first-story prompt says "try one more": the next-story card says it better, so never both. */}
+          {showUpgradePrompt && !(upgradePromptKind === "first_story" && nextStory !== "none") && (
             <div className="rounded-2xl border border-clay-200 bg-cream-50 p-4 shadow-soft">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -2331,6 +2392,10 @@ export default function GeneratePage() {
                   {storySaveMessage}
                 </p>
               )}
+              {/* Right under her first story, once she has taken it away: the next one in one tap. */}
+              {nextStory === "offered" && !limitWall && !editingStory && (
+                <NextStoryCard card={nextStoryCard({ childName, fromExample: firstNoteWasExample.current })} onChoose={startNextStory} />
+              )}
               {limitWall && <div className="mt-4">{limitWall}</div>}
 
               <StoryIntelligence
@@ -2359,6 +2424,7 @@ export default function GeneratePage() {
                 nextSteps={nextSteps}
                 familyQuestion={familyQuestion}
                 framework={location}
+                onTakenAway={offerNextStory}
               />
 
               {parentFriendlyVersion && (

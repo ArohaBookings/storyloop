@@ -210,10 +210,10 @@ export const EVENTS = {
     keys: { story_id: ID },
   },
   second_story_started: {
-    where: "/generate: the next-moment card tapped",
+    where: "/generate: the next-moment card tapped (child: the same child, or another child or the first of her own after the example)",
     consent: "any",
     isNew: true,
-    keys: { story_id: ID },
+    keys: { story_id: ID, child: oneOf("same", "another") },
   },
   copy_pack_opened: {
     where: "the copy pack beside Copy",
