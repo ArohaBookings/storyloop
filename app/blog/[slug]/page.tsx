@@ -7,6 +7,8 @@ import Footer from "@/components/landing/Footer";
 import PageTracker from "@/components/analytics/PageTracker";
 import GuideProof from "@/components/marketing/GuideProof";
 import { getPublishedPost, listPublishedPosts, renderMarkdown, readingMinutes, plainSummary } from "@/lib/blog";
+import AnswerList from "@/components/buyer/AnswerList";
+import { answerBlocksFor } from "@/lib/answer-blocks";
 import { ORGANIZATION_REF } from "@/lib/site-identity";
 
 export const revalidate = 300;
@@ -126,6 +128,9 @@ export default async function BlogPostPage({ params }: Params) {
             )}
           </div>
         </article>
+
+        {/* The plain answer assistants quote (lib/answer-blocks.ts), after the post so its own answer comes first. */}
+        <AnswerList blocks={answerBlocksFor(`/blog/${post.slug}`)} heading="About StoryLoop" />
 
         {!forFamilies && <GuideProof framework={post.region === "AU" ? "AU" : "NZ"} demo="visitor" />}
 

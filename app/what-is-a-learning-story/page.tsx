@@ -126,6 +126,13 @@ export default function WhatIsALearningStoryPage() {
           Many stories add the family&apos;s voice (a comment or a story from home) and the child&apos;s own view, which is
           why they work so well for families: they read as a story about their child, not a report.
         </p>
+        <p className="rounded-2xl border border-sage-200 bg-sage-50/70 p-4 text-[15px]" data-testid="for-families-box">
+          <strong>For families:</strong> would you like more stories like this about your child?{" "}
+          <Link href="/ask-your-centre" className="font-semibold text-clay-700 underline" data-track="what_is_ask_centre">
+            A short message you can send your centre
+          </Link>
+          .
+        </p>
         <p>Want the three parts on paper? A blank A4 template, free to print:</p>
         <div className="grid gap-4 md:grid-cols-2">
           <PrintableCard which="templateNz" compact />
@@ -228,6 +235,13 @@ export default function WhatIsALearningStoryPage() {
           Three habits help whether or not you use a tool: jot the child&apos;s exact words at the time, write the story
           part straight after the moment while it is fresh, and keep the curriculum links to the one or two the moment
           actually shows. Our <Link href="/learning-story-template" className="font-semibold text-clay-700 underline">free template</Link> follows that order.
+        </p>
+        <p>
+          Using AI for this?{" "}
+          <Link href="/ai-for-early-childhood-educators" className="font-semibold text-clay-700 underline" data-track="what_is_ai_educators">
+            What AI helps with, what never goes in, and how to keep your own voice
+          </Link>
+          .
         </p>
       </GuideSection>
 

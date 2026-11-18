@@ -115,6 +115,13 @@ export default function ForEducatorsPage() {
           often needs from you: now and then it writes an interpretation as if it were seen, so read the learning section
           with that in mind. Anything a draft assumed is listed beside it. <Link href="/accuracy" className="font-semibold text-clay-700 underline">Read the full report</Link>.
         </p>
+        <p>
+          Wondering about AI in your documentation in general?{" "}
+          <Link href="/ai-for-early-childhood-educators" className="font-semibold text-clay-700 underline" data-track="for_educators_ai">
+            What AI helps an educator with, and what never goes in
+          </Link>
+          .
+        </p>
       </GuideSection>
 
       <GuideSection id="faq" tone="white" title="Questions educators ask">

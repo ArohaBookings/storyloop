@@ -1,4 +1,13 @@
-import { CENTRE_TRIAL_EVERGREEN } from "./offer-wording";
+import { educatorOffer } from "./offer-wording";
+import { getPlanByKey } from "./plans";
+
+// Prices in the re-aimed titles, descriptions and sections (18 Nov 2026), from
+// lib/plans.ts and lib/offer-wording.ts so a search snippet can never drift from checkout.
+const EDU_NZ = educatorOffer("NZD").priceLabel;
+const EDU_AU = educatorOffer("AUD").priceLabel;
+const EDU_TRIAL = educatorOffer("AUD").trialLine;
+const STARTER = getPlanByKey("centre_starter");
+const GROWTH = getPlanByKey("centre_growth");
 
 export type SeoPage = {
   slug: string;
@@ -152,9 +161,9 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   // citation gatekeepers SIGIR 2026 measured, so this page answers with numbers.
   "learning-story-software-cost-for-centres": {
     slug: "learning-story-software-cost-for-centres",
-    title: "What Does Learning Story Software Cost a Centre?",
+    title: "What learning story software costs a centre in 2026",
     description:
-      "What early childhood documentation tools cost a centre, why per-child and per-educator pricing pull apart, and what to check before signing.",
+      `StoryLoop for a centre: NZ$${STARTER.price.NZD} or A$${STARTER.price.AUD} a month for up to ${STARTER.seats} educators, NZ$${GROWTH.price.NZD} or A$${GROWTH.price.AUD} for ${GROWTH.seats}. Unlimited children, and what to check before you sign.`,
     kicker: "For directors and owners",
     heading: "What does learning story software cost a centre?",
     intro:
@@ -288,11 +297,13 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   "learning-story-generator": {
     slug: "learning-story-generator",
     image: { src: "/images/scenes/kitchen.jpg", alt: "An educator smiling at a StoryLoop learning story draft on her laptop in the evening", position: "62% 50%" },
-    title: "Learning Story Generator for Early Childhood Educators",
+    // Re-aimed 18 Nov 2026 at the tool searches buyers type ("ai learning story generator",
+    // "writing learning stories with ai"), from the 18 Nov 2026 search research.
+    title: "AI learning story generator for Te Whāriki and EYLF",
     description:
-      "A learning story generator for ECE educators that turns observations, bullet points, or voice notes into editable drafts with curriculum links.",
+      "Type, say or photograph your note. StoryLoop writes the learning story with Te Whāriki or EYLF V2.0 links in about a minute. Free for 3 stories a month.",
     kicker: "Learning story generator",
-    heading: "Turn real observations into learning story drafts you can actually use.",
+    heading: "Your note in, a learning story out, in about a minute.",
     intro:
       "StoryLoop helps educators move from rough notes to a clear first draft, while keeping educator reflection, final judgement, and family-ready editing at the centre.",
     sections: [
@@ -310,6 +321,16 @@ export const SEO_PAGES: Record<string, SeoPage> = {
         title: "Made for mobile documentation",
         body:
           "StoryLoop works on phone-friendly flows, so educators can capture moments close to when they happen instead of rebuilding the story at the end of the week.",
+      },
+      {
+        title: "Writing learning stories with AI, safely",
+        body:
+          "The child's words stay exactly as you wrote them, and every draft lists anything it had to assume. Use first names only. Notes are stored in Sydney, Australia, and to write a draft a note goes to an AI provider in the United States, under business terms that do not allow it to be used to train their models. You check every line before anything is shared.",
+      },
+      {
+        title: "What it costs",
+        body:
+          `Free for 3 stories a month, no card. Educator is ${EDU_NZ} or ${EDU_AU} a month for unlimited stories, after a ${EDU_TRIAL}. Centre plans start at NZ$${STARTER.price.NZD} or A$${STARTER.price.AUD} a month for up to ${STARTER.seats} educators, with unlimited children.`,
       },
     ],
     faqs: [
@@ -530,11 +551,11 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   "te-whariki-learning-stories": {
     slug: "te-whariki-learning-stories",
     image: { src: "/images/scenes/classroom.jpg", alt: "An educator holds an iPad with a Te Whāriki learning story draft while two toddlers, seen from behind, build with blocks", position: "50% 55%" },
-    title: "Te Whāriki Learning Stories",
+    title: "Te Whāriki learning stories, written from your notes",
     description:
-      "Draft Te Whāriki learning stories with accurate strand names, learning outcome links, dispositions, whānau connection, and responding ideas.",
+      "Learning stories linked to Te Whāriki strands and outcomes, written from a quick note or voice memo. You check every word. Free for 3 stories a month.",
     kicker: "Te Whāriki",
-    heading: "Te Whāriki links that feel natural, not pasted on.",
+    heading: "Te Whāriki learning stories, from the note you already wrote.",
     intro:
       "StoryLoop helps kaiako describe observed learning through Te Whāriki strands, outcome ideas, dispositions, working theories, and practical next steps.",
     sections: [
@@ -563,11 +584,11 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   "eylf-learning-stories": {
     slug: "eylf-learning-stories",
     image: { src: "/images/scenes/team.jpg", alt: "Educators planning together with StoryLoop's real example drafts on a laptop", position: "50% 55%" },
-    title: "EYLF Learning Stories",
+    title: "EYLF learning stories from your notes, linked to V2.0",
     description:
-      "Draft EYLF learning stories for early childhood education with Outcome links, learning dispositions, child voice, and next steps.",
+      `Write EYLF V2.0 learning stories and observations from a quick note or voice memo. Outcome links with a reason. Free for 3 a month, then ${EDU_AU} a month.`,
     kicker: "EYLF V2.0",
-    heading: "EYLF learning story drafts without the generic AI sound.",
+    heading: "EYLF learning stories and observations, from your note.",
     intro:
       "StoryLoop supports EYLF-aligned story drafts that stay grounded in the observation, so educators can review, edit, and share with confidence.",
     sections: [
@@ -677,12 +698,12 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
   pricing: {
     slug: "pricing",
-    title: "Pricing for educators and centres",
+    title: `StoryLoop pricing: free, then ${EDU_NZ} or ${EDU_AU} a month`,
     // Prices in plain words in both currencies. The table below is a client
     // component that renders AUD on the server, so search engines and AI
     // answer engines only ever saw Australian prices (checked 26 Sep 2026).
     description:
-      "StoryLoop is free for 3 stories a month, then NZ$21 or A$19 a month for unlimited stories. Centres from NZ$109 or A$99 a month for 10 educators.",
+      `Start free with 3 learning stories a month. Educator ${EDU_NZ} or ${EDU_AU} a month. Centre plans from NZ$${STARTER.price.NZD} or A$${STARTER.price.AUD} for up to ${STARTER.seats} educators, no per-child fee.`,
     kicker: "Pricing",
     // Short on purpose. The old heading ran six lines on a 375px phone and ate
     // the entire first screen of the one page people open to see a number.
@@ -1043,9 +1064,16 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   // problem, because a term of evidence cannot be rebuilt in five days.
   "assessment-and-rating-evidence": {
     slug: "assessment-and-rating-evidence",
-    title: "Assessment and Rating: the evidence to have ready",
+    title: "Assessment and rating checklist: documentation evidence",
     description:
-      "Regulatory authorities generally give 1-5 days' notice of a visit. What Standard 1.3 evidence to have ready, and the gaps that surface under pressure.",
+      "What an assessor reads in your documentation for Standard 1.3, and a checklist to work through in the few days' notice you get.",
+    siblingLinks: {
+      heading: "Getting the team ready",
+      links: [
+        { label: "An educational leader checklist", href: "/educational-leader-checklist" },
+        { label: "Exceeding the NQS: what documentation shows", href: "/exceeding-nqs-documentation" },
+      ],
+    },
     kicker: "Director guide · Australia and Aotearoa",
     heading: "You get a few days' notice, not a few weeks.",
     intro:
@@ -1134,9 +1162,9 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   "for-centres": {
     slug: "for-centres",
     image: { src: "/images/scenes/team.jpg", alt: "Three educators planning together around a low table with a laptop showing StoryLoop", position: "50% 55%" },
-    title: "Learning story software for ECE centres",
+    title: "Learning story software for centres in NZ and Australia",
     description:
-      `Learning story software for ECE centres: stories drafted from your team's own notes, review evidence with the gaps first, one flat price, ${CENTRE_TRIAL_EVERGREEN}.`,
+      "Your team writes learning stories in the day from a short note, linked to Te Whāriki or the EYLF. One flat price, no per-child fee, and no card to start.",
     kicker: "For directors, owners and head teachers",
     heading: "Documentation done in the day, and a calmer review visit.",
     intro:
@@ -1450,9 +1478,17 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   // has published is stated as fact; everything else is framed as practice.
   "ero-early-childhood-regulation-2026": {
     slug: "ero-early-childhood-regulation-2026",
-    title: "ERO Now Regulates Early Childhood Services",
+    title: "ERO now regulates early childhood: what changes for you",
     description:
-      "From 1 September 2026 ERO regulates NZ early childhood services, after April's licensing criteria changes. What changed and what it means.",
+      "ERO took over licensing of early childhood services on 1 September 2026. What that means for your documentation and your next review.",
+    siblingLinks: {
+      heading: "Getting ready for a review? The documentation part",
+      links: [
+        { label: "Getting documentation out of the evenings", href: "/documentation-workload-early-childhood" },
+        { label: "An AI policy for your service in Aotearoa", href: "/ai-policy-nz-early-childhood" },
+        { label: "StoryLoop for a whole centre", href: "/for-centres" },
+      ],
+    },
     kicker: "For owners and managers · Aotearoa New Zealand",
     heading: "ERO regulates early childhood education now. Here is what changed.",
     intro:

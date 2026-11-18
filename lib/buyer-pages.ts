@@ -8,8 +8,8 @@ import { educatorOffer } from "@/lib/offer-wording";
  * material: guides, examples and the blog turned 0.6% of visits into signups
  * and almost no payers, while product pages turned about 3.3%. Leo: "You need
  * to be attracting the right people, the people that actually buy." These
- * pages are for the three buyers the research named (research/search-audience,
- * icp.json, with the 27 corrections in check.json applied):
+ * pages are for the three buyers the 18 Nov 2026 search research named, with
+ * its independent check's corrections applied:
  *
  * - the educator who pays for herself, who types a tool search ("ai tools for
  *   early childhood educators", "ai observation writer for childcare"). Her

@@ -35,7 +35,7 @@ export type AnswerBlock = {
   question: string;
   /** Plain text. May hold the {Centre_trial} token. */
   answer: string;
-  /** The pages the search plan puts this answer on (for the result and the tests). */
+  /** Every page that shows this answer (tests/buyer-pages.test.ts keeps it true). */
   where: string[];
 };
 
@@ -59,7 +59,7 @@ export const ANSWER_BLOCKS: Record<AnswerBlockId, AnswerBlock> = {
     question: "What is StoryLoop?",
     answer:
       `StoryLoop is a learning story writer for early childhood teachers in New Zealand and Australia. You type, say or photograph a short note about what a child did, and StoryLoop writes the learning story with Te Whāriki or EYLF V2.0 links in about a minute. You check and edit every line before you use it. It is free for 3 stories a month. The Educator plan is ${educator.nz} or ${educator.au} a month for unlimited stories. Centre plans start at ${starter.nz} or ${starter.au} a month for up to ${seats("centre_starter")} educators, with no per-child fee.`,
-    where: ["/", "/learning-story-generator", "/blog/learning-story-examples-templates"],
+    where: ["/", "/learning-story-generator", "/blog/learning-story-examples-templates", "/ai-for-early-childhood-educators"],
   },
   B: {
     id: "B",
@@ -73,14 +73,14 @@ export const ANSWER_BLOCKS: Record<AnswerBlockId, AnswerBlock> = {
     question: "What does StoryLoop cost a centre?",
     answer:
       `Centre Starter is ${starter.nz} or ${starter.au} a month for up to ${seats("centre_starter")} educators. Centre Growth is ${growth.nz} or ${growth.au} a month for up to ${seats("centre_growth")}. Every educator gets unlimited stories and their own login. There is no per-child fee, so the price does not change when you enrol more children, and there is no contract. {Centre_trial}, no card.`,
-    where: ["/for-centres", "/learning-story-software-cost-for-centres", "/documentation-workload-early-childhood", "/exceeding-nqs-documentation"],
+    where: ["/for-centres", "/learning-story-software-cost-for-centres", "/documentation-workload-early-childhood", "/exceeding-nqs-documentation", "/educational-leader-checklist"],
   },
   D: {
     id: "D",
     question: "Is it safe to use AI for learning stories?",
     answer:
       "It can be, if the tool keeps the teacher in charge and the child's information small. StoryLoop uses first names only and stores your notes in Sydney, Australia. To write a draft, the note goes to an AI provider in the United States, under business terms that do not allow it to be used to train their models. StoryLoop keeps the child's words exactly as you wrote them and lists anything it had to assume, so you can check every line. A leader sees a story only when the educator chooses to share it.",
-    where: ["/ai-for-early-childhood-educators", "/safety", "/ai-childcare-observations", "/ask-your-centre"],
+    where: ["/ai-for-early-childhood-educators", "/safety", "/ai-childcare-observations", "/ai-policy-nz-early-childhood"],
   },
   E: {
     id: "E",
@@ -115,4 +115,41 @@ export const ANSWER_BLOCKS: Record<AnswerBlockId, AnswerBlock> = {
 /** The blocks for a page, in the order given. */
 export function answerBlocks(ids: AnswerBlockId[]): AnswerBlock[] {
   return ids.map((id) => ANSWER_BLOCKS[id]);
+}
+
+/**
+ * The existing pages the corrected plan names, and the blocks each shows (the
+ * new buyer pages list theirs in lib/buyer-pages.ts). On a guide the blocks
+ * open its questions; on the homepage, /safety and /ai-policy they join the
+ * page's own questions; on the examples post they follow the post, so the
+ * post's own answer still comes first.
+ */
+export const ANSWER_BLOCKS_BY_PATH: Record<string, AnswerBlockId[]> = {
+  "/": ["A"],
+  "/learning-story-generator": ["A", "B"],
+  "/blog/learning-story-examples-templates": ["A"],
+  "/for-centres": ["C"],
+  "/learning-story-software-cost-for-centres": ["C"],
+  "/safety": ["D"],
+  "/eylf-learning-stories": ["E"],
+  "/ai-policy": ["F"],
+};
+
+/** The blocks an existing page shows, or none. Pure. */
+export function answerBlocksFor(path: string): AnswerBlock[] {
+  return answerBlocks(ANSWER_BLOCKS_BY_PATH[path] ?? []);
+}
+
+/**
+ * A guide's questions with its answer blocks first, as { question, answer }.
+ * A guide question that asks the same thing as a block gives way to the block,
+ * so a page never answers one question twice. Pure.
+ */
+export function withAnswerBlocks<T extends { question: string; answer: string }>(path: string, faqs: T[]): Array<{ question: string; answer: string; block?: AnswerBlockId }> {
+  const blocks = answerBlocksFor(path);
+  const asked = new Set(blocks.map((block) => block.question.toLowerCase()));
+  return [
+    ...blocks.map((block) => ({ question: block.question, answer: block.answer, block: block.id })),
+    ...faqs.filter((faq) => !asked.has(faq.question.toLowerCase())).map((faq) => ({ question: faq.question, answer: faq.answer })),
+  ];
 }

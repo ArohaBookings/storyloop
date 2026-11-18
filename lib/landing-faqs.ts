@@ -6,10 +6,13 @@
 // Seven questions, chosen from the fourteen this used to hold: the ones a
 // visitor is actually deciding on (is it right for me, what does it cost, is it
 // safe, will I have to switch). The rest live on /faq, which needed them.
+import { ANSWER_BLOCKS } from "@/lib/answer-blocks";
+
 export type LandingFaq = { q: string; a: string };
 
 export const LANDING_FAQS: LandingFaq[] = [
-  { q: "What is StoryLoop?", a: "StoryLoop turns a quick educator note, typed or spoken, into an editable learning story draft with Te Whāriki or EYLF links. It is written in a natural educator voice, and you check and edit every word before anything is shared." },
+  // The plain answer assistants quote, with the prices in visible text (lib/answer-blocks.ts, block A).
+  { q: ANSWER_BLOCKS.A.question, a: ANSWER_BLOCKS.A.answer },
   { q: "Does it work with the platform my centre already uses?", a: "Yes. Write and check the story in StoryLoop, then paste it into whichever app your families already use. Nothing has to move. Centres that want one home for their learning stories can also keep them all in StoryLoop, with family versions and wall cards in eleven languages." },
   { q: "Does it support Te Whāriki and EYLF?", a: "Yes. New Zealand mode supports Te Whāriki strands, learning outcomes and dispositions, with optional Kōwhiti Whakapae or Tapasā lenses. Australia mode supports EYLF V2.0 outcomes. Links are only made where the observation supports them." },
   { q: "How much does it cost?", a: "Three stories a month are free with no card. Educator is NZ$21 or A$19 a month for unlimited stories. Centre Starter covers up to 10 educators and unlimited children for NZ$109 or A$99 a month. Individual plans start with a 7-day free trial, centre plans are {centre_trial} with no card, and you can cancel any time." },

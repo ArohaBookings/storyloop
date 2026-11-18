@@ -99,6 +99,13 @@ export default function ForFamiliesPage() {
           message, or share the link.
         </p>
         <ShareWithCentre />
+        <p>
+          Or{" "}
+          <Link href="/ask-your-centre" className="font-semibold text-clay-700 underline" data-track="for_families_ask_centre">
+            open a ready message to copy or email
+          </Link>
+          , with what happens to your child&apos;s information.
+        </p>
       </GuideSection>
 
       <GuideSection id="faq" tone="white" title="Questions families ask">

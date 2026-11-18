@@ -249,6 +249,14 @@ export const RELATED = {
   familyLanguages: { href: "/learning-stories-in-family-languages", title: "Stories in a family's language", body: "What to translate, what never to translate, and how families can write back." },
   secondLanguage: { href: "/writing-learning-stories-english-second-language", title: "Writing in a second language", body: "Start in the language you think in, then get it into English you can stand behind." },
   leaderCheck: { href: "/how-to-check-a-learning-story", title: "How to check a learning story", body: "Five questions a leader can ask in two minutes, and feedback that helps." },
+  // The pages for the people who buy (lib/buyer-pages.ts, 18 Nov 2026), linked from the free guides nearest each.
+  aiEducators: { href: "/ai-for-early-childhood-educators", title: "AI for early childhood educators", body: "What helps, what never goes in, and how to keep your own voice." },
+  aiObservations: { href: "/ai-childcare-observations", title: "AI childcare observations", body: "A jotting in, an EYLF V2.0 observation out, with the reason for each link." },
+  leaderChecklist: { href: "/educational-leader-checklist", title: "Educational leader checklist", body: "What to check each week, month and term, in two minutes a story." },
+  workload: { href: "/documentation-workload-early-childhood", title: "Documentation workload", body: "Getting documentation out of your team's evenings, and what a centre can change this term." },
+  askCentre: { href: "/ask-your-centre", title: "Ask your centre", body: "A short message a family can send their centre about learning stories." },
+  aiPolicyNz: { href: "/ai-policy-nz-early-childhood", title: "An AI policy for NZ services", body: "A free AI policy for your service in Aotearoa, ready in ten minutes." },
+  exceeding: { href: "/exceeding-nqs-documentation", title: "Exceeding the NQS", body: "The three themes, and what your documentation has to show." },
 } as const;
 
 export type RelatedKey = keyof typeof RELATED;
