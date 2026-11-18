@@ -15,13 +15,17 @@ function Section({ title, note, children }: { title: string; note?: string; chil
   );
 }
 
-/** The printable pack. Pure: everything shown is counted from saved stories. */
-export default function EvidencePackView({ pack }: { pack: EvidencePack }) {
+/**
+ * The printable pack. Pure: everything shown is counted from saved stories.
+ * `sample` is the invented sample team (lib/sample-team.ts), said plainly at
+ * the top and the bottom so it is never mistaken for a real record.
+ */
+export default function EvidencePackView({ pack, sample = false }: { pack: EvidencePack; sample?: boolean }) {
   const { cycle, reflection, family } = pack;
 
   return (
-    <article className="card mt-5 p-6 sm:p-8 print:mt-0 print:border-0 print:p-0 print:shadow-none">
-      <p className="section-title mb-1">Evidence pack · {pack.periodLabel}</p>
+    <article className="card mt-5 p-6 sm:p-8 print:mt-0 print:border-0 print:p-0 print:shadow-none" data-testid={sample ? "evidence-pack-sample" : "evidence-pack"}>
+      <p className="section-title mb-1">{sample ? "Sample team · invented children · " : ""}Evidence pack · {pack.periodLabel}</p>
       <h1 className="font-display text-3xl font-bold leading-tight text-ink-900">
         {pack.storyCount} {pack.storyCount === 1 ? "story" : "stories"} across {pack.childCount}{" "}
         {pack.childCount === 1 ? "child" : "children"}
@@ -147,11 +151,18 @@ export default function EvidencePackView({ pack }: { pack: EvidencePack }) {
         )}
       </Section>
 
-      <p className="mt-6 border-t border-clay-100 pt-4 text-xs leading-relaxed text-ink-500">
-        Counted from the stories this service saved between {shortDate(pack.periodStart)} and {shortDate(pack.periodEnd)}.
-        Nothing here was generated, no child is scored or compared, and this is a summary of your own records rather than a
-        judgement about your service. Documentation kept outside StoryLoop will not appear.
-      </p>
+      {sample ? (
+        <p className="mt-6 border-t border-clay-100 pt-4 text-xs leading-relaxed text-ink-500">
+          A sample: the educators, children and stories are made up, to show how the pack reads. None of it is a record, and
+          none of it is counted anywhere.
+        </p>
+      ) : (
+        <p className="mt-6 border-t border-clay-100 pt-4 text-xs leading-relaxed text-ink-500">
+          Counted from the stories this service saved between {shortDate(pack.periodStart)} and {shortDate(pack.periodEnd)}.
+          Nothing here was generated, no child is scored or compared, and this is a summary of your own records rather than a
+          judgement about your service. Documentation kept outside StoryLoop will not appear.
+        </p>
+      )}
     </article>
   );
 }

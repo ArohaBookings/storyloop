@@ -20,6 +20,7 @@ import {
 import { educatorFirstName } from "@/lib/story-check";
 import { recordServerEvent } from "@/lib/analytics/server";
 import type { AuthorReviewView, TeamQueueItem, TeamReviewView } from "@/lib/team-queue";
+import { evidenceStoryFromRow, type EvidenceStory } from "@/lib/evidence-pack";
 
 /**
  * The database side of a leader's team views (18 Nov 2026). Every function
@@ -400,4 +401,79 @@ export async function setSampleTeam(viewerId: string, on: boolean): Promise<{ ok
   if (error) return { ok: false, status: 500, error: "That did not save. Try again." };
   await recordServerEvent(admin, { event: "centre_sample_team", userId: viewerId, path: "/team", metadata: { centre_id: ctx.centre.id, on } });
   return { ok: true, show: on };
+}
+
+// ------------------------------------------------- team evidence and radar
+
+export type TeamEvidence = {
+  children: Array<{ id: string; name: string }>;
+  stories: EvidenceStory[];
+  suggestions: Array<{ name: string; profileIds: string[]; authors: number }>;
+  /** Children the leader has joined across lists, so she can undo one. */
+  joined: Array<{ centreChildId: string; name: string; lists: number }>;
+  /** Stories private members saved in the period: a total, never a story. */
+  privateStories: number;
+};
+
+/** The team's stories and children since a date, each child counted once. */
+export async function loadTeamEvidence(ctx: TeamContext, periodStartIso: string, localDay: (instant: string) => string | null): Promise<TeamEvidence> {
+  const empty: TeamEvidence = { children: [], stories: [], suggestions: [], joined: [], privateStories: 0 };
+  const scope = ctx.scope;
+  if (!scope) return empty;
+  try {
+    const [team, { data: rows }, privateStories] = await Promise.all([
+      loadTeamChildren(ctx),
+      createAdminSupabase()
+        .from("stories")
+        .select("id, user_id, child_id, created_at, outcomes, next_steps, metadata")
+        .in("user_id", scope.authorIds)
+        .gte("created_at", periodStartIso)
+        .order("created_at", { ascending: false })
+        .limit(5000),
+      countPrivateStories(ctx, periodStartIso),
+    ]);
+    const allowed = new Set(scope.authorIds);
+    const stories = (rows ?? [])
+      .filter((row) => allowed.has(row.user_id as string))
+      .map((row) => {
+        const story = evidenceStoryFromRow(row, localDay);
+        return { ...story, childId: story.childId ? team.keyOfProfile[story.childId] ?? null : null };
+      });
+    return {
+      children: team.children.map((child) => ({ id: child.key, name: child.name })),
+      stories,
+      suggestions: team.suggestions,
+      joined: team.children.filter((child) => child.centreChildId && child.profileIds.length > 1).map((child) => ({ centreChildId: child.centreChildId!, name: child.name, lists: child.profileIds.length })),
+      privateStories,
+    };
+  } catch (error) {
+    console.error("Team evidence failed:", error instanceof Error ? error.message : "unknown");
+    return empty;
+  }
+}
+
+/** Moments (stories and Today Loop captures) for the team's quiet-child radar, keyed by team child. */
+export async function loadTeamRadarInput(ctx: TeamContext, sinceIso: string): Promise<{ children: Array<{ id: string; name: string }>; moments: Array<{ childId: string | null; createdAt: string }> }> {
+  const scope = ctx.scope;
+  if (!scope) return { children: [], moments: [] };
+  try {
+    const admin = createAdminSupabase();
+    const [team, storiesRes, capturesRes] = await Promise.all([
+      loadTeamChildren(ctx),
+      admin.from("stories").select("user_id, child_id, created_at").in("user_id", scope.authorIds).gte("created_at", sinceIso).limit(5000),
+      admin.from("daily_captures").select("user_id, child_id, observed_at").in("user_id", scope.authorIds).gte("observed_at", sinceIso).limit(5000),
+    ]);
+    const allowed = new Set(scope.authorIds);
+    const key = (childId: unknown) => (typeof childId === "string" ? team.keyOfProfile[childId] ?? null : null);
+    return {
+      children: team.children.map((child) => ({ id: child.key, name: child.name })),
+      moments: [
+        ...(storiesRes.data ?? []).filter((row) => allowed.has(row.user_id as string)).map((row) => ({ childId: key(row.child_id), createdAt: row.created_at as string })),
+        ...(capturesRes.data ?? []).filter((row) => allowed.has(row.user_id as string)).map((row) => ({ childId: key(row.child_id), createdAt: row.observed_at as string })),
+      ],
+    };
+  } catch (error) {
+    console.error("Team radar failed:", error instanceof Error ? error.message : "unknown");
+    return { children: [], moments: [] };
+  }
 }

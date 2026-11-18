@@ -14,10 +14,12 @@ import {
   REVIEW_NOTE_MAX,
   sampleTeamState,
   teamAccess,
+  teamViewScopes,
+  pickTeamViewScope,
   type TeamAccess,
 } from "../lib/centre-team";
 import { isSampleId, sampleEvidence, sampleQueue, SAMPLE_CHILDREN, SAMPLE_EDUCATORS } from "../lib/sample-team";
-import { buildEvidencePack } from "../lib/evidence-pack";
+import { buildEvidencePack, evidenceStoryFromRow } from "../lib/evidence-pack";
 import { agoLabel, waitingCount, whenLabel } from "../lib/team-queue";
 
 /**
@@ -292,4 +294,56 @@ test("dates read the way a leader says them", () => {
   assert.equal(whenLabel("2026-11-15T08:00:00Z", now), "3 days ago");
   assert.match(whenLabel("2026-11-02T08:00:00Z", now), /^on 2 Nov/);
   assert.equal(agoLabel("not a date", now), "");
+});
+
+test("the team view is offered only to a leader with sharing members; everyone else keeps their own", () => {
+  assert.deepEqual(teamViewScopes({ ownAccess: true, teamAccess: false, teamShares: false, sample: false }), ["mine"]);
+  assert.deepEqual(teamViewScopes({ ownAccess: true, teamAccess: true, teamShares: false, sample: false }), ["mine"]);
+  assert.deepEqual(teamViewScopes({ ownAccess: true, teamAccess: true, teamShares: true, sample: false }), ["team", "mine"]);
+  // A covered admin has no plan of her own but leads the team.
+  assert.deepEqual(teamViewScopes({ ownAccess: false, teamAccess: true, teamShares: true, sample: false }), ["team", "mine"]);
+  assert.deepEqual(teamViewScopes({ ownAccess: false, teamAccess: false, teamShares: true, sample: false }), []);
+  assert.deepEqual(teamViewScopes({ ownAccess: false, teamAccess: false, teamShares: false, sample: true }), ["sample"]);
+  assert.equal(pickTeamViewScope("team", ["team", "mine"]), "team");
+  assert.equal(pickTeamViewScope("mine", ["team", "mine"]), "mine");
+  assert.equal(pickTeamViewScope(undefined, ["team", "mine"]), "team");
+  // Asking for the team view does not open it.
+  assert.equal(pickTeamViewScope("team", ["mine"]), "mine");
+  assert.equal(pickTeamViewScope("sample", ["mine"]), "mine");
+  assert.equal(pickTeamViewScope("../../etc", []), null);
+});
+
+test("a saved story reads into the pack the same way for the team as for one educator", () => {
+  const row = {
+    id: "s-1",
+    child_id: "p-mia",
+    created_at: "2026-11-17T22:30:00Z",
+    outcomes: ["Exploration", 3, "Communication"],
+    next_steps: ["Generated step"],
+    metadata: {
+      storyTitle: " The long pipe ",
+      learningSummary: "Tested water.",
+      nextStepProgress: [{ text: "Longer pipes", status: "tried" }, { text: " ", status: "continue" }, { text: "Funnel", status: "weird" }],
+      educatorReflection: "  I waited. ",
+      whanauVoice: "",
+      learningDispositions: ["Curiosity", null],
+    },
+  };
+  const story = evidenceStoryFromRow(row, () => "2026-11-18");
+  assert.deepEqual(story, {
+    id: "s-1",
+    childId: "p-mia",
+    date: "2026-11-18",
+    title: "The long pipe",
+    summary: "Tested water.",
+    outcomes: ["Exploration", "Communication"],
+    dispositions: ["Curiosity"],
+    nextSteps: [{ text: "Longer pipes", status: "tried" }, { text: "Funnel", status: "planned" }],
+    reflection: "I waited.",
+    familyVoice: null,
+  });
+  // No saved progress: the generated steps are the plan. No local day: the saved date.
+  const plain = evidenceStoryFromRow({ ...row, metadata: null }, () => null);
+  assert.deepEqual(plain.nextSteps, [{ text: "Generated step", status: "planned" }]);
+  assert.equal(plain.date, "2026-11-17");
 });

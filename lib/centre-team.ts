@@ -327,3 +327,27 @@ export function sampleTeamState(input: {
   const on = Boolean(input.sampleTeamAt);
   return { offer: !on && input.pendingInvites === 0, show: on };
 }
+
+// ------------------------------------------- which view a leader is looking at
+
+export type TeamViewScope = "team" | "mine" | "sample";
+
+/**
+ * The views a page may offer. "mine" is the educator's own view, exactly as it
+ * always was. "team" only for a leader with team access once anyone shares
+ * with her; "sample" only while the sample team shows. Order is the order of
+ * the switch on the page.
+ */
+export function teamViewScopes(input: { ownAccess: boolean; teamAccess: boolean; teamShares: boolean; sample: boolean }): TeamViewScope[] {
+  const scopes: TeamViewScope[] = [];
+  if (input.teamAccess && input.teamShares) scopes.push("team");
+  if (input.ownAccess || input.teamAccess) scopes.push("mine");
+  if (input.sample) scopes.push("sample");
+  return scopes;
+}
+
+/** The asked-for view if it is on offer, else the first on offer (the team, when there is one). */
+export function pickTeamViewScope(requested: unknown, available: readonly TeamViewScope[]): TeamViewScope | null {
+  if (typeof requested === "string" && (available as readonly string[]).includes(requested)) return requested as TeamViewScope;
+  return available[0] ?? null;
+}
