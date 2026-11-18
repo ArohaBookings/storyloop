@@ -8,7 +8,8 @@ import { captureAttribution, getAttribution, getSessionId, track } from "@/lib/a
 import { suggestPassphrase } from "@/lib/passphrase";
 import { hasSignedInHint } from "@/lib/auth/signed-in-hint";
 import GoogleButton from "@/components/auth/GoogleButton";
-import { googleSignInEnabled, isInAppBrowser } from "@/lib/auth/oauth";
+import { googleSignInEnabled, isInAppBrowser, rememberOAuthContext } from "@/lib/auth/oauth";
+import { SIGNUP_EMAIL_LINK_ON } from "@/lib/auth/signup-link";
 import { suggestEmailFix } from "@/lib/email-typo";
 import { reportSignupConversion } from "@/lib/analytics/google-ads";
 import { takeHumanPass, warmHumanPass } from "@/lib/auth/human-pass-client";
@@ -92,6 +93,8 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
   // page on the short list in lib/signup-next.ts (the statement guides send /statement).
   const [destination, setDestination] = useState(FIRST_STORY_PATH);
   const [notNow, setNotNow] = useState<"closed" | "open" | "answered">("closed");
+  // "Email me a link" (lib/auth/signup-link.ts, OFF until Leo switches it on).
+  const [mode, setMode] = useState<"password" | "link" | "link_sent">("password");
 
   // Why she leaves (signup_left), and where she stopped.
   const openedAt = useRef(0);
@@ -114,6 +117,7 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
     const oauth = params.get("oauth");
     if (oauth === "cancelled") setNotice("Google sign-in was cancelled. Try again, or sign up with your email.");
     if (oauth === "failed" || oauth === "nosession") setNotice("Google sign-in didn't finish. Try again, or sign up with your email.");
+    if (params.get("link") === "expired") setNotice("That link has expired or was already used. Ask for a new one, or sign up with a password.");
     if (oauth === "cancelled" || oauth === "failed" || oauth === "nosession") {
       trackEvent("oauth_cancelled", {
         provider: "google",
@@ -240,13 +244,25 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
     // The browser's own checks, in plain words next to the box (the native
     // bubbles vary by browser and some in-app browsers never show them).
     const typo = suggestEmailFix(email);
-    const problem = checkSignupForm({ name, email, password, typo, typoAccepted: typoCheckedFor.current === email.trim() });
+    const linkMode = mode !== "password";
+    const problem = checkSignupForm({
+      name: linkMode ? name || "-" : name,
+      email,
+      password: linkMode ? "------" : password,
+      typo,
+      typoAccepted: typoCheckedFor.current === email.trim(),
+    });
     if (problem) {
       if (problem.code === "email_typo") {
         setEmailSuggestion(typo);
         typoCheckedFor.current = email.trim();
       }
       showError(problem, "client");
+      return;
+    }
+
+    if (linkMode) {
+      void sendLink(website);
       return;
     }
 
@@ -337,6 +353,42 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
       showError(signupErrorView(timedOut ? "timeout" : "network", ""), "server", 0);
       finish();
       warmHumanPass();
+    }
+  };
+
+  // "Email me a link": the same checks on the server as a password signup
+  // (app/api/auth/signup-link), then one tap in the email makes the account.
+  const sendLink = async (website: string) => {
+    submitting.current = true;
+    setLoading(true); setError(null);
+    rememberOAuthContext({ intent: "signup", next: destination, plan, currency, referralCode: referralCode || null, accessCode: accessCode || null });
+    try {
+      const human = await withTimeout(takeHumanPass(), PASS_WAIT_MS);
+      if (human === "timeout" || !human) trackEvent("signup_bot_check_failed", { code: human === "timeout" ? "timeout" : "no_pass" });
+      const res = await fetch("/api/auth/signup-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, plan, next: destination, website, ...(human && human !== "timeout" ? human : {}) }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const code = typeof data.code === "string" ? data.code : "unknown";
+        if (code === "human_check_failed" || code === "human_check_reused" || code === "bot_check") trackEvent("signup_bot_check_failed", { code });
+        const view = signupErrorView(code, typeof data.error === "string" ? data.error : "");
+        showError(code === "rate_limited" && typeof data.error === "string" ? { ...view, message: data.error } : view, "server", res.status);
+        warmHumanPass();
+        return;
+      }
+      trackEvent("signup_email_link_requested", { plan, has_draft: Boolean(keptWaiting) });
+      last.current = "link_requested";
+      setMode("link_sent");
+      warmHumanPass();
+    } catch {
+      showError(signupErrorView("network", ""), "server", 0);
+      warmHumanPass();
+    } finally {
+      submitting.current = false;
+      setLoading(false);
     }
   };
 
@@ -449,8 +501,31 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
           {/* One tap, no password to invent (shown once Google is switched on in Supabase).
               Inside Facebook's or Instagram's browser Google refuses, so email leads and Google waits below. */}
           {!inApp && googleButton("top")}
+          {SIGNUP_EMAIL_LINK_ON && mode === "password" && (
+            <p className="-mt-2 mb-3 text-center text-xs text-ink-600">
+              <button type="button" onClick={() => { setMode("link"); setError(null); }} className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2" data-track="signup_link_mode" data-testid="signup-link-mode">
+                No password: email me a link
+              </button>
+            </p>
+          )}
+          {mode === "link_sent" && (
+            <div role="status" className="mb-3 rounded-xl border border-sage-200 bg-sage-50 px-3 py-3 text-sm text-ink-800" data-testid="signup-link-sent">
+              <p className="font-semibold text-ink-900">Check your email</p>
+              <p className="mt-1">
+                We sent a link to <span className="font-semibold">{email.trim()}</span>. Tap it and you&apos;re in. It works once, for the next hour.
+                {keptWaiting ? " Open it on this device to keep your draft." : ""}
+              </p>
+              <p className="mt-2 text-xs text-ink-600">
+                Not there? Check spam, or{" "}
+                <button type="button" onClick={() => setMode("link")} className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2">
+                  send it again
+                </button>
+                .
+              </p>
+            </div>
+          )}
 
-          <form onSubmit={handleSignup} onFocusCapture={onFieldFocus} noValidate className="relative space-y-3">
+          <form onSubmit={handleSignup} onFocusCapture={onFieldFocus} noValidate className={`relative space-y-3 ${mode === "link_sent" ? "hidden" : ""}`}>
             {/* The quiet check's trap (lib/auth/human-pass.ts): invisible, skipped by the
                 keyboard and hidden from screen readers, so only a bot fills it. */}
             <div aria-hidden="true" className="pointer-events-none absolute left-0 top-0 h-px w-px overflow-hidden opacity-0">
@@ -485,7 +560,7 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
                 errorLine(fieldError("email"), "signup-email-error")
               )}
             </div>
-            <div>
+            <div className={mode === "password" ? "" : "hidden"}>
               <label htmlFor="signup-password" className="label">Password</label>
               <div className="relative">
                 <input id="signup-password" data-field="password" type={showPassword ? "text" : "password"} value={password} onChange={e => { setPassword(e.target.value); typed(); if (error?.field === "password") setError(null); }} autoComplete="new-password" className="input pr-11" placeholder="At least 6 characters" aria-invalid={Boolean(fieldError("password"))} aria-describedby={fieldError("password") ? "signup-password-error" : undefined} />
@@ -619,8 +694,15 @@ export default function SignupForm({ initialPlan = null }: { initialPlan?: strin
               </div>
             )}
             <button type="submit" disabled={loading} aria-busy={loading} className="btn-primary w-full py-3">
-              {loading ? <><Loader2 className="h-4 w-4 animate-spin" /><span className="sr-only">Creating your account</span></> : isCentre ? "Create account and start free month" : isPaidPlan ? "Create account and start trial" : "Create free account"}
+              {loading ? <><Loader2 className="h-4 w-4 animate-spin" /><span className="sr-only">Creating your account</span></> : mode === "link" ? "Email me a link" : isCentre ? "Create account and start free month" : isPaidPlan ? "Create account and start trial" : "Create free account"}
             </button>
+            {mode === "link" && (
+              <p className="text-center text-xs text-ink-600">
+                <button type="button" onClick={() => { setMode("password"); setError(null); }} className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2">
+                  Use a password instead
+                </button>
+              </p>
+            )}
             {slow && loading && (
               <p role="status" className="text-center text-xs text-ink-500">Still working. Your connection is slow, so this can take a little longer.</p>
             )}

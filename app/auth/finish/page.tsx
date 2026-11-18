@@ -11,6 +11,7 @@ import { reportSignupConversion } from "@/lib/analytics/google-ads";
 import { clearOAuthContext, readOAuthContext, type OAuthIntent } from "@/lib/auth/oauth";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 import { signupDestination } from "@/lib/signup-next";
+import { linkErrorFromHash, sessionFromHash } from "@/lib/auth/signup-link";
 import { createClient } from "@/lib/supabase/client";
 import { GoogleMark } from "@/components/auth/GoogleButton";
 import PageTracker from "@/components/analytics/PageTracker";
@@ -48,6 +49,7 @@ function Finish() {
   const context = contextRef.current;
   const intent: OAuthIntent = (params.get("intent") ?? context?.intent) === "login" ? "login" : "signup";
   const plan = context?.plan ?? "free";
+  const viaLink = params.get("method") === "link";
 
   const complete = useCallback(
     async (confirm: boolean) => {
@@ -66,13 +68,13 @@ function Finish() {
       if (res.status === 401) {
         // The Google step did not leave a session (cancelled, or blocked cookies).
         track("oauth_error", { provider: "google", stage: "no_session", intent });
-        window.location.replace(`${intent === "signup" ? "/signup" : "/login"}?oauth=${intent === "signup" ? "nosession" : "failed"}`);
+        window.location.replace(viaLink ? "/signup?link=expired" : `${intent === "signup" ? "/signup" : "/login"}?oauth=${intent === "signup" ? "nosession" : "failed"}`);
         return;
       }
       if (!res.ok) throw new Error(`oauth-complete ${res.status}`);
       const data = await res.json();
       // Back from Google with a session (the signup page records the cancels).
-      if (!confirm) trackEvent("oauth_returned", { provider: "google", intent, new_account: Boolean(data.isNew) });
+      if (!confirm && !viaLink) trackEvent("oauth_returned", { provider: "google", intent, new_account: Boolean(data.isNew) });
 
       if (data.needsConfirm) {
         setView({ kind: "confirm", email: typeof data.email === "string" ? data.email : "" });
@@ -81,7 +83,7 @@ function Finish() {
 
       clearOAuthContext();
       if (data.isNew) {
-        track("signup_completed", { plan, method: "google" });
+        track("signup_completed", { plan, method: viaLink ? "link" : "google" });
         await reportSignupConversion();
         if (plan !== "free") {
           const checkout = await fetch("/api/stripe/checkout", {
@@ -113,14 +115,28 @@ function Finish() {
       track("oauth_signed_in", { provider: "google", intent });
       window.location.replace(target);
     },
-    [context, intent, params, plan],
+    [context, intent, params, plan, viaLink],
   );
 
   useEffect(() => {
     if (ran.current) return;
     ran.current = true;
-    complete(false).catch(() => setView({ kind: "failed" }));
-  }, [complete]);
+    // An emailed signup link (/api/auth/signup-link) brings the session in the
+    // address after the #: keep it, take it out of the address, then finish.
+    const hash = window.location.hash;
+    const fromLink = viaLink ? sessionFromHash(hash) : null;
+    if (viaLink && !fromLink && linkErrorFromHash(hash)) {
+      window.location.replace("/signup?link=expired");
+      return;
+    }
+    const ready = fromLink
+      ? createClient().auth.setSession(fromLink).then(({ error }) => {
+          window.history.replaceState(null, "", window.location.pathname + window.location.search);
+          if (error) throw error;
+        })
+      : Promise.resolve();
+    ready.then(() => complete(false)).catch(() => (viaLink ? window.location.replace("/signup?link=expired") : setView({ kind: "failed" })));
+  }, [complete, viaLink]);
 
   // Linked: give them a moment to read it, then carry on.
   useEffect(() => {

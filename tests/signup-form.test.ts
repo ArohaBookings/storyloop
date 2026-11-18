@@ -71,3 +71,17 @@ test("the signup page fires every signup event from the list and sends no typed 
   assert.ok(!/trackEvent\([^)]*\b(name|email|password)\b\s*[,}]/.test(src.replace(/\{ name: "signup-name"[^}]*\}/, "")));
   assert.ok(src.includes("noValidate"));
 });
+
+test("email-me-a-link: OFF by default, and the session is read from the link's return address", async () => {
+  const link = await import("../lib/auth/signup-link");
+  assert.equal(link.SIGNUP_EMAIL_LINK_ON, false);
+  assert.equal(link.signupLinkFinishPath("/generate?welcome=1"), "/auth/finish?next=%2Fgenerate%3Fwelcome%3D1&intent=signup&method=link");
+  assert.deepEqual(link.sessionFromHash("#access_token=a.b.c&expires_in=3600&refresh_token=r1&token_type=bearer&type=magiclink"), { access_token: "a.b.c", refresh_token: "r1" });
+  assert.equal(link.sessionFromHash("#error=access_denied&error_code=otp_expired"), null);
+  assert.equal(link.linkErrorFromHash("#error=access_denied&error_code=otp_expired"), "otp_expired");
+  const route = readFileSync("app/api/auth/signup-link/route.ts", "utf8");
+  // The same protections as a password signup, in order, before anything is sent.
+  const order = ["SIGNUP_EMAIL_LINK_ON", 'scope: "signup"', "body.website", "isDisposableEmail", "verifyPass", "human-pass-used", 'scope: "signup-link"', "signInWithOtp"].map((s) => route.indexOf(s));
+  assert.ok(order.every((i) => i > 0), JSON.stringify(order));
+  assert.deepEqual([...order].sort((a, b) => a - b), order);
+});
