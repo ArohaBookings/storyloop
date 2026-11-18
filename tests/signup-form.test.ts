@@ -79,9 +79,10 @@ test("email-me-a-link: OFF by default, and the session is read from the link's r
   assert.deepEqual(link.sessionFromHash("#access_token=a.b.c&expires_in=3600&refresh_token=r1&token_type=bearer&type=magiclink"), { access_token: "a.b.c", refresh_token: "r1" });
   assert.equal(link.sessionFromHash("#error=access_denied&error_code=otp_expired"), null);
   assert.equal(link.linkErrorFromHash("#error=access_denied&error_code=otp_expired"), "otp_expired");
-  const route = readFileSync("app/api/auth/signup-link/route.ts", "utf8");
+  const full = readFileSync("app/api/auth/signup-link/route.ts", "utf8");
+  const route = full.slice(full.indexOf("export async function POST"));
   // The same protections as a password signup, in order, before anything is sent.
   const order = ["SIGNUP_EMAIL_LINK_ON", 'scope: "signup"', "body.website", "isDisposableEmail", "verifyPass", "human-pass-used", 'scope: "signup-link"', "signInWithOtp"].map((s) => route.indexOf(s));
-  assert.ok(order.every((i) => i > 0), JSON.stringify(order));
+  assert.ok(order.every((i) => i >= 0), JSON.stringify(order));
   assert.deepEqual([...order].sort((a, b) => a - b), order);
 });
