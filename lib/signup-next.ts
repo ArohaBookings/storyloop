@@ -60,15 +60,20 @@ export function signupDestination(next: string | null | undefined): string {
   return SIGNUP_DESTINATIONS.has(path) ? path : FIRST_STORY_PATH;
 }
 
+/** Pages only someone who already pays has a reason to open (an emailed receipt, an upgrade link). */
+const ACCOUNT_ONLY: ReadonlySet<string> = new Set(["/billing"]);
+
 /**
  * Whether a sign-in redirect points into the signed-in app (a page on the list
  * or a front door, or a page below one of them), so the sign-in page offers a
- * new visitor a free account as clearly as it offers sign-in.
+ * new visitor a free account as clearly as it offers sign-in. Billing keeps
+ * the plain "Welcome back": the people sent there already have an account.
  */
 export function isAppDestination(next: string | null | undefined): boolean {
   const path = safePathOnly(next);
   if (!path || path === "/") return false;
   const top = `/${path.split("/")[1]}`;
+  if (ACCOUNT_ONLY.has(top)) return false;
   return SIGNUP_DESTINATIONS.has(top) || SIGNUP_FRONT_DOORS.has(top);
 }
 

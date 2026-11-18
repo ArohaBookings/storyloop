@@ -78,8 +78,10 @@ test("the sign-in page knows when a redirect is a page of the app", () => {
   assert.equal(isAppDestination("/statement"), true);
   assert.equal(isAppDestination("/dashboard"), true);
   assert.equal(isAppDestination("/generate?welcome=1"), true);
-  assert.equal(isAppDestination("/billing/receipt/in_123"), true);
   assert.equal(isAppDestination("/children/abc/term"), true);
+  // Billing and its receipts: people who already pay; the plain "Welcome back" stays.
+  assert.equal(isAppDestination("/billing"), false);
+  assert.equal(isAppDestination("/billing/receipt/in_123"), false);
   for (const other of [null, "", "/", "/pricing", "/offer/pro-month", "/login", "https://evil.example/statement", "//evil.example/dashboard"]) {
     assert.equal(isAppDestination(other), false, String(other));
   }
