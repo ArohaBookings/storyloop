@@ -6,7 +6,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  *
  * profiles.total_stories is a running counter. Accounts made from 18 May to 16
  * June 2026 wrote stories before the story routes kept it, so four of them
- * still read 0 with stories saved, and on 24 Sep each was emailed that they had
+ * still read 0 with stories saved, and on 17 June 2026 each was emailed that they had
  * not written a first story. A counter above zero is trusted (stories are never
  * written without it now); a zero is checked against the table before anything
  * tells an educator she has no stories.

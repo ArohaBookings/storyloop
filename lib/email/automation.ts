@@ -333,7 +333,7 @@ export async function runLifecycleAutomation() {
   if (noStoryError) errors.push(noStoryError.message);
   // "No story yet" is asked of the stories table, not the counter alone (fault
   // P11: four accounts from May 2026 read 0 with stories saved, and each was
-  // told on 24 Sep it had not written one). Unsure means nobody is told.
+  // told on 17 June 2026 it had not written one). Unsure means nobody is told.
   const zeroCounter = async (rows: ProfileEmailRow[] | null | undefined) => {
     const list = (rows ?? []) as ProfileEmailRow[];
     return withoutStories(list, await accountsWithStories(sb, list.map((row) => row.id)));
