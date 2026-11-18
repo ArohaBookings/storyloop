@@ -88,6 +88,11 @@ test("one ask, at the copy: the dashboard no longer asks, and the server only sa
   assert.match(page, /<StoryReviewAsk storyId=\{storyId\} copies=\{reviewCopies\} \/>/);
   const history = readFileSync("components/app/StoryHistoryItem.tsx", "utf8");
   assert.match(history, /<StoryReviewAsk storyId=\{story\.id\} copies=\{reviewCopies\} page="\/history" \/>/);
+  // A new story arriving (Generate or Regenerate) is not a copy: the server is
+  // only asked about a copy it has not been asked about yet.
+  const ask = readFileSync("components/app/StoryReviewAsk.tsx", "utf8");
+  assert.match(ask, /if \(copies <= checkedCopies\.current \|\| !storyId \|\| settled\.current\) return;/);
+  assert.match(ask, /checkedCopies\.current = copies;\n\s+fetch\(`\/api\/reviews\/ask\?at=copy/);
 });
 
 test("public pages show real published reviews only, and never a number of them", () => {

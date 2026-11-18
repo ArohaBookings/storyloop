@@ -24,12 +24,16 @@ export default function StoryReviewAsk({ storyId, copies, page = "/generate" }: 
   // a half-written review is never thrown away).
   const settled = useRef(false);
   useEffect(() => { settled.current = Boolean(askedFor) || rating > 0 || closed; }, [askedFor, rating, closed]);
+  // The copies already asked about. A new story arriving is not a copy: only a
+  // copy the server has not been asked about yet may bring the ask up.
+  const checkedCopies = useRef(0);
 
   useEffect(() => {
-    if (copies < 1 || !storyId || settled.current) return;
+    if (copies <= checkedCopies.current || !storyId || settled.current) return;
     let active = true;
     // A moment after the tap, so the copy's own event is stored and counted.
     const timer = window.setTimeout(() => {
+      checkedCopies.current = copies;
       fetch(`/api/reviews/ask?at=copy&story=${encodeURIComponent(storyId)}&page=${encodeURIComponent(page)}`, { cache: "no-store" })
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => { if (active && data?.ask) setAskedFor(storyId); })
