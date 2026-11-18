@@ -346,6 +346,16 @@ export function teamViewScopes(input: { ownAccess: boolean; teamAccess: boolean;
   return scopes;
 }
 
+/**
+ * Whole team and Just mine, for the pages that have no sample view (the
+ * quiet-child radar and planning): only for a leader with team access whose
+ * team shares with her. Everyone else gets no switch and her own view.
+ */
+export function leaderTeamScopes(input: { access: TeamAccess; scope: TeamScope | null }): TeamViewScope[] {
+  if (input.access.kind !== "team" || !input.scope || input.scope.centreId !== input.access.centreId) return [];
+  return input.scope.reviewAuthorIds.length > 0 ? ["team", "mine"] : [];
+}
+
 /** The asked-for view if it is on offer, else the first on offer (the team, when there is one). */
 export function pickTeamViewScope(requested: unknown, available: readonly TeamViewScope[]): TeamViewScope | null {
   if (typeof requested === "string" && (available as readonly string[]).includes(requested)) return requested as TeamViewScope;

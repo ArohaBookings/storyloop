@@ -9,7 +9,7 @@ import { hasFeatureAccess } from "@/lib/plans";
 import { buildQuietChildRadar } from "@/lib/quiet-radar";
 import { isMissingTermSettingsColumn, parseTermSettings } from "@/lib/term-settings";
 import { getTeamContext, loadTeamRadarInput } from "@/lib/centre-team-server";
-import { pickTeamViewScope, type TeamViewScope } from "@/lib/centre-team";
+import { leaderTeamScopes, pickTeamViewScope } from "@/lib/centre-team";
 import TeamScopeSwitch from "@/components/app/TeamScopeSwitch";
 
 export const metadata = { title: "Child learning profiles" };
@@ -54,7 +54,7 @@ export default async function ChildrenPage({ searchParams }: { searchParams?: Pr
     // unnoticed across the whole team, each child counted once; "Just mine" is
     // the radar as it always was. Everyone else sees exactly what they did.
     const team = await getTeamContext(user.id);
-    const teamScopes: TeamViewScope[] = team.access.kind === "team" && (team.scope?.reviewAuthorIds.length ?? 0) > 0 ? ["team", "mine"] : [];
+    const teamScopes = leaderTeamScopes(team);
     const scope = teamScopes.length ? pickTeamViewScope((await searchParams)?.scope, teamScopes) : "mine";
 
     if (scope === "team") {

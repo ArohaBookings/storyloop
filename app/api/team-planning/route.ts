@@ -12,7 +12,7 @@ import { normalizeAnyFramework } from "@/lib/international-frameworks";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getTeamContext, loadTeamChildren, type TeamContext } from "@/lib/centre-team-server";
-import { pickBriefStories, pickTeamViewScope, type TeamViewScope } from "@/lib/centre-team";
+import { leaderTeamScopes, pickBriefStories, pickTeamViewScope } from "@/lib/centre-team";
 
 function asRecord(value: unknown) {
   return value && typeof value === "object" ? value as Record<string, unknown> : {};
@@ -142,7 +142,7 @@ export async function POST(request: Request) {
     // "mine" is the brief exactly as it always was.
     const body = await request.json().catch(() => ({}));
     const team = await getTeamContext(user.id);
-    const teamScopes: TeamViewScope[] = team.access.kind === "team" && (team.scope?.reviewAuthorIds.length ?? 0) > 0 ? ["team", "mine"] : [];
+    const teamScopes = leaderTeamScopes(team);
     const scope = teamScopes.length ? pickTeamViewScope(asRecord(body).scope, teamScopes) : "mine";
     if (scope === "team") return await teamBrief(team, user.id);
 

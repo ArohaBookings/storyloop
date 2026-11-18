@@ -101,7 +101,8 @@ function QueueCard({
   const heading = [item.author, item.childName].filter(Boolean).join(" · ");
 
   return (
-    <li id={`story-${item.id}`} className="card scroll-mt-24 p-4 sm:p-5" data-testid="team-queue-item" data-story-id={item.id}>
+    // data-private: a colleague's story and note. The click tracker records nothing inside it (EngagementTracker).
+    <li id={`story-${item.id}`} className="card scroll-mt-24 p-4 sm:p-5" data-testid="team-queue-item" data-story-id={item.id} data-private>
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         {sample && (
           <span className="rounded-full bg-clay-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-clay-800" data-testid="sample-label">

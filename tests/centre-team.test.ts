@@ -16,6 +16,7 @@ import {
   teamAccess,
   teamViewScopes,
   pickTeamViewScope,
+  leaderTeamScopes,
   type TeamAccess,
 } from "../lib/centre-team";
 import { isSampleId, sampleEvidence, sampleQueue, SAMPLE_CHILDREN, SAMPLE_EDUCATORS } from "../lib/sample-team";
@@ -346,4 +347,54 @@ test("a saved story reads into the pack the same way for the team as for one edu
   const plain = evidenceStoryFromRow({ ...row, metadata: null }, () => null);
   assert.deepEqual(plain.nextSteps, [{ text: "Generated step", status: "planned" }]);
   assert.equal(plain.date, "2026-11-17");
+});
+
+// ------------------------------------------------- every way in, in one table
+test("every way in: leader, member with consent, member without, outsider, lapsed plan", () => {
+  // What each person may do in centre A, decided end to end by the pure rules,
+  // as the server runs them: access, then scope from the consent-checked list,
+  // then each action. The list handed in is deliberately too wide.
+  const everyone = [OWNER, ADMIN, SHARER, PRIVATE, OUTSIDER, OTHER_OWNER, REMOVED_SHARER];
+  const tooWide = everyone.map((person) => person.userId);
+  const profiles = [
+    { id: "p-owner-mia", name: "Mia", authorId: "owner-a" },
+    { id: "p-share-mia", name: "Mia", authorId: "edu-share" },
+    { id: "p-private-mia", name: "Mia", authorId: "edu-private" },
+  ];
+  const cases: Array<{ who: string; viewer: Membership | null; owner: typeof LIVE | null; expect: { access: TeamAccess["kind"]; reads: string[]; marksSharer: boolean; marksPrivate: boolean; joins: boolean; switch: string[] } }> = [
+    { who: "owner on a live plan", viewer: OWNER, owner: LIVE, expect: { access: "team", reads: ["owner-a", "edu-share"], marksSharer: true, marksPrivate: false, joins: true, switch: ["team", "mine"] } },
+    { who: "admin on the owner's live plan", viewer: ADMIN, owner: LIVE, expect: { access: "team", reads: ["admin-a", "edu-share", "owner-a"], marksSharer: true, marksPrivate: false, joins: true, switch: ["team", "mine"] } },
+    { who: "member with consent", viewer: SHARER, owner: LIVE, expect: { access: "not_leader", reads: [], marksSharer: false, marksPrivate: false, joins: false, switch: [] } },
+    { who: "member without consent", viewer: PRIVATE, owner: LIVE, expect: { access: "not_leader", reads: [], marksSharer: false, marksPrivate: false, joins: false, switch: [] } },
+    { who: "another centre's member", viewer: OUTSIDER, owner: LIVE, expect: { access: "not_leader", reads: [], marksSharer: false, marksPrivate: false, joins: false, switch: [] } },
+    { who: "another centre's owner", viewer: OTHER_OWNER, owner: LIVE, expect: { access: "team", reads: ["owner-b", "edu-other"], marksSharer: false, marksPrivate: false, joins: false, switch: ["team", "mine"] } },
+    { who: "a removed member", viewer: REMOVED_SHARER, owner: LIVE, expect: { access: "none", reads: [], marksSharer: false, marksPrivate: false, joins: false, switch: [] } },
+    { who: "nobody's member", viewer: null, owner: LIVE, expect: { access: "none", reads: [], marksSharer: false, marksPrivate: false, joins: false, switch: [] } },
+    { who: "owner on a lapsed plan", viewer: OWNER, owner: LAPSED, expect: { access: "lapsed", reads: [], marksSharer: false, marksPrivate: false, joins: false, switch: [] } },
+    { who: "admin on a lapsed plan", viewer: ADMIN, owner: LAPSED, expect: { access: "lapsed", reads: [], marksSharer: false, marksPrivate: false, joins: false, switch: [] } },
+  ];
+  for (const { who, viewer, owner, expect } of cases) {
+    const viewerId = viewer?.userId ?? "solo";
+    const access = teamAccess({ viewerId, viewer, owner });
+    assert.equal(access.kind, expect.access, `${who}: access`);
+    const members = everyone.filter((person) => viewer && person.centreId === viewer.centreId);
+    const scope = decideTeamScope({ viewerId, viewer, access, readableIds: tooWide, members });
+    assert.deepEqual([...(scope?.authorIds ?? [])].sort(), [...expect.reads].sort(), `${who}: whose stories the team views read`);
+    assert.equal(scope?.authorIds.includes("edu-private") ?? false, false, `${who}: never the private member's stories`);
+    const marks = (author: Membership) => canReviewStory({ viewerId, viewer, access, author, storyUserId: author.userId });
+    assert.equal(marks(SHARER), expect.marksSharer, `${who}: may mark the sharing member's story`);
+    assert.equal(marks(PRIVATE), expect.marksPrivate, `${who}: may mark the private member's story`);
+    assert.equal(canLinkProfiles({ scope, profileIds: ["p-owner-mia", "p-share-mia"], profiles, linkedProfileIds: new Set() }), expect.joins, `${who}: may join two lists' Mia`);
+    assert.equal(canLinkProfiles({ scope, profileIds: ["p-share-mia", "p-private-mia"], profiles, linkedProfileIds: new Set() }), false, `${who}: never joins a private member's child`);
+    assert.deepEqual(leaderTeamScopes({ access, scope }), expect.switch, `${who}: whole team / just mine`);
+  }
+});
+
+test("the whole team switch needs someone sharing, and a scope for the same centre", () => {
+  const scope = decideTeamScope({ viewerId: "owner-a", viewer: OWNER, access: TEAM, readableIds: ["owner-a"], members: [OWNER, PRIVATE] })!;
+  assert.deepEqual(leaderTeamScopes({ access: TEAM, scope }), [], "nobody shares yet: her own view only");
+  assert.deepEqual(leaderTeamScopes({ access: TEAM, scope: null }), []);
+  const shared = decideTeamScope({ viewerId: "owner-a", viewer: OWNER, access: TEAM, readableIds: ["edu-share"], members: MEMBERS })!;
+  assert.deepEqual(leaderTeamScopes({ access: { kind: "team", centreId: "centre-b", plan: "centre_starter" }, scope: shared }), [], "a scope from another centre opens nothing");
+  assert.deepEqual(leaderTeamScopes({ access: { kind: "lapsed", centreId: "centre-a" }, scope: shared }), []);
 });

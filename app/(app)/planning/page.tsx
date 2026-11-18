@@ -1,7 +1,7 @@
 import { redirectToLogin } from "@/lib/auth/login-redirect";
 import { createClient } from "@/lib/supabase/server";
 import { getTeamContext } from "@/lib/centre-team-server";
-import { pickTeamViewScope, type TeamViewScope } from "@/lib/centre-team";
+import { leaderTeamScopes, pickTeamViewScope } from "@/lib/centre-team";
 import PlanningView from "./PlanningView";
 
 /**
@@ -17,7 +17,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
 
   const team = await getTeamContext(user.id);
   const sharing = team.scope?.reviewAuthorIds.length ?? 0;
-  const scopes: TeamViewScope[] = team.access.kind === "team" && sharing > 0 ? ["team", "mine"] : [];
+  const scopes = leaderTeamScopes(team);
   const scope = scopes.length ? pickTeamViewScope((await searchParams).scope, scopes) : null;
 
   // Keyed by view, so a brief made for the team never stays on screen under "Just mine".
