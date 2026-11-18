@@ -64,7 +64,8 @@ export default function FoundingCentreOffer({ id = "founding" }: { id?: string }
             </p>
           )}
           <h2 id={`${id}-title`} className="font-display text-3xl font-bold leading-tight text-ink-900 text-balance md:text-4xl">
-            {soldOut ? "Every centre starts with a free month." : "Founding centres: a free month, then half price."}
+            {/* One free period, in the shared wording (lib/offer-wording.ts), never "a free month" beside "until 31 January". */}
+            {soldOut ? `Every centre starts ${free.words.startsWith("free") ? free.words : `with ${free.words}`}.` : `Founding centres: ${free.words}, then half price.`}
           </h2>
           <p className="mt-4 max-w-xl text-lg leading-relaxed text-ink-700">
             {soldOut
@@ -86,7 +87,7 @@ export default function FoundingCentreOffer({ id = "founding" }: { id?: string }
           </ul>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link href="/signup?plan=centre_starter" className="btn-primary group justify-center px-7 py-3.5 text-base">
-              {soldOut ? "Start your centre's free month" : "Claim a founding spot"}
+              {soldOut ? "Start your centre free" : "Claim a founding spot"}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
             <a
