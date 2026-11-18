@@ -13,6 +13,7 @@ import { CHECKOUT_BRANDING, CHECKOUT_PRESENTATION, checkoutAuthorisationMessage,
 import { OFFER_REASON_COPY, PRO_MONTH_OFFER_ID, PRO_MONTH_PLAN, PRO_MONTH_TRIAL_DAYS, WINBACK_OFFER_ID, ensureWinbackCoupon, proMonthEligibility, winbackEligibility } from "@/lib/offers";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { recordServerEvent } from "@/lib/analytics/server";
+import { checkoutReturnPath } from "@/lib/app-wall";
 
 function getStripe() {
   return createStripe();
@@ -60,6 +61,11 @@ export async function POST(request: NextRequest) {
     const { currency, activationOffer } = body;
     const offer = body.offer === "pro_month" ? "pro_month" : body.offer === "winback" ? "winback" : null;
     const browserSession = typeof body.sessionId === "string" ? body.sessionId.slice(0, 60) : null;
+    // A wall's one tap (lib/app-wall.ts): back to the same page, never anywhere
+    // else. Only a path on the short list is used; the plan is still granted by
+    // the webhook alone.
+    const returnPath = checkoutReturnPath(body.returnTo);
+    const fromWall = body.wall === "story" || body.wall === "statement" ? body.wall : null;
     const selectedCurrency = normaliseCurrency(currency);
     // The free-month offer is always Educator Pro, whatever the page sent.
     const selectedPlan = offer === "pro_month" ? PRO_MONTH_PLAN : normalizePlanKey(body.plan);
@@ -254,8 +260,8 @@ export async function POST(request: NextRequest) {
         // The plan rides along so the dashboard can greet a centre's free month
         // differently from a paid upgrade, before the webhook has landed.
         // {CHECKOUT_SESSION_ID} is filled in by Stripe; it de-duplicates the Google Ads conversion on reload.
-        success_url: `${origin}/dashboard?upgraded=true&plan=${selectedPlan}&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${origin}/billing?checkout=cancelled&plan=${selectedPlan}`,
+        success_url: `${origin}${returnPath ?? "/dashboard"}?upgraded=true&plan=${selectedPlan}&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: returnPath ? `${origin}${returnPath}?checkout=cancelled&plan=${selectedPlan}` : `${origin}/billing?checkout=cancelled&plan=${selectedPlan}`,
         // A coupon or the promotion code box, never both: Stripe refuses the pair.
         ...checkoutDiscountParams(appliedCoupon, offer),
         subscription_data: {
@@ -310,6 +316,7 @@ export async function POST(request: NextRequest) {
           trial_days: terms.trialDays,
           no_card: terms.noCardNeeded,
           offer: offer ?? undefined,
+          wall: fromWall ?? undefined,
           checkout_session: session.id,
         },
       }),

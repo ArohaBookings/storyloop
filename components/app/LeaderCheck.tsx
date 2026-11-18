@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Check, CheckCircle2, Copy, Loader2, MessageSquareText, Share2, UserCheck } from "lucide-react";
-import { track } from "@/lib/analytics/client";
+import { trackEvent } from "@/lib/analytics/track-event";
 import { CENTRE_NAME_MAX, CHECK_DAYS, type EducatorCheckView } from "@/lib/story-check";
 
 function day(value: string | null | undefined) {
@@ -53,7 +53,7 @@ export default function LeaderCheck({ storyId, initial }: { storyId: string; ini
       if (!response.ok) { setError(data.error ?? "That did not work. Try again."); return; }
       setCheck(data.check ?? { state: "none" });
       setUrl(method === "POST" ? data.url ?? "" : "");
-      if (method === "POST") track("leader_check_sent", { centre_name: Boolean(centreName.trim()), counts: shareCounts });
+      if (method === "POST") trackEvent("leader_check_sent", { centre_name: Boolean(centreName.trim()), counts: shareCounts, story_id: storyId });
     } catch {
       setError("That did not work. Check your connection and try again.");
     } finally {

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Check, X } from "lucide-react";
 import { forgetKeptStory, readKeptStory } from "@/lib/keep-story";
 import { track } from "@/lib/analytics/client";
+import { trackEvent } from "@/lib/analytics/track-event";
 
 /**
  * Saves the story someone wrote in the no-signup demo into their account the
@@ -31,7 +32,11 @@ export default function KeepStoryImporter() {
         if (res.ok || res.status === 400) forgetKeptStory();
         if (res.ok && data.storyId) {
           setSaved(String(data.storyId));
-          if (!data.already) track("keep_story_saved", {});
+          if (!data.already) {
+            track("keep_story_saved", {});
+            // The demo story arrived on the new account (18 Nov 2026): its id only.
+            trackEvent("keep_story_arrived", { story_id: String(data.storyId), kind: "story" });
+          }
           router.refresh();
         }
       })

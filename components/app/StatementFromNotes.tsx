@@ -4,8 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FileText, GraduationCap } from "lucide-react";
 import TransitionDemo from "@/components/marketing/TransitionDemo";
-import type { TransitionFramework, TransitionMode } from "@/lib/ai/transition-draft";
+import AppLimitWall from "@/components/app/AppLimitWall";
+import CheckoutReturn from "@/components/app/CheckoutReturn";
+import type { TransitionDraft, TransitionFramework, TransitionMode } from "@/lib/ai/transition-draft";
 import { STATEMENT_FRAMEWORKS, frameworkForZone } from "@/lib/statement-from-notes";
+import { keepWallWork, takeWallWork } from "@/lib/app-wall";
 
 const MODES: Array<[TransitionMode, string, typeof FileText]> = [
   ["transition", "Transition statement", GraduationCap],
@@ -25,6 +28,10 @@ export default function StatementFromNotes({ freePlan = false }: { freePlan?: bo
   const [mode, setMode] = useState<TransitionMode>("transition");
   const [framework, setFramework] = useState<TransitionFramework | null>(null);
   const [childName, setChildName] = useState("");
+  // Back from a wall's checkout (lib/app-wall.ts): her notes and draft, put back.
+  const [returned, setReturned] = useState<{ status: "upgraded" | "cancelled"; plan: string | null; sessionId: string | null } | null>(null);
+  const [kept, setKept] = useState<{ notes: string; draft: TransitionDraft | null } | null>(null);
+  const [paidNow, setPaidNow] = useState(false);
 
   // The time zone is only known in the browser, so the first curriculum is
   // chosen after the page loads (one frame), never guessed on the server.
@@ -33,11 +40,30 @@ export default function StatementFromNotes({ freePlan = false }: { freePlan?: bo
     try {
       zone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
     } catch { /* EYLF is the fallback */ }
-    setFramework(frameworkForZone(zone));
+    let start = frameworkForZone(zone);
+    const params = new URLSearchParams(window.location.search);
+    const upgraded = params.get("upgraded") === "true";
+    if (upgraded || params.get("checkout") === "cancelled") {
+      setReturned({ status: upgraded ? "upgraded" : "cancelled", plan: params.get("plan"), sessionId: params.get("session_id") });
+      const work = takeWallWork("/statement");
+      if (work) {
+        const keptFramework = STATEMENT_FRAMEWORKS.find((choice) => choice === work.framework);
+        if (keptFramework) start = keptFramework;
+        if (work.mode === "transition" || work.mode === "summary") setMode(work.mode);
+        setKept({ notes: work.note, draft: (work.draft as TransitionDraft | null) ?? null });
+      }
+      window.history.replaceState(null, "", "/statement");
+    }
+    setFramework(start);
   }, []);
 
   return (
     <div className="mt-6">
+      {returned && (
+        <div className="mb-4">
+          <CheckoutReturn status={returned.status} plan={returned.plan} sessionId={returned.sessionId} onPlan={() => setPaidNow(true)} />
+        </div>
+      )}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="inline-flex w-full rounded-2xl border border-clay-200 bg-white p-1 shadow-soft sm:w-fit" role="group" aria-label="What to draft">
           {MODES.map(([option, label, Icon]) => (
@@ -80,10 +106,22 @@ export default function StatementFromNotes({ freePlan = false }: { freePlan?: bo
           inApp
           childName={childName}
           onNextChild={() => setChildName("")}
+          initialNotes={kept?.notes}
+          initialDraft={kept?.draft}
+          renderLimitWall={(work) => (
+            <AppLimitWall
+              wall="statement"
+              returnTo="/statement"
+              heading="You've used this hour's free drafts."
+              line="Your notes are still here. Try again in an hour, or keep going now: Educator covers as many as you need."
+              onBeforeCheckout={() => keepWallWork({ page: "/statement", note: work.notes, storyId: null, draft: work.draft, framework: work.framework, mode: work.mode })}
+              onDismiss={work.dismiss}
+            />
+          )}
           allowanceNote={
-            freePlan ? (
+            freePlan && !paidNow ? (
               <p className="mt-2 text-xs leading-relaxed text-ink-500" data-testid="statement-free-line">
-                Free plan: two drafts a month. Educator covers as many as you need.{" "}
+                Free plan: three drafts an hour. Educator covers as many as you need.{" "}
                 <Link href="/billing" className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2" data-track="statement_free_line_billing">
                   See the plans
                 </Link>

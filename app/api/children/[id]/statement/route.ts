@@ -7,6 +7,7 @@ import { StoryWriterUnavailableError } from "@/lib/ai/generate";
 import { generateTransitionDraft, type TransitionFramework, type TransitionMode } from "@/lib/ai/transition-draft";
 import {
   STATEMENT_FREE_LIMIT,
+  STATEMENT_FREE_WINDOW_SECONDS,
   STATEMENT_MIN_STORIES,
   STATEMENT_PAID_LIMIT,
   STATEMENT_STORY_LIMIT,
@@ -61,13 +62,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const allowed = await consumeRateLimit(
     paid
       ? { scope: "child-statement", key: user.id, limit: STATEMENT_PAID_LIMIT, windowSeconds: 86_400 }
-      : { scope: "child-statement-free", key: user.id, limit: STATEMENT_FREE_LIMIT, windowSeconds: 30 * 86_400 },
+      : { scope: "child-statement-free", key: user.id, limit: STATEMENT_FREE_LIMIT, windowSeconds: STATEMENT_FREE_WINDOW_SECONDS },
   );
   if (!allowed) {
     return NextResponse.json(
       paid
         ? { error: "That is a lot of drafts for one day. Try again tomorrow.", code: "rate_limited" }
-        : { error: `The free plan includes ${STATEMENT_FREE_LIMIT} of these a month. Educator includes as many as you need.`, code: "free_limit" },
+        : { error: `The free plan includes ${STATEMENT_FREE_LIMIT} of these an hour. Educator includes as many as you need.`, code: "free_limit" },
       { status: 429 },
     );
   }

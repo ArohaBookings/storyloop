@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Check, Copy, HeartHandshake, Loader2, Share2, X } from "lucide-react";
 import { track } from "@/lib/analytics/client";
+import { trackEvent } from "@/lib/analytics/track-event";
 import { WALL_LANGUAGES } from "@/lib/wall-languages";
 import type { EducatorFamilyView } from "@/lib/family-link";
 
@@ -77,7 +78,8 @@ export default function FamilyShare({ storyId, childName }: { storyId: string; c
       const data = await response.json().catch(() => ({}));
       if (!response.ok) { setError(data.error ?? "Could not make the link. Try again."); return; }
       setUrl(data.url ?? ""); setMaking(false);
-      track("family_link_made", { language: language || "en" });
+      // The story and child by id only (18 Nov 2026), never a label or a name.
+      trackEvent("family_link_made", { language: language || "en", story_id: storyId, child_id: state.child.id });
       const refreshed = await fetch(`/api/stories/${encodeURIComponent(storyId)}/family`).then((r) => (r.ok ? r.json() : null)).catch(() => null);
       if (refreshed && !refreshed.error) setState(refreshed);
     } catch {

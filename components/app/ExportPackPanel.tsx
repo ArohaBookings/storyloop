@@ -5,8 +5,12 @@ import { Check, Copy, Download } from "lucide-react";
 import { buildExportPacks, type ExportPlatform } from "@/lib/export-packs";
 import { hasFeatureAccess } from "@/lib/plans";
 import type { StoryFrameworkId } from "@/lib/story-options";
+import { trackEvent } from "@/lib/analytics/track-event";
+import { EXPORT_PACKS } from "@/lib/analytics/events";
 
 type ExportPackPanelProps = {
+  /** The saved story, for the export event (its id only). */
+  storyId?: string;
   plan?: string;
   childName?: string | null;
   ageGroup?: string | null;
@@ -24,6 +28,7 @@ type ExportPackPanelProps = {
 const PLATFORM_ORDER: ExportPlatform[] = ["storypark", "educa", "kinderloop", "brightwheel"];
 
 export default function ExportPackPanel({
+  storyId,
   plan = "free",
   childName,
   ageGroup,
@@ -58,13 +63,17 @@ export default function ExportPackPanel({
   );
   const selected = packs.find((pack) => pack.platform === platform) ?? packs[0];
 
+  // The layouts are recorded by neutral names (pack_1 to pack_4), never by platform.
+  const packName = EXPORT_PACKS[Math.max(0, PLATFORM_ORDER.indexOf(selected.platform))];
   const copyPack = async () => {
     await navigator.clipboard.writeText(selected.text);
+    trackEvent("app_export", { story_id: storyId ?? null, format: "pack_copy", pack: packName });
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
   };
 
   const downloadPack = () => {
+    trackEvent("app_export", { story_id: storyId ?? null, format: "txt", pack: packName });
     const blob = new Blob([selected.text], { type: "text/plain;charset=utf-8" });
     const url = window.URL.createObjectURL(blob);
     const anchor = document.createElement("a");

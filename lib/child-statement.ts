@@ -10,7 +10,8 @@ import { MAX_TRANSITION_NOTES, MIN_TRANSITION_NOTES, type TransitionFramework } 
  * The drafter only sees the educator's own observations (never the AI-written
  * stories), so every quote it keeps is one the educator wrote down.
  */
-export const STATEMENT_FREE_LIMIT = 2; // per 30 days on the free plan
+export const STATEMENT_FREE_LIMIT = 3; // per hour on the free plan, the signed-out guide's allowance (Leo, 18 Nov 2026)
+export const STATEMENT_FREE_WINDOW_SECONDS = 60 * 60;
 export const STATEMENT_PAID_LIMIT = 30; // per day on a paid plan
 export const STATEMENT_MIN_STORIES = 2;
 export const STATEMENT_STORY_LIMIT = 60;

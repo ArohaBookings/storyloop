@@ -12,6 +12,7 @@ import StoryText from "@/components/app/StoryText";
 import LearningLoopPanel from "@/components/app/LearningLoopPanel";
 import ExportPackPanel from "@/components/app/ExportPackPanel";
 import FamilyTranslationPanel from "@/components/app/FamilyTranslationPanel";
+import { trackEvent } from "@/lib/analytics/track-event";
 import {
   normalizeDepth,
   normalizePedagogyFocus,
@@ -173,6 +174,8 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
   const familyLinkLabel = currentFramework === "NZ" ? "Family or whānau link" : "Family link";
 
   const startEdit = () => {
+    // Was it used (18 Nov 2026): the story's id only, never its text.
+    trackEvent("app_story_edit_started", { story_id: story.id });
     setDraft(storyText);
     setMessage("");
     setError("");
@@ -226,6 +229,7 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
   };
 
   const regenerateStory = async () => {
+    trackEvent("app_story_regenerated", { story_id: story.id });
     setRegenerating(true);
     setError("");
     setMessage("");
@@ -327,9 +331,11 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
     await navigator.clipboard.writeText(storyText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    trackEvent("app_story_copied", { story_id: story.id, how: "button" });
   };
 
   const downloadStory = () => {
+    trackEvent("app_export", { story_id: story.id, format: "txt" });
     const blob = new Blob([storyText], { type: "text/plain;charset=utf-8" });
     const url = window.URL.createObjectURL(blob);
     const anchor = document.createElement("a");
@@ -613,6 +619,7 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
         <FamilyShare storyId={story.id} childName={story.child_name} />
 
         <ExportPackPanel
+          storyId={story.id}
           plan={plan}
           childName={story.child_name}
           ageGroup={story.age_group}

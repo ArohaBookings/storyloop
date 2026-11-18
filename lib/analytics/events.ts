@@ -67,7 +67,7 @@ export const DEVICES = ["mobile", "tablet", "desktop"] as const;
  * The one-tap "what is stopping you?" answers: the public exit question's own
  * reasons (lib/exit-feedback.ts), plus two that only make sense at a wall.
  */
-export const STOP_REASONS = [...EXIT_REASONS.map((reason) => reason.key), "centre_should_pay", "need_more_free"] as const;
+export const STOP_REASONS = [...EXIT_REASONS.map((reason) => reason.key), "centre_should_pay", "need_more_free", "only_needed_few", "not_sure_yet"] as const;
 /** Neutral names for the copy-pack layouts (the in-app labels are decided separately). */
 export const EXPORT_PACKS = ["pack_1", "pack_2", "pack_3", "pack_4"] as const;
 export const EXPORT_FORMATS = ["copy", "pack_copy", "txt", "csv", "docx", "pdf", "print", "download_all"] as const;

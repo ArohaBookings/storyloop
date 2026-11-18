@@ -51,6 +51,9 @@ export default function TransitionDemo({
   childName = "",
   onNextChild,
   allowanceNote,
+  initialNotes,
+  initialDraft,
+  renderLimitWall,
 }: {
   framework: TransitionFramework;
   mode: TransitionMode;
@@ -70,13 +73,21 @@ export default function TransitionDemo({
   onNextChild?: () => void;
   /** A quiet line under the notes box (the free plan's allowance, in the app). */
   allowanceNote?: ReactNode;
+  /** Inside the app: the notes and draft to start with, when she comes back from checkout. */
+  initialNotes?: string;
+  initialDraft?: TransitionDraft | null;
+  /**
+   * Inside the app: the free-limit wall, shown in place of the refusal line. Her
+   * notes and any draft stay on screen above it (18 Nov 2026).
+   */
+  renderLimitWall?: (work: { notes: string; draft: TransitionDraft | null; framework: TransitionFramework; mode: TransitionMode; dismiss: () => void }) => ReactNode;
 }) {
   const [framework, setFramework] = useState<TransitionFramework>(initialFramework);
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState(initialNotes ?? "");
   const [usingSample, setUsingSample] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [draft, setDraft] = useState<TransitionDraft | null>(null);
+  const [draft, setDraft] = useState<TransitionDraft | null>(initialDraft ?? null);
   const [copied, setCopied] = useState(false);
   const [limitHit, setLimitHit] = useState(false);
   const notesBox = useRef<HTMLTextAreaElement>(null);
@@ -185,8 +196,8 @@ export default function TransitionDemo({
         />
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           {inApp ? (
-            // No sample in the app: a free account would spend one of its two
-            // monthly drafts (a paid model call) on a child who is not theirs.
+            // No sample in the app: a free account would spend one of its free
+            // drafts (a paid model call) on a child who is not theirs.
             <span aria-hidden="true" />
           ) : (
           <button
@@ -221,7 +232,12 @@ export default function TransitionDemo({
             : "No signup. Use a first name only. Your notes and the draft are not saved to any account and are never used to train AI. Check your service's policy on children's information."}
         </p>
         {allowanceNote}
-        {error && (
+        {limitHit && renderLimitWall && (
+          <div className="mt-3">
+            {renderLimitWall({ notes, draft, framework, mode, dismiss: () => { setLimitHit(false); setError(""); } })}
+          </div>
+        )}
+        {error && !(limitHit && renderLimitWall) && (
           <p role="alert" className="mt-3 rounded-lg border border-clay-200 bg-clay-50 px-3 py-2 text-xs text-clay-700">
             {error}{" "}
             {limitHit && (
@@ -319,7 +335,7 @@ export default function TransitionDemo({
                   <p className="mb-2 text-sm font-semibold text-ink-800">
                     Got a whole class to write? Paste each child&apos;s notes and have every one drafted tonight.
                   </p>
-                  <p className="mb-3 text-sm text-ink-600">Two a month are free. Educator covers as many as you need.</p>
+                  <p className="mb-3 text-sm text-ink-600">A free account drafts three an hour. Educator covers as many as you need.</p>
                   <Link href={STATEMENT_SIGNUP_HREF} className="btn-primary px-4 py-2 text-sm" data-track="transition_demo_signup">
                     Start free
                   </Link>
