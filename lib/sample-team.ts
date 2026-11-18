@@ -1,5 +1,6 @@
 import type { EvidenceChild, EvidenceStory } from "@/lib/evidence-pack";
 import type { TeamQueueItem } from "@/lib/team-queue";
+import { checkMyStory } from "@/lib/check-my-story";
 
 /**
  * The sample team (18 Nov 2026): what a leader sees before she has invited
@@ -173,8 +174,11 @@ const STORIES: SampleStory[] = [
     childName: "Isla",
     daysAgo: 12,
     note: "Isla climbing the frame, tried the high bar three times, made it on the third.",
+    // The one sample story with something for a leader to query (Check my
+    // story, lib/check-my-story.ts): words in quote marks that the note never
+    // had. Real drafts slip like this, and the sample shows what the check says.
     story:
-      "Isla, you climbed to the high bar on the frame and reached for it three times. The first two times you came back down. The third time you held on and pulled yourself up. You kept going until your body did what you asked of it.",
+      "Isla, you climbed to the high bar on the frame and reached for it three times. The first two times you came back down. The third time you held on and pulled yourself up. \"I did it all by myself!\" you called. You kept going until your body did what you asked of it.",
     outcomes: ["Wellbeing | Mana atua"],
     outcomesAU: [EYLF.wellbeing],
     nextStep: null,
@@ -196,16 +200,21 @@ function localised(story: SampleStory, country: SampleCountry) {
 
 /** The sample review queue, newest first, dated from today. */
 export function sampleQueue(now = new Date(), country: SampleCountry = "NZ"): TeamQueueItem[] {
-  return STORIES.map((story) => ({
-    id: story.id,
-    author: story.educator,
-    childName: story.childName,
-    createdAt: daysBefore(now, story.daysAgo).toISOString(),
-    storyText: localised(story, country).story,
-    note: localised(story, country).note,
-    outcomes: localised(story, country).outcomes,
-    review: story.reviewed ? { status: "looks_good" as const, note: null, reviewer: "You", at: daysBefore(now, story.daysAgo - 1).toISOString() } : null,
-  })).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+  return STORIES.map((story) => {
+    const local = localised(story, country);
+    return {
+      id: story.id,
+      author: story.educator,
+      childName: story.childName,
+      createdAt: daysBefore(now, story.daysAgo).toISOString(),
+      storyText: local.story,
+      note: local.note,
+      outcomes: local.outcomes,
+      review: story.reviewed ? { status: "looks_good" as const, note: null, reviewer: "You", at: daysBefore(now, story.daysAgo - 1).toISOString() } : null,
+      // The same check a real story gets, run on the invented note and story.
+      check: checkMyStory({ story: local.story, note: local.note, outcomes: local.outcomes, childName: story.childName }),
+    };
+  }).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
 }
 
 /** The sample team's evidence: the same input the real evidence pack takes. */

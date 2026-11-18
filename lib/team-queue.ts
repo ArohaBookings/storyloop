@@ -1,4 +1,5 @@
 import type { ReviewStatus } from "@/lib/centre-team";
+import type { StoryCheckResult } from "@/lib/check-my-story";
 
 /**
  * One story in a leader's team review queue, as the page shows it. Built on
@@ -17,6 +18,8 @@ export type TeamQueueItem = {
   note: string | null;
   outcomes: string[];
   review: TeamReviewView | null;
+  /** Check my story (19 Nov 2026): what a leader looks for, worked out on the server from the story and its note. */
+  check: StoryCheckResult;
 };
 
 export type TeamReviewView = {

@@ -621,7 +621,11 @@ export default function StoryHistoryItem({ story, plan = "free", check, centreRe
         />
 
         {centreReview && <CentreReviewNote review={centreReview} />}
-        <LeaderCheck storyId={story.id} initial={check} />
+        <LeaderCheck
+          storyId={story.id}
+          initial={check}
+          review={{ story: storyText, note: story.observations, outcomes: currentOutcomes, curriculumLinks, childName: story.child_name }}
+        />
         <FamilyShare storyId={story.id} childName={story.child_name} />
 
         <ExportPackPanel

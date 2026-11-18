@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Check, CheckCircle2, Loader2, MessageSquareText, X } from "lucide-react";
 import { trackEvent } from "@/lib/analytics/track-event";
 import { REVIEW_NOTE_MAX } from "@/lib/centre-team";
+import StoryCheckList, { StoryCheckSummary } from "@/components/app/StoryCheckList";
 import { agoLabel, waitingCount, whenLabel, type TeamQueueItem, type TeamReviewView } from "@/lib/team-queue";
 
 /**
@@ -124,10 +125,12 @@ function QueueCard({
       <p className={`mt-2 whitespace-pre-wrap text-sm leading-relaxed text-ink-800 ${open ? "" : "line-clamp-4"}`} data-testid="team-queue-story">
         {item.storyText}
       </p>
-      <div className="mt-1 flex flex-wrap gap-x-4">
+      <div className="mt-1 flex flex-wrap items-center gap-x-4">
         <button type="button" onClick={() => setOpen(!open)} className="min-h-[44px] text-xs font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2">
           {open ? "Show less" : "Read it all"}
         </button>
+        {/* Check my story: the one-line answer always, the four questions with Read it all. */}
+        {!open && <StoryCheckSummary check={item.check} />}
       </div>
       {open && item.note && (
         <div className="mt-1 rounded-xl bg-cream-50 p-3">
@@ -135,6 +138,7 @@ function QueueCard({
           <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-ink-700">{item.note}</p>
         </div>
       )}
+      {open && <StoryCheckList check={item.check} className="mt-2" />}
 
       {answered && review ? (
         <div className="mt-3 rounded-xl border border-clay-100 bg-cream-50/60 p-3" data-testid="team-queue-answer">

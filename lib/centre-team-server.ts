@@ -18,6 +18,7 @@ import {
   type SameNameSuggestion,
 } from "@/lib/centre-team";
 import { educatorFirstName } from "@/lib/story-check";
+import { checkMyStory } from "@/lib/check-my-story";
 import { recordServerEvent } from "@/lib/analytics/server";
 import type { AuthorReviewView, TeamQueueItem, TeamReviewView } from "@/lib/team-queue";
 import { evidenceStoryFromRow, type EvidenceStory } from "@/lib/evidence-pack";
@@ -168,15 +169,20 @@ export async function loadTeamQueue(ctx: TeamContext, limit = 40): Promise<TeamQ
             at: review.updated_at as string,
           }
         : null;
+      const storyText = (row.story_text as string) ?? "";
+      const note = (row.observations as string | null) ?? null;
+      const outcomes = asStrings(row.outcomes);
       return {
         id: row.id as string,
         author: names.get(row.user_id as string) ?? "An educator",
         childName: (row.child_name as string | null) ?? null,
         createdAt: row.created_at as string,
-        storyText: (row.story_text as string) ?? "",
-        note: (row.observations as string | null) ?? null,
-        outcomes: asStrings(row.outcomes).slice(0, 4),
+        storyText,
+        note,
+        outcomes: outcomes.slice(0, 4),
         review: view,
+        // What a leader looks for, from the story and the note it came from (deterministic, no model).
+        check: checkMyStory({ story: storyText, note, outcomes, childName: (row.child_name as string | null) ?? null }),
       };
     });
   } catch (error) {

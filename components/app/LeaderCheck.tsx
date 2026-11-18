@@ -1,9 +1,58 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, CheckCircle2, Copy, Loader2, MessageSquareText, Share2, UserCheck } from "lucide-react";
 import { trackEvent } from "@/lib/analytics/track-event";
 import { CENTRE_NAME_MAX, CHECK_DAYS, type EducatorCheckView } from "@/lib/story-check";
+import { checkMyStory, type StoryCheckInput } from "@/lib/check-my-story";
+import StoryCheckList, { StoryCheckSummary } from "@/components/app/StoryCheckList";
+
+function strings(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+/**
+ * Check my story on her own story, before she sends it (19 Nov 2026): the same
+ * four questions her leader's queue shows. The one-line answer, with the four
+ * lines open when something is worth a look and one tap away when nothing is.
+ * Story history passes the saved story in; /generate passes nothing and the
+ * saved story is read once, so the check is of exactly what the leader gets.
+ */
+function useOwnStoryCheck(storyId: string, review: StoryCheckInput | undefined, refreshKey: string | undefined) {
+  const [fetched, setFetched] = useState<StoryCheckInput | null>(null);
+  const given = Boolean(review);
+  useEffect(() => {
+    if (given) return;
+    let live = true;
+    fetch(`/api/stories/${encodeURIComponent(storyId)}`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        const saved = data?.story;
+        if (!live || !saved || typeof saved.story_text !== "string") return;
+        const metadata = saved.metadata && typeof saved.metadata === "object" ? (saved.metadata as Record<string, unknown>) : {};
+        setFetched({
+          story: saved.story_text,
+          note: typeof saved.observations === "string" ? saved.observations : null,
+          curriculumLinks: strings(metadata.curriculumLinks),
+          childName: typeof saved.child_name === "string" ? saved.child_name : null,
+        });
+      })
+      .catch(() => {});
+    return () => { live = false; };
+  }, [storyId, given, refreshKey]);
+  const story = review?.story ?? fetched?.story ?? "";
+  const note = review?.note ?? fetched?.note ?? null;
+  const outcomes = (review?.outcomes ?? []).join("\n");
+  const links = (review?.curriculumLinks ?? fetched?.curriculumLinks ?? []).join("\n");
+  const childName = review?.childName ?? fetched?.childName ?? null;
+  return useMemo(
+    () =>
+      story
+        ? checkMyStory({ story, note, outcomes: outcomes ? outcomes.split("\n") : [], curriculumLinks: links ? links.split("\n") : [], childName })
+        : null,
+    [story, note, outcomes, links, childName],
+  );
+}
 
 function day(value: string | null | undefined) {
   if (!value) return "";
@@ -24,8 +73,21 @@ function day(value: string | null | undefined) {
  * her own recent stories. Left as they are, the link is exactly what it was.
  * /history#leader-<story id> opens this panel (the dashboard's centre card).
  */
-export default function LeaderCheck({ storyId, initial }: { storyId: string; initial?: EducatorCheckView }) {
+export default function LeaderCheck({
+  storyId,
+  initial,
+  review,
+  refreshKey,
+}: {
+  storyId: string;
+  initial?: EducatorCheckView;
+  /** The saved story and its note, for Check my story. Without it the saved story is read once. */
+  review?: StoryCheckInput;
+  /** Changes when the story on screen was saved again (on /generate), so the check reads it again. */
+  refreshKey?: string;
+}) {
   const [check, setCheck] = useState<EducatorCheckView>(initial ?? { state: "none" });
+  const storyCheck = useOwnStoryCheck(storyId, review, refreshKey);
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -139,6 +201,15 @@ export default function LeaderCheck({ storyId, initial }: { storyId: string; ini
                   ? "You cancelled the link, so it no longer opens this story. Edited it since? Send it again."
                   : "Send your head teacher or mentor a private link to this one story. They see your note beside the story and answer in about two minutes. They do not need an account."}
           </p>
+          {storyCheck && (
+            <details className="group mt-3 min-w-0" open={storyCheck.looks > 0} data-testid="own-story-check">
+              <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
+                <StoryCheckSummary check={storyCheck} as="span" />
+                <span className="text-xs font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 group-open:hidden">What it checks</span>
+              </summary>
+              <StoryCheckList check={storyCheck} heading="What your leader will look for" className="mt-1" />
+            </details>
+          )}
           <div className="mt-3 grid gap-2 sm:max-w-md">
             <label htmlFor={`leader-centre-${storyId}`} className="text-xs font-semibold text-ink-700">
               Your centre&apos;s name <span className="font-normal text-ink-500">(optional)</span>

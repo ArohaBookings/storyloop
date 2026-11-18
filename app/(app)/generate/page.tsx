@@ -2417,7 +2417,7 @@ export default function GeneratePage() {
               {/* key: a new story starts with a fresh panel, never the last story's link. */}
               {storyId && (
                 <div id="leader-check" tabIndex={-1} className="scroll-mt-24 rounded-2xl focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay-600">
-                  <LeaderCheck key={storyId} storyId={storyId} />
+                  <LeaderCheck key={storyId} storyId={storyId} refreshKey={story} />
                 </div>
               )}
               {storyId && (
