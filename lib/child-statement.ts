@@ -12,6 +12,7 @@ import { MAX_TRANSITION_NOTES, MIN_TRANSITION_NOTES, type TransitionFramework } 
  */
 export const STATEMENT_FREE_LIMIT = 3; // per hour on the free plan, the signed-out guide's allowance (Leo, 18 Nov 2026)
 export const STATEMENT_FREE_WINDOW_SECONDS = 60 * 60;
+export const STATEMENT_FREE_DAY_LIMIT = 9; // and at most 9 in any 24 hours (Leo, 19 Nov 2026: "we are a business here not a charity")
 export const STATEMENT_PAID_LIMIT = 30; // per day on a paid plan
 export const STATEMENT_MIN_STORIES = 2;
 export const STATEMENT_STORY_LIMIT = 60;

@@ -83,7 +83,8 @@ export default function TransitionDemo({
    * Inside the app: the free-limit wall, shown in place of the refusal line. Her
    * notes and any draft stay on screen above it (18 Nov 2026).
    */
-  renderLimitWall?: (work: { notes: string; draft: TransitionDraft | null; framework: TransitionFramework; mode: TransitionMode; dismiss: () => void }) => ReactNode;
+  /** limit: which free allowance she reached, this hour's or today's (the app's statement wall says which). */
+  renderLimitWall?: (work: { notes: string; draft: TransitionDraft | null; framework: TransitionFramework; mode: TransitionMode; dismiss: () => void; limit: "hour" | "day" }) => ReactNode;
   /**
    * At the top of a guide (18 Nov 2026): the same box and the same request,
    * laid out so the box and its button sit on a phone's first screen. Only the
@@ -99,6 +100,7 @@ export default function TransitionDemo({
   const [draft, setDraft] = useState<TransitionDraft | null>(initialDraft ?? null);
   const [copied, setCopied] = useState(false);
   const [limitHit, setLimitHit] = useState(false);
+  const [limitKind, setLimitKind] = useState<"hour" | "day">("hour");
   // The public drafter's hourly or daily limit (18 Nov 2026): one button that
   // keeps the draft on screen and opens a free account, instead of a dead end.
   const [publicLimit, setPublicLimit] = useState(false);
@@ -132,6 +134,7 @@ export default function TransitionDemo({
       if (!res.ok || !data.draft) {
         setError(data.error ?? "Something went wrong. Try again in a minute.");
         setLimitHit(data.code === "free_limit");
+        setLimitKind(data.limit === "day" ? "day" : "hour");
         if (!inApp && (data.code === "limit" || data.code === "daily_limit")) {
           setPublicLimit(true);
           trackEvent("wall_shown", { wall: "guide_drafter" });
@@ -270,7 +273,7 @@ export default function TransitionDemo({
         {allowanceNote}
         {limitHit && renderLimitWall && (
           <div className="mt-3">
-            {renderLimitWall({ notes, draft, framework, mode, dismiss: () => { setLimitHit(false); setError(""); } })}
+            {renderLimitWall({ notes, draft, framework, mode, limit: limitKind, dismiss: () => { setLimitHit(false); setError(""); } })}
           </div>
         )}
         {error && !(limitHit && renderLimitWall) && (

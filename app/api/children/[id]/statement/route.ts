@@ -6,6 +6,7 @@ import { consumeRateLimit } from "@/lib/rate-limit";
 import { StoryWriterUnavailableError } from "@/lib/ai/generate";
 import { generateTransitionDraft, type TransitionFramework, type TransitionMode } from "@/lib/ai/transition-draft";
 import {
+  STATEMENT_FREE_DAY_LIMIT,
   STATEMENT_FREE_LIMIT,
   STATEMENT_FREE_WINDOW_SECONDS,
   STATEMENT_MIN_STORIES,
@@ -64,11 +65,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       ? { scope: "child-statement", key: user.id, limit: STATEMENT_PAID_LIMIT, windowSeconds: 86_400 }
       : { scope: "child-statement-free", key: user.id, limit: STATEMENT_FREE_LIMIT, windowSeconds: STATEMENT_FREE_WINDOW_SECONDS },
   );
-  if (!allowed) {
+  const today = paid || !allowed || (await consumeRateLimit({ scope: "child-statement-free-day", key: user.id, limit: STATEMENT_FREE_DAY_LIMIT, windowSeconds: 86_400 }));
+  if (!allowed || !today) {
     return NextResponse.json(
       paid
         ? { error: "That is a lot of drafts for one day. Try again tomorrow.", code: "rate_limited" }
-        : { error: `The free plan includes ${STATEMENT_FREE_LIMIT} of these an hour. Educator includes as many as you need.`, code: "free_limit" },
+        : !allowed
+          ? { error: `The free plan includes ${STATEMENT_FREE_LIMIT} of these an hour. Educator includes as many as you need.`, code: "free_limit", limit: "hour" }
+          : { error: `The free plan includes ${STATEMENT_FREE_DAY_LIMIT} of these a day. Educator includes as many as you need.`, code: "free_limit", limit: "day" },
       { status: 429 },
     );
   }

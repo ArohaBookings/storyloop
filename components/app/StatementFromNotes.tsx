@@ -112,8 +112,8 @@ export default function StatementFromNotes({ freePlan = false }: { freePlan?: bo
             <AppLimitWall
               wall="statement"
               returnTo="/statement"
-              heading="You've used this hour's free drafts."
-              line="Your notes are still here. Try again in an hour, or keep going now: Educator covers as many as you need."
+              heading={work.limit === "day" ? "You've used today's free drafts." : "You've used this hour's free drafts."}
+              line={`Your notes are still here. Try again ${work.limit === "day" ? "tomorrow" : "in an hour"}, or keep going now: Educator covers as many as you need.`}
               onBeforeCheckout={() => keepWallWork({ page: "/statement", note: work.notes, storyId: null, draft: work.draft, framework: work.framework, mode: work.mode })}
               onDismiss={work.dismiss}
             />

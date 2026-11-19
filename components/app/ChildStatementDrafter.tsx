@@ -44,6 +44,7 @@ export default function ChildStatementDrafter({
   const [error, setError] = useState("");
   // The free allowance is used up: the wall (lib/app-wall.ts) instead of a red line.
   const [limitHit, setLimitHit] = useState(false);
+  const [limitKind, setLimitKind] = useState<"hour" | "day">("hour");
   const [draft, setDraft] = useState<TransitionDraft | null>(null);
   const [used, setUsed] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -85,6 +86,7 @@ export default function ChildStatementDrafter({
       if (!res.ok || !data.draft) {
         setError(data.error ?? "Something went wrong. Try again in a minute.");
         setLimitHit(!paid && data.code === "free_limit");
+        setLimitKind(data.limit === "day" ? "day" : "hour");
         track("statement_error", { status: res.status, code: data.code ?? null });
         return;
       }
@@ -223,8 +225,8 @@ export default function ChildStatementDrafter({
           <AppLimitWall
             wall="statement"
             returnTo={page}
-            heading="You've used this hour's free drafts."
-            line={`${childName}'s stories are all saved. Try again in an hour, or keep going now: Educator includes as many as you need.`}
+            heading={limitKind === "day" ? "You've used today's free drafts." : "You've used this hour's free drafts."}
+            line={`${childName}'s stories are all saved. Try again ${limitKind === "day" ? "tomorrow" : "in an hour"}, or keep going now: Educator includes as many as you need.`}
             onBeforeCheckout={() => keepWallWork({ page, note: "", storyId: null, draft, framework, mode })}
             onDismiss={() => {
               setLimitHit(false);
