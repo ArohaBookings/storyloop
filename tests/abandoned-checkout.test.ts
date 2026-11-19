@@ -69,7 +69,7 @@ test("the email restates the terms that checkout actually offered", () => {
   assert.match(centre.text, /30 days free with no card needed/);
   assert.doesNotMatch(centre.text, /7-day/);
   const returning = render({ planLabel: "Centre Growth", trialDays: 0 });
-  assert.match(returning.text, /cancel from Billing at any time/);
+  assert.match(returning.text, /yours to change on the Billing page at any time/);
   for (const email of [offer, centre, returning]) {
     for (const bad of ["undefined", "NaN", "null", "${"]) assert.ok(!email.html.includes(bad) && !email.text.includes(bad), `leaked ${bad}`);
   }

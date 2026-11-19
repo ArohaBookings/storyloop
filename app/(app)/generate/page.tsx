@@ -49,6 +49,7 @@ import { nextStoryCard, shouldOfferNextStory, type NextStoryChoice } from "@/lib
 import { trackEvent } from "@/lib/analytics/track-event";
 import { claimPrompt, mayShowPrompt, reviewCopyCounts, type LeaderAnswer, type PromptSlot } from "@/lib/one-prompt";
 import { keepWallWork, takeWallWork } from "@/lib/app-wall";
+import { readKeptStory } from "@/lib/keep-story";
 import { looksNonLatin } from "@/lib/note-language";
 import { ROOM_HANDOFF_STORY } from "@/lib/room-mode";
 import type { ChildProfile } from "@/lib/children";
@@ -161,6 +162,11 @@ export default function GeneratePage() {
   const [children, setChildren] = useState<ChildProfile[]>([]);
   const [selectedChildId, setSelectedChildId] = useState("");
   const [childName, setChildName] = useState("");
+  // A story kept from the demo, arriving with this visit (read before KeepStoryImporter files it away).
+  const keptStoryAtLoad = useRef(false);
+  useEffect(() => {
+    keptStoryAtLoad.current = Boolean(readKeptStory({ includeUnconfirmed: true }));
+  }, []);
   const [educatorNames, setEducatorNames] = useState("");
   const [ageGroup, setAgeGroup] = useState("");
   const [tone, setTone] = useState<StoryTone>("natural");
@@ -340,7 +346,9 @@ export default function GeneratePage() {
           // Arriving straight from signup (?welcome=1) always gets the guided
           // first-story wizard, even if it was dismissed in a past session.
           const justSignedUp = searchParams.get("welcome") === "1";
-          setShowFirstStoryWizard(justSignedUp || window.sessionStorage.getItem("storyloop-first-story-wizard") !== "dismissed");
+          // Not over a story she kept from before signing up (review 2, R2-10): she has just
+          // written one, and its "saved" note is the one prompt on the screen.
+          setShowFirstStoryWizard(!keptStoryAtLoad.current && (justSignedUp || window.sessionStorage.getItem("storyloop-first-story-wizard") !== "dismissed"));
 
           // Put the sample IN the box rather than behind a button. 61% of
           // signups never write a first story, and the landing page showed the
@@ -650,7 +658,9 @@ export default function GeneratePage() {
           setStory(saved.story_text);
           setStoryDraft(saved.story_text);
           setStoryId(keptId);
-          if (typeof saved.child_name === "string") setChildName(saved.child_name);
+          // Shown again for her to see, never carried into the next story (review 2, R2-00): the
+          // note in the box may be about another child, so the child's name, profile and age stay
+          // exactly as she leaves them for THIS note (empty unless she types or picks one).
           if (Array.isArray(saved.next_steps)) setNextSteps(saved.next_steps.filter((item: unknown): item is string => typeof item === "string"));
         })
         .catch(() => {});

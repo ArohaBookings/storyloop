@@ -130,7 +130,7 @@ export function renderProMonthOfferEmail(input: ProMonthEmailInput) {
       <tr><td style="padding:18px 20px;">
         <p class="sl-title" style="margin:0 0 8px;font-size:15px;font-weight:800;color:#1f1b18;">How the free month works</p>
         <p class="sl-text" style="margin:0 0 6px;font-size:14px;line-height:1.6;color:#3a332f;">Every Pro feature and unlimited stories, free for 30 days from the day you start. Start today and nothing is charged until <strong>${esc(input.firstChargeIfToday)}</strong>.</p>
-        <p class="sl-text" style="margin:0 0 6px;font-size:14px;line-height:1.6;color:#3a332f;">Stripe saves a card so Pro carries on if you like it: then ${esc(price)} a month. Switch to Educator (${esc(educatorPrice)}) or cancel in two clicks in Billing before then and you pay nothing.</p>
+        <p class="sl-text" style="margin:0 0 6px;font-size:14px;line-height:1.6;color:#3a332f;">Stripe saves a card so Pro carries on if you like it: then ${esc(price)} a month. Switch to Educator (${esc(educatorPrice)}) or change your plan on the Billing page before then and you pay nothing.</p>
         <p class="sl-text" style="margin:0;font-size:14px;line-height:1.6;color:#3a332f;">We email you 3 days before the first charge. Claim by ${esc(input.claimBy)}.</p>
       </td></tr>
     </table>
@@ -166,7 +166,7 @@ export function renderProMonthOfferEmail(input: ProMonthEmailInput) {
     "",
     "How the free month works:",
     `Every Pro feature and unlimited stories, free for 30 days from the day you start. Start today and nothing is charged until ${input.firstChargeIfToday}.`,
-    `Stripe saves a card so Pro carries on if you like it: then ${price} a month. Switch to Educator (${educatorPrice}) or cancel in Billing before then and you pay nothing.`,
+    `Stripe saves a card so Pro carries on if you like it: then ${price} a month. Switch to Educator (${educatorPrice}) or change your plan on the Billing page before then and you pay nothing.`,
     `We email you 3 days before the first charge. Claim by ${input.claimBy}.`,
     "",
     `Start my free month: ${input.ctaUrl}`,

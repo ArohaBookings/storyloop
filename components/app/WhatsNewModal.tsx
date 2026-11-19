@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { layoutCardMayOpen } from "@/lib/one-prompt";
+import { readKeptStory } from "@/lib/keep-story";
 import Link from "next/link";
 import { BarChart3, BookOpen, Check, Copy, CreditCard, Download, Gift, MessageCircleHeart, RefreshCw, ShieldCheck, Sparkles, Star, Sunrise, Users, X, Camera } from "lucide-react";
 import { WHATS_NEW_ITEMS, type WhatsNewItem, whatsNewDismissedKey, whatsNewMonth } from "@/lib/whats-new";
@@ -68,6 +70,10 @@ export default function WhatsNewModal() {
 
   useEffect(() => {
     let active = true;
+    // The lowest place of all prompts (lib/one-prompt.ts layoutCardMayOpen): not on a visit that
+    // arrives back from checkout, on a first-story welcome, or with a kept story. Not marked seen.
+    const navigation = performance.getEntriesByType?.("navigation")?.[0] as PerformanceNavigationTiming | undefined;
+    if (!layoutCardMayOpen(navigation?.name || window.location.href, Boolean(readKeptStory({ includeUnconfirmed: true })))) return;
     fetch("/api/whats-new")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {

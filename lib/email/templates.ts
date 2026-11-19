@@ -853,7 +853,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
           cta: "Restart StoryLoop",
           ctaUrl,
           unsubscribe,
-          secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">The discount is applied at checkout when you restart from this email, ${esc(until)}. No code needed. Cancel any time in Billing.</p>`,
+          secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">The discount is applied at checkout when you restart from this email, ${esc(until)}. No code needed. Your plan is yours to change on the Billing page at any time.</p>`,
           body: `<p>Hi ${esc(name)}, StoryLoop has moved on since you left.</p><p>Stories keep <strong>the child's own words</strong> exactly as you wrote them, there is an assistant that rewrites any line you highlight, and each child's saved stories now draft their <strong>transition statement or end-of-year summary</strong> in one step.</p><p>If the documentation is piling up again, restart from this email and you get <strong>${esc(offer)}</strong>, ${esc(until)}. Your old stories are all still there.</p><p>No pressure either way, and thank you for having given it a go.</p>`,
         }),
         text: plain({ title: subject, lines, cta: "Restart StoryLoop", ctaUrl, unsubscribe }),
@@ -874,8 +874,8 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
         : ctx.centreTrial
           ? `It is ${ctx.centreTrialWords ?? `${ctx.trialDays ?? 30} days free`} with no card needed. If you do not add one, it simply ends and nothing is charged.`
           : (ctx.trialDays ?? 7) > 0
-            ? `It is a ${ctx.trialDays ?? 7}-day free trial. Nothing is charged until it ends, and you can cancel from Billing before then.`
-            : "You can cancel from Billing at any time.";
+            ? `It is a ${ctx.trialDays ?? 7}-day free trial. Nothing is charged until it ends, and your plan is yours to change on the Billing page before then.`
+            : "Your plan is yours to change on the Billing page at any time.";
       const termsHtml = esc(terms);
       const subject = ctx.offerCode ? "Your free month of StoryLoop Pro has not started yet" : "Your StoryLoop trial has not started yet";
       const lines = [
@@ -956,7 +956,6 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
           cta: "Write one story",
           ctaUrl,
           unsubscribe,
-          secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">If you are just between terms, reply and tell us. We can pause your payments for a month or two rather than you cancelling.</p>`,
           body: `<p>Hi ${esc(name)},</p>${
             stories
               ? `<p>You wrote <strong>${stories} learning stories</strong> and then it went quiet.</p>`

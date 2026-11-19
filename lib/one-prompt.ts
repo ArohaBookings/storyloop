@@ -101,3 +101,24 @@ export function reviewCopyCounts(screen: PromptScreen, leader: LeaderAnswer): "c
   if (leader === "declined") return "count";
   return leader === "unknown" ? "wait" : "skip";
 }
+
+/**
+ * The full-screen "What's new" and referral card (components/app/WhatsNewModal.tsx)
+ * has the lowest place of all (review 2, R2-01): it never opens on a visit
+ * that arrived back from checkout (?upgraded=, ?checkout=), on a first-story
+ * welcome (?welcome=), or with a story kept from before signup, because each of
+ * those visits opens with its own prompt. It waits for her next visit, and is
+ * not marked seen. `landingUrl` is the address the visit arrived on (the page
+ * may already have tidied its address bar). Pure.
+ */
+export function layoutCardMayOpen(landingUrl: string, keptStoryArriving = false): boolean {
+  if (keptStoryArriving) return false;
+  let search = "";
+  try {
+    search = new URL(landingUrl, "https://storyloop.space").search;
+  } catch {
+    return false;
+  }
+  const params = new URLSearchParams(search);
+  return !params.has("upgraded") && !params.has("checkout") && !params.has("welcome");
+}

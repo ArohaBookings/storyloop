@@ -135,3 +135,24 @@ test("the story page and Story history ask this one place before they show any o
   assert.match(history, /onCopied=\{noteReviewCopy\}/);
   assert.equal(/setReviewCopies\(\(n\) => n \+ 1\)\}/.test(history), false, "no copy counts outside the rule");
 });
+
+test("R2-01: the What's new and referral card never opens on a checkout return, a welcome or a kept story", async () => {
+  const { layoutCardMayOpen } = await import("../lib/one-prompt");
+  assert.equal(layoutCardMayOpen("https://storyloop.space/generate?upgraded=true&plan=educator&session_id=cs_1"), false);
+  assert.equal(layoutCardMayOpen("https://storyloop.space/statement?checkout=cancelled&plan=educator"), false);
+  assert.equal(layoutCardMayOpen("https://storyloop.space/dashboard?upgraded=true&plan=centre_starter"), false);
+  assert.equal(layoutCardMayOpen("https://storyloop.space/generate?welcome=1"), false);
+  assert.equal(layoutCardMayOpen("https://storyloop.space/generate", true), false, "a kept story is arriving");
+  assert.equal(layoutCardMayOpen("https://storyloop.space/history"), true, "an ordinary visit");
+  const modal = readFileSync(new URL("../components/app/WhatsNewModal.tsx", import.meta.url), "utf8");
+  const effect = modal.slice(modal.indexOf("useEffect(() => {"), modal.indexOf('fetch("/api/whats-new")'));
+  assert.match(effect, /if \(!layoutCardMayOpen\(navigation\?\.name \|\| window\.location\.href, Boolean\(readKeptStory\(\{ includeUnconfirmed: true \}\)\)\)\) return;/, "checked before it asks the server or marks anything seen");
+});
+
+test("R2-00 and R2-10: a return from checkout never carries the last story's child into the next one; no wizard over a kept story", () => {
+  const page = readFileSync(new URL("../app/(app)/generate/page.tsx", import.meta.url), "utf8");
+  const effect = page.slice(page.indexOf("const work = takeWallWork(\"/generate\");"), page.indexOf("const keepWorkForCheckout"));
+  assert.ok(effect.length > 100);
+  assert.doesNotMatch(effect, /setChildName|setSelectedChildId|setAgeGroup/, "the restored story is shown, never its child");
+  assert.match(page, /setShowFirstStoryWizard\(!keptStoryAtLoad\.current && /);
+});
