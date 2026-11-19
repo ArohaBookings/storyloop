@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFileSync } from "node:fs";
 import type { Membership } from "../lib/centres";
 import {
   canLinkProfiles,
@@ -275,6 +276,11 @@ test("the sample is invented, labelled by id, and never a record a route would a
   assert.equal(waitingCount(queue), queue.length - 1);
   // Only first names: no surname, no address.
   for (const item of queue) assert.ok(/^[A-Z][a-z]+$/.test(item.author) && /^[A-Z][a-z]+$/.test(item.childName ?? ""), `${item.author} ${item.childName}`);
+});
+
+test("every sample card says Example (release decision, 19 Nov 2026)", () => {
+  const queue = readFileSync(new URL("../components/app/TeamReviewQueue.tsx", import.meta.url), "utf8");
+  assert.match(queue, /\{sample && \(\s*<span[^>]*data-testid="sample-label">\s*Example\s*<\/span>/);
 });
 
 test("the sample team's evidence works and counts Mia once", () => {

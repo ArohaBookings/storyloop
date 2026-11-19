@@ -13,7 +13,8 @@ import { agoLabel, waitingCount, whenLabel, type TeamQueueItem, type TeamReviewV
  * short note, which the author sees on her own story. Nothing else.
  *
  * In the sample team (lib/sample-team.ts) the same cards work on the page
- * only: nothing is saved, sent or counted, and every card says "Sample".
+ * only: nothing is saved, sent or counted, and every card says "Example"
+ * (release decision, 19 Nov 2026).
  */
 export default function TeamReviewQueue({ items, sample = false }: { items: TeamQueueItem[]; sample?: boolean }) {
   const [reviews, setReviews] = useState<Record<string, TeamReviewView | null>>(() =>
@@ -107,7 +108,7 @@ function QueueCard({
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         {sample && (
           <span className="rounded-full bg-clay-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-clay-800" data-testid="sample-label">
-            Sample
+            Example
           </span>
         )}
         <p className="min-w-0 text-sm font-semibold text-ink-900">{heading}</p>
