@@ -349,6 +349,7 @@ export default async function SeoPage({ params }: PageProps) {
                 framework={heroDrafter.framework}
                 mode={heroDrafter.mode}
                 choices={heroDrafter.choices}
+                followZone={page.slug === "end-of-year-learning-summary"}
                 example={heroExample}
                 official={page.officialLinks?.heading}
               />
@@ -587,6 +588,7 @@ export default async function SeoPage({ params }: PageProps) {
                     framework={TRANSITION_DEMOS[page.slug].framework}
                     mode={TRANSITION_DEMOS[page.slug].mode}
                     choices={TRANSITION_DEMOS[page.slug].choices}
+                    followZone={page.slug === "end-of-year-learning-summary"}
                   />
                 </div>
               )}

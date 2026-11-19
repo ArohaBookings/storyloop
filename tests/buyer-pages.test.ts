@@ -303,13 +303,10 @@ test("the re-aimed product pages open on the product, and the cost and checklist
   assert.match(table, /"centre_starter", "centre_growth"/);
   assert.match(table, /Unlimited children, no per-child fee/);
   assert.doesNotMatch(table, /per educator|per-educator|platforms/i);
-  // C3, and the checklist the new title promises.
+  // Review 2, R2-12: /assessment-and-rating-evidence is put back exactly as on the live site (not re-aimed).
   const rating = SEO_PAGES["assessment-and-rating-evidence"];
-  assert.equal(rating.description, "What an assessor reads in your documentation for Standard 1.3, and a checklist to work through in the few days' notice you get.");
-  assert.match(rating.title, /checklist/i);
-  assert.equal(rating.checklist?.items.length, 6);
-  assert.match(rating.checklist?.note ?? "", /centre plan/);
-  assert.equal(rating.checklist?.link.href, "/for-centres");
+  assert.equal(rating.title, "Assessment and Rating: the evidence to have ready");
+  assert.equal(rating.checklist, undefined);
   // The centre landing's first phone screen (scope decision, 19 Nov 2026): one line on the job, one
   // button, the day's free period with no card, and the flat price in her currency.
   const intro = SEO_PAGES["for-centres"].intro;
@@ -429,4 +426,10 @@ test("the copied messages carry no child's name and no referral code; the tap co
   const arrival = source("components/buyer/FamilyArrival.tsx");
   assert.match(arrival, /get\("utm_source"\) === "family"/);
   assert.doesNotMatch(arrival, /fetch\(|trackEvent|localStorage/);
+});
+
+test("review 2, R2-08: a sample note is called an example, never an educator's note", () => {
+  const chip = readFileSync("components/buyer/ProofChip.tsx", "utf8");
+  assert.match(chip, />An example note</);
+  assert.doesNotMatch(chip, /An educator&apos;s note|An educator's note/);
 });

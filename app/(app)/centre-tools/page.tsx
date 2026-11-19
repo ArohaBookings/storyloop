@@ -187,10 +187,10 @@ export default function CentreToolsPage() {
                 <label className="label">Default export style</label>
                 <select value={exportStyle} onChange={(event) => setExportStyle(event.target.value)} disabled={!canUseCalibration} className="input">
                   <option value="balanced">Balanced</option>
-                  <option value="storypark">Storypark-style</option>
-                  <option value="educa">Educa-style</option>
-                  <option value="kinderloop">Kinderloop-style</option>
-                  <option value="brightwheel">Brightwheel-style</option>
+                  <option value="storypark">Story layout</option>
+                  <option value="educa">Portfolio layout</option>
+                  <option value="kinderloop">Short update</option>
+                  <option value="brightwheel">Family update</option>
                 </select>
               </div>
               <button type="button" onClick={saveSettings} disabled={saving || !canUseCalibration} className="btn-primary w-full justify-center py-3 disabled:opacity-50">

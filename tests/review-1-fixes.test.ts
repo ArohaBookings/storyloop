@@ -42,3 +42,13 @@ test("R1-06: the sharing switch says exactly what a leader sees", () => {
   assert.match(page, /Share my stories and notes with my leaders/);
   assert.doesNotMatch(page, /Share my stories with leadership/);
 });
+
+test("review 2: the data sheet states privacy facts only, and the end-of-year guide opens on her own curriculum", () => {
+  const sheet = readFileSync("app/data-sheet/page.tsx", "utf8");
+  assert.doesNotMatch(sheet, /daily diary|rolls, fees|subsidy admin|No photo or video sharing/);
+  assert.match(sheet, /It takes and stores no photos or videos of children\./);
+  const slug = readFileSync("app/[slug]/page.tsx", "utf8");
+  assert.equal((slug.match(/followZone=\{page\.slug === "end-of-year-learning-summary"\}/g) ?? []).length, 2, "the hero drafter and the one further down");
+  const demo = readFileSync("components/marketing/TransitionDemo.tsx", "utf8");
+  assert.match(demo, /const own = frameworkForZone\(zone\);\n\s+if \(\(choices \?\? \[\]\)\.includes\(own\)\) setFramework\(own\);/);
+});

@@ -26,19 +26,19 @@ export type ExportPack = {
 
 const PLATFORM_COPY: Record<ExportPlatform, { label: string; description: string }> = {
   storypark: {
-    label: "Storypark",
+    label: "Story layout",
     description: "Story first, then learning analysis, next steps, and family question.",
   },
   educa: {
-    label: "Educa",
+    label: "Portfolio layout",
     description: "Learning story, curriculum links, teacher response, and family engagement.",
   },
   kinderloop: {
-    label: "Kinderloop",
+    label: "Short update",
     description: "Short update-friendly copy with a clear observation and home prompt.",
   },
   brightwheel: {
-    label: "Brightwheel",
+    label: "Family update",
     description: "Parent-readable activity update plus developmental learning note.",
   },
 };

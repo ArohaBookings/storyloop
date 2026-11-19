@@ -156,3 +156,10 @@ test("R2-00 and R2-10: a return from checkout never carries the last story's chi
   assert.doesNotMatch(effect, /setChildName|setSelectedChildId|setAgeGroup/, "the restored story is shown, never its child");
   assert.match(page, /setShowFirstStoryWizard\(!keptStoryAtLoad\.current && /);
 });
+
+test("R2-09: on the dashboard the centre card is the only card while it is up; the quiet-payer card needs a past story", () => {
+  const page = readFileSync(new URL("../app/(app)/dashboard/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /const quietSince = payingNow && daysSinceStory !== null && daysSinceStory >= 14;/);
+  assert.match(page, /const centreCardUp = startedCentre \|\| Boolean\(centreSetup\);\n\s+const showQuietNudge = quietSince && !centreCardUp;/);
+  assert.match(page, /\{centreCardUp \? null : \(totalStories \?\? 0\) === 0 \? \(/);
+});

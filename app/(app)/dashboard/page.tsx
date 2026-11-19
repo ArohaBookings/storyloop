@@ -52,7 +52,8 @@ export default async function DashboardPage({
   const lastStoryAt = recentStories?.[0]?.created_at ? new Date(recentStories[0].created_at).getTime() : null;
   const daysSinceStory = lastStoryAt === null ? null : Math.floor((Date.now() - lastStoryAt) / 86_400_000);
   const payingNow = !cover && plan !== "free" && ["active", "trialing", "past_due"].includes(profile?.subscription_status ?? "");
-  const showQuietNudge = payingNow && (daysSinceStory === null || daysSinceStory >= 14);
+  // Only for a payer who wrote before and then stopped (review 2, R2-09), never on day one.
+  const quietSince = payingNow && daysSinceStory !== null && daysSinceStory >= 14;
   const used = profile?.stories_this_month ?? 0;
   const limit = getMonthlyStoryLimit(access ?? {});
   const remaining = getRemainingStories(access ?? {});
@@ -76,6 +77,9 @@ export default async function DashboardPage({
       centreSetup = null;
     }
   }
+  // One prompt on the dashboard (review 2, R2-09): while the centre card is up it is the only card.
+  const centreCardUp = startedCentre || Boolean(centreSetup);
+  const showQuietNudge = quietSince && !centreCardUp;
 
   // This month in numbers, and a free month if one is waiting. Best effort:
   // any failure shows the panel with what could be read.
@@ -258,7 +262,7 @@ export default async function DashboardPage({
       </div>
 
       {/* Quick action — first-run onboarding for new educators, compact CTA for returning */}
-      {(totalStories ?? 0) === 0 ? (
+      {centreCardUp ? null : (totalStories ?? 0) === 0 ? (
         <div className="card-warm animate-fade-up-1 p-8 mb-8 relative overflow-hidden">
           <div className="absolute inset-0 bg-warm-mesh pointer-events-none" />
           <div className="relative z-10">

@@ -1073,36 +1073,14 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   // generally gives ONE TO FIVE DAYS' notice of a site visit. Every director
   // who has been through it knows that number and it reframes the whole
   // problem, because a term of evidence cannot be rebuilt in five days.
+  // Put back exactly as on the live site (review 2, R2-12): not re-aimed in this release.
   "assessment-and-rating-evidence": {
     slug: "assessment-and-rating-evidence",
-    title: "Assessment and rating checklist: documentation evidence",
+    title: "Assessment and Rating: the evidence to have ready",
     description:
-      "What an assessor reads in your documentation for Standard 1.3, and a checklist to work through in the few days' notice you get.",
-    siblingLinks: {
-      heading: "Getting the team ready",
-      links: [
-        { label: "An educational leader checklist", href: "/educational-leader-checklist" },
-        { label: "Exceeding the NQS: what documentation shows", href: "/exceeding-nqs-documentation" },
-      ],
-    },
+      "Regulatory authorities generally give 1-5 days' notice of a visit. What Standard 1.3 evidence to have ready, and the gaps that surface under pressure.",
     kicker: "Director guide · Australia and Aotearoa",
     heading: "You get a few days' notice, not a few weeks.",
-    // The title promises a checklist, so it is on the first screen (18 Nov 2026
-    // re-aim). Every tick is from "A sequence that fits in the notice period" and
-    // "The four gaps" below; the note is what the centre plan's evidence pack does.
-    checklist: {
-      heading: "In the days before the visit",
-      items: [
-        "List every child and the date of their last story.",
-        "Give the children with least written to the educators who know them best.",
-        "Walk the open next steps and record what was actually tried.",
-        "Write down the reflections that only happened in conversation.",
-        "Bring family voice back into each child's records.",
-        "Talk through one child's cycle, start to end, as an assessor would.",
-      ],
-      note: "On a centre plan, each educator's evidence pack counts her children's stories, next steps, reflection and family voice, with the gaps first.",
-      link: { label: "What a centre plan gives a leader", href: "/for-centres" },
-    },
     intro:
       "ACECQA's process page says regulatory authorities generally provide one to five days' notice that a site visit will occur, and an assessment that starts in response to compliance issues may start with no notice at all. That is the real constraint. Nobody rebuilds a term of documentation in five days, so the evidence either exists by then or it does not. This page sets out what to have ready and where the gaps usually are.",
     reviewedAt: "2026-09-22",

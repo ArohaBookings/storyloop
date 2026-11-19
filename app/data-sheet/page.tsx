@@ -74,10 +74,10 @@ const ROWS: Row[] = [
     ],
   },
   {
-    label: "What it does not do",
+    label: "What it never does with children's information",
     lines: [
       "It does not publish, it does not send, and it does not decide what is true about a child.",
-      "No photo or video sharing, no daily diary, and no rolls, fees or subsidy admin.",
+      "It takes and stores no photos or videos of children.",
     ],
   },
   {

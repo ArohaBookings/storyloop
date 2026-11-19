@@ -52,3 +52,12 @@ test("the story page and History put it right after Copy and copying a pack is r
   assert.match(button, /trackEvent\("copy_pack_opened", \{ story_id: storyId \|\| null \}\)/);
   assert.doesNotMatch(button, /window\.open|dialog|modal/i, "no pop-up: it scrolls to the packs already on the page");
 });
+
+test("review 2: every copy pack is named by what the format is, never by another product", () => {
+  const visible = ["lib/export-packs.ts", "components/app/ExportPackPanel.tsx", "app/(app)/centre-tools/page.tsx"].map((file) =>
+    readFileSync(file, "utf8").replace(/\b(platform|value|exportStyle|key)\s*[:=]\s*"[a-z]+"/g, "").replace(/"(storypark|educa|kinderloop|brightwheel)"/g, ""),
+  );
+  for (const text of visible) {
+    assert.doesNotMatch(text.replace(/\/\/.*$/gm, ""), />[^<]*(Storypark|Educa\b|Kinderloop|Brightwheel)[^<]*<|label: "(Storypark|Educa|Kinderloop|Brightwheel)"/);
+  }
+});

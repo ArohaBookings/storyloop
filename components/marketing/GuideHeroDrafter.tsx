@@ -29,6 +29,7 @@ export default function GuideHeroDrafter({
   choices,
   example,
   official,
+  followZone = false,
 }: {
   framework: TransitionFramework;
   mode: TransitionMode;
@@ -36,6 +37,8 @@ export default function GuideHeroDrafter({
   example: HeroExample | null;
   /** The official login or form box, now just below the drafter: one line here points to it. */
   official?: string;
+  /** Open the drafter on the visitor's own curriculum (review 2, R2-11). */
+  followZone?: boolean;
 }) {
   return (
     <div className="mt-3 sm:mt-6" data-testid="guide-hero-drafter-block">
@@ -66,7 +69,7 @@ export default function GuideHeroDrafter({
         </div>
       )}
       <div id="transition-try" className="mt-2 max-w-5xl scroll-mt-24 sm:mt-3">
-        <TransitionDemo framework={framework} mode={mode} choices={choices} hero />
+        <TransitionDemo framework={framework} mode={mode} choices={choices} hero followZone={followZone} />
       </div>
     </div>
   );

@@ -107,7 +107,7 @@ export default function ExportPackPanel({
     <section className="story-safe mt-5 max-w-full overflow-hidden rounded-3xl border border-sage-200 bg-gradient-to-br from-white via-sage-50 to-cream-50 p-5 shadow-soft">
       <div className="mb-4">
         <p className="section-title mb-1">Export packs</p>
-        <h3 className="font-display text-xl font-bold text-ink-900">Paste into Storypark, Educa, Kinderloop, or Brightwheel.</h3>
+        <h3 className="font-display text-xl font-bold text-ink-900">Paste into the app your centre uses.</h3>
         <p className="mt-1 text-xs leading-relaxed text-ink-600">
           Same story, rearranged into the sections each platform usually expects.
         </p>

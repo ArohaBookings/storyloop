@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { frameworkForZone } from "@/lib/statement-from-notes";
 import Link from "next/link";
 import { Check, Copy, Loader2, Sparkles, UserRoundPlus } from "lucide-react";
 import { track } from "@/lib/analytics/client";
@@ -57,6 +58,7 @@ export default function TransitionDemo({
   initialDraft,
   renderLimitWall,
   hero = false,
+  followZone = false,
 }: {
   framework: TransitionFramework;
   mode: TransitionMode;
@@ -91,8 +93,19 @@ export default function TransitionDemo({
    * wrapper spacing and the order of the button row change.
    */
   hero?: boolean;
+  /** Open on the visitor's own curriculum, from her time zone (review 2, R2-11), when it is one of the choices. */
+  followZone?: boolean;
 }) {
   const [framework, setFramework] = useState<TransitionFramework>(initialFramework);
+  useEffect(() => {
+    if (!followZone || initialDraft) return;
+    let zone = "";
+    try { zone = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { /* keep the page's own */ }
+    const own = frameworkForZone(zone);
+    if ((choices ?? []).includes(own)) setFramework(own);
+    // Once, on arrival.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [notes, setNotes] = useState(initialNotes ?? "");
   const [usingSample, setUsingSample] = useState(false);
   const [loading, setLoading] = useState(false);
