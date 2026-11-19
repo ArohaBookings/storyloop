@@ -359,7 +359,7 @@ export async function loadTeamChildren(ctx: TeamContext): Promise<TeamChildren> 
   try {
     const admin = createAdminSupabase();
     const [{ data: profileRows }, { data: centreRows }, { data: linkRows }] = await Promise.all([
-      admin.from("child_profiles").select("id, name, user_id, age_group, interests").in("user_id", scope.authorIds).order("name").limit(2000),
+      admin.from("child_profiles").select("id, name, user_id, age_group, interests, created_at").in("user_id", scope.authorIds).order("name").limit(2000),
       admin.from("centre_children").select("id, name").eq("centre_id", ctx.centre.id),
       admin.from("centre_child_links").select("child_profile_id, centre_child_id").eq("centre_id", ctx.centre.id),
     ]);
@@ -373,7 +373,8 @@ export async function loadTeamChildren(ctx: TeamContext): Promise<TeamChildren> 
     const rows = (profileRows ?? []).filter((row) => {
       const author = row.user_id as string;
       if (!allowed.has(author)) return false;
-      return author === (scope.viewerId ?? scope.authorIds[0]) || recent.has(`${author}:${row.id}`);
+      // Hers; or another member's child she wrote about, or added, on or after her floor (R1-08).
+      return author === (scope.viewerId ?? scope.authorIds[0]) || recent.has(`${author}:${row.id}`) || inTeamWindow(scope, author, row.created_at as string);
     });
     const saved: TeamChildProfile[] = rows.map((row) => ({ id: row.id as string, name: (row.name as string) ?? "", authorId: row.user_id as string }));
     const named = nameOnlyChildren(readable.map((row) => ({ user_id: row.user_id as string, child_id: (row.child_id as string | null) ?? null, child_name: (row.child_name as string | null) ?? null })), saved);
