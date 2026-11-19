@@ -3,7 +3,7 @@ import { SEO_PAGES, SEO_PAGE_SLUGS } from "@/lib/seo-pages";
 import { EYLF_OUTCOMES } from "@/lib/eylf-outcomes";
 import { TE_WHARIKI_STRANDS } from "@/lib/te-whariki-strands";
 import { listPublishedPosts } from "@/lib/blog";
-import { BUYER_PAGES, BUYER_PAGE_SLUGS } from "@/lib/buyer-pages";
+import { BUYER_PAGES, LIVE_BUYER_PAGE_SLUGS } from "@/lib/buyer-pages";
 
 const SITE_URL = "https://storyloop.space";
 
@@ -23,8 +23,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "printables/learning-story-template-eylf.pdf",
     ...EYLF_OUTCOMES.map((outcome) => `eylf-learning-outcomes/${outcome.slug}`),
     ...TE_WHARIKI_STRANDS.map((strand) => strand.slug),
-    // Pages for the people who buy (lib/buyer-pages.ts, 18 Nov 2026).
-    ...BUYER_PAGE_SLUGS,
+    // Pages for the people who buy (lib/buyer-pages.ts, 18 Nov 2026): only the ones this
+    // release serves; a page held out of it (HELD_BUYER_PAGES_ON) is not listed.
+    ...LIVE_BUYER_PAGE_SLUGS,
   ];
 
   const reviewedAt = (slug: string) => SEO_PAGES[slug]?.reviewedAt ?? (BUYER_PAGES as Record<string, { reviewedAt: string } | undefined>)[slug]?.reviewedAt;

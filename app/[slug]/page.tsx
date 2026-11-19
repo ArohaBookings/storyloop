@@ -14,6 +14,8 @@ import { withAnswerBlocks } from "@/lib/answer-blocks";
 import ProductHero, { type ProductHeroRegion } from "@/components/buyer/ProductHero";
 import CentrePriceTable from "@/components/buyer/CentrePriceTable";
 import FamilyArrival from "@/components/buyer/FamilyArrival";
+import CentrePriceWords from "@/components/buyer/CentrePriceWords";
+import { buyerPageLive, liveLinks } from "@/lib/buyer-pages";
 import GuideProof from "@/components/marketing/GuideProof";
 import InternationalTry from "@/components/marketing/InternationalTry";
 import TransitionDemo from "@/components/marketing/TransitionDemo";
@@ -279,6 +281,8 @@ export default async function SeoPage({ params }: PageProps) {
   const demo = TRANSITION_DEMOS[page.slug];
   const heroDrafter = HERO_DRAFTER_SLUGS.has(page.slug) && demo ? demo : null;
   const productHero = PRODUCT_HERO[page.slug] ?? null;
+  // Never a link to a page held out of the release (lib/buyer-pages.ts HELD_BUYER_PAGES_ON).
+  const siblingLinks = liveLinks(page.siblingLinks?.links ?? []);
   // A first screen with a tool on it, or a centre's one button: less space above on a phone.
   const tightHero = Boolean(heroDrafter || productHero || page.checklist || CENTRE_SLUGS.has(page.slug));
   // A product hero or a first-screen checklist needs a two-line heading on a phone to fit.
@@ -310,7 +314,7 @@ export default async function SeoPage({ params }: PageProps) {
         <section className="pb-16 paper-texture">
           <div className="wide-shell">
             {/* Someone sent here by a family's message from /ask-your-centre (nothing shows otherwise). */}
-            {page.slug === "for-centres" && <FamilyArrival />}
+            {page.slug === "for-centres" && buyerPageLive("ask-your-centre") && <FamilyArrival />}
             <p className={`section-title ${tightHero ? "mb-1.5 sm:mb-4" : "mb-4"}`}>{page.kicker}</p>
             <h1 className={`font-display font-bold text-ink-900 tracking-tight max-w-5xl ${heroDrafter ? "text-[24px] leading-[1.15] sm:text-5xl md:text-6xl" : compactHeading ? "text-[1.65rem] leading-[1.12] text-balance sm:text-5xl md:text-6xl" : "text-4xl sm:text-5xl md:text-6xl"}`}>
               {page.heading}
@@ -421,6 +425,21 @@ export default async function SeoPage({ params }: PageProps) {
                     Setting it up for a whole centre?
                   </Link>
                 </>
+              ) : page.slug === "for-centres" ? (
+                // The centre landing's first phone screen (scope decision, 19 Nov 2026): one line on
+                // the job, one button, the free period as it stands that day with no card, and the
+                // flat price in her currency. The founding offer and the rest follow below.
+                <span className="flex flex-col gap-1">
+                  <Link href="/signup?plan=centre_starter" className="btn-primary justify-center" data-track="guide_hero_centre_month">
+                    Start your centre free
+                  </Link>
+                  <span className="text-center text-sm text-ink-600" data-testid="guide-centre-trial">
+                    <CentreTrialWords initial={centreTrialWordsCapital(new Date())} capital />, no card.
+                  </span>
+                  <span className="text-center text-sm text-ink-600" data-testid="guide-centre-price">
+                    <CentrePriceWords />, unlimited children.
+                  </span>
+                </span>
               ) : page.slug === "learning-story-software-cost-for-centres" ? (
                 // The start button is under the price table, on the first screen (CentrePriceTable).
                 <Link href="#founding" className="btn-secondary justify-center">
@@ -481,11 +500,11 @@ export default async function SeoPage({ params }: PageProps) {
                 Or see a finished example first
               </Link>
             )}
-            {page.siblingLinks && (
+            {page.siblingLinks && siblingLinks.length > 0 && (
               <nav aria-label={page.siblingLinks.heading} className="mt-6 max-w-4xl" data-testid="sibling-links">
                 <p className="text-sm font-semibold text-ink-700">{page.siblingLinks.heading}</p>
                 <ul className="mt-2 flex flex-wrap gap-2">
-                  {page.siblingLinks.links.map((link) => (
+                  {siblingLinks.map((link) => (
                     <li key={link.href}>
                       <Link href={link.href} className="inline-flex min-h-11 items-center rounded-full border border-clay-200 bg-white px-4 text-sm font-semibold text-clay-800 transition-colors hover:border-clay-400">
                         {link.label}
@@ -607,9 +626,9 @@ export default async function SeoPage({ params }: PageProps) {
               <article key={section.title} className="card p-6">
                 <h2 className="font-display text-xl font-bold text-ink-900 mb-3"><OfferText text={section.title} /></h2>
                 <p className="text-sm text-ink-600 leading-relaxed"><OfferText text={section.body} /></p>
-                {section.links?.length ? (
+                {section.links && liveLinks(section.links).length ? (
                   <ul className="mt-2">
-                    {section.links.map((link) => (
+                    {liveLinks(section.links).map((link) => (
                       <li key={link.href}>
                         <Link href={link.href} className="inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900">
                           {link.label} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />

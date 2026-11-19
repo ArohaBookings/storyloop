@@ -1,4 +1,5 @@
 import type { PrintableKey } from "@/lib/printables";
+import { liveLinks } from "@/lib/buyer-pages";
 import { RELATED, type RelatedKey } from "./Guide";
 
 /**
@@ -25,34 +26,37 @@ export const SLUG_PRINTABLES: Record<string, PrintableKey[]> = {
 // to their neighbours, so a reader who finished one had nowhere to go but back
 // to Google, and search engines saw no clusters. Six per page, never itself.
 // Since 18 Nov 2026 the free guides nearest each page for buyers (lib/buyer-pages.ts) link to it.
+// A list may name a seventh or eighth link after its six: it stands in while a page
+// above it is held out of the release (lib/buyer-pages.ts HELD_BUYER_PAGES_ON), and is
+// the link that page replaced, so a guide never shows fewer links than it did.
 export const SLUG_RELATED: Record<string, RelatedKey[]> = {
   "eylf-principles-and-practices": ["eylf", "eylfV2", "intentional", "reflection", "planning", "template"],
   "eylf-v2-changes": ["eylf", "eylfPrinciples", "eylfStories", "intentional", "template", "examples"],
   "eylf-learning-stories": ["auExamples", "aiObservations", "eylf", "eylfPrinciples", "template", "examples"],
   "australia-eylf-learning-stories": ["eylfStories", "auExamples", "eylf", "template", "examples", "transition"],
-  "eylf-planning-cycle": ["nqs13", "summative", "eylf", "intentional", "reflection", "leaderChecklist"],
+  "eylf-planning-cycle": ["nqs13", "summative", "eylf", "intentional", "reflection", "leaderChecklist", "nextSteps"],
   "intentional-teaching": ["eylfPrinciples", "planning", "eylf", "nextSteps", "reflection", "aiEducators"],
-  "critical-reflection-early-childhood": ["leaderChecklist", "exceeding", "nqs13", "planning", "leaderCheck", "aiEducators"],
-  "nqs-standard-1-3-assessment-and-planning": ["leaderChecklist", "exceeding", "nqs", "planning", "summative", "reflection"],
-  "nqs-standards": ["leaderChecklist", "exceeding", "nqs13", "planning", "reflection", "summative"],
-  "acecqa-documentation-guidance": ["workload", "leaderChecklist", "nqs13", "planning", "eylf", "safety"],
-  "assessment-and-rating-evidence": ["leaderChecklist", "exceeding", "nqs13", "planning", "leaderCheck", "centres"],
+  "critical-reflection-early-childhood": ["leaderChecklist", "exceeding", "nqs13", "planning", "leaderCheck", "aiEducators", "eylfPrinciples", "intentional"],
+  "nqs-standard-1-3-assessment-and-planning": ["leaderChecklist", "exceeding", "nqs", "planning", "summative", "reflection", "eylf", "transition"],
+  "nqs-standards": ["leaderChecklist", "exceeding", "nqs13", "planning", "reflection", "summative", "eylfObservations", "transition"],
+  "acecqa-documentation-guidance": ["workload", "leaderChecklist", "nqs13", "planning", "eylf", "safety", "observation", "template"],
+  "assessment-and-rating-evidence": ["leaderChecklist", "exceeding", "nqs13", "planning", "leaderCheck", "centres", "nqs", "reflection"],
   "te-whariki-principles": ["teWhariki", "strands", "teWhStories", "teWhPdf", "template", "aiPolicyNz"],
   "te-whariki-learning-stories": ["nzExamples", "teWhariki", "teWhPrinciples", "strands", "template", "nextSteps"],
   "te-whariki-pdf": ["teWhariki", "teWhPrinciples", "strands", "teWhStories", "template", "examples"],
   "nz-learning-stories": ["nzExamples", "teWhStories", "teWhariki", "teWhPrinciples", "template", "generator"],
   "learning-story-examples-eylf": ["eylfStories", "eylf", "eylfObservations", "preschoolExamples", "nextSteps", "template"],
   "learning-story-examples-nz": ["teWhStories", "teWhariki", "strands", "nextSteps", "template", "examples"],
-  "ero-early-childhood-regulation-2026": ["workload", "aiPolicyNz", "teWhStories", "teWhariki", "safety", "centres"],
+  "ero-early-childhood-regulation-2026": ["workload", "aiPolicyNz", "teWhStories", "teWhariki", "safety", "centres", "teWhPrinciples"],
   "observation-methods-early-childhood": ["aiObservations", "aiEducators", "whatIs", "eylfObservations", "template", "examples"],
   "eylf-observation-examples": ["aiObservations", "auExamples", "eylf", "observation", "eylfStories", "template"],
-  "how-long-should-a-learning-story-take": ["workload", "aiEducators", "whatIs", "template", "examples", "generator"],
+  "how-long-should-a-learning-story-take": ["workload", "aiEducators", "whatIs", "template", "examples", "generator", "observation"],
   // 12 Nov 2026: the three answer pages, and the guides nearest each one that now lead to it.
-  "learning-stories-in-family-languages": ["secondLanguage", "families", "whatIs", "askCentre", "safety", "centres"],
+  "learning-stories-in-family-languages": ["secondLanguage", "families", "whatIs", "askCentre", "safety", "centres", "examples"],
   "writing-learning-stories-english-second-language": ["familyLanguages", "howLong", "observation", "template", "examples", "generator"],
-  "how-to-check-a-learning-story": ["leaderChecklist", "reflection", "nqs13", "centres", "safety", "accuracy"],
-  "parent-friendly-learning-stories": ["familyLanguages", "families", "askCentre", "examples", "template", "whatIs"],
-  "for-centres": ["leaderChecklist", "leaderCheck", "workload", "safety", "accuracy", "examples"],
+  "how-to-check-a-learning-story": ["leaderChecklist", "reflection", "nqs13", "centres", "safety", "accuracy", "planning"],
+  "parent-friendly-learning-stories": ["familyLanguages", "families", "askCentre", "examples", "template", "whatIs", "nextSteps"],
+  "for-centres": ["leaderChecklist", "leaderCheck", "workload", "safety", "accuracy", "examples", "nqs13", "reflection"],
   "learning-story-examples-preschool": ["examples", "auExamples", "template", "nextSteps", "eylf", "teWhariki"],
   "learning-story-next-steps-examples": ["examples", "preschoolExamples", "template", "whatIs", "intentional", "eylf"],
   "learning-story-generator": ["aiEducators", "aiObservations", "examples", "template", "accuracy", "safety"],
@@ -68,5 +72,6 @@ export const SLUG_RELATED: Record<string, RelatedKey[]> = {
 export const DEFAULT_RELATED: RelatedKey[] = ["template", "whatIs", "examples", "eylf", "teWhariki", "accuracy"];
 export function relatedFor(slug: string) {
   const keys = SLUG_RELATED[slug] ?? DEFAULT_RELATED;
-  return keys.map((key) => RELATED[key]).filter((link) => link.href !== `/${slug}`).slice(0, 6);
+  // Never a link to a page held out of the release; the stand-ins after the six fill its place.
+  return liveLinks(keys.map((key) => RELATED[key])).filter((link) => link.href !== `/${slug}`).slice(0, 6);
 }

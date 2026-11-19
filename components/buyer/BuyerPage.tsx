@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { ArrowRight, Check } from "lucide-react";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
@@ -13,7 +14,7 @@ import CopyMessage from "@/components/buyer/CopyMessage";
 import ProofChip from "@/components/buyer/ProofChip";
 import VisitorProof from "@/components/buyer/VisitorProof";
 import { answerBlocks } from "@/lib/answer-blocks";
-import { BUYER_PAGES, type BuyerPage as BuyerPageDefinition, type BuyerSlug } from "@/lib/buyer-pages";
+import { BUYER_PAGES, buyerPageLive, liveLinks, type BuyerPage as BuyerPageDefinition, type BuyerSlug } from "@/lib/buyer-pages";
 import { draftSection, heroNoteProof, outcomeNoteProof, realExample } from "@/lib/buyer-proof";
 import { fillOfferText } from "@/lib/offer-wording";
 import { ORGANIZATION_REF } from "@/lib/site-identity";
@@ -32,7 +33,13 @@ export const LEADER_MESSAGE =
 export const PARENT_MESSAGE =
   "{greeting}, I love getting learning stories about [your child's name]. I came across StoryLoop, which helps teachers write learning stories from a quick note, during the day. It is free for teachers to try, and there is a centre plan. Might it help the team? storyloop.space/for-centres?utm_source=family&utm_medium=ask_your_centre";
 
+/**
+ * The page's metadata, for its route's generateMetadata. A page held out of
+ * this release (lib/buyer-pages.ts HELD_BUYER_PAGES_ON) answers 404 here too,
+ * so its title and description never reach a search engine.
+ */
 export function buyerMetadata(slug: BuyerSlug): Metadata {
+  if (!buyerPageLive(slug)) notFound();
   const page = BUYER_PAGES[slug];
   // The same rule as the guides: the brand only when the whole title still fits Google's ~60 characters.
   const fitsWithBrand = `${page.title} | StoryLoop`.length <= 60;
@@ -195,7 +202,11 @@ function RealStory({ page }: { page: BuyerPageDefinition }) {
  * inside it (tests/buyer-pages.test.ts and the t84 end-to-end suite check).
  */
 export default function BuyerPage({ slug }: { slug: BuyerSlug }) {
+  // Held out of this release: not routed (lib/buyer-pages.ts HELD_BUYER_PAGES_ON).
+  if (!buyerPageLive(slug)) notFound();
   const page = BUYER_PAGES[slug];
+  // Never a link to a held page (the live pages' lists do not hold one today; this keeps it so).
+  const related = liveLinks(page.related);
   const policy = page.action.kind === "policy";
   const note = page.action.kind === "note";
   const blocks = answerBlocks(page.answers);
@@ -262,7 +273,7 @@ export default function BuyerPage({ slug }: { slug: BuyerSlug }) {
                     <OfferText text={paragraph} />
                   </p>
                 ))}
-                {section.link && (
+                {section.link && liveLinks([section.link]).length > 0 && (
                   <Link href={section.link.href} className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900 print:hidden" data-track={`buyer_link_${section.id.replace(/-/g, "_")}`}>
                     {section.link.label} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                   </Link>
@@ -320,7 +331,7 @@ export default function BuyerPage({ slug }: { slug: BuyerSlug }) {
           <div className="wide-shell">
             <h2 className="font-display text-2xl font-bold text-ink-900">Keep reading</h2>
             <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {page.related.map((link) => (
+              {related.map((link) => (
                 <li key={link.href} className="min-w-0">
                   <Link href={link.href} className="group flex h-full flex-col rounded-3xl border border-clay-100 bg-paper p-5 transition-colors hover:border-clay-300">
                     <span className="font-display text-lg font-bold text-ink-900 group-hover:text-clay-800">{link.title}</span>

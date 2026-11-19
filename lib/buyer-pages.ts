@@ -675,8 +675,46 @@ export type BuyerSlug = keyof typeof PAGES;
 
 export const BUYER_PAGES: Record<BuyerSlug, BuyerPage> = PAGES;
 
-/** Every buyer page's path, for the sitemap and the tests. */
+/** Every buyer page defined here, live or held (the tests check all of them). */
 export const BUYER_PAGE_SLUGS = Object.keys(BUYER_PAGES) as BuyerSlug[];
+
+/**
+ * Held out of the December 2026 release (the conductor's scope decision of
+ * 19 Nov 2026, after the meeting): the leader, workload, Exceeding and parent
+ * pages wait for the Keyword Planner volumes and a first sign that leaders can
+ * be reached. Their code stays here, switched off. While this is false each of
+ * them answers 404 (page and share image), is left out of the sitemap, and no
+ * page links to it: every link list goes through liveLinks() or relatedFor().
+ * Switching it on puts all four back exactly as they were built.
+ */
+export const HELD_BUYER_PAGES_ON = false;
+
+export const HELD_BUYER_SLUGS: readonly BuyerSlug[] = [
+  "educational-leader-checklist",
+  "documentation-workload-early-childhood",
+  "exceeding-nqs-documentation",
+  "ask-your-centre",
+];
+
+/** Whether a buyer page is served in this release. Pure. */
+export function buyerPageLive(slug: BuyerSlug): boolean {
+  return HELD_BUYER_PAGES_ON || !HELD_BUYER_SLUGS.includes(slug);
+}
+
+/** The buyer pages this release serves: the sitemap lists these, and only these. */
+export const LIVE_BUYER_PAGE_SLUGS: BuyerSlug[] = BUYER_PAGE_SLUGS.filter(buyerPageLive);
+
+/** True for a link to a held buyer page ("/ask-your-centre", "/ask-your-centre#x", ...). Pure. */
+export function isHeldPath(href: string): boolean {
+  if (HELD_BUYER_PAGES_ON) return false;
+  const path = href.replace(/^https:\/\/storyloop\.space/, "").split(/[?#]/)[0].replace(/\/$/, "");
+  return HELD_BUYER_SLUGS.some((slug) => path === `/${slug}`);
+}
+
+/** A list of links without the held pages. Pure. */
+export function liveLinks<T extends { href: string }>(links: readonly T[]): T[] {
+  return links.filter((link) => !isHeldPath(link.href));
+}
 
 export function buyerPage(slug: BuyerSlug): BuyerPage {
   return BUYER_PAGES[slug];

@@ -5,6 +5,7 @@ import PrintableCard from "@/components/marketing/PrintableCard";
 import { GuideCta, GuideFaq, GuideFigure, GuideHero, GuidePage, GuideSection, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 import { REAL_EXAMPLES } from "@/lib/real-examples";
 import { ACCURACY_REPORT as R } from "@/lib/accuracy-report";
+import { buyerPageLive } from "@/lib/buyer-pages";
 
 export const metadata: Metadata = {
   title: { absolute: "What is a learning story? A plain guide for educators" },
@@ -128,7 +129,8 @@ export default function WhatIsALearningStoryPage() {
         </p>
         <p className="rounded-2xl border border-sage-200 bg-sage-50/70 p-4 text-[15px]" data-testid="for-families-box">
           <strong>For families:</strong> would you like more stories like this about your child?{" "}
-          <Link href="/ask-your-centre" className="font-semibold text-clay-700 underline" data-track="what_is_ask_centre">
+          {/* /ask-your-centre is held out of this release (lib/buyer-pages.ts): the families page's own message until then. */}
+          <Link href={buyerPageLive("ask-your-centre") ? "/ask-your-centre" : "/for-families#tell-your-centre"} className="font-semibold text-clay-700 underline" data-track="what_is_ask_centre">
             A short message you can send your centre
           </Link>
           .

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import test from "node:test";
 import {
   ANSWER_BLOCKS,
@@ -10,7 +10,18 @@ import {
   type AnswerBlockId,
 } from "../lib/answer-blocks";
 import { rivalNames } from "../lib/blog-topics";
-import { BUYER_PAGES, BUYER_PAGE_SLUGS, type BuyerPage } from "../lib/buyer-pages";
+import {
+  BUYER_PAGES,
+  BUYER_PAGE_SLUGS,
+  HELD_BUYER_PAGES_ON,
+  HELD_BUYER_SLUGS,
+  LIVE_BUYER_PAGE_SLUGS,
+  buyerPageLive,
+  isHeldPath,
+  liveLinks,
+  type BuyerPage,
+} from "../lib/buyer-pages";
+import { SLUG_RELATED, relatedFor } from "../components/marketing/guide-links";
 import { LANDING_FAQS } from "../lib/landing-faqs";
 import { PLAN_DEFINITIONS } from "../lib/plans";
 import { DEDICATED_ROUTE_SLUGS, SEO_PAGES, SEO_PAGE_SLUGS } from "../lib/seo-pages";
@@ -28,6 +39,11 @@ const EXPECTED_BUYER_SLUGS = [
   "ai-policy-nz-early-childhood",
   "exceeding-nqs-documentation",
 ];
+
+/** In the December release (the conductor's scope decision, 19 Nov 2026). */
+const RELEASED_BUYER_SLUGS = ["ai-for-early-childhood-educators", "ai-childcare-observations", "ai-policy-nz-early-childhood"];
+/** Held out of it, switched off: not routed, not in the sitemap, linked from nowhere. */
+const HELD = ["educational-leader-checklist", "documentation-workload-early-childhood", "exceeding-nqs-documentation", "ask-your-centre"];
 
 /** Existing pages the re-aim gave a new title, description, heading or first screen. */
 const RE_AIMED_SEO_SLUGS = [
@@ -111,7 +127,7 @@ test("the seven buyer pages exist, each with its own route, metadata and share i
     assert.equal(page.slug, slug);
     const route = `app/${slug}/page.tsx`;
     assert.ok(existsSync(route), route);
-    assert.match(source(route), new RegExp(`buyerMetadata\\("${slug}"\\)`), `${route} metadata`);
+    assert.match(source(route), new RegExp(`generateMetadata\\(\\) \\{\\s*return buyerMetadata\\("${slug}"\\)`), `${route} metadata (generateMetadata, so a held page answers 404)`);
     assert.match(source(route), new RegExp(`<BuyerPage slug="${slug}"`), `${route} renders its page`);
     assert.ok(existsSync(`app/${slug}/opengraph-image.tsx`), `${slug} share image`);
     // Not also built by the generic guide route.
@@ -294,13 +310,30 @@ test("the re-aimed product pages open on the product, and the cost and checklist
   assert.equal(rating.checklist?.items.length, 6);
   assert.match(rating.checklist?.note ?? "", /centre plan/);
   assert.equal(rating.checklist?.link.href, "/for-centres");
-  // The centre page opens on what it is and the two-minute check; the free period is in the line under the button.
-  assert.match(SEO_PAGES["for-centres"].intro, /send you a story about a child you know: checking it takes about two minutes, and you need no account/);
+  // The centre landing's first phone screen (scope decision, 19 Nov 2026): one line on the job, one
+  // button, the day's free period with no card, and the flat price in her currency.
+  const intro = SEO_PAGES["for-centres"].intro;
+  assert.equal(intro.split(/(?<=\.)\s/).length, 1, "one line on the job");
+  assert.match(intro, /StoryLoop drafts the learning story/);
+  const branch = renderer.match(/page\.slug === "for-centres" \? \(([\s\S]*?)\) : page\.slug === "learning-story-software-cost-for-centres"/)?.[1] ?? "";
+  assert.equal(branch.match(/<Link\b/g)?.length, 1, "one button");
+  assert.match(branch, /<CentreTrialWords initial=\{centreTrialWordsCapital\(new Date\(\)\)\} capital \/>, no card\./);
+  assert.match(branch, /<CentrePriceWords \/>, unlimited children\./);
+  const price = source("components/buyer/CentrePriceWords.tsx");
+  assert.match(price, /getPlanByKey\("centre_starter"\)/, "the price comes from lib/plans.ts");
+  assert.match(price, /browserCurrency\(\)/, "in her currency, picked as checkout picks it");
+  // Nothing that lists what StoryLoop lacks on the centre landing.
+  const centre = [intro, ...SEO_PAGES["for-centres"].sections.map((section) => section.body)].join("\n");
+  assert.doesNotMatch(centre, /\bno photo or video sharing|no daily diary|no rolls/i);
+  // How to judge it on her own team is still on the page, in its own section.
+  assert.match(SEO_PAGES["for-centres"].sections.find((section) => section.title === "See it on your own children first")?.body ?? "", /about two minutes and you do not need an account/);
 });
 
-test("every buyer page and re-aimed page is in the sitemap and open to search engines", () => {
+test("every released buyer page and re-aimed page is in the sitemap and open to search engines", () => {
   const sitemap = source("app/sitemap.ts");
-  assert.match(sitemap, /\.\.\.BUYER_PAGE_SLUGS/);
+  assert.match(sitemap, /\.\.\.LIVE_BUYER_PAGE_SLUGS/);
+  assert.doesNotMatch(sitemap, /\.\.\.BUYER_PAGE_SLUGS/, "a held page is never listed");
+  assert.deepEqual([...LIVE_BUYER_PAGE_SLUGS].sort(), [...RELEASED_BUYER_SLUGS].sort());
   for (const slug of ["for-families", "features", "examples", "ai-policy", "safety", "for-educators"]) assert.ok(sitemap.includes(`"${slug}"`), slug);
   for (const slug of RE_AIMED_SEO_SLUGS) assert.ok(SEO_PAGE_SLUGS.includes(slug), slug);
   const disallowBlock = source("app/robots.ts").match(/disallow: \[([\s\S]*?)\]/)?.[1] ?? "";
@@ -308,6 +341,59 @@ test("every buyer page and re-aimed page is in the sitemap and open to search en
   assert.ok(disallowed.includes("/dashboard") && !disallowed.includes("/"));
   for (const slug of [...BUYER_PAGE_SLUGS, ...RE_AIMED_SEO_SLUGS]) {
     assert.ok(!disallowed.some((rule) => `/${slug}`.startsWith(rule.replace(/\?$/, ""))), `/${slug} is blocked in robots`);
+  }
+});
+
+test("the four held pages are switched off: 404, no share image, not in the sitemap, linked from nowhere", () => {
+  assert.equal(HELD_BUYER_PAGES_ON, false, "held out of the December release");
+  assert.deepEqual([...HELD_BUYER_SLUGS].sort(), [...HELD].sort());
+  for (const slug of BUYER_PAGE_SLUGS) assert.equal(buyerPageLive(slug), RELEASED_BUYER_SLUGS.includes(slug), slug);
+  for (const slug of HELD) {
+    for (const href of [`/${slug}`, `/${slug}/`, `/${slug}#x`, `/${slug}?utm_source=family`, `https://storyloop.space/${slug}`]) assert.ok(isHeldPath(href), href);
+  }
+  for (const href of ["/", "/for-centres", "/ai-policy", "/ai-policy-nz-early-childhood", "/ask-your-centre-x", "/blog/ask-your-centre"]) assert.ok(!isHeldPath(href), href);
+  assert.deepEqual(liveLinks([{ href: "/for-centres" }, { href: "/educational-leader-checklist" }]), [{ href: "/for-centres" }]);
+  // The page, its metadata and its share image all answer 404 while held.
+  const page = source("components/buyer/BuyerPage.tsx");
+  assert.match(page, /export function buyerMetadata\(slug: BuyerSlug\): Metadata \{\s*if \(!buyerPageLive\(slug\)\) notFound\(\);/);
+  assert.match(page, /export default function BuyerPage\(\{ slug \}: \{ slug: BuyerSlug \}\) \{\s*\/\/[^\n]*\n\s*if \(!buyerPageLive\(slug\)\) notFound\(\);/);
+  for (const slug of BUYER_PAGE_SLUGS) assert.match(source(`app/${slug}/opengraph-image.tsx`), new RegExp(`if \\(!buyerPageLive\\("${slug}"\\)\\) notFound\\(\\);`), `${slug} share image`);
+  // No guide's "Keep reading" links lead to one, and no guide shows fewer links than before.
+  for (const slug of [...Object.keys(SLUG_RELATED), ...SEO_PAGE_SLUGS]) {
+    const links = relatedFor(slug);
+    assert.ok(!links.some((link) => isHeldPath(link.href)), `${slug} links a held page`);
+  }
+  for (const [slug, keys] of Object.entries(SLUG_RELATED)) assert.ok(relatedFor(slug).length >= Math.min(6, keys.length - 1), `${slug} lost a link`);
+  // Every link list on the guides and buyer pages goes through liveLinks.
+  const renderer = source("app/[slug]/page.tsx");
+  assert.match(renderer, /const siblingLinks = liveLinks\(page\.siblingLinks\?\.links \?\? \[\]\);/);
+  assert.match(renderer, /\{liveLinks\(section\.links\)\.map\(/);
+  assert.match(renderer, /buyerPageLive\("ask-your-centre"\) && <FamilyArrival \/>/);
+  assert.match(page, /const related = liveLinks\(page\.related\);/);
+  // Where a page links one in code, the link is behind the switch.
+  assert.match(source("app/for-families/page.tsx"), /href=\{ASK_LIVE \? "\/ask-your-centre" : "#tell-your-centre"\}/);
+  assert.match(source("app/for-families/page.tsx"), /\{ASK_LIVE && \(\s*<p>\s*Or\{" "\}\s*<Link href="\/ask-your-centre"/);
+  assert.match(source("app/what-is-a-learning-story/page.tsx"), /href=\{buyerPageLive\("ask-your-centre"\) \? "\/ask-your-centre" : "\/for-families#tell-your-centre"\}/);
+  // Nowhere else names a held page's address outside these known, switched places.
+  const allowed = new Set([
+    "lib/buyer-pages.ts",
+    "lib/answer-blocks.ts", // where each answer is shown (data for this test), not a link
+    "lib/seo-pages.ts", // sibling and section links, rendered through liveLinks
+    "components/marketing/Guide.tsx", // RELATED, rendered through relatedFor
+    "components/buyer/FamilyArrival.tsx", // a comment; the component is behind the switch
+    "app/[slug]/page.tsx", // a comment
+    "app/for-families/page.tsx",
+    "app/what-is-a-learning-story/page.tsx",
+  ]);
+  const files = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+      const path = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) return HELD.some((slug) => path === `app/${slug}`) ? [] : files(path);
+      return /\.(ts|tsx)$/.test(entry.name) ? [path] : [];
+    });
+  for (const file of [...files("app"), ...files("components"), ...files("lib")]) {
+    if (allowed.has(file)) continue;
+    for (const slug of HELD) assert.ok(!source(file).includes(`/${slug}`), `${file} names /${slug}`);
   }
 });
 

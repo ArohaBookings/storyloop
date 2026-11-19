@@ -1194,11 +1194,12 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       "Your team writes learning stories in the day from a short note, linked to Te Whāriki or the EYLF. One flat price, no per-child fee, and no card to start.",
     kicker: "For directors, owners and head teachers",
     heading: "Documentation done in the day, and a calmer review visit.",
-    // 18 Nov 2026 re-aim: the first screen says what it is and the cheapest way
-    // to judge it, then one button. What a leader gets, the price and the free
-    // period are each in their own section below and in the line under the button.
+    // The first phone screen (scope decision, 19 Nov 2026): this one line on the
+    // job, one button, the day's free period with no card, and the flat price in
+    // her currency (app/[slug]/page.tsx). How to judge it on her own team ("See it
+    // on your own children first"), what a leader gets and the plans follow below.
     intro:
-      "Your educators jot a note after play and StoryLoop drafts the learning story from it, so writing stops eating their evenings. Ask one of them to send you a story about a child you know: checking it takes about two minutes, and you need no account.",
+      "Your educators jot a note after play and StoryLoop drafts the learning story from it, so writing stops eating their evenings.",
     reviewedAt: "2026-11-12",
     siblingLinks: {
       heading: "For the person who signs off",
@@ -1227,8 +1228,9 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       },
       {
         title: "For your educational leader",
+        // True with or without the leader checklist page, which is held out of this release (lib/buyer-pages.ts).
         body:
-          "The person who checks your team's stories gets two short pages: what to look at each week, month and term, and five questions that check one story in about two minutes.",
+          "The person who checks your team's stories can check one in about two minutes, with the educator's note beside it: five questions, in order, and feedback that helps.",
         links: [
           { label: "An educational leader checklist", href: "/educational-leader-checklist" },
           { label: "How to check a learning story", href: "/how-to-check-a-learning-story" },
@@ -1237,7 +1239,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       {
         title: "Nothing changes for families",
         body:
-          "Keep whatever your centre uses for photos and messages to families. StoryLoop does one job: an educator writes here, copies the finished story in one tap, and pastes it there. If you want it, a Family link lets a family read their child's stories with no app and no password. StoryLoop has no photo or video sharing, no daily diary, and no rolls, fees or subsidy admin.",
+          "Keep whatever your centre uses for photos and messages to families. StoryLoop does one job: an educator writes here, copies the finished story in one tap, and pastes it there. If you want it, a Family link lets a family read their child's stories with no app and no password.",
       },
       {
         title: "Is our data ours, and who runs this?",
