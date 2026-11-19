@@ -119,7 +119,10 @@ test("the wall keeps the early-educator discount the old wall's Billing link car
   for (const file of ["components/app/AppLimitWall.tsx", "components/app/PriceReminder.tsx"]) {
     assert.match(readFileSync(file, "utf8"), /activationOffer: true/, file);
   }
-  assert.match(readFileSync("components/app/AppLimitWall.tsx", "utf8"), /ACTIVATION_OFFER_LABEL/);
+  // The wall, the price line and the "1 free story left" prompt state that discount as money (lib/wall-offer.ts).
+  for (const file of ["components/app/AppLimitWall.tsx", "components/app/PriceReminder.tsx", "app/(app)/generate/page.tsx"]) {
+    assert.match(readFileSync(file, "utf8"), /useEducatorCheckoutLine\(/, file);
+  }
   // Checkout still only applies it to a free account, and never with another offer.
   assert.match(readFileSync("app/api/stripe/checkout/route.ts", "utf8"), /activationOffer === true && profile\.plan === "free"/);
 });

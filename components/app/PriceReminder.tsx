@@ -6,16 +6,19 @@ import { getSessionId } from "@/lib/analytics/client";
 import { trackEvent } from "@/lib/analytics/track-event";
 import { dismissPriceReminder, readWallMemory, shouldShowPriceReminder, wallSeenThisVisit, type AppWall } from "@/lib/app-wall";
 import { browserCurrency, educatorOffer, type EducatorOffer } from "@/lib/offer-wording";
+import { useEducatorCheckoutLine } from "@/components/app/useEducatorCheckoutLine";
 
 /**
  * After she has met a free-limit wall, later visits show this one quiet line:
  * the price and the same one tap to Stripe Checkout (lib/app-wall.ts). Never in
  * the same visit as the wall, never near the note box, and gone for good once
- * she closes it (until she meets another wall).
+ * she closes it (until she meets another wall). The price is the money
+ * checkout will really charge her, as on the wall (lib/wall-offer.ts).
  */
 export default function PriceReminder({ free, returnTo, className = "" }: { free: boolean; returnTo?: string; className?: string }) {
   const [shown, setShown] = useState<{ offer: EducatorOffer; wall: AppWall } | null>(null);
   const [busy, setBusy] = useState(false);
+  const { line } = useEducatorCheckoutLine(Boolean(shown) && free);
 
   useEffect(() => {
     const memory = readWallMemory();
@@ -25,7 +28,7 @@ export default function PriceReminder({ free, returnTo, className = "" }: { free
     trackEvent("price_reminder_shown", { wall: memory.wall, plan: "educator", currency: offer.currency, price: offer.price });
   }, [free]);
 
-  if (!shown || !free) return null;
+  if (!shown || !free || !line) return null;
   const { offer, wall } = shown;
 
   const start = async () => {
@@ -56,7 +59,7 @@ export default function PriceReminder({ free, returnTo, className = "" }: { free
   return (
     <div className={`flex items-center gap-2 rounded-2xl border border-clay-100 bg-cream-50 px-3 py-2 text-sm text-ink-700 ${className}`} data-testid="price-reminder">
       <p className="min-w-0 flex-1 leading-snug">
-        Educator: {offer.offerLine}{" "}
+        Educator: {line}{" "}
         <button
           type="button"
           onClick={start}

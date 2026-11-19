@@ -39,6 +39,7 @@ import LeaderCard from "@/components/app/LeaderCard";
 import FamilyShare from "@/components/app/FamilyShare";
 import StoryReviewAsk from "@/components/app/StoryReviewAsk";
 import AppLimitWall from "@/components/app/AppLimitWall";
+import { useEducatorCheckoutLine } from "@/components/app/useEducatorCheckoutLine";
 import PriceReminder from "@/components/app/PriceReminder";
 import CheckoutReturn from "@/components/app/CheckoutReturn";
 import NextStoryCard from "@/components/app/NextStoryCard";
@@ -65,7 +66,6 @@ import {
 import { FRAMEWORK_LABELS, normalizeAnyFramework, type AnyFrameworkId } from "@/lib/international-frameworks";
 import type { PrivacyGuardianResult } from "@/lib/privacy-guardian";
 import { MIN_STORY_OBSERVATION_CHARACTERS } from "@/lib/story-clarification";
-import { ACTIVATION_OFFER_LABEL } from "@/lib/activation-offer";
 
 const PLACEHOLDERS = [
   "Example only - replace this with your real notes:\nRuby (2yo) built a block tower. It fell twice, then she tried again with a wider base and clapped when it stayed up.",
@@ -234,6 +234,8 @@ export default function GeneratePage() {
   const [recording, setRecording] = useState(false);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [upgradePromptKind, setUpgradePromptKind] = useState<"first_story" | "one_left">("one_left");
+  // "1 free story left": the money checkout will really charge her (lib/wall-offer.ts).
+  const { line: oneLeftPriceLine } = useEducatorCheckoutLine(showUpgradePrompt && upgradePromptKind === "one_left");
   // The free-limit wall (lib/app-wall.ts): in the page, under her work, never a pop-up.
   const [showLimitModal, setShowLimitModal] = useState(false);
   // Back from a wall's checkout: "upgraded" or "cancelled", read once from the address.
@@ -1531,6 +1533,7 @@ export default function GeneratePage() {
           : "Every story you wrote is saved, and your note is still in the box. Educator gives you as many as you need."
       }
       onBeforeCheckout={keepWorkForCheckout}
+      leaderStoryId={story && storyId ? storyId : undefined}
       onDismiss={() => {
         setShowLimitModal(false);
         setError("");
@@ -2183,7 +2186,9 @@ export default function GeneratePage() {
                   </p>
                   <p className="text-sm text-ink-700">
                     {upgradePromptKind === "one_left"
-                      ? `You can use your final free story, or upgrade with ${ACTIVATION_OFFER_LABEL} when you are ready.`
+                      ? oneLeftPriceLine
+                        ? `You can use your final free story, or start Educator when you are ready: ${oneLeftPriceLine}`
+                        : "You can use your final free story, or start Educator when you are ready."
                       : "Try one more real observation while the workflow is fresh. If it keeps saving time, the Educator plan removes the monthly story limit."}
                   </p>
                   <Link href="/billing?offer=activation" className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-clay-700 hover:text-clay-900">
