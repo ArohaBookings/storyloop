@@ -12,7 +12,7 @@ import { normalizeAnyFramework } from "@/lib/international-frameworks";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getTeamContext, loadTeamChildren, type TeamContext } from "@/lib/centre-team-server";
-import { inTeamWindow, leaderTeamScopes, pickBriefStories, pickTeamViewScope } from "@/lib/centre-team";
+import { inTeamWindow, leaderTeamScopes, teamChildOfStory, pickBriefStories, pickTeamViewScope } from "@/lib/centre-team";
 
 function asRecord(value: unknown) {
   return value && typeof value === "object" ? value as Record<string, unknown> : {};
@@ -85,7 +85,7 @@ async function teamBrief(team: TeamContext, viewerId: string) {
   });
   const boardStories = stories.slice(0, 20).map((story) => ({
     ...story,
-    child_id: story.child_id ? team_children.keyOfProfile[story.child_id] ?? null : null,
+    child_id: teamChildOfStory({ user_id: story.user_id ?? "", child_id: story.child_id ?? null, child_name: story.child_name ?? null }, team_children.keyOfProfile, team_children.byAuthorName),
   }));
   const planningBoard = buildPlanningBoard(boardStories, boardChildren);
 

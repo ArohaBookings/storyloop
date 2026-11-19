@@ -458,3 +458,24 @@ test("every team read and the leader's mark go through the date floor", () => {
   const sharing = readFileSync(new URL("../app/api/centres/sharing/route.ts", import.meta.url), "utf8");
   assert.match(sharing, /shares_stories: true, shares_stories_since: new Date\(\)\.toISOString\(\)/);
 });
+
+// ------------------------------------------------- review 2, R2-04: children from the names in shared stories
+test("a leader's team counts the children named in shared stories, even with no saved profile", async () => {
+  const { nameOnlyChildren, teamChildOfStory } = await import("../lib/centre-team");
+  const saved = [{ id: "11111111-1111-4111-8111-111111111111", name: "Theo", authorId: "edu-share" }];
+  const stories = [
+    { user_id: "edu-share", child_id: null, child_name: "Mia" },
+    { user_id: "edu-share", child_id: null, child_name: "mia" },
+    { user_id: "edu-share", child_id: null, child_name: "Theo" },
+    { user_id: "owner-a", child_id: null, child_name: "Mia" },
+    { user_id: "edu-share", child_id: null, child_name: "" },
+  ];
+  const named = nameOnlyChildren(stories, saved);
+  assert.deepEqual(named.profiles.map((p) => p.id).sort(), ["n:edu-share:mia", "n:owner-a:mia"], "one Mia per educator; Theo is her saved profile, not a second child");
+  const merged = mergeTeamChildren({ profiles: [...saved, ...named.profiles], centreChildren: [], links: [] });
+  assert.equal(merged.children.length, 3, "Theo, her Mia, the leader's Mia: never guessed into one");
+  assert.equal(merged.suggestions.length, 0, "a name-only child is never offered for joining (nothing to link)");
+  assert.equal(teamChildOfStory(stories[1], merged.keyOfProfile, named.byAuthorName), "p:n:edu-share:mia");
+  assert.equal(teamChildOfStory(stories[2], merged.keyOfProfile, named.byAuthorName), `p:${saved[0].id}`);
+  assert.equal(teamChildOfStory(stories[4], merged.keyOfProfile, named.byAuthorName), null);
+});

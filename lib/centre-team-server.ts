@@ -6,6 +6,8 @@ import {
   cleanCentreChildName,
   decideTeamScope,
   inTeamWindow,
+  nameOnlyChildren,
+  teamChildOfStory,
   mergeTeamChildren,
   readReviewInput,
   sampleTeamState,
@@ -345,11 +347,13 @@ export type TeamChildren = {
   profiles: TeamChildProfile[];
   /** Extra fields the planning board shows, by profile id. */
   details: Record<string, { ageGroup: string | null; interests: string[] }>;
+  /** "<author>:<first name>" -> profile id (saved or "n:" name-only), for stories with no profile (R2-04). */
+  byAuthorName: Record<string, string>;
 };
 
 /** The team's children, each counted once, from the authors the scope allows. */
 export async function loadTeamChildren(ctx: TeamContext): Promise<TeamChildren> {
-  const empty: TeamChildren = { children: [], keyOfProfile: {}, suggestions: [], profiles: [], details: {} };
+  const empty: TeamChildren = { children: [], keyOfProfile: {}, suggestions: [], profiles: [], details: {}, byAuthorName: {} };
   const scope = ctx.scope;
   if (!scope || !ctx.centre) return empty;
   try {
@@ -361,18 +365,19 @@ export async function loadTeamChildren(ctx: TeamContext): Promise<TeamChildren> 
     ]);
     const allowed = new Set(scope.authorIds);
     // Another member's children only if she wrote about them on or after her floor (R1-08).
-    const others = scope.authorIds.filter((id) => id !== (scope.viewerId ?? scope.authorIds[0]));
     const recent = new Set<string>();
-    if (others.length) {
-      const { data: storyRows } = await admin.from("stories").select("user_id, child_id, created_at").in("user_id", others).gte("created_at", earliestFloor(scope)).not("child_id", "is", null).limit(5000);
-      for (const row of storyRows ?? []) if (inTeamWindow(scope, row.user_id as string, row.created_at as string)) recent.add(`${row.user_id}:${row.child_id}`);
-    }
+    // Every story the team views may read, for the children named in them (R2-04) and the floor (R1-08).
+    const { data: storyRows } = await admin.from("stories").select("user_id, child_id, child_name, created_at").in("user_id", scope.authorIds).order("created_at", { ascending: false }).limit(5000);
+    const readable = (storyRows ?? []).filter((row) => allowed.has(row.user_id as string) && inTeamWindow(scope, row.user_id as string, row.created_at as string));
+    for (const row of readable) if (row.child_id) recent.add(`${row.user_id}:${row.child_id}`);
     const rows = (profileRows ?? []).filter((row) => {
       const author = row.user_id as string;
       if (!allowed.has(author)) return false;
       return author === (scope.viewerId ?? scope.authorIds[0]) || recent.has(`${author}:${row.id}`);
     });
-    const profiles: TeamChildProfile[] = rows.map((row) => ({ id: row.id as string, name: (row.name as string) ?? "", authorId: row.user_id as string }));
+    const saved: TeamChildProfile[] = rows.map((row) => ({ id: row.id as string, name: (row.name as string) ?? "", authorId: row.user_id as string }));
+    const named = nameOnlyChildren(readable.map((row) => ({ user_id: row.user_id as string, child_id: (row.child_id as string | null) ?? null, child_name: (row.child_name as string | null) ?? null })), saved);
+    const profiles: TeamChildProfile[] = [...saved, ...named.profiles];
     const merged = mergeTeamChildren({
       profiles,
       centreChildren: (centreRows ?? []).map((row) => ({ id: row.id as string, name: row.name as string })) as CentreChildRow[],
@@ -380,7 +385,7 @@ export async function loadTeamChildren(ctx: TeamContext): Promise<TeamChildren> 
     });
     const details: TeamChildren["details"] = {};
     for (const row of rows) details[row.id as string] = { ageGroup: (row.age_group as string | null) ?? null, interests: asStrings(row.interests) };
-    return { ...merged, profiles, details };
+    return { ...merged, profiles, details, byAuthorName: named.byAuthorName };
   } catch (error) {
     console.error("Team children failed:", error instanceof Error ? error.message : "unknown");
     return empty;
@@ -463,7 +468,7 @@ export async function loadTeamEvidence(ctx: TeamContext, periodStartIso: string,
       loadTeamChildren(ctx),
       createAdminSupabase()
         .from("stories")
-        .select("id, user_id, child_id, created_at, outcomes, next_steps, metadata")
+        .select("id, user_id, child_id, child_name, created_at, outcomes, next_steps, metadata")
         .in("user_id", scope.authorIds)
         .gte("created_at", periodStartIso)
         .order("created_at", { ascending: false })
@@ -475,7 +480,7 @@ export async function loadTeamEvidence(ctx: TeamContext, periodStartIso: string,
       .filter((row) => allowed.has(row.user_id as string) && inTeamWindow(scope, row.user_id as string, row.created_at as string))
       .map((row) => {
         const story = evidenceStoryFromRow(row, localDay);
-        return { ...story, childId: story.childId ? team.keyOfProfile[story.childId] ?? null : null };
+        return { ...story, childId: teamChildOfStory({ user_id: row.user_id as string, child_id: (row.child_id as string | null) ?? null, child_name: (row.child_name as string | null) ?? null }, team.keyOfProfile, team.byAuthorName) };
       });
     return {
       children: team.children.map((child) => ({ id: child.key, name: child.name })),
@@ -498,7 +503,7 @@ export async function loadTeamRadarInput(ctx: TeamContext, sinceIso: string): Pr
     const admin = createAdminSupabase();
     const [team, storiesRes, capturesRes] = await Promise.all([
       loadTeamChildren(ctx),
-      admin.from("stories").select("user_id, child_id, created_at").in("user_id", scope.authorIds).gte("created_at", sinceIso).limit(5000),
+      admin.from("stories").select("user_id, child_id, child_name, created_at").in("user_id", scope.authorIds).gte("created_at", sinceIso).limit(5000),
       admin.from("daily_captures").select("user_id, child_id, observed_at").in("user_id", scope.authorIds).gte("observed_at", sinceIso).limit(5000),
     ]);
     const allowed = new Set(scope.authorIds);
@@ -506,7 +511,7 @@ export async function loadTeamRadarInput(ctx: TeamContext, sinceIso: string): Pr
     return {
       children: team.children.map((child) => ({ id: child.key, name: child.name })),
       moments: [
-        ...(storiesRes.data ?? []).filter((row) => allowed.has(row.user_id as string) && inTeamWindow(scope, row.user_id as string, row.created_at as string)).map((row) => ({ childId: key(row.child_id), createdAt: row.created_at as string })),
+        ...(storiesRes.data ?? []).filter((row) => allowed.has(row.user_id as string) && inTeamWindow(scope, row.user_id as string, row.created_at as string)).map((row) => ({ childId: teamChildOfStory({ user_id: row.user_id as string, child_id: (row.child_id as string | null) ?? null, child_name: (row.child_name as string | null) ?? null }, team.keyOfProfile, team.byAuthorName), createdAt: row.created_at as string })),
         ...(capturesRes.data ?? []).filter((row) => allowed.has(row.user_id as string) && inTeamWindow(scope, row.user_id as string, row.observed_at as string)).map((row) => ({ childId: key(row.child_id), createdAt: row.observed_at as string })),
       ],
     };

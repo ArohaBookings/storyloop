@@ -273,6 +273,8 @@ export function mergeTeamChildren(input: {
 
   const byName = new Map<string, TeamChildProfile[]>();
   for (const profile of unlinked) {
+    // A child known only by a first name in one educator's stories is never offered for joining (it has no record to link).
+    if (profile.id.startsWith("n:")) continue;
     const name = normaliseChildName(profile.name);
     if (!name) continue;
     byName.set(name, [...(byName.get(name) ?? []), profile]);
@@ -396,4 +398,50 @@ export function leaderTeamScopes(input: { access: TeamAccess; scope: TeamScope |
 export function pickTeamViewScope(requested: unknown, available: readonly TeamViewScope[]): TeamViewScope | null {
   if (typeof requested === "string" && (available as readonly string[]).includes(requested)) return requested as TeamViewScope;
   return available[0] ?? null;
+}
+
+/**
+ * Children named in stories but with no saved profile (review 2, R2-04):
+ * educators rarely make profiles, so a leader's evidence pack and quiet-child
+ * view also count the first names already in the team's shared stories. Per
+ * educator, one first name is one child (the single-educator rule); a name
+ * that matches one of her saved profiles is that profile, never a second
+ * child. Across educators nothing is guessed: two educators' "Mia" stay two
+ * until the leader joins them on the centre's list. Pseudo-profile ids start
+ * with "n:" and can never be linked or written anywhere. Pure.
+ */
+export function nameOnlyChildren(
+  stories: ReadonlyArray<{ user_id: string; child_id: string | null; child_name: string | null }>,
+  profiles: readonly TeamChildProfile[],
+): { profiles: TeamChildProfile[]; byAuthorName: Record<string, string> } {
+  const byAuthorName: Record<string, string> = {};
+  for (const profile of profiles) {
+    const name = normaliseChildName(profile.name);
+    const key = `${profile.authorId}:${name}`;
+    if (name && !byAuthorName[key]) byAuthorName[key] = profile.id;
+  }
+  const extra: TeamChildProfile[] = [];
+  for (const story of stories) {
+    if (story.child_id) continue;
+    const name = normaliseChildName(story.child_name);
+    if (!name || !story.user_id) continue;
+    const key = `${story.user_id}:${name}`;
+    if (byAuthorName[key]) continue;
+    const id = `n:${key}`;
+    byAuthorName[key] = id;
+    extra.push({ id, name: cleanCentreChildName(story.child_name) ?? (story.child_name ?? "").trim(), authorId: story.user_id });
+  }
+  return { profiles: extra, byAuthorName };
+}
+
+/** The team child a story belongs to: its profile, or the first name in it. Pure. */
+export function teamChildOfStory(
+  story: { user_id: string; child_id: string | null; child_name?: string | null },
+  keyOfProfile: Record<string, string>,
+  byAuthorName: Record<string, string>,
+): string | null {
+  if (story.child_id) return keyOfProfile[story.child_id] ?? null;
+  const name = normaliseChildName(story.child_name ?? null);
+  const profileId = name ? byAuthorName[`${story.user_id}:${name}`] : undefined;
+  return profileId ? keyOfProfile[profileId] ?? null : null;
 }
