@@ -53,6 +53,7 @@ MIGRATIONS=(
   "supabase/migrations/20261113_leader_offer.sql"
   "supabase/migrations/20261118_centre_team_review.sql"
   "supabase/migrations/20261119_family_tell_centre.sql"
+  "supabase/migrations/20261119_centre_sharing_since.sql"
 )
 TESTS=(
   "supabase/tests/centre_team_model.test.sql"

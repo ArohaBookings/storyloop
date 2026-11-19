@@ -5,6 +5,7 @@ import {
   canReviewStory,
   cleanCentreChildName,
   decideTeamScope,
+  inTeamWindow,
   mergeTeamChildren,
   readReviewInput,
   sampleTeamState,
@@ -55,14 +56,24 @@ const NONE: Omit<TeamContext, "viewerId"> = {
   sample: { offer: false, show: false },
 };
 
-function toMembership(row: { centre_id: string; user_id: string; role: unknown; status: unknown; shares_stories: unknown }): Membership {
+function toMembership(row: { centre_id: string; user_id: string; role: unknown; status: unknown; shares_stories: unknown; joined_at?: unknown; shares_stories_since?: unknown }): Membership {
   return {
     centreId: row.centre_id,
     userId: row.user_id,
     role: row.role === "owner" || row.role === "admin" ? row.role : "educator",
     status: row.status === "active" ? "active" : "removed",
     sharesStories: row.shares_stories === true,
+    joinedAt: typeof row.joined_at === "string" ? row.joined_at : null,
+    sharesStoriesSince: typeof row.shares_stories_since === "string" ? row.shares_stories_since : null,
   };
+}
+
+/** Active members with their join and sharing days; read without the sharing day where its migration has not run. */
+async function readActiveMembers(centreId: string) {
+  const admin = createAdminSupabase();
+  const full = await admin.from("centre_members").select("centre_id, user_id, role, status, shares_stories, joined_at, shares_stories_since").eq("centre_id", centreId).eq("status", "active");
+  if (!full.error) return full;
+  return admin.from("centre_members").select("centre_id, user_id, role, status, shares_stories, joined_at").eq("centre_id", centreId).eq("status", "active");
 }
 
 /** The column may not exist yet where the migration has not been run: read without it. */
@@ -88,7 +99,7 @@ export async function getTeamContext(viewerId: string): Promise<TeamContext> {
       centreRow.created_by
         ? admin.from("profiles").select("plan, subscription_status").eq("id", centreRow.created_by).maybeSingle()
         : Promise.resolve({ data: null }),
-      admin.from("centre_members").select("centre_id, user_id, role, status, shares_stories").eq("centre_id", centreRow.id).eq("status", "active"),
+      readActiveMembers(centreRow.id),
       admin
         .from("centre_invites")
         .select("id", { count: "exact", head: true })
@@ -122,6 +133,12 @@ export async function getTeamContext(viewerId: string): Promise<TeamContext> {
   }
 }
 
+/** The earliest floor of any other author in the scope (for a query's lower bound; rows are still checked one by one). */
+function earliestFloor(scope: TeamScope): string {
+  const floors = Object.values(scope.readsFrom ?? {}).map((value) => Date.parse(value)).filter((t) => !Number.isNaN(t));
+  return floors.length ? new Date(Math.min(...floors)).toISOString() : "9999-12-31T00:00:00.000Z";
+}
+
 async function firstNames(ids: string[]): Promise<Map<string, string>> {
   const names = new Map<string, string>();
   if (!ids.length) return names;
@@ -144,10 +161,11 @@ export async function loadTeamQueue(ctx: TeamContext, limit = 40): Promise<TeamQ
       .from("stories")
       .select("id, user_id, child_name, story_text, observations, outcomes, created_at")
       .in("user_id", scope.reviewAuthorIds)
+      .gte("created_at", earliestFloor(scope))
       .order("created_at", { ascending: false })
       .limit(limit);
     const allowed = new Set(scope.reviewAuthorIds);
-    const rows = (stories ?? []).filter((row) => allowed.has(row.user_id as string));
+    const rows = (stories ?? []).filter((row) => allowed.has(row.user_id as string) && inTeamWindow(scope, row.user_id as string, row.created_at as string));
     if (!rows.length) return [];
 
     const { data: reviews } = await admin
@@ -221,12 +239,14 @@ export async function saveTeamReview(viewerId: string, storyId: string, raw: unk
     return { ok: false, status: 403, error: ctx.access.kind === "lapsed" ? "Your centre's plan is not running, so team stories are closed." : "Only your centre's leaders can do that." };
   }
   const admin = createAdminSupabase();
-  const { data: story } = await admin.from("stories").select("id, user_id").eq("id", storyId).maybeSingle();
+  const { data: story } = await admin.from("stories").select("id, user_id, created_at").eq("id", storyId).maybeSingle();
   // The same answer for "no such story" and "not yours to see": nothing is revealed.
   const notFound: SaveReviewResult = { ok: false, status: 404, error: "That story is not shared with you." };
   if (!story) return notFound;
   const author = await getMembership(story.user_id as string);
   if (!canReviewStory({ viewerId, viewer: ctx.viewer, access: ctx.access, author, storyUserId: story.user_id as string })) return notFound;
+  // Written before she joined this centre or switched sharing on: not this team's to mark (R1-08).
+  if (!ctx.scope || !inTeamWindow(ctx.scope, story.user_id as string, story.created_at as string)) return notFound;
 
   const now = new Date().toISOString();
   const { data: saved, error } = await admin
@@ -340,7 +360,18 @@ export async function loadTeamChildren(ctx: TeamContext): Promise<TeamChildren> 
       admin.from("centre_child_links").select("child_profile_id, centre_child_id").eq("centre_id", ctx.centre.id),
     ]);
     const allowed = new Set(scope.authorIds);
-    const rows = (profileRows ?? []).filter((row) => allowed.has(row.user_id as string));
+    // Another member's children only if she wrote about them on or after her floor (R1-08).
+    const others = scope.authorIds.filter((id) => id !== (scope.viewerId ?? scope.authorIds[0]));
+    const recent = new Set<string>();
+    if (others.length) {
+      const { data: storyRows } = await admin.from("stories").select("user_id, child_id, created_at").in("user_id", others).gte("created_at", earliestFloor(scope)).not("child_id", "is", null).limit(5000);
+      for (const row of storyRows ?? []) if (inTeamWindow(scope, row.user_id as string, row.created_at as string)) recent.add(`${row.user_id}:${row.child_id}`);
+    }
+    const rows = (profileRows ?? []).filter((row) => {
+      const author = row.user_id as string;
+      if (!allowed.has(author)) return false;
+      return author === (scope.viewerId ?? scope.authorIds[0]) || recent.has(`${author}:${row.id}`);
+    });
     const profiles: TeamChildProfile[] = rows.map((row) => ({ id: row.id as string, name: (row.name as string) ?? "", authorId: row.user_id as string }));
     const merged = mergeTeamChildren({
       profiles,
@@ -441,7 +472,7 @@ export async function loadTeamEvidence(ctx: TeamContext, periodStartIso: string,
     ]);
     const allowed = new Set(scope.authorIds);
     const stories = (rows ?? [])
-      .filter((row) => allowed.has(row.user_id as string))
+      .filter((row) => allowed.has(row.user_id as string) && inTeamWindow(scope, row.user_id as string, row.created_at as string))
       .map((row) => {
         const story = evidenceStoryFromRow(row, localDay);
         return { ...story, childId: story.childId ? team.keyOfProfile[story.childId] ?? null : null };
@@ -475,8 +506,8 @@ export async function loadTeamRadarInput(ctx: TeamContext, sinceIso: string): Pr
     return {
       children: team.children.map((child) => ({ id: child.key, name: child.name })),
       moments: [
-        ...(storiesRes.data ?? []).filter((row) => allowed.has(row.user_id as string)).map((row) => ({ childId: key(row.child_id), createdAt: row.created_at as string })),
-        ...(capturesRes.data ?? []).filter((row) => allowed.has(row.user_id as string)).map((row) => ({ childId: key(row.child_id), createdAt: row.observed_at as string })),
+        ...(storiesRes.data ?? []).filter((row) => allowed.has(row.user_id as string) && inTeamWindow(scope, row.user_id as string, row.created_at as string)).map((row) => ({ childId: key(row.child_id), createdAt: row.created_at as string })),
+        ...(capturesRes.data ?? []).filter((row) => allowed.has(row.user_id as string) && inTeamWindow(scope, row.user_id as string, row.observed_at as string)).map((row) => ({ childId: key(row.child_id), createdAt: row.observed_at as string })),
       ],
     };
   } catch (error) {

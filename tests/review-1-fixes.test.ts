@@ -26,3 +26,19 @@ test("R1-05: while email-me-a-link is off, /auth/finish never signs in with a se
   const constant = readFileSync("lib/auth/signup-link.ts", "utf8");
   assert.match(constant, /SECURITY, before switching it on \(review 1, R1-05\)/, "the note beside the switch says a guard is needed");
 });
+
+test("R1-09: a wall card's code never reaches an event or the stored landing page", async () => {
+  const { cleanEventValue } = await import("../lib/analytics/events");
+  assert.equal(cleanEventValue({ kind: "path" }, "/w/k7mq3rtx"), "/w");
+  assert.equal(cleanEventValue({ kind: "path" }, "/w/k7mq3rtx/"), "/w");
+  assert.equal(cleanEventValue({ kind: "path" }, "/pricing"), "/pricing");
+  const client = readFileSync("lib/analytics/client.ts", "utf8");
+  assert.match(client, /landingPath: window\.location\.pathname\.replace\(\/\^\\\/w\\\/\.\+\$\/, "\/w"\),/);
+});
+
+test("R1-06: the sharing switch says exactly what a leader sees", () => {
+  const page = readFileSync("app/(app)/centre/page.tsx", "utf8");
+  assert.match(page, /the notes each one came from, and the first names, ages and interests of the children in them/);
+  assert.match(page, /Share my stories and notes with my leaders/);
+  assert.doesNotMatch(page, /Share my stories with leadership/);
+});

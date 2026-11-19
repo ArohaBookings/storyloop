@@ -12,7 +12,7 @@ import { normalizeAnyFramework } from "@/lib/international-frameworks";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getTeamContext, loadTeamChildren, type TeamContext } from "@/lib/centre-team-server";
-import { leaderTeamScopes, pickBriefStories, pickTeamViewScope } from "@/lib/centre-team";
+import { inTeamWindow, leaderTeamScopes, pickBriefStories, pickTeamViewScope } from "@/lib/centre-team";
 
 function asRecord(value: unknown) {
   return value && typeof value === "object" ? value as Record<string, unknown> : {};
@@ -66,7 +66,8 @@ async function teamBrief(team: TeamContext, viewerId: string) {
     .limit(60);
   if (error) throw error;
   const allowed = new Set(scope.authorIds);
-  const stories = ((data ?? []) as StoryRow[]).filter((story) => allowed.has(story.user_id ?? ""));
+  // Another member's stories only from the day she joined this centre or switched sharing on (review 1, R1-08).
+  const stories = ((data ?? []) as StoryRow[]).filter((story) => allowed.has(story.user_id ?? "") && inTeamWindow(scope, story.user_id, story.created_at));
   if (!stories.length) {
     return NextResponse.json({ error: "Nobody in your team has saved a story yet.", scope: "team", teamAvailable: true }, { status: 400 });
   }

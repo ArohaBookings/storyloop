@@ -53,6 +53,15 @@ export function teamAccess(input: {
 
 export type TeamScope = {
   centreId: string;
+  /** The leader looking. Her own stories have no date floor. */
+  viewerId?: string;
+  /**
+   * For every other author in the scope, the earliest moment the team views may
+   * read (review 1, R1-08): the day she joined this centre or switched sharing
+   * on, whichever is later. Nothing she wrote before it (at another centre, or
+   * while private) is in any team view.
+   */
+  readsFrom?: Record<string, string>;
   /** The viewer and every member whose stories she may read: evidence, planning and the radar. */
   authorIds: string[];
   /** Members other than the viewer whose shared stories are in her review queue. */
@@ -62,6 +71,29 @@ export type TeamScope = {
   /** Active members other than the viewer. */
   otherMembers: number;
 };
+
+/** A date nothing is ever written before: an author with no known join day is read from nowhere. */
+const READ_NOTHING = "9999-12-31T00:00:00.000Z";
+
+/** The floor for one member: max(joined this centre, switched sharing on). Pure. */
+export function teamReadsFrom(member: Pick<Membership, "joinedAt" | "sharesStoriesSince">): string {
+  const times = [member.joinedAt, member.sharesStoriesSince].map((value) => (value ? Date.parse(value) : NaN));
+  if (Number.isNaN(times[0])) return READ_NOTHING;
+  return new Date(Math.max(...times.filter((t) => !Number.isNaN(t)))).toISOString();
+}
+
+/**
+ * Whether a row written by this author at this moment may appear in a team
+ * view: always her own; another author's only on or after her floor. Pure.
+ */
+export function inTeamWindow(scope: Pick<TeamScope, "viewerId" | "readsFrom" | "authorIds">, authorId: string | null | undefined, at: string | null | undefined): boolean {
+  if (!authorId || !scope.authorIds.includes(authorId)) return false;
+  if (authorId === (scope.viewerId ?? scope.authorIds[0])) return true;
+  const floor = scope.readsFrom?.[authorId];
+  if (!floor || !at) return false;
+  const when = Date.parse(at);
+  return !Number.isNaN(when) && when >= Date.parse(floor);
+}
 
 /**
  * Whose stories the team views may read, from the consent-checked list
@@ -102,8 +134,12 @@ export function decideTeamScope(input: {
   }
 
   const authorIds = [viewerId, ...[...readable].filter((id) => id !== viewerId).sort()];
+  const readsFrom: Record<string, string> = {};
+  for (const id of authorIds) if (id !== viewerId) readsFrom[id] = teamReadsFrom(active.get(id)!);
   return {
     centreId: access.centreId,
+    viewerId,
+    readsFrom,
     authorIds,
     reviewAuthorIds: authorIds.filter((id) => id !== viewerId),
     privateMemberIds: privateMemberIds.sort(),

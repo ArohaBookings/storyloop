@@ -285,16 +285,18 @@ export default function CentrePage() {
               <div className="min-w-0 flex-1">
                 <h2 className="font-display text-lg font-bold text-ink-900">Your drafts</h2>
                 <p className="mt-1 text-sm leading-relaxed text-ink-600">
+                  {/* Exactly what is shared (review 1, R1-06): the stories, the notes they came from,
+                      the children's first names and details, and only from the day she switches it on. */}
                   {membership?.sharesStories
-                    ? "Your centre's leadership can read the stories you write. You can turn this off at any time."
-                    : "Your centre can see that you are writing and when, but cannot read your stories. Turning this on lets leadership read them, for moderation and support."}
+                    ? "Your centre's leaders can read the stories you have written here since you switched this on, the notes each one came from, and the first names, ages and interests of the children in them. You can turn this off at any time."
+                    : "Your centre can see that you are writing and when, but cannot read anything you write. Turning this on lets your centre's leaders read the stories you write from today, the notes each one came from, and the first names, ages and interests of the children in them, for moderation and support."}
                 </p>
                 <button
                   onClick={() => setSharing(!membership?.sharesStories)}
                   disabled={busy}
                   className={membership?.sharesStories ? "btn-secondary mt-3 text-xs" : "btn-primary mt-3 text-xs"}
                 >
-                  {membership?.sharesStories ? "Stop sharing my stories" : "Share my stories with leadership"}
+                  {membership?.sharesStories ? "Stop sharing" : "Share my stories and notes with my leaders"}
                 </button>
               </div>
             </div>

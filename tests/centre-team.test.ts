@@ -420,3 +420,41 @@ test("the sample speaks the leader's curriculum: the EYLF in Australia, Te Whār
   assert.equal(/Mana |waiata/.test(JSON.stringify(pack)), false);
   assert.deepEqual(pack.children, sampleEvidence(now).children, "the same invented children");
 });
+
+// ------------------------------------------------- review 1, R1-08: no reaching back
+test("a leader reads a sharing member only from the day she joined this centre or switched sharing on, whichever is later", async () => {
+  const { inTeamWindow, teamReadsFrom } = await import("../lib/centre-team");
+  const joined = "2026-11-01T00:00:00.000Z";
+  const switchedOn = "2026-11-10T00:00:00.000Z";
+  assert.equal(teamReadsFrom({ joinedAt: joined, sharesStoriesSince: null }), joined);
+  assert.equal(teamReadsFrom({ joinedAt: joined, sharesStoriesSince: switchedOn }), switchedOn);
+  assert.equal(teamReadsFrom({ joinedAt: switchedOn, sharesStoriesSince: joined }), switchedOn);
+  assert.equal(teamReadsFrom({ joinedAt: null, sharesStoriesSince: switchedOn }), "9999-12-31T00:00:00.000Z", "no join day known: nothing is read");
+
+  // Kate: a year of stories at her old centre, joined this one on 1 Nov, switched sharing on 10 Nov.
+  const kate = member({ userId: "edu-share", sharesStories: true, joinedAt: joined, sharesStoriesSince: switchedOn });
+  const scope = decideTeamScope({ viewerId: "owner-a", viewer: OWNER, access: TEAM, readableIds: ["edu-share"], members: [OWNER, ADMIN, kate, PRIVATE] })!;
+  assert.deepEqual(scope.readsFrom, { "edu-share": switchedOn });
+  assert.equal(inTeamWindow(scope, "edu-share", "2025-12-01T09:00:00.000Z"), false, "a story from her old centre");
+  assert.equal(inTeamWindow(scope, "edu-share", "2026-11-05T09:00:00.000Z"), false, "after joining, before she shared");
+  assert.equal(inTeamWindow(scope, "edu-share", "2026-11-10T00:00:00.000Z"), true, "from the day she switched sharing on");
+  assert.equal(inTeamWindow(scope, "edu-share", "2026-11-18T09:00:00.000Z"), true);
+  assert.equal(inTeamWindow(scope, "owner-a", "2020-01-01T00:00:00.000Z"), true, "the leader's own stories have no floor");
+  assert.equal(inTeamWindow(scope, "edu-private", "2026-11-18T09:00:00.000Z"), false, "a private member is never read");
+  assert.equal(inTeamWindow(scope, "edu-share", null), false);
+});
+
+test("every team read and the leader's mark go through the date floor", () => {
+  const server = readFileSync(new URL("../lib/centre-team-server.ts", import.meta.url), "utf8");
+  for (const fn of ["loadTeamQueue", "loadTeamChildren", "loadTeamEvidence", "loadTeamRadarInput", "saveTeamReview"]) {
+    const start = server.indexOf(`export async function ${fn}(`);
+    const end = server.indexOf("\nexport ", start + 10);
+    assert.ok(start > 0, fn);
+    assert.match(server.slice(start, end > 0 ? end : undefined), /inTeamWindow\(/, `${fn} uses the floor`);
+  }
+  assert.match(server, /select\("centre_id, user_id, role, status, shares_stories, joined_at, shares_stories_since"\)/);
+  const planning = readFileSync(new URL("../app/api/team-planning/route.ts", import.meta.url), "utf8");
+  assert.match(planning, /inTeamWindow\(scope, story\.user_id, story\.created_at\)/);
+  const sharing = readFileSync(new URL("../app/api/centres/sharing/route.ts", import.meta.url), "utf8");
+  assert.match(sharing, /shares_stories: true, shares_stories_since: new Date\(\)\.toISOString\(\)/);
+});

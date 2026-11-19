@@ -34,6 +34,10 @@ export type Membership = {
   role: CentreRole;
   status: MemberStatus;
   sharesStories: boolean;
+  /** When she joined this centre (centre_members.joined_at). */
+  joinedAt?: string | null;
+  /** When she last switched sharing on (centre_members.shares_stories_since). */
+  sharesStoriesSince?: string | null;
 };
 
 export type Centre = {

@@ -431,6 +431,8 @@ const PATH_PATTERN = /^\/[a-z0-9\-/]{0,80}$/;
 
 function cleanPath(value: string): string | null {
   if (!PATH_PATTERN.test(value)) return null;
+  // A wall card's address holds the code that opens a child's card (review 1, R1-09): never kept.
+  if (/^\/w\/./.test(value)) return "/w";
   const segments = value.split("/").filter(Boolean);
   if (segments.length > 4) return null;
   // A long run of hex or digits is a key or a record, not a place.

@@ -28,11 +28,14 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Say true or false." }, { status: 400 });
     }
 
-    const { error } = await createAdminSupabase()
-      .from("centre_members")
-      .update({ shares_stories: body.sharesStories })
-      .eq("centre_id", membership.centreId)
-      .eq("user_id", user.id);
+    // Switching on stamps the day (review 1, R1-08): her leaders read only what she
+    // wrote from then on, or from the day she joined, whichever is later.
+    const admin = createAdminSupabase();
+    const write = (fields: Record<string, unknown>) =>
+      admin.from("centre_members").update(fields).eq("centre_id", membership.centreId).eq("user_id", user.id);
+    let { error } = await write(body.sharesStories ? { shares_stories: true, shares_stories_since: new Date().toISOString() } : { shares_stories: false });
+    // Before the column's migration has run, the switch still works (team views then use the join day alone).
+    if (error && body.sharesStories && /shares_stories_since/.test(error.message)) ({ error } = await write({ shares_stories: true }));
 
     if (error) {
       console.error("Sharing toggle failed:", error.message);

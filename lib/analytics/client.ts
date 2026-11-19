@@ -236,7 +236,8 @@ function readAttribution(store: Storage | null): Attribution {
     utmMedium: params.get("utm_medium") ?? undefined,
     utmCampaign: params.get("utm_campaign") ?? undefined,
     referrer: document.referrer || undefined,
-    landingPath: window.location.pathname,
+    // A wall card's code opens a child's card: it never leaves the address bar (review 1, R1-09).
+    landingPath: window.location.pathname.replace(/^\/w\/.+$/, "/w"),
     ...(click ?? {}),
   };
 
