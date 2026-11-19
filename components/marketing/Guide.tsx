@@ -94,7 +94,8 @@ export function GuideSection({
 }) {
   const ground = tone === "white" ? "border-y border-clay-100 bg-white" : tone === "cream" ? "border-y border-clay-100 bg-cream-50/70" : "";
   return (
-    <section id={id} className={`${ground} py-14 md:py-20`}>
+    // scroll-mt: a link to a section (/for-families#tell-your-centre) lands below the fixed navbar, not under it.
+    <section id={id} className={`${ground} scroll-mt-16 py-14 md:py-20`}>
       <div className="wide-shell grid gap-8 lg:grid-cols-[0.75fr_1.25fr] lg:gap-14">
         <div className="min-w-0">
           {kicker && <p className="section-title mb-3">{kicker}</p>}
