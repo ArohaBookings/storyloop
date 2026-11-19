@@ -504,7 +504,7 @@ export default function SignupForm({ initialPlan = null, initialNext = null }: {
       <div className="pointer-events-none absolute inset-0 bg-warm-mesh" />
       <div className="relative z-10 w-full max-w-md">
         <div className="card p-5 sm:p-8">
-          <div className="mb-3 flex items-center justify-between gap-3 sm:mb-5">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3 sm:mb-5">
             <Link href="/" className="flex items-center gap-2" aria-label="StoryLoop home">
               <Image src="/logo.svg" alt="" width={28} height={28} className="h-7 w-7" />
               <span className="font-display text-lg font-bold text-ink-900">StoryLoop</span>

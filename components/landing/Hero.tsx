@@ -74,7 +74,7 @@ export default function Hero() {
                 href="#hero-demo"
                 onClick={goToDemo}
                 data-track="home_hero_try"
-                className="inline-flex items-center gap-1.5 py-1 text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 sm:hidden"
+                className="-my-2 inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 sm:hidden"
               >
                 or try it with your own note <ArrowDown className="h-3.5 w-3.5" />
               </a>

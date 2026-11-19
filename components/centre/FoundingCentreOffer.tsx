@@ -55,10 +55,10 @@ export default function FoundingCentreOffer({ id = "founding" }: { id?: string }
 
   return (
     <section id={id} aria-labelledby={`${id}-title`} className="border-y border-clay-200 bg-cream-50 py-14 md:py-16">
-      <div className="wide-shell grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+      <div className="wide-shell grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
         <div>
           {!soldOut && typeof spotsLeft === "number" && (
-            <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-clay-200 bg-paper px-3 py-1 text-sm font-semibold text-clay-800">
+            <p className="mb-4 inline-flex max-w-full items-center gap-2 rounded-full border border-clay-200 bg-paper px-3 py-1 text-sm font-semibold text-clay-800">
               <span className="h-2 w-2 rounded-full bg-clay-600" aria-hidden="true" />
               {spotsLeft} of {totalSpots} founding spots left
             </p>
@@ -104,12 +104,12 @@ export default function FoundingCentreOffer({ id = "founding" }: { id?: string }
         <div className="rounded-3xl border border-clay-200 bg-paper p-6 shadow-soft md:p-7">
           <p className="text-sm font-semibold text-ink-500">Centre Starter, {SEATS} educators, unlimited children</p>
           <dl className="mt-4 divide-y divide-clay-100">
-            <div className="flex items-baseline justify-between gap-4 py-3">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 py-3">
               <dt className="text-base text-ink-700">{free.periodLabel}</dt>
               <dd className="font-display text-2xl font-bold text-ink-900">Free</dd>
             </div>
             {!soldOut && (
-              <div className="flex items-baseline justify-between gap-4 py-3">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 py-3">
                 <dt className="text-base text-ink-700">Next {discountMonths} months</dt>
                 <dd className="text-right">
                   <span className="font-display text-2xl font-bold tabular-nums text-ink-900">NZ${money(half(NZD))}</span>
@@ -117,7 +117,7 @@ export default function FoundingCentreOffer({ id = "founding" }: { id?: string }
                 </dd>
               </div>
             )}
-            <div className="flex items-baseline justify-between gap-4 py-3">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 py-3">
               <dt className="text-base text-ink-700">{soldOut ? "Then" : "After that"}</dt>
               <dd className="text-right">
                 <span className="font-display text-2xl font-bold tabular-nums text-ink-900">NZ${NZD}</span>

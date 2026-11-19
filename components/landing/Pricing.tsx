@@ -45,7 +45,7 @@ export default function Pricing({ audience = "all" }: { audience?: "all" | "indi
           <p className="text-ink-600 text-base md:text-lg mb-6">Three stories a month stay free. Paid plans start with a {educatorTrialLine()} and cancel anytime.</p>
 
           {/* Currency toggle */}
-          <div className="inline-flex bg-white border border-clay-200 rounded-xl p-1">
+          <div className="inline-flex max-w-full flex-wrap bg-white border border-clay-200 rounded-xl p-1">
             {(["AUD", "NZD"] as const).map(c => (
               <button key={c} type="button" aria-pressed={currency === c} onClick={() => setCurrency(c)}
                 className={`min-h-[44px] px-5 py-1.5 text-sm font-semibold rounded-lg transition-all ${currency === c ? "bg-clay-700 text-paper shadow-warm" : "text-ink-600"}`}>
@@ -63,7 +63,7 @@ export default function Pricing({ audience = "all" }: { audience?: "all" | "indi
               )}
               <div className="mb-5">
                 <p className={`font-semibold ${plan.popular ? "text-cream-300" : "text-clay-700"}`}>{plan.name}</p>
-                <div className="flex items-end gap-1 mt-1 mb-2">
+                <div className="flex min-w-0 flex-wrap items-end gap-x-1 mt-1 mb-2">
                   <span className="font-display text-5xl font-bold">${plan.displayPrice}</span>
                   {plan.displayPrice > 0 && <span className={`mb-2 text-sm ${plan.popular ? "text-ink-300" : "text-ink-500"}`}>{currency}/month</span>}
                 </div>

@@ -21,17 +21,17 @@ export default function Navbar() {
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-paper/92 backdrop-blur-xl border-b border-clay-100" : "bg-transparent"}`}>
       <div className="edge-shell h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5">
+        <Link href="/" className="flex min-h-[44px] min-w-0 items-center gap-2.5">
           <AnimatedLogo size={32} />
-          <div>
+          <div className="min-w-0">
             <span className="font-display text-xl font-bold text-ink-800 tracking-tight">StoryLoop</span>
-            <p className="text-[9px] text-clay-600 -mt-1 font-mono tracking-widest">BY ARIA CARE</p>
+            <p className="text-[9px] text-clay-600 -mt-1 font-mono tracking-widest [@media(max-width:19.5em)]:hidden">BY ARIA CARE</p>
           </div>
         </Link>
 
         <div className="hidden lg:flex items-center gap-8">
           {[["Features", "/features"], ["Examples", "/examples"], ["For centres", "/for-centres"], ["Guides", "/blog"], ["Pricing", "/pricing"], ["About", "/about"]].map(([label, href]) => (
-            <Link key={label} href={href} className="py-2 text-sm text-ink-600 hover:text-ink-900 transition-colors font-medium">{label}</Link>
+            <Link key={label} href={href} className="inline-flex min-h-[44px] items-center text-sm text-ink-600 hover:text-ink-900 transition-colors font-medium">{label}</Link>
           ))}
         </div>
 
@@ -40,7 +40,7 @@ export default function Navbar() {
             <Link href="/dashboard" className="btn-primary text-sm" data-track="nav_open_app">Open StoryLoop</Link>
           ) : (
             <>
-              <Link href="/login" className="text-sm font-medium text-ink-600 hover:text-ink-900 px-4 py-2 transition-colors">Sign in</Link>
+              <Link href="/login" className="inline-flex min-h-[44px] items-center text-sm font-medium text-ink-600 hover:text-ink-900 px-4 transition-colors">Sign in</Link>
               <Link href="/signup" className="btn-primary text-sm">Start free</Link>
             </>
           )}
@@ -49,10 +49,12 @@ export default function Navbar() {
         {/* On a phone "Sign in" sits in the header, not only in the menu (19 Oct
             2026): paying educators landed on the homepage, tapped "Start free",
             hit the signup form, went back and dug through the menu to sign in. */}
-        <div className="flex items-center gap-1 lg:hidden">
+        {/* With the browser's text size enlarged (about 200% on a phone), "Sign in" moves into
+            the menu so the menu button always fits (em media queries follow the text size). */}
+        <div className="flex flex-none items-center gap-1 lg:hidden">
           <Link
             href={signedIn ? "/dashboard" : "/login"}
-            className="px-3 py-2 text-sm font-semibold text-ink-700 hover:text-ink-900"
+            className="inline-flex min-h-[44px] items-center whitespace-nowrap px-3 text-sm font-semibold text-ink-700 hover:text-ink-900 [@media(max-width:19.5em)]:hidden"
             data-track={signedIn ? "nav_open_app_mobile" : "nav_sign_in_mobile"}
           >
             {signedIn ? "Open StoryLoop" : "Sign in"}
@@ -71,14 +73,14 @@ export default function Navbar() {
       {open && (
         <div className="lg:hidden bg-paper border-t border-clay-100 px-4 py-4 space-y-2">
           {[["Features", "/features"], ["Examples", "/examples"], ["For centres", "/for-centres"], ["Guides", "/blog"], ["Resources", "/resources"], ["Pricing", "/pricing"], ["About", "/about"], ["FAQ", "/faq"]].map(([label, href]) => (
-            <Link key={label} href={href} className="block text-sm text-ink-600 py-2" onClick={() => setOpen(false)}>{label}</Link>
+            <Link key={label} href={href} className="flex min-h-[44px] items-center text-sm text-ink-600" onClick={() => setOpen(false)}>{label}</Link>
           ))}
           <div className="pt-3 border-t border-clay-100 flex flex-col gap-2">
             {signedIn ? (
               <Link href="/dashboard" className="btn-primary justify-center">Open StoryLoop</Link>
             ) : (
               <>
-                <Link href="/login" className="text-sm text-center text-ink-600 py-2">Sign in</Link>
+                <Link href="/login" className="flex min-h-[44px] items-center justify-center text-sm text-ink-600">Sign in</Link>
                 <Link href="/signup" className="btn-primary justify-center">Start free</Link>
               </>
             )}

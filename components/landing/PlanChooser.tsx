@@ -59,7 +59,7 @@ export default function PlanChooser() {
       </div>
       <ul>
         {getPlanDefinitions(currency).map((plan) => (
-          <li key={plan.key} className={`flex items-center gap-3 border-t border-clay-100 px-4 py-2.5 ${plan.popular ? "bg-clay-50/70" : ""}`}>
+          <li key={plan.key} className={`flex flex-wrap items-center gap-3 border-t border-clay-100 px-4 py-2.5 ${plan.popular ? "bg-clay-50/70" : ""}`}>
             <div className="min-w-0 flex-1">
               <p className="text-[15px] font-bold leading-tight text-ink-900">
                 {plan.name}
@@ -80,7 +80,7 @@ export default function PlanChooser() {
             <Link
               href={plan.key !== "free" ? `/signup?plan=${plan.key}&currency=${currency}` : "/signup"}
               onClick={() => trackEvent("ui_action", { action: "pricing_top_plan", target: plan.key })}
-              className={`${plan.popular ? "btn-primary" : "btn-secondary"} min-h-[44px] flex-none justify-center px-3 py-2 text-xs`}
+              className={`${plan.popular ? "btn-primary" : "btn-secondary"} min-h-[44px] max-w-full flex-none justify-center px-3 py-2 text-xs`}
               data-track="pricing_top_plan"
               data-testid={`plan-chooser-${plan.key}`}
             >

@@ -137,19 +137,21 @@ export default function CookieBanner() {
         "inset-x-0 bottom-0 rounded-t-2xl border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]",
         "sm:inset-x-auto sm:bottom-5 sm:w-[23.5rem] sm:rounded-3xl sm:border sm:p-6",
         inApp ? "sm:right-5" : "sm:left-5",
+        // Short laptop windows: a slim bar along the bottom, clear of every first-screen button.
+        "[@media(min-width:1024px)_and_(max-height:820px)]:inset-x-0 [@media(min-width:1024px)_and_(max-height:820px)]:bottom-0 [@media(min-width:1024px)_and_(max-height:820px)]:flex [@media(min-width:1024px)_and_(max-height:820px)]:w-auto [@media(min-width:1024px)_and_(max-height:820px)]:items-center [@media(min-width:1024px)_and_(max-height:820px)]:gap-6 [@media(min-width:1024px)_and_(max-height:820px)]:rounded-none [@media(min-width:1024px)_and_(max-height:820px)]:border-x-0 [@media(min-width:1024px)_and_(max-height:820px)]:border-b-0 [@media(min-width:1024px)_and_(max-height:820px)]:px-8 [@media(min-width:1024px)_and_(max-height:820px)]:py-3",
         "transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none",
         shown ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0",
       ].join(" ")}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-3 [@media(min-width:1024px)_and_(max-height:820px)]:min-w-0 [@media(min-width:1024px)_and_(max-height:820px)]:flex-1 [@media(min-width:1024px)_and_(max-height:820px)]:items-center">
         <span className="hidden h-9 w-9 flex-none items-center justify-center rounded-xl bg-cream-100 text-clay-700 sm:flex" aria-hidden="true">
           <Cookie className="h-5 w-5" strokeWidth={1.8} />
         </span>
         <div className="min-w-0">
-          <h2 id="cookie-banner-title" className="sr-only font-display text-lg font-bold leading-snug text-ink-900 sm:not-sr-only">
+          <h2 id="cookie-banner-title" className="sr-only font-display text-lg font-bold leading-snug text-ink-900 sm:not-sr-only [@media(min-width:1024px)_and_(max-height:820px)]:sr-only">
             Can we use analytics cookies?
           </h2>
-          <p id="cookie-banner-body" className="text-[13px] leading-snug text-ink-700 sm:mt-1.5 sm:text-sm sm:leading-relaxed sm:text-ink-600">
+          <p id="cookie-banner-body" className="text-[13px] leading-snug text-ink-700 sm:mt-1.5 sm:text-sm sm:leading-relaxed sm:text-ink-600 [@media(min-width:1024px)_and_(max-height:820px)]:mt-0">
             <span className="sm:hidden">
               <strong className="font-semibold text-ink-900">Analytics cookies?</strong> They show us what helps educators and which ads work.
               Never your stories.{" "}
@@ -169,7 +171,7 @@ export default function CookieBanner() {
           )}
         </div>
       </div>
-      <div className="mt-2.5 grid grid-cols-2 gap-2 sm:mt-4 sm:gap-2.5">
+      <div className="mt-2.5 grid grid-cols-2 gap-2 sm:mt-4 sm:gap-2.5 [@media(min-width:1024px)_and_(max-height:820px)]:mt-0 [@media(min-width:1024px)_and_(max-height:820px)]:w-80 [@media(min-width:1024px)_and_(max-height:820px)]:flex-none">
         <button
           type="button"
           onClick={() => choose("essential")}

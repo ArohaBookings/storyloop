@@ -99,11 +99,11 @@ export default function Footer() {
 
         <div className="pt-8 border-t border-ink-800 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-ink-300" data-testid="footer-site-address">© {new Date().getFullYear()} StoryLoop, storyloop.space · A division of Aria Care. Proudly built in New Zealand.</p>
-          <div className="flex items-center gap-5 text-xs text-ink-300">
-            <Link href="/privacy" className="hover:text-paper transition-colors">Privacy</Link>
-            <Link href="/terms" className="hover:text-paper transition-colors">Terms</Link>
+          <div className="flex flex-wrap items-center justify-center gap-x-5 text-xs text-ink-300">
+            <Link href="/privacy" className="inline-flex min-h-[44px] items-center hover:text-paper transition-colors">Privacy</Link>
+            <Link href="/terms" className="inline-flex min-h-[44px] items-center hover:text-paper transition-colors">Terms</Link>
             <CookiePreferencesButton className="hover:text-paper transition-colors" />
-            <a href="mailto:ariacareapp@gmail.com" className="hover:text-paper transition-colors">Contact</a>
+            <a href="mailto:ariacareapp@gmail.com" className="inline-flex min-h-[44px] items-center hover:text-paper transition-colors">Contact</a>
           </div>
         </div>
       </div>

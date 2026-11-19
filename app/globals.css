@@ -22,6 +22,12 @@
     @apply font-display;
     font-feature-settings: "ss01";
   }
+  /* Enlarged text (200%, for eyesight): a long word in a heading breaks inside
+     the screen instead of running off its edge, where nothing can scroll to it.
+     At normal sizes no heading word is wider than its column, so nothing moves. */
+  h1, h2, h3 {
+    overflow-wrap: anywhere;
+  }
   ::selection {
     background: rgba(232, 193, 85, 0.35);
     color: #1a1817;
