@@ -176,12 +176,12 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     kicker: "For directors and owners",
     heading: "What does learning story software cost a centre?",
     intro:
-      "Most early childhood platforms bill per child, per month, so the price rises every time you enrol someone. Drafting tools tend to bill per educator or as a flat centre fee, which does not. StoryLoop is the second kind: NZ$109 a month covers ten educators and unlimited children, which works out at about NZ$10.90 per educator.",
+      "StoryLoop charges a centre one flat price for the team, with no per-child fee: NZ$109 a month covers ten educators and unlimited children, which works out at about NZ$10.90 per educator. Enrol more children and the price does not move.",
     sections: [
       {
-        title: "Per child and per educator pull in opposite directions",
+        title: "The price follows the people doing the writing",
         body:
-          "A per-child platform costs more as your roll grows, which is the opposite of how the work behaves: forty children do not create four times the documentation of ten if the same six educators are writing it. A per-educator or flat fee tracks the people actually doing the writing. Neither is dishonest, but they reward different services, and a growing centre should know which side of that line a quote sits on before signing.",
+          "Forty children do not create four times the documentation of ten if the same six educators are writing it. So StoryLoop prices a centre by its team: one flat monthly fee for up to ten or twenty-five educators, and every child you enrol is included. A growing centre pays the same next year as it does this month, as long as the team fits the plan.",
       },
       {
         title: "Ask what happens when you enrol twenty more children",
@@ -191,10 +191,10 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       {
         title: "Price the learning story work, not the platform",
         body:
-          "Per-child pricing grows with your roll whether or not the writing gets easier. StoryLoop charges per team with unlimited children, and its value is in the hours a story no longer takes. Compare what each option costs per educator per month against the time it gives back, and include the cost of moving any history you need to keep.",
+          "StoryLoop charges per team with unlimited children, and its value is in the hours a story no longer takes. Work out what it costs per educator per month, then set that against the time it gives back to each of them every week.",
       },
       {
-        title: "Compare against relief cover, not against other software",
+        title: "Weigh it against relief cover",
         body:
           "The honest comparison for an additional tool is what else that money would buy. At NZ$109 a month a centre is weighing roughly three hours of relief cover against every educator getting drafting help all month. That is a decision a manager can usually make alone, which matters more than the number itself: it is the difference between a quick yes and a board paper.",
       },
@@ -208,7 +208,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       {
         question: "What does learning story software cost a centre?",
         answer:
-          "Per-child pricing moves with your roll. StoryLoop charges a flat centre fee: NZ$109 a month for ten educator seats and unlimited children, or NZ$219 for twenty-five seats.",
+          "StoryLoop charges a flat centre fee with no per-child fee: NZ$109 a month for ten educator seats and unlimited children, or NZ$219 for twenty-five seats.",
       },
       {
         question: "Is it cheaper to buy a centre plan or individual educator plans?",
@@ -218,7 +218,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       {
         question: "Does the price go up when we enrol more children?",
         answer:
-          "Not on a flat centre plan. StoryLoop centre plans cover unlimited children, so the monthly figure does not change with your roll. Platforms that bill per child do increase as you enrol.",
+          "No. StoryLoop centre plans cover unlimited children, so the monthly figure does not change with your roll.",
       },
       {
         question: "Can StoryLoop handle all of our learning stories?",
@@ -1237,9 +1237,9 @@ export const SEO_PAGES: Record<string, SeoPage> = {
         ],
       },
       {
-        title: "Nothing changes for families",
+        title: "Getting stories to families",
         body:
-          "Keep whatever your centre uses for photos and messages to families. StoryLoop does one job: an educator writes here, copies the finished story in one tap, and pastes it there. If you want it, a Family link lets a family read their child's stories with no app and no password.",
+          "A finished story copies in one tap, ready to paste, print or email to the family. If you want it, a Family link lets a family read their child's stories on any phone, with no app and no password, and send a reply back to the educator who wrote it.",
       },
       {
         title: "Is our data ours, and who runs this?",
@@ -1269,9 +1269,9 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     ],
     faqs: [
       {
-        question: "Do we have to stop using what we have for families?",
+        question: "How do families get the stories?",
         answer:
-          "No. Keep it. StoryLoop is where the story gets written. The finished story copies in one tap and pastes into whatever your families already read, so your photos, messages and family accounts stay exactly as they are.",
+          "Each finished story copies in one tap, ready to paste, print or email. A Family link lets a family read their child's stories on any phone with no app and no password, and on Educator Pro and centre plans read them in their own language.",
       },
       {
         question: "What happens to our stories if we stop?",

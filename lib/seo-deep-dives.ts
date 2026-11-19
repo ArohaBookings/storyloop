@@ -322,7 +322,7 @@ export const SEO_DEEP_DIVES: Record<string, Array<{ heading: string; paragraphs:
       heading: "What changes in practice",
       paragraphs: [
         "Drop per-child quotas and document significant moments when they happen. Stop coding outcome numbers onto every observation unless it genuinely helps your planning. Let a learning story carry the planning cycle inside the narrative, which ACECQA describes as an effective approach. Take photographs when they add to the child's learning and respect their rights, not by default.",
-        "StoryLoop was built for exactly this version of documentation: a short, real observation becomes a narrative draft with curriculum links only where the note supports them, and the educator decides what is true. It sits alongside whatever platform your families already use.",
+        "StoryLoop was built for exactly this version of documentation: a short, real observation becomes a narrative draft with curriculum links only where the note supports them, and the educator decides what is true.",
       ],
     },
   ],

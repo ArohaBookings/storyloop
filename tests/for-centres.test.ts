@@ -55,7 +55,7 @@ test("the centre page has six to ten short sections and five or six questions", 
   assert.ok(page.faqs.length >= 5 && page.faqs.length <= 6, `${page.faqs.length} FAQs`);
   const questions = page.faqs.map((f) => f.question);
   for (const q of [
-    "Do we have to stop using what we have for families?",
+    "How do families get the stories?",
     "What happens to our stories if we stop?",
     "Who is behind StoryLoop?",
     "Can a leader see everything an educator writes?",

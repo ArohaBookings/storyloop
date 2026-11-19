@@ -304,7 +304,14 @@ test("the leader's page links the data sheet, starts signup, and keeps the refer
   const page = readFileSync("components/marketing/LeaderCheckPage.tsx", "utf8");
   assert.match(page, /href="\/data-sheet"/);
   assert.match(page, /For your owner, board or approved provider: the one-page data sheet/);
-  assert.match(page, /Start our free month/);
+  // The one centre offer in the same words as /for-centres' first screen.
+  assert.match(page, /Start your centre free/);
+  assert.match(page, /<CentreTrialWords capital \/>, no card\./);
+  assert.match(page, /<CentrePriceWords \/>, unlimited children\./);
+  const centres = readFileSync("app/[slug]/page.tsx", "utf8");
+  assert.match(centres, /Start your centre free/);
+  assert.match(centres, /<CentreTrialWords initial=\{centreTrialWordsCapital\(new Date\(\)\)\} capital \/>, no card\./);
+  assert.match(centres, /<CentrePriceWords \/>, unlimited children\./);
   assert.match(page, /already writes with StoryLoop\./);
   assert.match(page, /data-private=""/, "click analytics must not record the link's address");
   assert.doesNotMatch(page, /for-centres\?utm_source=leader_check/);

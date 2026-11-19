@@ -6,7 +6,8 @@ import { ArrowRight, CheckCircle2, FileText, Loader2, MessageSquareText, ShieldC
 import StoryText from "@/components/app/StoryText";
 import { track } from "@/lib/analytics/client";
 import { CHECK_COMMENT_MAX, CHECK_DAYS, CHECK_NAME_MAX, leaderCountsSentence, OFFER_STORAGE_KEY, offerSignupHref, offerStorageValue, tokenFromHash, type LeaderView } from "@/lib/story-check";
-import { useCentreTrialWords } from "@/components/centre/CentreTrialWords";
+import CentreTrialWords from "@/components/centre/CentreTrialWords";
+import CentrePriceWords from "@/components/buyer/CentrePriceWords";
 
 
 type Phase = "loading" | "ready" | "gone";
@@ -23,7 +24,7 @@ function day(value: string | null | undefined) {
 /**
  * The leader's side of a check. One story, the note it came from beside it,
  * and two answers. Under the answer, before and after it, the only thing asked
- * of the leader: the whole team's free month, with this educator already in it
+ * of the leader: the whole team's free period, with this educator already in it
  * (13 Nov 2026). The person reading this page is the one who decides for the
  * centre, and this is the one time they have seen StoryLoop working on their
  * own children.
@@ -37,7 +38,6 @@ export default function LeaderCheckPage() {
   const [suggesting, setSuggesting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const freeFor = useCentreTrialWords();
 
   useEffect(() => {
     const key = tokenFromHash(window.location.hash);
@@ -224,10 +224,14 @@ export default function LeaderCheckPage() {
               {leaderCountsSentence(view.educator, offer.counts)}
             </p>
           )}
+          {/* The one centre offer, in the same words as /for-centres' first screen (app/[slug]/page.tsx). */}
           <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-700" data-testid="leader-offer-terms">
-            Start a free month for {view.centreName ? <strong className="font-semibold text-ink-900">{view.centreName}</strong> : "your whole team"}: up
-            to 10 educators and any number of children, <strong className="font-semibold text-ink-900">{freeFor}</strong>, with no card
-            needed. {view.educator} comes with you, and {view.educator}&apos;s drafts stay private unless {view.educator} chooses to share them.
+            Start {view.centreName ? <strong className="font-semibold text-ink-900">{view.centreName}</strong> : "your whole team"} on StoryLoop.{" "}
+            <strong className="font-semibold text-ink-900">
+              <CentreTrialWords capital />, no card.
+            </strong>{" "}
+            <CentrePriceWords />, unlimited children. {view.educator} comes with you, and {view.educator}&apos;s drafts stay private unless{" "}
+            {view.educator} chooses to share them.
           </p>
           <div className="mt-5">
             <a
@@ -243,7 +247,7 @@ export default function LeaderCheckPage() {
               data-private=""
               data-track="leader_offer_start"
             >
-              Start our free month <ArrowRight className="h-4 w-4" />
+              Start your centre free <ArrowRight className="h-4 w-4" />
             </a>
           </div>
           <Link
