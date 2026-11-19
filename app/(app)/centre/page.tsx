@@ -253,7 +253,7 @@ export default function CentrePage() {
               "all seats are in use" as the only thing on the page. */}
           {isLeader && !centre.plan && (
             <div className="card border-sage-200 bg-sage-50 p-5" data-testid="centre-start-month">
-              <h2 className="font-display text-lg font-bold text-ink-900">Start your centre&apos;s free month to bring your team in</h2>
+              <h2 className="font-display text-lg font-bold text-ink-900">Start your centre free to bring your team in</h2>
               <p className="mt-1 text-sm leading-relaxed text-ink-700">
                 {freeFor}, with no card. Up to 10 educators and every child. Everyone you invite then has unlimited
                 stories and everything on the centre plan, at no cost to them. If it is not for you, do nothing: the
@@ -372,7 +372,7 @@ export default function CentrePage() {
                   <p className="mt-2 text-xs text-clay-700">
                     {centre.plan
                       ? "All seats are in use. Free one up or move to a larger plan."
-                      : "Seats for your team come with the centre plan. Start the free month above, then invite them here."}
+                      : "Seats for your team come with the centre plan. Start your centre free above, then invite them here."}
                   </p>
                 )}
               </div>

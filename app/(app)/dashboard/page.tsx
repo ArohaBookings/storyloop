@@ -184,10 +184,10 @@ export default async function DashboardPage({
                 <CheckCircle className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="font-display text-2xl font-bold text-ink-900">Your centre&apos;s free month has started.</h2>
+                <h2 className="font-display text-2xl font-bold text-ink-900">Your centre&apos;s free period has started.</h2>
                 <p className="mt-1 text-base text-ink-600">
                   Next, name your centre and invite your team. It takes a couple of minutes, and nothing is charged
-                  unless you add a card before the month ends.
+                  unless you add a card before it ends.
                 </p>
               </div>
             </div>

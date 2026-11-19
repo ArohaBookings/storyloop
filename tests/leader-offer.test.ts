@@ -123,7 +123,7 @@ test("the dates in the emails, the bell and Billing name the same day as checkou
     now: new Date(janEnd.getTime() - 2 * DAY), plan: "centre_starter", subscriptionStatus: "trialing", trialEndsAt: janEnd.toISOString(), trialCardOnFile: false,
     storiesThisMonth: 0, usageResetAt: null, monthlyLimit: null, referrals: [], quiet: null, wall: null, term: null, invites: [], billingCurrency: "nzd",
   };
-  assert.equal(buildNotifications(facts)[0]?.title, "Your centre's free month ends Monday 1 February");
+  assert.equal(buildNotifications(facts)[0]?.title, "Your centre's free period ends Monday 1 February");
   // The reminder and the lapsed email no longer state a length.
   const lapsed = renderLifecycleEmail({ type: "subscription_cancelled", userId: "u", recipient: "a@b.nz", name: "Aroha", context: { trialLapsed: true } });
   assert.doesNotMatch(lapsed.text + lapsed.html, /30-day/);

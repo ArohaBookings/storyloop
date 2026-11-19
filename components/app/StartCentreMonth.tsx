@@ -11,7 +11,7 @@ import { useCentreTrialWords } from "@/components/centre/CentreTrialWords";
  * wherever a leader is. New Zealand dollars in Aotearoa, Australian elsewhere,
  * the rule the Billing page uses.
  */
-export default function StartCentreMonth({ from, className = "btn-primary", label = "Start my centre's free month" }: { from: string; className?: string; label?: string }) {
+export default function StartCentreMonth({ from, className = "btn-primary", label = "Start your centre free" }: { from: string; className?: string; label?: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const freeFor = useCentreTrialWords(undefined, true);
@@ -28,9 +28,9 @@ export default function StartCentreMonth({ from, className = "btn-primary", labe
       });
       const data = await response.json();
       if (data.url) { window.location.href = data.url; return; }
-      setError(data.error ?? "The free month could not start. Open Billing and try from there.");
+      setError(data.error ?? "The free period could not start. Open Billing and try from there.");
     } catch {
-      setError("The free month could not start. Check your connection and try again.");
+      setError("The free period could not start. Check your connection and try again.");
     }
     setBusy(false);
   };

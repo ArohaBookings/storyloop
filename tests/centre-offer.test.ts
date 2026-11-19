@@ -146,7 +146,7 @@ test("a wrong configured price is skipped for the right known one", async () => 
 
 test("the ended email never tells a trialing centre it was charged", () => {
   const lapsed = renderLifecycleEmail({ type: "subscription_cancelled", userId: "u", recipient: "a@b.nz", name: "Aroha", context: { trialLapsed: true } });
-  assert.match(lapsed.subject, /free month has ended/);
+  assert.match(lapsed.subject, /free period has ended/);
   assert.match(lapsed.text, /nothing was charged/i);
   assert.doesNotMatch(lapsed.text, /charged again/);
   const cancelled = renderLifecycleEmail({ type: "subscription_cancelled", userId: "u", recipient: "a@b.nz", name: "Aroha" });
@@ -155,7 +155,7 @@ test("the ended email never tells a trialing centre it was charged", () => {
 
 test("a centre with no card is told how to keep going, not that a payment will be taken", () => {
   const noCard = renderLifecycleEmail({ type: "trial_ending", userId: "u", recipient: "a@b.nz", name: "Aroha", context: { centreTrial: true, cardOnFile: false, trialEndsOn: "20 October 2026" } });
-  assert.match(noCard.subject, /free month ends on 20 October 2026/);
+  assert.match(noCard.subject, /free period ends on 20 October 2026/);
   assert.match(noCard.text, /add a card/i);
   assert.doesNotMatch(noCard.text, /payment of/);
   const withCard = renderLifecycleEmail({ type: "trial_ending", userId: "u", recipient: "a@b.nz", name: "Aroha", context: { centreTrial: true, cardOnFile: true } });

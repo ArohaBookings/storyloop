@@ -169,7 +169,7 @@ export async function inviteFromLeaderOffer(userId: string, now = new Date()): P
       status: 409,
       error: centre.plan
         ? `All ${centre.seatLimit} seats are in use. Remove someone or move up a plan.`
-        : "Seats for your team come with the centre plan. Start the free month above, then invite them here.",
+        : "Seats for your team come with the centre plan. Start your centre free above, then invite them here.",
     };
   }
 

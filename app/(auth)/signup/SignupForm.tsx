@@ -750,7 +750,7 @@ export default function SignupForm({ initialPlan = null, initialNext = null }: {
               </div>
             )}
             <button type="submit" disabled={loading || !ready} aria-busy={loading} className="btn-primary w-full py-3 disabled:opacity-80" data-testid="signup-submit">
-              {loading ? <><Loader2 className="h-4 w-4 animate-spin" /><span className="sr-only">Creating your account</span></> : mode === "link" ? "Email me a link" : isCentre ? "Create account and start free month" : isPaidPlan ? "Create account and start trial" : "Create free account"}
+              {loading ? <><Loader2 className="h-4 w-4 animate-spin" /><span className="sr-only">Creating your account</span></> : mode === "link" ? "Email me a link" : isCentre ? "Create account and start your centre free" : isPaidPlan ? "Create account and start trial" : "Create free account"}
             </button>
             {mode === "link" && (
               <p className="text-center text-xs text-ink-600">

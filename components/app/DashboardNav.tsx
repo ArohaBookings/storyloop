@@ -1,4 +1,5 @@
 "use client";
+import CentreTrialWords from "@/components/centre/CentreTrialWords";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -275,7 +276,7 @@ export default function DashboardNav({
               <Building2 className="h-4 w-4 flex-shrink-0" /> Get your centre on board
             </p>
             <p className="mt-1 text-xs leading-relaxed text-sage-900">
-              Your centre gets a free month. You get 3 months of your plan free.
+              Your centre starts <CentreTrialWords />, no card. You get 3 months of your plan free.
             </p>
           </Link>
         )}

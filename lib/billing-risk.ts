@@ -80,7 +80,7 @@ export function assessBillingRisk(facts: SubscriptionFacts, now = Math.floor(Dat
       risks.push({
         level: daysLeft <= 7 ? "medium" : "low",
         code: "trial_no_card",
-        text: `Free month ends ${when(facts.trialEnd)} (${Math.max(0, daysLeft)} days) and no card yet. It ends unless one is added.`,
+        text: `Free period ends ${when(facts.trialEnd)} (${Math.max(0, daysLeft)} days) and no card yet. It ends unless one is added.`,
       });
     } else if (!facts.hasCard) {
       risks.push({ level: "medium", code: "trial_card_missing", text: `Trial ends ${when(facts.trialEnd)} with no card on file: the first charge will fail.` });

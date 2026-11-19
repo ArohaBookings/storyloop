@@ -162,7 +162,7 @@ export function buildNotifications(facts: NotificationFacts): AppNotification[] 
         id: `trial:${isoDate(ends)}`,
         kind: "trial",
         // In the customer's part of the world, as checkout, the emails and Billing name it.
-        title: noCard ? `Your centre's free month ends ${billingDay(ends, facts.billingCurrency)}` : `Your free trial ends ${billingDay(ends, facts.billingCurrency)}`,
+        title: noCard ? `Your centre's free period ends ${billingDay(ends, facts.billingCurrency)}` : `Your free trial ends ${billingDay(ends, facts.billingCurrency)}`,
         body: noCard
           ? "Add a card from Billing to keep your team going. Otherwise it simply ends, nothing is charged, and everything stays yours."
           : "Nothing to do if you want to keep going. If not, you can cancel from Billing before then and you will not be charged.",

@@ -554,10 +554,10 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
       if (ctx.centreTrial && ctx.cardOnFile !== true) {
         const ctaUrl = url("/billing", "trial_ending");
         const when = ctx.trialEndsOn ? `on ${ctx.trialEndsOn}` : "soon";
-        const subject = `Your centre's free month ends ${when}`;
+        const subject = `Your centre's free period ends ${when}`;
         const unsure = ctx.cardOnFile === null;
         const lines = [
-          `Hi ${name}, your centre's free month of StoryLoop ends ${when}.`,
+          `Hi ${name}, your centre's free period of StoryLoop ends ${when}.`,
           unsure
             ? "If you have already added a card, you do not need to do anything. If not, add one from Billing to keep your team going."
             : "To keep your team going, add a card from Billing. It takes about a minute.",
@@ -569,12 +569,12 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
           marketing: false,
           ctaUrl,
           html: layout({
-            title: `Your free month ends ${esc(when)}`,
+            title: `Your free period ends ${esc(when)}`,
             preview: "Add a card to keep your team going. Nothing is charged otherwise.",
             cta: "Add a card",
             ctaUrl,
             secondary: `<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#6f6660;">Not the right time? Do nothing, and nothing is charged. Everything your team wrote stays yours.</p>`,
-            body: `<p>Hi ${esc(name)}, your centre's free month of StoryLoop ends <strong>${esc(when)}</strong>.</p><p>${esc(lines[1])}</p><p>If you would rather not, you do not need to do anything. It simply ends, <strong>nothing is charged</strong>, and every story your team wrote stays yours.</p>`,
+            body: `<p>Hi ${esc(name)}, your centre's free period of StoryLoop ends <strong>${esc(when)}</strong>.</p><p>${esc(lines[1])}</p><p>If you would rather not, you do not need to do anything. It simply ends, <strong>nothing is charged</strong>, and every story your team wrote stays yours.</p>`,
           }),
           text: plain({ title: subject, lines, cta: "Add a card", ctaUrl }),
         };
@@ -758,7 +758,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
       // cancellation.
       if (ctx.trialLapsed) {
         const ctaUrl = url("/billing", "subscription_cancelled");
-        const subject = "Your centre's free month has ended";
+        const subject = "Your centre's free period has ended";
         const lines = [
           `Hi ${name}, your centre's free trial of StoryLoop has ended. No card was added, so nothing was charged and nothing will be.`,
           "Your account is now on the free plan. Every story your team wrote stays yours to open, edit and export.",
@@ -771,7 +771,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
           marketing: false,
           ctaUrl,
           html: layout({
-            title: "Your centre's free month has ended",
+            title: "Your centre's free period has ended",
             preview: "Nothing was charged. Your team's stories stay yours.",
             cta: "Keep StoryLoop for my centre",
             ctaUrl,
@@ -870,7 +870,7 @@ export function renderLifecycleEmail(input: TemplateInput): RenderedEmail {
       // The terms that checkout actually offered: a free month of Pro, a
       // centre's no-card month, or an individual trial. Never a guess.
       const terms = ctx.offerCode
-        ? "It is your free month of Pro: nothing is charged for 30 days, and you can cancel or switch plans from Billing before then."
+        ? "It is your free month of Pro: nothing is charged for 30 days, and your plan is yours to change on the Billing page before then."
         : ctx.centreTrial
           ? `It is ${ctx.centreTrialWords ?? `${ctx.trialDays ?? 30} days free`} with no card needed. If you do not add one, it simply ends and nothing is charged.`
           : (ctx.trialDays ?? 7) > 0

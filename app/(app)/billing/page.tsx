@@ -422,7 +422,7 @@ export default function BillingPage() {
       {trialStatus?.centreTrial && trialStatus.cardOnFile !== true && (
         <div className="mb-6 rounded-2xl border border-clay-200 bg-cream-50 p-5" data-testid="centre-trial-banner">
           <p className="font-display text-xl font-bold text-ink-900">
-            Your centre&apos;s free month{trialStatus.trialEndsAt ? ` ends ${billingDay(trialStatus.trialEndsAt, trialStatus.currency)}` : " is running"}.
+            Your centre&apos;s free period{trialStatus.trialEndsAt ? ` ends ${billingDay(trialStatus.trialEndsAt, trialStatus.currency)}` : " is running"}.
           </p>
           <p className="mt-1.5 text-base leading-relaxed text-ink-700">
             {trialStatus.cardOnFile === null ? "If you have not added a card yet, add" : "Add"} one to keep your team going
@@ -639,7 +639,7 @@ export default function BillingPage() {
                   : billing.subscription.nextPayment
                     ? `Next payment ${formatMoney(billing.subscription.nextPayment.amount, billing.subscription.nextPayment.currency)} on ${billingDay(billing.subscription.nextPayment.date, billing.subscription.nextPayment.currency)}.`
                     : billing.subscription.trialEndsAt
-                      ? "Add a card to keep going after the free month. If you don't, it simply ends and nothing is charged."
+                      ? "Add a card to keep going after the free period. If you don't, it simply ends and nothing is charged."
                       : ""}
               </p>
               <div className="mt-4 flex flex-wrap gap-2">

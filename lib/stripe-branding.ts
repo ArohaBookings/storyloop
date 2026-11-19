@@ -123,7 +123,7 @@ export function checkoutTermsMessage(input: {
     if (input.trialEndsAt) {
       return `Free until ${day(input.trialEndsAt, input.currency)} with no card. To keep going after that, add a card in StoryLoop Billing (${then}). If you don't, the free period simply ends and nothing is charged.`;
     }
-    return `${input.trialDays} days free with no card. To keep going after ${firstCharge}, add a card in StoryLoop Billing (${then}). If you don't, the free month simply ends and nothing is charged.`;
+    return `${input.trialDays} days free with no card. To keep going after ${firstCharge}, add a card in StoryLoop Billing (${then}). If you don't, the free period simply ends and nothing is charged.`;
   }
   const opener = input.offer === "pro_month" ? `Your free month of ${planName}` : `Your ${input.trialDays}-day free trial`;
   if (input.firstMonthFree) {
