@@ -406,7 +406,8 @@ export function checkMyStory(input: StoryCheckInput): StoryCheckResult {
   const invented: string[] = [];
   const unsupported = note.trim()
     ? getUnsupportedStoryDetails(guardResult(story), note)
-        .map((issue) => /"(.+)"$/.exec(issue)?.[1] ?? "")
+        // The words as the child would say them: a comma the story put before "she said" is not one of them.
+        .map((issue) => (/"(.+)"$/.exec(issue)?.[1] ?? "").replace(/[\s,;:]+$/, ""))
         .filter(Boolean)
         .slice(0, 2)
     : [];

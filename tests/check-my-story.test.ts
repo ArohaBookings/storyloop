@@ -202,3 +202,12 @@ test("the public page is held for this release: 404, not in the sitemap, linked 
   assert.match(readFileSync(new URL("../lib/centre-team-server.ts", import.meta.url), "utf8"), /check: checkMyStory\(/);
   assert.match(readFileSync(new URL("../components/app/LeaderCheck.tsx", import.meta.url), "utf8"), /import\("@\/lib\/check-my-story"\)/);
 });
+
+test("a quote the story made up is shown as the child's words, without the story's trailing comma", () => {
+  const note = "Ruby at the water trough, filling the big bucket.";
+  const story = 'Ruby filled the big bucket at the water trough.\n"I am going to make the biggest river in the whole world," she told her friends.\n\nThis links with Mana aotūroa | Exploration because Ruby tested an idea.';
+  const result = checkMyStory({ story, note });
+  const invented = result.items.find((item) => item.id === "invented");
+  assert.equal(invented?.status, "look");
+  assert.match(invented?.detail ?? "", /"I am going to make the biggest river in the whole world"\. A leader will ask where it came from\./, invented?.detail);
+});
