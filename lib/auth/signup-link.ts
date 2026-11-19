@@ -8,6 +8,16 @@
  * storyloop-ops/build-2026-11-18/progress/signup.json ("production"): the
  * redirect URL allow-list, custom SMTP with a sending limit above Supabase's
  * default, and the Magic Link and Confirm signup email templates.
+ *
+ * SECURITY, before switching it on (review 1, R1-05): /auth/finish signs the
+ * browser in with the session in the link's # part. While this is false it
+ * ignores that part entirely. Switched on as built, anyone could send an
+ * educator a real storyloop.space link carrying THEIR OWN session and sign
+ * her into their account (she would then write about children into it). So
+ * first add a guard: accept a link session only in the browser that asked for
+ * the link (a one-time value kept in this browser when she taps "Email me a
+ * link" and checked on arrival), or move to the token_hash flow /auth/confirm
+ * uses, and show "Signed in as <email>" on arrival.
  */
 export const SIGNUP_EMAIL_LINK_ON = false;
 

@@ -11,7 +11,7 @@ import { reportSignupConversion } from "@/lib/analytics/google-ads";
 import { clearOAuthContext, readOAuthContext, type OAuthIntent } from "@/lib/auth/oauth";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 import { signupDestination } from "@/lib/signup-next";
-import { linkErrorFromHash, sessionFromHash } from "@/lib/auth/signup-link";
+import { SIGNUP_EMAIL_LINK_ON, linkErrorFromHash, sessionFromHash } from "@/lib/auth/signup-link";
 import { authStartPage, type AuthOutcome } from "@/lib/auth/start-page";
 import { createClient } from "@/lib/supabase/client";
 import { GoogleMark } from "@/components/auth/GoogleButton";
@@ -50,7 +50,9 @@ function Finish() {
   const context = contextRef.current;
   const intent: OAuthIntent = (params.get("intent") ?? context?.intent) === "login" ? "login" : "signup";
   const plan = context?.plan ?? "free";
-  const viaLink = params.get("method") === "link";
+  // Review 1, R1-05: while email-me-a-link is off, a session in the address is never
+  // used, so nobody can send an educator a link that signs her into their account.
+  const viaLink = SIGNUP_EMAIL_LINK_ON && params.get("method") === "link";
   // Back to signup or sign-in with a note, still carrying the page she was heading for.
   const startPage = useCallback(
     (outcome: AuthOutcome) => {
