@@ -11,6 +11,8 @@ import { PLAN_DEFINITIONS, normalizePlanKey } from "@/lib/plans";
 import EngagementTracker from "@/components/analytics/EngagementTracker";
 import KeepStoryImporter from "@/components/app/KeepStoryImporter";
 import FirstSessionTracker from "@/components/app/FirstSessionTracker";
+import CardFailedBanner from "@/components/app/CardFailedBanner";
+import { cardBannerStatus } from "@/lib/card-banner";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -39,6 +41,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const planKey = normalizePlanKey(profile?.plan);
   const planLabel = PLAN_DEFINITIONS.find((plan) => plan.key === planKey)?.name ?? "Free";
   const userName = profile?.full_name ?? user.email ?? "";
+  // Her own card failed (never a centre's, which her leader pays): one calm banner, one tap to Billing.
+  const cardStatus = cardBannerStatus(profile);
 
   return (
     <div className="flex h-screen w-full max-w-full overflow-hidden bg-paper">
@@ -53,7 +57,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <AppTopBar userName={userName} planLabel={planLabel} />
-        <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden pt-14 md:pt-0">{children}</main>
+        <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden pt-14 md:pt-0">
+          {cardStatus && <CardFailedBanner status={cardStatus} />}
+          {children}
+        </main>
         <KeepStoryImporter />
       </div>
       {/* One-time welcome card: what changed, then the referral offer.

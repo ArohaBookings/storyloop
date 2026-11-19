@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import type Stripe from "stripe";
-import { createPauseToken, pausePayments, pauseResumesAt, pauseViewOf, restartPayments, verifyPauseToken, PAUSE_LINK_DAYS } from "../lib/billing-pause";
-import { createUnsubscribeToken } from "../lib/email/unsubscribe";
+import * as billingPause from "../lib/billing-pause";
+import { pausePayments, pauseResumesAt, pauseViewOf, restartPayments } from "../lib/billing-pause";
 
 const T = (iso: string) => Math.floor(Date.parse(iso) / 1000);
-const NOW = T("2026-10-19T00:00:00Z");
 
 function sub(overrides: Record<string, unknown> = {}) {
   return {
@@ -38,19 +38,6 @@ function fakeStripe(current: Stripe.Subscription) {
   } as unknown as Stripe;
   return { stripe, calls };
 }
-
-test("a pause link verifies for its owner, expires after 30 days, and cannot be forged", () => {
-  const token = createPauseToken("user-1", NOW);
-  assert.deepEqual(verifyPauseToken(token, NOW + 60), { userId: "user-1", exp: NOW + PAUSE_LINK_DAYS * 86400 });
-  assert.equal(verifyPauseToken(token, NOW + PAUSE_LINK_DAYS * 86400 + 1), null, "expired");
-  const decoded = JSON.parse(Buffer.from(token, "base64url").toString("utf8"));
-  const swapped = Buffer.from(JSON.stringify({ ...decoded, userId: "user-2" })).toString("base64url");
-  assert.equal(verifyPauseToken(swapped, NOW), null, "someone else's account");
-  const extended = Buffer.from(JSON.stringify({ ...decoded, exp: decoded.exp + 999999 })).toString("base64url");
-  assert.equal(verifyPauseToken(extended, NOW), null, "longer expiry");
-  assert.equal(verifyPauseToken(createUnsubscribeToken("user-1", "a@b.com"), NOW), null, "an unsubscribe link is not a pause link");
-  for (const junk of ["", "x", "%%%", "e30", null, undefined]) assert.equal(verifyPauseToken(junk as string, NOW), null);
-});
 
 test("pausing skips exactly the chosen number of payments", () => {
   const end = T("2026-10-21T09:36:00Z");
@@ -100,20 +87,25 @@ test("a plan that is ending, or another customer's plan, is never touched", asyn
   assert.equal(result.ok, false);
 });
 
-test("the pause email states the real charge, links to the confirm page, and forces nothing", async () => {
-  const { renderPauseOfferEmail, pauseUrl } = await import("../lib/email/pause-offer");
-  const url = pauseUrl(createPauseToken("user-1", NOW));
-  const email = renderPauseOfferEmail({ name: "Kiri Smith", amount: 2100, currency: "nzd", nextChargeAt: "2026-10-21T09:36:00.000Z", url });
-  assert.match(email.text, /Kia ora Kiri/);
-  assert.match(email.text, /NZ\$21 is due on Wednesday 21 October/);
-  assert.match(email.text, /you do not need to do anything/);
-  assert.ok(email.html.includes(url.replace(/&/g, "&amp;")) || email.html.includes(url), "button opens the confirm page");
-  assert.ok(new URL(url).pathname === "/pause");
-  assert.ok(!/[—–]/.test(email.text + email.subject), "no dashes in Leo's voice");
-  for (const bad of ["undefined", "NaN", "null"]) assert.ok(!email.text.includes(bad), bad);
-  const au = renderPauseOfferEmail({ name: "Kim", amount: 1900, currency: "aud", nextChargeAt: "2026-10-22T00:00:00.000Z", url });
-  assert.match(au.text, /^Hi Kim/);
-  assert.match(au.text, /A\$19/);
+test("pause is never offered from an email: the pause email is gone and /pause only leads to Billing", () => {
+  // 18 Nov 2026 (proposal M): pause and cancel live on Billing only. The
+  // "want to pause?" email, its token page and its token endpoint are removed;
+  // an old link lands on Billing, where Pause sits before Cancel.
+  for (const gone of ["lib/email/pause-offer.ts", "app/pause/PauseForm.tsx", "app/api/billing/pause/route.ts"]) {
+    assert.equal(existsSync(gone), false, `${gone} is removed`);
+  }
+  const page = readFileSync("app/pause/page.tsx", "utf8");
+  assert.match(page, /redirect\("\/billing"\)/);
+  assert.doesNotMatch(page, /verifyPauseToken|PauseForm|pausePayments/, "the page can no longer pause anything");
+  // Nothing can make a signed pause link any more: pause is only a Billing button.
+  for (const gone of ["createPauseToken", "verifyPauseToken", "PAUSE_LINK_DAYS"]) {
+    assert.equal(gone in billingPause, false, `lib/billing-pause.ts no longer exports ${gone}`);
+  }
+  assert.doesNotMatch(readFileSync("lib/billing-pause.ts", "utf8"), /createHmac|timingSafeEqual/, "no link signing left in the pause code");
+  const emailCode = ["lib/email/templates.ts", "lib/email/automation.ts", "lib/email/billing.ts", "lib/email/send.ts"].map((file) => readFileSync(file, "utf8")).join("\n");
+  assert.doesNotMatch(emailCode, /\/pause\?|pause-offer|createPauseToken/, "no email builds a pause link");
+  const billing = readFileSync("app/(app)/billing/page.tsx", "utf8");
+  assert.ok(billing.indexOf('data-testid="pause-subscription"') < billing.indexOf('data-testid="cancel-subscription"'), "on Billing, Pause comes before Cancel");
 });
 
 test("emails carry Leo's address and never a pause or cancel link; those live on Billing only", async () => {

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AlertTriangle, Check, Loader2, CreditCard, ExternalLink, FileText, LifeBuoy, ShieldCheck } from "lucide-react";
@@ -234,6 +234,18 @@ export default function BillingPage() {
     }
     setLoading("");
   };
+
+  // One tap from the app's card banner (lib/card-banner.ts): when her card has
+  // failed, Billing opens the card page straight away. Only for a failed card;
+  // anyone else just sees Billing.
+  const fixCard = searchParams.get("fix") === "card";
+  const fixStarted = useRef(false);
+  useEffect(() => {
+    if (!fixCard || fixStarted.current || !profile) return;
+    if (!isBillingBlocked(profile) && !isBillingPastDue(profile)) return;
+    fixStarted.current = true;
+    void handleCard();
+  }, [fixCard, profile]);
 
   const changeCancellation = async (action: "cancel" | "resume" | "restart_payments") => {
     setLoading(action);

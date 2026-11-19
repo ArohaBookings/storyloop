@@ -14,6 +14,7 @@ import { ACTIVATION_COUPON_ID, ACTIVATION_MONTHS, ACTIVATION_PERCENT_OFF } from 
 import { EMAIL_CLASS, HOLDS_EVERYTHING, inFreeDecisionWindow, orderCandidates } from "./brain";
 import { loadCampaignStats } from "./brain-state";
 import { syncDeliveryStatus } from "./delivery-sync";
+import { accountsWithStories, hasOtherStories, withoutStories } from "@/lib/story-count";
 
 /**
  * Whether a trialing customer has a card on file, asked of Stripe. Only needed
@@ -204,7 +205,13 @@ export async function sendStoryMilestoneEmails({
   // of three free stories is deciding whether to pay, so it would only take the
   // slot "one story left" and "out of free stories" need (lib/email/brain.ts).
   const freeDeciding = inFreeDecisionWindow({ plan: profile.plan, storiesThisMonth: storiesUsedThisMonth, monthlyLimit: limit });
-  if ((profile.total_stories ?? 0) === 0 && !freeDeciding) {
+  // A zero counter is checked against the stories table (fault P11): accounts
+  // from May 2026 read 0 with stories saved, and "your first story" is never
+  // said to them. Unsure (the table could not be read) is no email.
+  const firstStory = (profile.total_stories ?? 0) === 0 && !freeDeciding
+    ? (await hasOtherStories(createAdminSupabase(), profile.id, storyId)) === false
+    : false;
+  if (firstStory) {
     results.push(
       await sendLifecycleEmail({
         type: "first_story_created",
@@ -324,7 +331,14 @@ export async function runLifecycleAutomation() {
     .limit(75);
 
   if (noStoryError) errors.push(noStoryError.message);
-  for (const row of (noStoryUsers ?? []) as ProfileEmailRow[]) {
+  // "No story yet" is asked of the stories table, not the counter alone (fault
+  // P11: four accounts from May 2026 read 0 with stories saved, and each was
+  // told on 17 June 2026 it had not written one). Unsure means nobody is told.
+  const zeroCounter = async (rows: ProfileEmailRow[] | null | undefined) => {
+    const list = (rows ?? []) as ProfileEmailRow[];
+    return withoutStories(list, await accountsWithStories(sb, list.map((row) => row.id)));
+  };
+  for (const row of await zeroCounter(noStoryUsers as ProfileEmailRow[] | null)) {
     consider(row, "no_first_story");
   }
 
@@ -340,7 +354,7 @@ export async function runLifecycleAutomation() {
     .limit(75);
 
   if (paidNoUsageError) errors.push(paidNoUsageError.message);
-  for (const row of (paidNoUsageUsers ?? []) as ProfileEmailRow[]) {
+  for (const row of await zeroCounter(paidNoUsageUsers as ProfileEmailRow[] | null)) {
     consider(row, "paid_no_usage_checkin");
   }
 
@@ -477,7 +491,7 @@ export async function runLifecycleAutomation() {
   ]);
   if (stoppedError) errors.push(stoppedError.message);
   if (neverError) errors.push(neverError.message);
-  for (const row of [...(stoppedUsers ?? []), ...(neverUsers ?? [])] as ProfileEmailRow[]) {
+  for (const row of [...((stoppedUsers ?? []) as ProfileEmailRow[]), ...(await zeroCounter(neverUsers as ProfileEmailRow[] | null))]) {
     const payingRegular = ACTIVE_PAID_STATUSES.has(row.subscription_status ?? "") && (row.total_stories ?? 0) >= 3;
     const wentQuietCovers = payingRegular && Boolean(row.last_story_at) && Date.parse(row.last_story_at as string) >= Date.parse(daysAgo(45));
     if (wentQuietCovers) continue;

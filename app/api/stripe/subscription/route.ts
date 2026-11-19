@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const profile = await getOrCreateProfile(user);
     if (!profile?.stripe_customer_id) return NextResponse.json({ ok: false, reason: "no_subscription" }, { status: 404 });
     const body = await request.json().catch(() => ({}));
-    // Paused payments (from a pause link) can be restarted from Billing too.
+    // Paused payments restart from Billing (they also restart by themselves).
     if (body.action === "restart_payments") {
       const stripe = createStripe();
       const restarted = await restartPayments(stripe, { customerId: profile.stripe_customer_id, subscriptionId: profile.stripe_subscription_id ?? null });
@@ -26,8 +26,8 @@ export async function POST(request: Request) {
       const sub = profile.stripe_subscription_id ? await stripe.subscriptions.retrieve(profile.stripe_subscription_id).catch(() => null) : null;
       return NextResponse.json({ ok: true, subscription: sub ? subscriptionView(sub, null) : null });
     }
-    // Pause, offered beside Cancel on Billing (20 Oct 2026): the same pause the
-    // email link gives (1-3 months, void the skipped invoices, one per 180 days).
+    // Pause, offered before Cancel on Billing and nowhere else (20 Oct and 18 Nov
+    // 2026): 1-3 months, the skipped invoices voided, one pause per 180 days.
     if (body.action === "pause") {
       if (!isPauseMonths(body.months)) return NextResponse.json({ ok: false, reason: "bad_request" }, { status: 400 });
       const stripe = createStripe();

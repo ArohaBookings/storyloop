@@ -11,6 +11,9 @@ import StoryIntelligence from "@/components/app/StoryIntelligence";
 import StoryText from "@/components/app/StoryText";
 import LearningLoopPanel from "@/components/app/LearningLoopPanel";
 import ExportPackPanel from "@/components/app/ExportPackPanel";
+import CopyPackButton from "@/components/app/CopyPackButton";
+import StoryReviewAsk from "@/components/app/StoryReviewAsk";
+import { showCopyPackBeside } from "@/lib/copy-pack";
 import FamilyTranslationPanel from "@/components/app/FamilyTranslationPanel";
 import { trackEvent } from "@/lib/analytics/track-event";
 import {
@@ -76,6 +79,10 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
   const [saving, setSaving] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  // Once copied, the copy pack button sits beside Copy (lib/copy-pack.ts).
+  const [copiedOnce, setCopiedOnce] = useState(false);
+  // Each copy here (Copy or a copy pack): the review ask may follow it (lib/review-ask.ts).
+  const [reviewCopies, setReviewCopies] = useState(0);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [upgradeRequired, setUpgradeRequired] = useState(false);
@@ -332,6 +339,8 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
     trackEvent("app_story_copied", { story_id: story.id, how: "button" });
+    setCopiedOnce(true);
+    setReviewCopies((n) => n + 1);
   };
 
   const downloadStory = () => {
@@ -384,11 +393,17 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
               {copied ? <Check className="w-3 h-3 text-sage-600" /> : <Copy className="w-3 h-3" />}
               {copied ? "Copied" : "Copy"}
             </button>
+            {showCopyPackBeside({ plan, storyId: story.id, copiedStoryId: copiedOnce ? story.id : null }) && (
+              <CopyPackButton storyId={story.id} targetId={`copy-pack-${story.id}`} className="btn-ghost min-h-[44px] px-3 py-1.5 text-xs" />
+            )}
             <button onClick={downloadStory} className="btn-ghost min-h-[44px] px-3 py-1.5 text-xs">
               <Download className="w-3 h-3" /> Export
             </button>
           </div>
         </div>
+
+        {/* The review ask, right under Copy at the moment she copies (lib/review-ask.ts). */}
+        <StoryReviewAsk storyId={story.id} copies={reviewCopies} page="/history" />
 
         {editing ? (
           <div className="space-y-3">
@@ -618,6 +633,7 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
         <LeaderCheck storyId={story.id} initial={check} />
         <FamilyShare storyId={story.id} childName={story.child_name} />
 
+        <div id={`copy-pack-${story.id}`} tabIndex={-1} className="scroll-mt-24 rounded-3xl focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay-600">
         <ExportPackPanel
           storyId={story.id}
           plan={plan}
@@ -632,7 +648,9 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
           nextSteps={currentNextSteps}
           familyQuestion={familyQuestion}
           framework={currentFramework}
+          onCopied={() => setReviewCopies((n) => n + 1)}
         />
+        </div>
 
         <FamilyTranslationPanel
           storyId={story.id}

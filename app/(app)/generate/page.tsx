@@ -40,6 +40,11 @@ import StoryReviewAsk from "@/components/app/StoryReviewAsk";
 import AppLimitWall from "@/components/app/AppLimitWall";
 import PriceReminder from "@/components/app/PriceReminder";
 import CheckoutReturn from "@/components/app/CheckoutReturn";
+import NextStoryCard from "@/components/app/NextStoryCard";
+import CopyPackButton from "@/components/app/CopyPackButton";
+import { showCopyPackBeside } from "@/lib/copy-pack";
+import { nextStoryCard, shouldOfferNextStory, type NextStoryChoice } from "@/lib/next-story";
+import { mayShowPrompt } from "@/lib/one-prompt";
 import { trackEvent } from "@/lib/analytics/track-event";
 import { keepWallWork, takeWallWork } from "@/lib/app-wall";
 import { looksNonLatin } from "@/lib/note-language";
@@ -316,15 +321,19 @@ export default function GeneratePage() {
         // default, which would drop a sample observation onto the page of an
         // educator with hundreds of stories.
         const loadedProfile = accountData?.profile;
+        // The counter alone is not trusted with a zero (fault P11: a few early
+        // accounts have stories and a counter of 0): /api/me checks the stories
+        // table, and an account it says has stories is never treated as new.
+        const noStoryYet = Boolean(loadedProfile) && (loadedProfile.total_stories ?? 0) === 0 && accountData?.hasStories !== true;
         if (loadedProfile && typeof loadedProfile.id === "string") {
           const signedUp = typeof accountData?.signedUpAt === "string" ? Date.parse(accountData.signedUpAt) : NaN;
           setAccountAtLoad((previous) => previous ?? {
             id: loadedProfile.id,
-            totalStories: loadedProfile.total_stories ?? 0,
+            totalStories: noStoryYet ? 0 : Math.max(1, loadedProfile.total_stories ?? 0),
             signedUpAt: Number.isFinite(signedUp) ? signedUp : null,
           });
         }
-        if (loadedProfile && (loadedProfile.total_stories ?? 0) === 0 && typeof window !== "undefined") {
+        if (loadedProfile && noStoryYet && typeof window !== "undefined") {
           // Arriving straight from signup (?welcome=1) always gets the guided
           // first-story wizard, even if it was dismissed in a past session.
           const justSignedUp = searchParams.get("welcome") === "1";
@@ -547,6 +556,58 @@ export default function GeneratePage() {
       seconds_since_signup: accountAtLoad.signedUpAt ? Math.round((Date.now() - accountAtLoad.signedUpAt) / 1000) : null,
     });
   };
+  // The next story (lib/next-story.ts, proposal C). How many different notes
+  // became stories on this page (Regenerate keeps the same note, so the same
+  // story), whether the first was the example, and the card's state.
+  const lastStoryNote = useRef<string | null>(null);
+  const notesSoFar = useRef(0);
+  const firstNoteWasExample = useRef(false);
+  // "gone": a second note became a story without the card, so the first is behind her.
+  const [nextStory, setNextStory] = useState<"none" | "offered" | "started" | "gone">("none");
+  const noteStoryNote = (note: string, method: InputMethod) => {
+    if (lastStoryNote.current === note) return;
+    lastStoryNote.current = note;
+    notesSoFar.current += 1;
+    // The example only while the box still holds it word for word: typing over
+    // the example leaves the input method at "sample", but the note is hers.
+    if (notesSoFar.current === 1) firstNoteWasExample.current = method === "sample" && note === SAMPLE_OBSERVATION.trim();
+    else setNextStory((state) => (state === "started" ? state : "gone"));
+  };
+  /** She copied, exported or saved the story on screen: under her first story, offer the next one. */
+  const offerNextStory = () => {
+    if (nextStory !== "none") return;
+    const offer = shouldOfferNextStory({
+      newAccount: accountAtLoad !== null && accountAtLoad.totalStories === 0,
+      notesSoFar: notesSoFar.current,
+      hasStory: Boolean(story),
+      takenAway: true,
+      started: false,
+      walled: showLimitModal || Boolean(clarification),
+    });
+    if (!offer) return;
+    setNextStory("offered");
+    trackEvent("second_story_offered", { story_id: storyId || null });
+  };
+  const startNextStory = (choice: NextStoryChoice) => {
+    trackEvent("second_story_started", { story_id: storyId || null, child: choice });
+    setNextStory("started");
+    setMode("story");
+    resetClarification();
+    setError("");
+    setObservations("");
+    setInputMethod("typed");
+    if (choice === "another") {
+      setSelectedChildId("");
+      setChildName("");
+      setAgeGroup("");
+    }
+    // Focus inside the tap so a phone opens its keyboard, then bring the box into view.
+    const box = document.getElementById("gen-observations") as HTMLTextAreaElement | null;
+    box?.focus({ preventScroll: true });
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    window.requestAnimationFrame(() => box?.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" }));
+  };
+
   const firstNoteLogged = useRef(false);
   useEffect(() => {
     if (firstNoteLogged.current || !accountAtLoad || accountAtLoad.totalStories !== 0) return;
@@ -722,6 +783,7 @@ export default function GeneratePage() {
       setAccountPlan(normalizePlanKey(data.plan));
       setRemaining(data.remaining);
       noteFirstStory(typeof data.storyId === "string" ? data.storyId : "");
+      noteStoryNote(observations.trim(), inputMethod);
       // The page moves while a story is written (cards close, the panel grows), so
       // on a phone or tablet the finished story is brought to the top of the screen
       // once more when it arrives. Without this it sat two screens below the button.
@@ -897,6 +959,21 @@ export default function GeneratePage() {
   const copiedStories = useRef(new Set<string>());
   const editedStories = useRef(new Set<string>());
   const regenerations = useRef(0);
+  // The story she last copied: the copy pack button sits beside Copy for it (lib/copy-pack.ts).
+  const [packBesideCopy, setPackBesideCopy] = useState("");
+  // One prompt at a time (lib/one-prompt.ts): what wants the screen right now.
+  // The first-story prompt says "try one more": the next-story card says it
+  // better, so once the card has been offered that prompt stays away.
+  const upgradeWanted = showUpgradePrompt && !(upgradePromptKind === "first_story" && nextStory !== "none");
+  const promptsWanted = { wall: showLimitModal, next_story: nextStory === "offered" && !editingStory, upgrade: upgradeWanted };
+  // Each copy on this page (Copy or a copy pack): the review ask may follow it
+  // (lib/review-ask.ts), but never while another prompt has the screen: a copy
+  // then does not count here (the server still counts it toward a later ask).
+  const [reviewCopies, setReviewCopies] = useState(0);
+  const noteReviewCopy = () => {
+    if (!mayShowPrompt("review_ask", promptsWanted)) return;
+    setReviewCopies((n) => n + 1);
+  };
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(story);
@@ -904,6 +981,9 @@ export default function GeneratePage() {
     setTimeout(() => setCopied(false), 2000);
     trackEvent("app_story_copied", { story_id: storyId || null, how: "button", first: !copiedStories.current.has(storyId) });
     copiedStories.current.add(storyId);
+    setPackBesideCopy(storyId);
+    noteReviewCopy();
+    offerNextStory();
   };
 
   const handleRegenerate = () => {
@@ -925,6 +1005,7 @@ export default function GeneratePage() {
     anchor.click();
     anchor.remove();
     window.URL.revokeObjectURL(url);
+    offerNextStory();
   };
 
   const handleQuillApply = async (newStory: string) => {
@@ -997,6 +1078,7 @@ export default function GeneratePage() {
       setStoryDraft(savedStory);
       setEditingStory(false);
       setStorySaveMessage("Saved to story history.");
+      offerNextStory();
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Could not save story edits.");
     } finally {
@@ -2074,7 +2156,8 @@ export default function GeneratePage() {
             </div>
           )}
 
-          {showUpgradePrompt && (
+          {/* One prompt at a time (lib/one-prompt.ts): never beside the wall or the next-story card. */}
+          {upgradeWanted && mayShowPrompt("upgrade", promptsWanted) && (
             <div className="rounded-2xl border border-clay-200 bg-cream-50 p-4 shadow-soft">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -2144,6 +2227,10 @@ export default function GeneratePage() {
                   {copied ? <Check className="w-3 h-3 text-sage-600" /> : <Copy className="w-3 h-3" />}
                   {copied ? "Copied" : "Copy"}
                 </button>
+                {/* Once she has copied: the same story laid out for her centre's app, right beside Copy. */}
+                {showCopyPackBeside({ plan: accountPlan, storyId, copiedStoryId: packBesideCopy }) && (
+                  <CopyPackButton storyId={storyId} targetId="copy-pack" className={storyAction} />
+                )}
                 {storyId && (
                   <>
                     {/* The two things worth doing with a finished story sat a screen below it, where nobody scrolled. */}
@@ -2174,6 +2261,15 @@ export default function GeneratePage() {
                 </button>
               </div>
             )}
+          </div>
+
+          {/* The review ask, right under Copy at the moment she copies (lib/review-ask.ts).
+              Outside the branches below and never keyed, so it stays mounted through
+              Regenerate: a half-written review survives a new story. Hidden, not
+              removed, while a story is being written or another prompt has the
+              screen (lib/one-prompt.ts). */}
+          <div hidden={loading || !story || !mayShowPrompt("review_ask", promptsWanted)}>
+            <StoryReviewAsk storyId={storyId} copies={reviewCopies} />
           </div>
 
           {loading ? (
@@ -2331,6 +2427,10 @@ export default function GeneratePage() {
                   {storySaveMessage}
                 </p>
               )}
+              {/* Right under her first story, once she has taken it away: the next one in one tap. */}
+              {promptsWanted.next_story && mayShowPrompt("next_story", promptsWanted) && (
+                <NextStoryCard card={nextStoryCard({ childName, fromExample: firstNoteWasExample.current })} onChoose={startNextStory} />
+              )}
               {limitWall && <div className="mt-4">{limitWall}</div>}
 
               <StoryIntelligence
@@ -2345,6 +2445,7 @@ export default function GeneratePage() {
                 followUpPrompt={followUpPrompt}
               />
 
+              <div id="copy-pack" tabIndex={-1} className="scroll-mt-24 rounded-3xl focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay-600">
               <ExportPackPanel
                 storyId={storyId || undefined}
                 plan={accountPlan}
@@ -2359,7 +2460,10 @@ export default function GeneratePage() {
                 nextSteps={nextSteps}
                 familyQuestion={familyQuestion}
                 framework={location}
+                onTakenAway={offerNextStory}
+                onCopied={noteReviewCopy}
               />
+              </div>
 
               {parentFriendlyVersion && (
                 <div className="story-safe mt-5 max-w-full overflow-hidden rounded-3xl border border-clay-200 bg-white p-5 shadow-soft">
@@ -2583,15 +2687,9 @@ export default function GeneratePage() {
                 </div>
               </div>
               {/* After a wall on an earlier visit: one quiet line, away from the note box. */}
-              {!showLimitModal && !checkoutReturn && <PriceReminder free={accountAtLoad !== null && accountPlan === "free"} returnTo="/generate" className="mt-3 w-full sm:ml-auto sm:max-w-sm" />}
+              {mayShowPrompt("price_reminder", promptsWanted) && !checkoutReturn && <PriceReminder free={accountAtLoad !== null && accountPlan === "free"} returnTo="/generate" className="mt-3 w-full sm:ml-auto sm:max-w-sm" />}
             </div>
           )}
-          {/* Outside the branches above and never keyed, so it stays mounted through
-              Regenerate: a half-written review survives a new story. Hidden, not
-              removed, while a story is being written. */}
-          <div hidden={loading || !story}>
-            <StoryReviewAsk storyId={storyId} />
-          </div>
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import EngagementTracker from "@/components/analytics/EngagementTracker";
+import ReviewProof from "@/components/landing/ReviewProof";
 import SignupForm from "./SignupForm";
 
 export default async function SignupPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -14,6 +15,8 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
         initialPlan={typeof params.plan === "string" ? params.plan : null}
         initialNext={typeof params.next === "string" ? params.next : null}
       />
+      {/* Real published reviews, under the form and never above it: nothing at all until one exists. */}
+      <ReviewProof />
     </>
   );
 }

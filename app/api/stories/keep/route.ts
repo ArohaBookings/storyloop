@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getAccessProfile } from "@/lib/supabase/profiles";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { KEEP_STORY_MAX_AGE_MS, cleanKeptStory, keptStoryTitle } from "@/lib/keep-story";
+import { hasOtherStories } from "@/lib/story-count";
 
 /**
  * Saves the story a visitor wrote in the no-signup demo into their new account
@@ -58,7 +59,12 @@ export async function POST(request: NextRequest) {
 
   const now = new Date().toISOString();
   const update: Record<string, unknown> = { total_stories: (profile.total_stories ?? 0) + 1, last_story_at: now };
-  if ((profile.total_stories ?? 0) === 0) update.first_story_created_at = now;
+  // Her first story only when the stories table agrees (fault P11): a few
+  // accounts from May 2026 read 0 with stories saved, and their first story
+  // was months ago. Unsure (the table could not be read) keeps the old rule.
+  if ((profile.total_stories ?? 0) === 0 && (await hasOtherStories(supabase, user.id, saved.id)) !== true) {
+    update.first_story_created_at = now;
+  }
   await supabase.from("profiles").update(update).eq("id", user.id);
 
   return NextResponse.json({ ok: true, storyId: saved.id });
