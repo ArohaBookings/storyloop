@@ -4,13 +4,12 @@ import Link from "next/link";
 import { AlertTriangle, ArrowRight, Brain, CheckCircle, LifeBuoy, Sparkles, Clock, BookOpen, TrendingUp, MessageCircleHeart, ClipboardList, Mic } from "lucide-react";
 import { getMonthlyStoryLimit, getRemainingStories, getStoryAllowanceLabel } from "@/lib/story-limits";
 import { billingStatusLabel, isBillingBlocked, isBillingPastDue } from "@/lib/billing-access";
-import { PLAN_DEFINITIONS, getPlanByKey, normalizePlanKey } from "@/lib/plans";
+import { PLAN_DEFINITIONS, normalizePlanKey } from "@/lib/plans";
 import { headers } from "next/headers";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import DashboardInsights, { topCurriculumLinks, type DashboardInsightsData } from "@/components/app/DashboardInsights";
 import { PRO_MONTH_OFFER_ID, longDay } from "@/lib/offers";
 import TrackOnce from "@/components/analytics/TrackOnce";
-import AdsPaidConversion from "@/components/analytics/AdsPaidConversion";
 import QuietPayerNudge from "@/components/app/QuietPayerNudge";
 import { canManageTeam, countActiveMembers, getCentreCover, getMembership } from "@/lib/centres";
 import TeamCard from "@/components/app/TeamCard";
@@ -158,12 +157,6 @@ export default async function DashboardPage({
   return (
     <div className="w-full max-w-none p-4 sm:p-6 md:p-8">
       {upgraded && <TrackOnce event="checkout_success_view" metadata={{ plan: params?.plan }} />}
-      {upgraded && (
-        <AdsPaidConversion
-          value={getPlanByKey(params?.plan)?.price.NZD ?? 0}
-          sessionId={typeof params?.session_id === "string" && /^cs_[A-Za-z0-9_]{6,200}$/.test(params.session_id) ? params.session_id : null}
-        />
-      )}
       {!startedCentre && centreSetup && (
         <div className="mb-6 rounded-3xl border border-sage-200 bg-sage-50 p-5" data-testid="centre-setup">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

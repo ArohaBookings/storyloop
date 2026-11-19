@@ -107,8 +107,8 @@ function waitForGtag(maxMs: number): Promise<void> {
  * checkout session) lets Google drop a duplicate if the page is reloaded.
  * Nothing waits on this, so it can afford to wait for the tag first.
  */
-export async function reportPaidConversion({ value, currency, transactionId }: { value: number; currency: string; transactionId?: string | null }): Promise<void> {
-  await waitForGtag(8000);
+export async function reportPaidConversion({ value, currency, transactionId, maxWaitMs = 8000 }: { value: number; currency: string; transactionId?: string | null; maxWaitMs?: number }): Promise<void> {
+  await waitForGtag(maxWaitMs);
   return sendConversion({
     send_to: PAID_SEND_TO,
     value,

@@ -107,7 +107,8 @@ test("a free account's statement allowance is the signed-out visitor's: 3 an hou
 test("checkout goes back to the wall's page only through the short list", () => {
   const source = readFileSync("app/api/stripe/checkout/route.ts", "utf8");
   assert.match(source, /const returnPath = checkoutReturnPath\(body\.returnTo\);/);
-  assert.match(source, /success_url: `\$\{origin\}\$\{returnPath \?\? "\/dashboard"\}\?upgraded=true/);
+  // Through /upgraded (the ads conversion, no child content), then back to the wall's page (lib/paid-return.ts).
+  assert.match(source, /success_url: paidReturnSuccessUrl\(origin, returnPath, selectedPlan\),/);
   // The plan still comes only from Stripe's webhook: nothing in the return path sets it.
   for (const file of ["components/app/CheckoutReturn.tsx", "components/app/AppLimitWall.tsx", "components/app/PriceReminder.tsx"]) {
     assert.doesNotMatch(readFileSync(file, "utf8"), /from\("profiles"\)|\/api\/me\/plan|method: "PATCH"/, file);

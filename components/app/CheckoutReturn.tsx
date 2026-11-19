@@ -2,25 +2,25 @@
 
 import { useEffect, useState } from "react";
 import { CheckCircle, Loader2 } from "lucide-react";
-import AdsPaidConversion from "@/components/analytics/AdsPaidConversion";
 import TrackOnce from "@/components/analytics/TrackOnce";
 import { getPlanByKey, normalizePlanKey, type PlanKey } from "@/lib/plans";
 
 /**
  * Back on the page she left from a wall's one tap (lib/app-wall.ts). The same
- * funnel event and ads conversion the dashboard sends after checkout, and one
- * line. It only says she is on a plan once her account says so: the plan is
+ * funnel event the dashboard sends after checkout, and one line. The Google Ads
+ * conversion was sent on /upgraded, a page with no child content, on the way
+ * here (lib/paid-return.ts): no ad tag loads on this page. It only says she is on a plan once her account says so: the plan is
  * set by Stripe's webhook, never by this page or the address bar.
  */
 export default function CheckoutReturn({
   status,
   plan,
-  sessionId,
   onPlan,
 }: {
   status: "upgraded" | "cancelled";
   plan: string | null;
-  sessionId: string | null;
+  /** Stripe's session id; the conversion that used it is sent on /upgraded now. */
+  sessionId?: string | null;
   onPlan?: (plan: PlanKey) => void;
 }) {
   const [confirmed, setConfirmed] = useState<PlanKey | null>(null);
@@ -57,7 +57,6 @@ export default function CheckoutReturn({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
-  const safeSession = sessionId && /^cs_[A-Za-z0-9_]{6,200}$/.test(sessionId) ? sessionId : null;
 
   if (status === "cancelled") {
     return (
@@ -70,7 +69,6 @@ export default function CheckoutReturn({
   return (
     <>
       <TrackOnce event="checkout_success_view" metadata={{ plan, from: "wall" }} />
-      <AdsPaidConversion value={getPlanByKey(plan ?? undefined)?.price.NZD ?? 0} sessionId={safeSession} />
       <div role="status" className="flex items-start gap-2 rounded-2xl border border-sage-200 bg-sage-50 px-4 py-3 text-sm text-ink-800" data-testid="checkout-return">
         {confirmed ? (
           <>

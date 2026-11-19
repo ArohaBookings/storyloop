@@ -14,6 +14,7 @@ import { OFFER_REASON_COPY, PRO_MONTH_OFFER_ID, PRO_MONTH_PLAN, PRO_MONTH_TRIAL_
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { recordServerEvent } from "@/lib/analytics/server";
 import { checkoutReturnPath } from "@/lib/app-wall";
+import { paidReturnSuccessUrl } from "@/lib/paid-return";
 
 function getStripe() {
   return createStripe();
@@ -259,8 +260,9 @@ export async function POST(request: NextRequest) {
         line_items: [lineItem],
         // The plan rides along so the dashboard can greet a centre's free month
         // differently from a paid upgrade, before the webhook has landed.
-        // {CHECKOUT_SESSION_ID} is filled in by Stripe; it de-duplicates the Google Ads conversion on reload.
-        success_url: `${origin}${returnPath ?? "/dashboard"}?upgraded=true&plan=${selectedPlan}&session_id={CHECKOUT_SESSION_ID}`,
+        // First /upgraded (no child content: the Google Ads conversion is sent there), then the
+        // page she came from with ?upgraded=true&plan=...&session_id=... (lib/paid-return.ts).
+        success_url: paidReturnSuccessUrl(origin, returnPath, selectedPlan),
         cancel_url: returnPath ? `${origin}${returnPath}?checkout=cancelled&plan=${selectedPlan}` : `${origin}/billing?checkout=cancelled&plan=${selectedPlan}`,
         // A coupon or the promotion code box, never both: Stripe refuses the pair.
         ...checkoutDiscountParams(appliedCoupon, offer),
