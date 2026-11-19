@@ -527,7 +527,7 @@ export default function SignupForm({ initialPlan = null, initialNext = null }: {
               : isPaidPlan
                 ? "Then your trial starts on secure checkout."
                 : destination === "/statement"
-                  ? "Free, no card needed. Next, your notes for the first child."
+                  ? "Free, no card needed. Next, paste your notes for the first child."
                   : "3 stories a month, free. No card needed."}
           </p>
           {cookiesOff && (
