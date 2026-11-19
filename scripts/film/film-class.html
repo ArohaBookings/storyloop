@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>StoryLoop film: The whole class (11 seconds)</title>
+<!--
+  The third homepage film (18 Nov 2026): "The whole class". One idea: on the
+  statement page she pastes what she knows about one child, gets the draft
+  outcome by outcome, copies it, taps Next child and starts the next one.
+
+  Same rules as film.html: filmRender(t) draws the frame at second t, and
+  render.mjs photographs it. What it shows is real: the first child's notes and
+  draft are the worked example in lib/transition-examples.ts (an invented
+  child, and exactly what the production drafter wrote), in the visitor's own
+  curriculum. Every label is the app's own (StatementFromNotes.tsx,
+  TransitionDemo.tsx). The second child's notes are invented and only typed:
+  the film never shows a draft the drafter did not write.
+
+  Not shown on purpose: Download everything. Statements are not saved (the page
+  says "copy what you want to keep"), and Download everything exports saved
+  stories only, so pairing the two would claim something the product does not do.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@500;600;700;800&display=block" rel="stylesheet">
+<style>
+  :root {
+    --paper: #fbf8f2; --cream-50: #fefcf8; --cream-100: #fdf9ed; --cream-200: #faf0d4; --cream-300: #f5e4b1; --gold: #e8c155;
+    --clay-50: #faf6f3; --clay-100: #f2ebe3; --clay-200: #e4d5c5; --clay-300: #d2b89e; --clay-500: #a87851; --clay-700: #6f4930; --clay-800: #543725; --clay-900: #3d281a;
+    --ink-900: #0f0e0d; --ink-800: #1a1817; --ink-700: #2b2826; --ink-600: #3f3a38; --ink-500: #5a5350; --ink-300: #a39991; --ink-100: #e8e4de;
+    --sage-50: #f2f6ee; --sage-200: #c7d8b3; --sage-600: #48652f; --sage-800: #304121;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #000; }
+  body { font-family: "Manrope", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  #film {
+    position: relative; width: 1080px; height: 1350px; overflow: hidden;
+    background:
+      radial-gradient(1200px 900px at 18% -10%, #fffdf7 0%, rgba(255,253,247,0) 60%),
+      radial-gradient(1000px 900px at 105% 108%, #f3e7d6 0%, rgba(243,231,214,0) 62%),
+      var(--paper);
+  }
+  .abs { position: absolute; will-change: transform, opacity; }
+
+  #bar { left: 72px; right: 72px; top: 58px; height: 72px; display: flex; align-items: center; justify-content: space-between; }
+  #brand { display: flex; align-items: center; gap: 18px; }
+  #brand svg { width: 64px; height: 64px; }
+  #brand span { font-family: "Fraunces", Georgia, serif; font-weight: 700; font-size: 42px; color: var(--ink-900); letter-spacing: -0.01em; }
+  #sample { font-weight: 700; font-size: 23px; color: var(--ink-500); border: 2px solid var(--clay-200); border-radius: 999px; padding: 9px 20px; background: rgba(255,255,255,0.6); }
+  .label { font-weight: 800; font-size: 22px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--clay-700); }
+  .touch { width: 92px; height: 92px; margin: -46px 0 0 -46px; border-radius: 50%; background: rgba(15,14,13,0.16); border: 4px solid rgba(255,255,255,0.9); box-shadow: 0 8px 22px rgba(15,14,13,0.22); }
+  .card { width: 920px; border-radius: 44px; background: #fff; border: 2px solid var(--clay-100); box-shadow: 0 40px 90px -30px rgba(111,73,48,0.34), 0 6px 18px rgba(111,73,48,0.06); }
+
+  /* ---- the statement page: document, first name, notes */
+  .form { left: 80px; top: 170px; padding: 40px 46px 44px; }
+  .modes { display: flex; border: 2px solid var(--clay-200); border-radius: 26px; padding: 6px; gap: 6px; }
+  .modes span { flex: 1; height: 72px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 27px; color: var(--ink-600); }
+  .modes span.on { background: var(--clay-700); color: var(--paper); box-shadow: 0 12px 24px -12px rgba(84,55,37,0.6); }
+  .field { margin-top: 30px; }
+  .input { margin-top: 12px; height: 74px; border-radius: 18px; border: 2px solid var(--clay-200); background: var(--cream-50); padding: 0 24px; display: flex; align-items: center; font-weight: 700; font-size: 32px; color: var(--ink-800); }
+  .notes { margin-top: 12px; border-radius: 18px; border: 2px solid var(--clay-200); background: var(--cream-50); padding: 18px 24px; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 26px; line-height: 1.5; color: var(--ink-800); white-space: pre-wrap; }
+  .caret { display: inline-block; width: 3px; height: 32px; background: var(--clay-700); vertical-align: -6px; margin-left: 2px; border-radius: 2px; }
+  #draftBtn { left: 290px; width: 500px; height: 104px; border-radius: 52px; background: var(--clay-700); color: var(--paper); font-weight: 800; font-size: 34px; display: flex; align-items: center; justify-content: center; gap: 14px; box-shadow: 0 22px 44px -16px rgba(84,55,37,0.6); }
+  #draftBtn svg { width: 36px; height: 36px; }
+
+  /* ---- the draft, outcome by outcome */
+  #draft { left: 80px; top: 170px; height: 900px; padding: 38px 40px; overflow: hidden; }
+  #draftHead { display: flex; flex-direction: column; align-items: flex-start; gap: 18px; }
+  .btn { height: 76px; border-radius: 38px; padding: 0 32px; display: inline-flex; align-items: center; gap: 12px; font-weight: 800; font-size: 30px; }
+  .btn svg { width: 30px; height: 30px; }
+  #copy { border: 2px solid var(--clay-200); color: var(--ink-700); background: #fff; }
+  #next { border: 2px solid var(--clay-300); color: var(--clay-800); background: var(--cream-100); margin-left: 12px; }
+  .outcome { margin-top: 24px; border-radius: 28px; border: 2px solid var(--clay-100); background: var(--paper); padding: 26px 30px; }
+  .outcome .label { font-size: 23px; }
+  .outcome p { margin-top: 10px; font-weight: 500; font-size: 31px; line-height: 1.5; color: var(--ink-800); }
+  .outcome p b { font-weight: 700; color: var(--sage-800); }
+  #fadeBottom { left: 0; bottom: 0; width: 920px; height: 140px; background: linear-gradient(rgba(255,255,255,0), #fff); }
+
+  #cap, #cap2 { left: 72px; width: 936px; top: 1096px; height: 180px; display: flex; align-items: center; justify-content: center; text-align: center; font-family: "Fraunces", Georgia, serif; font-weight: 700; font-size: 62px; line-height: 1.14; color: var(--ink-900); letter-spacing: -0.012em; text-wrap: balance; }
+  #track { left: 72px; right: 72px; top: 1306px; height: 6px; border-radius: 3px; background: var(--clay-200); overflow: hidden; }
+  #fill { width: 100%; height: 100%; background: var(--clay-700); transform-origin: 0 50%; }
+
+  #end { left: 0; top: 0; width: 1080px; height: 1350px; background: radial-gradient(900px 800px at 50% 34%, #7d5539 0%, var(--clay-700) 55%, #5d3c27 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 96px 40px; }
+  #end svg { width: 190px; height: 190px; filter: drop-shadow(0 24px 40px rgba(0,0,0,0.28)); }
+  #endName { font-family: "Fraunces", Georgia, serif; font-weight: 700; font-size: 104px; color: var(--paper); letter-spacing: -0.02em; margin-top: 34px; }
+  #endLine { font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: 58px; line-height: 1.2; color: var(--cream-200); margin-top: 30px; text-wrap: balance; }
+  #endSmall { font-weight: 700; font-size: 34px; line-height: 1.35; color: var(--cream-200); opacity: 0.92; margin-top: 46px; letter-spacing: 0.01em; text-wrap: balance; }
+
+  #scrub { position: fixed; left: 12px; bottom: 12px; width: 420px; z-index: 9; }
+  .render #scrub { display: none; }
+</style>
+</head>
+<body>
+<div id="film">
+  <div id="bar" class="abs">
+    <div id="brand">
+      <svg viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="15" fill="#6f4930"/><path d="M 44.1 19.9 A 16 16 0 1 0 48 32" stroke="#fbf8f2" stroke-width="5" stroke-linecap="round"/><circle cx="46.5" cy="21.5" r="4.4" fill="#e8c155"/><circle cx="32" cy="32" r="3.2" fill="#fbf8f2"/></svg>
+      <span>StoryLoop</span>
+    </div>
+    <div id="sample">Example from sample notes</div>
+  </div>
+
+  <div id="form1" class="abs card form"></div>
+  <div id="form2" class="abs card form"></div>
+  <div id="draftBtn" class="abs">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15z"/></svg>
+    <span id="draftLabel"></span>
+  </div>
+
+  <div id="draft" class="abs card">
+    <div id="draftHead">
+      <div class="label" id="draftTitle"></div>
+      <div style="display:flex;flex:none">
+        <span class="btn" id="copy"><svg id="copyIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><svg id="copiedIcon" viewBox="0 0 24 24" fill="none" stroke="#48652f" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M20 6 9 17l-5-5"/></svg><span id="copyText">Copy all</span></span>
+        <span class="btn" id="next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0"/><path d="M19 8v6M16 11h6"/></svg>Next child</span>
+      </div>
+    </div>
+    <div id="outcomes"></div>
+    <div id="fadeBottom" class="abs"></div>
+  </div>
+
+  <div id="touch1" class="abs touch"></div>
+  <div id="touch2" class="abs touch"></div>
+  <div id="touch3" class="abs touch"></div>
+
+  <div id="cap" class="abs"></div>
+  <div id="cap2" class="abs"></div>
+  <div id="track" class="abs"><div id="fill"></div></div>
+
+  <div id="end" class="abs">
+    <svg viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="15" fill="#fbf8f2"/><path d="M 44.1 19.9 A 16 16 0 1 0 48 32" stroke="#6f4930" stroke-width="5" stroke-linecap="round"/><circle cx="46.5" cy="21.5" r="4.4" fill="#e8c155"/><circle cx="32" cy="32" r="3.2" fill="#6f4930"/></svg>
+    <div id="endName">StoryLoop</div>
+    <div id="endLine">A statement for every child.</div>
+    <div id="endSmall">Transition statements and end-of-year summaries.</div>
+  </div>
+</div>
+<input id="scrub" type="range" min="0" max="11" step="0.0333" value="4.6">
+
+<script>
+/* ------------------------------------------------------------------ data */
+const FALLBACK = {
+  child: "Arlo",
+  notes: "Arlo (4). Settles best with a job: after drop-off he goes straight to water the veggie garden. Watches games for a few minutes before joining; joined What's the Time Mr Wolf when asked to be the wolf. Built a marble run for about 25 minutes and said \"it needs to go steeper\", then raised one end and tried again.",
+  outcomes: [
+    { outcome: "Outcome 1: Identity", seen: "Arlo settles best after drop-off when he has a purposeful job, such as going straight to water the veggie garden.", strategy: "In the first weeks, offer Arlo a predictable morning job as he arrives." },
+    { outcome: "Outcome 2: Community", seen: "Arlo joined What's the Time Mr Wolf after watching for a few minutes.", strategy: "" },
+    { outcome: "Outcome 3: Wellbeing", seen: "Arlo managed arrival and pack-up with the support of familiar routines.", strategy: "" },
+  ],
+  strategyLabel: "Strategy for the school teacher",
+  next: { child: "Mia", notes: "Mia (5). Asks for the space books at rest time. Builds rockets in the block corner and counts down from ten before they launch." },
+  // The app's own labels (StatementFromNotes.tsx, TransitionDemo.tsx).
+  labels: { transition: "Transition statement", summary: "End-of-year summary", name: "Child's first name (optional)", notes: "What you know about this child", draft: "Draft the five outcomes", title: "Your draft, outcome by outcome" },
+};
+const D = Object.assign({}, FALLBACK, window.FILM_DATA || {});
+const DURATION = 11;
+
+const clamp = (x) => Math.max(0, Math.min(1, x));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const eo = (x) => 1 - Math.pow(1 - x, 3);
+const eio = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const back = (x) => { const c = 1.70158; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const lerp = (a, b, x) => a + (b - a) * x;
+const $ = (id) => document.getElementById(id);
+const set = (el, opacity, transform) => { el.style.opacity = opacity; if (transform !== undefined) el.style.transform = transform; };
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+const M = { btnTop: 900, blocks: [], notesH: 300, copyAt: [300, 300], nextAt: [500, 300] };
+function formHtml() {
+  const L = D.labels;
+  return `<div class="modes"><span class="on">${esc(L.transition)}</span><span>${esc(L.summary)}</span></div>
+    <div class="field"><div class="label">${esc(L.name)}</div><div class="input"><span class="nm"></span></div></div>
+    <div class="field"><div class="label">${esc(L.notes)}</div><div class="notes"></div></div>`;
+}
+function typeInto(el, text, n, caret) {
+  el.textContent = text.slice(0, n);
+  if (caret) { const c = document.createElement("span"); c.className = "caret"; el.appendChild(c); }
+}
+
+function filmInit() {
+  $("form1").innerHTML = formHtml();
+  $("form2").innerHTML = formHtml();
+  // Both note boxes are as tall as the first child's notes, so nothing jumps.
+  const box = $("form1").querySelector(".notes");
+  box.textContent = D.notes;
+  M.notesH = box.offsetHeight;
+  for (const b of document.querySelectorAll(".notes")) { b.style.height = M.notesH + "px"; b.textContent = ""; }
+  M.btnTop = Math.min(170 + $("form1").offsetHeight + 30, 980);
+  $("draftBtn").style.top = M.btnTop + "px";
+  $("draftLabel").textContent = D.labels.draft;
+  $("draftTitle").textContent = D.labels.title;
+  const list = $("outcomes");
+  list.innerHTML = "";
+  M.blocks = [];
+  D.outcomes.slice(0, 3).forEach((o, i) => {
+    const div = document.createElement("div");
+    div.className = "outcome";
+    div.innerHTML = `<div class="label">${esc(o.outcome)}</div><p>${esc(o.seen)}</p>` + (i === 0 && o.strategy ? `<p><b>${esc(D.strategyLabel)}:</b> ${esc(o.strategy)}</p>` : "");
+    list.appendChild(div);
+    M.blocks.push(div);
+  });
+  // Where the two buttons are, for the thumb.
+  const filmBox = $("film").getBoundingClientRect();
+  const centre = (el) => { const r = el.getBoundingClientRect(); return [r.left - filmBox.left + r.width / 2, r.top - filmBox.top + r.height / 2]; };
+  M.copyAt = centre($("copy"));
+  M.nextAt = centre($("next"));
+  document.body.classList.toggle("render", Boolean(window.FILM_RENDER));
+  filmRender(Number($("scrub").value));
+}
+
+/* ------------------------------------------------------------------ timing (seconds) */
+const T = {
+  formIn: [0, 0.45], name: [0.35, 0.6], type: [0.6, 1.85], btn: 1.6, thumb: [1.85, 2.2], press: 2.25,
+  formOut: [2.55, 3.0], draftIn: [2.6, 3.15], blocks: 3.05,
+  thumb2: [4.55, 4.9], copy: 4.95, thumb3: [5.35, 5.75], next: 5.8,
+  swap: [6.0, 6.6], name2: [6.7, 7.0], type2: [7.05, 8.55],
+  end: [8.95, 9.65],
+};
+const CAPTIONS = [
+  [0.05, 2.55, "Statements due?"],
+  [2.7, 5.6, "Outcome by outcome, from your notes."],
+  [5.75, 8.9, "Then Next child. And the next."],
+];
+function caption(el, t, row) {
+  if (!row) { set(el, 0); return; }
+  const [a, b, text] = row;
+  const inP = eo(seg(t, a, a + 0.32));
+  const outP = eio(seg(t, b - 0.24, b));
+  if (el.textContent !== text) el.textContent = text;
+  set(el, inP * (1 - outP), `translateY(${lerp(22, 0, inP) - 14 * outP}px)`);
+}
+function touch(el, t, span, pressAt, from, to) {
+  const p = eio(seg(t, span[0], span[1]));
+  const press = seg(t, pressAt, pressAt + 0.1) - seg(t, pressAt + 0.16, pressAt + 0.32);
+  el.style.left = lerp(from[0], to[0], p) + "px";
+  el.style.top = lerp(from[1], to[1], p) + "px";
+  set(el, seg(t, span[0], span[0] + 0.15) * (1 - seg(t, pressAt + 0.2, pressAt + 0.45)), `scale(${1 - 0.16 * press})`);
+  return press;
+}
+
+function filmRender(t) {
+  t = Math.max(0, Math.min(DURATION, t));
+  const f1 = $("form1"), f2 = $("form2"), dr = $("draft");
+
+  // ---- the first child: name, notes, Draft.
+  const fIn = eo(seg(t, T.formIn[0], T.formIn[1]));
+  const fOut = eio(seg(t, T.formOut[0], T.formOut[1]));
+  set(f1, fIn * (1 - fOut), `translateY(${lerp(40, 0, fIn) - 80 * fOut}px) scale(${1 - 0.04 * fOut})`);
+  typeInto(f1.querySelector(".nm"), D.child, Math.round(D.child.length * seg(t, T.name[0], T.name[1])), t >= T.name[0] && t < T.type[0]);
+  typeInto(f1.querySelector(".notes"), D.notes, Math.round(D.notes.length * eio(seg(t, T.type[0], T.type[1]))), t >= T.type[0] && t < T.press);
+  const btnIn = back(seg(t, T.btn, T.btn + 0.45));
+  const press = touch($("touch1"), t, T.thumb, T.press, [760, M.btnTop + 330], [560, M.btnTop + 60]);
+  set($("draftBtn"), clamp(seg(t, T.btn, T.btn + 0.2)) * (1 - fOut), `translateY(${lerp(30, 0, clamp(btnIn)) - 80 * fOut}px) scale(${lerp(0.9, 1, btnIn) - 0.045 * press})`);
+
+  // ---- the draft, outcome by outcome; Copy all; Next child.
+  const dIn = eo(seg(t, T.draftIn[0], T.draftIn[1]));
+  const swap = eio(seg(t, T.swap[0], T.swap[1]));
+  set(dr, dIn * (1 - seg(t, T.swap[0] + 0.3, T.swap[1])), `translateY(${lerp(120, 0, dIn)}px) translateX(${-1100 * swap}px) rotate(${-4 * swap}deg)`);
+  M.blocks.forEach((b, i) => {
+    const p = eo(seg(t, T.blocks + i * 0.45, T.blocks + 0.5 + i * 0.45));
+    set(b, p, `translateY(${(1 - p) * 30}px)`);
+  });
+  const copyPress = touch($("touch2"), t, T.thumb2, T.copy, [M.copyAt[0] + 160, M.copyAt[1] + 380], M.copyAt);
+  const copied = t >= T.copy + 0.1;
+  $("copyText").textContent = copied ? "Copied" : "Copy all";
+  $("copyIcon").style.display = copied ? "none" : "block";
+  $("copiedIcon").style.display = copied ? "block" : "none";
+  $("copy").style.transform = `scale(${1 - 0.05 * copyPress})`;
+  const nextPress = touch($("touch3"), t, T.thumb3, T.next, [M.copyAt[0] + 40, M.copyAt[1] + 260], M.nextAt);
+  $("next").style.transform = `scale(${1 - 0.05 * nextPress})`;
+
+  // ---- the next child: a fresh page slides in, and she starts again.
+  set(f2, seg(t, T.swap[0], T.swap[0] + 0.2) * (1 - seg(t, T.end[0], T.end[0] + 0.4)), `translateX(${lerp(1100, 0, swap)}px) rotate(${lerp(4, 0, swap)}deg)`);
+  typeInto(f2.querySelector(".nm"), D.next.child, Math.round(D.next.child.length * seg(t, T.name2[0], T.name2[1])), t >= T.swap[1] && t < T.type2[0]);
+  typeInto(f2.querySelector(".notes"), D.next.notes, Math.round(D.next.notes.length * eio(seg(t, T.type2[0], T.type2[1]))), t >= T.type2[0]);
+
+  // ---- captions and progress
+  const live = CAPTIONS.filter(([a, b]) => t >= a && t <= b);
+  caption($("cap"), t, live[0]);
+  caption($("cap2"), t, live[1]);
+  $("fill").style.transform = `scaleX(${t / DURATION})`;
+
+  // ---- the end card opens from the logo's gold dot, as in the first film.
+  const open = eio(seg(t, T.end[0], T.end[1]));
+  const end = $("end");
+  end.style.clipPath = `circle(${open * 1750}px at 118px 86px)`;
+  end.style.opacity = open > 0 ? 1 : 0;
+  const e0 = T.end[0] + 0.4;
+  const mark = back(seg(t, e0, e0 + 0.6));
+  end.querySelector("svg").style.transform = `scale(${lerp(0.6, 1, mark)})`;
+  end.querySelector("svg").style.opacity = clamp(seg(t, e0, e0 + 0.25));
+  const n = eo(seg(t, e0 + 0.2, e0 + 0.75));
+  set($("endName"), n, `translateY(${lerp(26, 0, n)}px)`);
+  const l = eo(seg(t, e0 + 0.42, e0 + 1.0));
+  set($("endLine"), l, `translateY(${lerp(26, 0, l)}px)`);
+  const sm = eo(seg(t, e0 + 0.75, e0 + 1.3));
+  $("endSmall").style.opacity = 0.92 * sm;
+  $("endSmall").style.transform = `translateY(${lerp(20, 0, sm)}px)`;
+  set($("bar"), 1 - seg(t, T.end[0], T.end[0] + 0.2));
+  set($("track"), 1 - 0.75 * seg(t, T.end[0], T.end[0] + 0.6));
+}
+
+window.FILM_SECONDS = DURATION;
+window.filmInit = filmInit;
+window.filmRender = filmRender;
+$("scrub").addEventListener("input", (e) => filmRender(Number(e.target.value)));
+(document.fonts ? document.fonts.ready : Promise.resolve()).then(() => { if (!window.FILM_RENDER) filmInit(); });
+</script>
+</body>
+</html>
