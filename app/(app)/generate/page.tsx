@@ -44,6 +44,7 @@ import NextStoryCard from "@/components/app/NextStoryCard";
 import CopyPackButton from "@/components/app/CopyPackButton";
 import { showCopyPackBeside } from "@/lib/copy-pack";
 import { nextStoryCard, shouldOfferNextStory, type NextStoryChoice } from "@/lib/next-story";
+import { mayShowPrompt } from "@/lib/one-prompt";
 import { trackEvent } from "@/lib/analytics/track-event";
 import { keepWallWork, takeWallWork } from "@/lib/app-wall";
 import { looksNonLatin } from "@/lib/note-language";
@@ -960,11 +961,17 @@ export default function GeneratePage() {
   const regenerations = useRef(0);
   // The story she last copied: the copy pack button sits beside Copy for it (lib/copy-pack.ts).
   const [packBesideCopy, setPackBesideCopy] = useState("");
+  // One prompt at a time (lib/one-prompt.ts): what wants the screen right now.
+  // The first-story prompt says "try one more": the next-story card says it
+  // better, so once the card has been offered that prompt stays away.
+  const upgradeWanted = showUpgradePrompt && !(upgradePromptKind === "first_story" && nextStory !== "none");
+  const promptsWanted = { wall: showLimitModal, next_story: nextStory === "offered" && !editingStory, upgrade: upgradeWanted };
   // Each copy on this page (Copy or a copy pack): the review ask may follow it
-  // (lib/review-ask.ts). Never beside the next-story card or a wall: one thing at a time.
+  // (lib/review-ask.ts), but never while another prompt has the screen: a copy
+  // then does not count here (the server still counts it toward a later ask).
   const [reviewCopies, setReviewCopies] = useState(0);
   const noteReviewCopy = () => {
-    if (nextStory === "offered" || showLimitModal) return;
+    if (!mayShowPrompt("review_ask", promptsWanted)) return;
     setReviewCopies((n) => n + 1);
   };
 
@@ -2149,8 +2156,8 @@ export default function GeneratePage() {
             </div>
           )}
 
-          {/* The first-story prompt says "try one more": the next-story card says it better, so never both. */}
-          {showUpgradePrompt && !(upgradePromptKind === "first_story" && nextStory !== "none") && (
+          {/* One prompt at a time (lib/one-prompt.ts): never beside the wall or the next-story card. */}
+          {upgradeWanted && mayShowPrompt("upgrade", promptsWanted) && (
             <div className="rounded-2xl border border-clay-200 bg-cream-50 p-4 shadow-soft">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -2259,8 +2266,9 @@ export default function GeneratePage() {
           {/* The review ask, right under Copy at the moment she copies (lib/review-ask.ts).
               Outside the branches below and never keyed, so it stays mounted through
               Regenerate: a half-written review survives a new story. Hidden, not
-              removed, while a story is being written. */}
-          <div hidden={loading || !story}>
+              removed, while a story is being written or another prompt has the
+              screen (lib/one-prompt.ts). */}
+          <div hidden={loading || !story || !mayShowPrompt("review_ask", promptsWanted)}>
             <StoryReviewAsk storyId={storyId} copies={reviewCopies} />
           </div>
 
@@ -2420,7 +2428,7 @@ export default function GeneratePage() {
                 </p>
               )}
               {/* Right under her first story, once she has taken it away: the next one in one tap. */}
-              {nextStory === "offered" && !limitWall && !editingStory && (
+              {promptsWanted.next_story && mayShowPrompt("next_story", promptsWanted) && (
                 <NextStoryCard card={nextStoryCard({ childName, fromExample: firstNoteWasExample.current })} onChoose={startNextStory} />
               )}
               {limitWall && <div className="mt-4">{limitWall}</div>}
@@ -2679,7 +2687,7 @@ export default function GeneratePage() {
                 </div>
               </div>
               {/* After a wall on an earlier visit: one quiet line, away from the note box. */}
-              {!showLimitModal && !checkoutReturn && <PriceReminder free={accountAtLoad !== null && accountPlan === "free"} returnTo="/generate" className="mt-3 w-full sm:ml-auto sm:max-w-sm" />}
+              {mayShowPrompt("price_reminder", promptsWanted) && !checkoutReturn && <PriceReminder free={accountAtLoad !== null && accountPlan === "free"} returnTo="/generate" className="mt-3 w-full sm:ml-auto sm:max-w-sm" />}
             </div>
           )}
         </div>
