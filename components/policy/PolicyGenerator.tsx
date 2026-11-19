@@ -10,6 +10,7 @@ import {
   type ServiceType,
 } from "@/lib/ai-policy";
 import { track } from "@/lib/analytics/client";
+import CentreTrialWords from "@/components/centre/CentreTrialWords";
 
 export default function PolicyGenerator() {
   const [serviceName, setServiceName] = useState("");
@@ -165,6 +166,22 @@ export default function PolicyGenerator() {
             obtain your own advice where needed.
           </p>
         </article>
+
+        {/* Under the finished policy (19 Nov 2026): one line and one button that start the team's
+            free period, in the shared date-aware centre wording (lib/centre-offer.ts). */}
+        <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-clay-200 bg-cream-50 p-4 sm:flex-row sm:items-center sm:justify-between print:hidden" data-testid="ai-policy-centre-start">
+          <p className="min-w-0 text-sm font-semibold leading-relaxed text-ink-900">
+            Your whole team on StoryLoop: <CentreTrialWords />, no card.
+          </p>
+          <Link
+            href="/signup?plan=centre_starter&utm_source=ai_policy&utm_medium=site"
+            className="btn-primary flex-none justify-center whitespace-nowrap px-5 py-3 text-sm"
+            data-track="ai_policy_centre_start"
+            onClick={() => track("cta_click", { cta: "ai_policy_centre_start", country })}
+          >
+            Start your centre free
+          </Link>
+        </div>
 
         <div className="mt-5 rounded-2xl border border-sage-200 bg-sage-50/70 p-5 print:hidden">
           <p className="flex items-center gap-2 font-display text-base font-bold text-ink-900">

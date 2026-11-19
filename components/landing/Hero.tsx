@@ -56,14 +56,17 @@ export default function Hero() {
               Jot a note after play. StoryLoop writes the learning story and checks every word.
             </p>
 
-            <div className="animate-fade-up-2 mt-7 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
-              <Link href="/signup" className="btn-primary group w-full px-8 py-3.5 text-base sm:w-auto" data-track="home_hero_start">
+            {/* Each button keeps its words on one line; where the column is too narrow for both
+                side by side (1024 wide: iPad landscape, small laptops), the second moves under the
+                first as a clean stack. Layout only (19 Nov 2026). */}
+            <div className="animate-fade-up-2 mt-7 flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:justify-center lg:justify-start">
+              <Link href="/signup" className="btn-primary group w-full whitespace-nowrap px-8 py-3.5 text-base sm:w-auto" data-track="home_hero_start">
                 Start free, 3 stories a month
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
               {/* The wrapper does the hiding: .btn-secondary sets its own display. */}
               <span className="hidden sm:inline-flex">
-                <a href="#hero-demo" onClick={goToDemo} data-track="home_hero_try" className="btn-secondary px-7 py-3.5 text-base">
+                <a href="#hero-demo" onClick={goToDemo} data-track="home_hero_try" className="btn-secondary whitespace-nowrap px-7 py-3.5 text-base">
                   Try it with your own note
                 </a>
               </span>
