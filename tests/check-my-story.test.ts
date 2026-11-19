@@ -11,6 +11,7 @@ import {
   CHECK_NOTE_MAX,
   CHECK_STORY_MAX,
 } from "../lib/check-my-story";
+import { CHECK_MY_STORY_PUBLIC } from "../lib/check-my-story-limits";
 import { sampleQueue } from "../lib/sample-team";
 import { REAL_EXAMPLES } from "../lib/real-examples";
 
@@ -185,4 +186,19 @@ test("built from the writer's guards, with no model, no network and no storage",
   assert.equal(/console\.\w+\([^)]*body/.test(route), false, "the pasted text is never logged");
   assert.equal(/\.insert\(|\.upsert\(/.test(route), false, "nothing pasted is stored");
   assert.match(route, /metadata: \{ looks: check\.looks \}/, "the one thing kept is a count");
+});
+
+test("the public page is held for this release: 404, not in the sitemap, linked from nowhere; the in-app check ships", () => {
+  assert.equal(CHECK_MY_STORY_PUBLIC, false, "the public /check-my-story waits until January (release decision, 19 Nov 2026)");
+  const page = readFileSync(new URL("../app/check-my-story/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /if \(!CHECK_MY_STORY_PUBLIC\) notFound\(\);/);
+  assert.match(page, /robots: \{ index: false, follow: false \}/, "and never indexed while held");
+  const route = readFileSync(new URL("../app/api/check-my-story/route.ts", import.meta.url), "utf8");
+  const post = route.slice(route.indexOf("export async function POST"));
+  assert.match(post, /^export async function POST\([^)]*\) \{\n\s*if \(!CHECK_MY_STORY_PUBLIC\) return NextResponse\.json\(\{ error: "Not found\." \}, \{ status: 404, headers: NO_STORE \}\);/, "the API refuses before reading anything");
+  const sitemap = readFileSync(new URL("../app/sitemap.ts", import.meta.url), "utf8");
+  assert.match(sitemap, /\.\.\.\(CHECK_MY_STORY_PUBLIC \? \["check-my-story"\] : \[\]\)/);
+  // The check itself is in the app either way: the leader's queue and an educator's own story.
+  assert.match(readFileSync(new URL("../lib/centre-team-server.ts", import.meta.url), "utf8"), /check: checkMyStory\(/);
+  assert.match(readFileSync(new URL("../components/app/LeaderCheck.tsx", import.meta.url), "utf8"), /import\("@\/lib\/check-my-story"\)/);
 });

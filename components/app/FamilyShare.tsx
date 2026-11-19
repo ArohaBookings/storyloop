@@ -6,6 +6,7 @@ import { track } from "@/lib/analytics/client";
 import { trackEvent } from "@/lib/analytics/track-event";
 import { WALL_LANGUAGES } from "@/lib/wall-languages";
 import type { EducatorFamilyView } from "@/lib/family-link";
+import { TELL_CENTRE_ON } from "@/lib/family-tell-centre";
 
 /** tellCentre: the Tell your centre switch on each link, by link id (lib/family-tell-centre.ts). Off when missing. */
 type State = { shared: boolean; child: { id: string; name: string } | null; family: EducatorFamilyView; tellCentre?: Record<string, boolean> };
@@ -172,8 +173,8 @@ export default function FamilyShare({ storyId, childName }: { storyId: string; c
                         {busy === link.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
                       </button>
                     </div>
-                    {/* Tell your centre (lib/family-tell-centre.ts): off unless she switches it on for this link. */}
-                    <button
+                    {/* Tell your centre (lib/family-tell-centre.ts): off unless she switches it on for this link. Held: no switch at all. */}
+                    {TELL_CENTRE_ON && <button
                       type="button"
                       role="switch"
                       aria-checked={tellOn}
@@ -186,13 +187,13 @@ export default function FamilyShare({ storyId, childName }: { storyId: string; c
                         <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-paper shadow transition-transform ${tellOn ? "translate-x-[18px]" : "translate-x-0.5"}`} />
                       </span>
                       <span className="min-w-0">Let {link.label} tell your centre about StoryLoop</span>
-                    </button>
+                    </button>}
                   </li>
                 );
               })}
             </ul>
           )}
-          {links.length > 0 && (
+          {TELL_CENTRE_ON && links.length > 0 && (
             <p className="text-xs leading-relaxed text-ink-500" data-testid="family-tell-centre-help">
               Switched on, their page shows a button that opens their own messages with a short note to your centre. It names
               nobody and nothing is sent from here.

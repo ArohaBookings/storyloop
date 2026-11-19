@@ -3,6 +3,7 @@ import { SEO_PAGES, SEO_PAGE_SLUGS } from "@/lib/seo-pages";
 import { EYLF_OUTCOMES } from "@/lib/eylf-outcomes";
 import { TE_WHARIKI_STRANDS } from "@/lib/te-whariki-strands";
 import { listPublishedPosts } from "@/lib/blog";
+import { CHECK_MY_STORY_PUBLIC } from "@/lib/check-my-story-limits";
 
 const SITE_URL = "https://storyloop.space";
 
@@ -10,8 +11,8 @@ export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = ["", "about", "resources", "examples", "ai-policy", "documentation-time-calculator", "review-readiness-check", "learning-story-data", "accuracy", "privacy", "terms", "blog", "features", "what-is-a-learning-story", "eylf-learning-outcomes", "learning-story-template", "safety", "data-sheet", "for-educators", "for-families",
-    // Check my story (19 Nov 2026): for educators and leaders who already write stories.
-    "check-my-story",
+    // Check my story (19 Nov 2026): for educators and leaders who already write stories. Held off until January.
+    ...(CHECK_MY_STORY_PUBLIC ? ["check-my-story"] : []),
     "te-whariki-learning-outcomes-guide",
     // Free printables (14 Oct 2026): Google ranks PDFs for "... pdf" searches.
     "printables/eylf-v2-outcomes-and-sub-outcomes.pdf",

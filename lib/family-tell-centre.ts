@@ -16,6 +16,18 @@
  * Pure: safe in the browser, and tested without one.
  */
 
+/**
+ * HELD (release decision, 19 Nov 2026: until three real family links exist;
+ * there are none yet). Off, the educator sees no switch, the family page shows
+ * no line, the switch's API answers 404 and nothing reads or writes
+ * family_links.tell_centre, so the release works whether or not migration
+ * 20261119_family_tell_centre.sql has reached production.
+ *
+ * To switch it on: apply that migration to production first, then set true
+ * here (the one place).
+ */
+export const TELL_CENTRE_ON = false;
+
 export const TELL_CENTRE_ADDRESS = "https://storyloop.space/for-centres";
 export const TELL_CENTRE_SUBJECT = "Learning stories";
 

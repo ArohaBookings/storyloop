@@ -3,6 +3,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import {
   TELL_CENTRE_ADDRESS,
+  TELL_CENTRE_ON,
   tellCentreMailto,
   tellCentreMessage,
   tellCentreMessageIsClean,
@@ -63,9 +64,9 @@ test("off by default: the column starts false, and off means no line, no button 
   assert.match(migration, /add column if not exists tell_centre boolean not null default false/);
   const page = read("../components/marketing/FamilyPage.tsx");
   assert.match(page, /const \[tellCentre, setTellCentre\] = useState\(false\);/, "the family page starts with it off");
-  assert.match(page, /setTellCentre\(data\.tellCentre === true\)/, "only a true answer from the server switches it on");
+  assert.match(page, /const tell = TELL_CENTRE_ON && data\.tellCentre === true;\s*setTellCentre\(tell\);/, "only a true answer from the server switches it on, and only while the feature is on");
   assert.match(page, /\{tellCentre && view\.stories\.length > 0 && \(/, "the line and button render only when on");
-  assert.match(page, /if \(data\.tellCentre === true && data\.view\.stories\.length > 0\) trackEvent\("ui_action", \{ action: "family_tell_centre_shown", page: "\/family" \}\)/);
+  assert.match(page, /if \(tell && data\.view\.stories\.length > 0\) trackEvent\("ui_action", \{ action: "family_tell_centre_shown", page: "\/family" \}\)/);
   // Events carry a fixed name and the page path only: never the key, the child or the note.
   for (const call of page.match(/trackEvent\([^)]*\)/g) ?? []) assert.match(call, /^trackEvent\("ui_action", \{ action: "family_tell_centre_\w+", page: "\/family" \}\)$/);
   // Nothing is sent from our servers: the note goes to the parent's own share sheet or mail app.
@@ -81,7 +82,7 @@ test("the family page keeps its privacy: still noindex and no-referrer, the key 
   assert.match(route, /robots: \{ index: false, follow: false/);
   assert.match(route, /referrer: "no-referrer"/);
   const api = read("../app/api/family/route.ts");
-  assert.match(api, /const tellCentre = await tellCentreForToken\(token\);\n\s*return NextResponse\.json\(\{ view, tellCentre \}/);
+  assert.match(api, /const tellCentre = TELL_CENTRE_ON \? await tellCentreForToken\(token\) : false;\n\s*return NextResponse\.json\(\{ view, tellCentre \}/);
 });
 
 test("only the educator switches it, for one of her own open links, through her own account", () => {
@@ -98,4 +99,21 @@ test("only the educator switches it, for one of her own open links, through her 
   const share = read("../components/app/FamilyShare.tsx");
   assert.match(share, /const tellOn = state\?\.tellCentre\?\.\[link\.id\] === true;/, "a link with no stored answer shows as off");
   assert.match(share, /role="switch"/);
+});
+
+test("held for this release: off everywhere, from one constant, until three real family links exist", () => {
+  assert.equal(TELL_CENTRE_ON, false, "Tell your centre is held (release decision, 19 Nov 2026): switch it on only with that decision changed");
+  // The switch's API refuses before reading anything.
+  const route = read("../app/api/children/[id]/family-links/route.ts");
+  const patch = route.slice(route.indexOf("export async function PATCH"), route.indexOf("export async function DELETE"));
+  assert.match(patch, /^export async function PATCH\([^)]*\) \{\n\s*if \(!TELL_CENTRE_ON\) return NextResponse\.json\(\{ error: "Not found\." \}, \{ status: 404 \}\);/);
+  // The family page's API and the educator's family state never read the column while it is off,
+  // so the release works whether or not 20261119_family_tell_centre.sql has reached production.
+  assert.match(read("../app/api/family/route.ts"), /TELL_CENTRE_ON \? await tellCentreForToken\(token\) : false/);
+  assert.match(read("../app/api/stories/[id]/family/route.ts"), /if \(!TELL_CENTRE_ON\) return state;/);
+  // The educator sees no switch and no help line; the family page shows no line.
+  const share = read("../components/app/FamilyShare.tsx");
+  assert.match(share, /\{TELL_CENTRE_ON && <button/);
+  assert.match(share, /\{TELL_CENTRE_ON && links\.length > 0 && \(/);
+  assert.match(read("../components/marketing/FamilyPage.tsx"), /const tell = TELL_CENTRE_ON && data\.tellCentre === true;/);
 });

@@ -3,6 +3,7 @@ import { consumeRateLimit } from "@/lib/rate-limit";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { recordServerEvent } from "@/lib/analytics/server";
 import { checkInputProblem, checkMyStory } from "@/lib/check-my-story";
+import { CHECK_MY_STORY_PUBLIC } from "@/lib/check-my-story-limits";
 
 const NO_STORE = { "Cache-Control": "no-store" };
 
@@ -23,8 +24,12 @@ function clientIp(request: NextRequest) {
  * the story and the note live only for the length of this request. The one
  * thing kept is a count, the analytics row "check_my_story" with how many
  * things were worth a look.
+ *
+ * HELD until January (CHECK_MY_STORY_PUBLIC in lib/check-my-story-limits.ts):
+ * while it is off this answers 404 to everyone, before reading anything.
  */
 export async function POST(request: NextRequest) {
+  if (!CHECK_MY_STORY_PUBLIC) return NextResponse.json({ error: "Not found." }, { status: 404, headers: NO_STORE });
   try {
     // Another site may not make its visitors' browsers run it.
     if (request.headers.get("sec-fetch-site") === "cross-site") {

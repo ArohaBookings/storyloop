@@ -7,7 +7,7 @@ import StoryText from "@/components/app/StoryText";
 import { track } from "@/lib/analytics/client";
 import { trackEvent } from "@/lib/analytics/track-event";
 import { FAMILY_REPLY_MAX, familyTokenFromHash, type FamilyView } from "@/lib/family-link";
-import { tellCentreMailto, tellCentreMessage } from "@/lib/family-tell-centre";
+import { TELL_CENTRE_ON, tellCentreMailto, tellCentreMessage } from "@/lib/family-tell-centre";
 
 const AT = { path: "/family" };
 
@@ -44,10 +44,12 @@ export default function FamilyPage() {
         const data = await response.json().catch(() => ({}));
         if (!response.ok || !data.view) { setPhase("gone"); return; }
         setView(data.view); setPhase("open");
-        setTellCentre(data.tellCentre === true);
+        // Held off (TELL_CENTRE_ON): never shown, whatever the server says.
+        const tell = TELL_CENTRE_ON && data.tellCentre === true;
+        setTellCentre(tell);
         track("family_link_opened", { stories: data.view.stories.length, translated: Boolean(data.view.language) }, AT);
         // A count of the line being shown: never the link, the child or the family.
-        if (data.tellCentre === true && data.view.stories.length > 0) trackEvent("ui_action", { action: "family_tell_centre_shown", page: "/family" });
+        if (tell && data.view.stories.length > 0) trackEvent("ui_action", { action: "family_tell_centre_shown", page: "/family" });
       })
       .catch(() => setPhase("gone"));
   }, []);

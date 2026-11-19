@@ -3,9 +3,14 @@ import { createClient } from "@/lib/supabase/server";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { familyStateForStory, markFamilyRepliesSeen, shareStoryWithFamily, unshareStory } from "@/lib/family-link-server";
 import { tellCentreByLink } from "@/lib/family-tell-centre-server";
+import { TELL_CENTRE_ON } from "@/lib/family-tell-centre";
 
-/** The family state, with the Tell your centre switch on each link (lib/family-tell-centre.ts). */
+/**
+ * The family state, with the Tell your centre switch on each link
+ * (lib/family-tell-centre.ts). Held off: the state exactly as before, nothing read.
+ */
 async function withTellCentre<T extends { child: { id: string } | null }>(userId: string, state: T) {
+  if (!TELL_CENTRE_ON) return state;
   return { ...state, tellCentre: state.child ? await tellCentreByLink(userId, state.child.id) : {} };
 }
 

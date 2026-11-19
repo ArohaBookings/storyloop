@@ -5,6 +5,7 @@ import { SITE_URL } from "@/lib/email/config";
 import { familyUrl } from "@/lib/family-link";
 import { cancelFamilyLink, createFamilyLink } from "@/lib/family-link-server";
 import { setTellCentre } from "@/lib/family-tell-centre-server";
+import { TELL_CENTRE_ON } from "@/lib/family-tell-centre";
 
 export const maxDuration = 60;
 
@@ -41,8 +42,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
 /**
  * Tell your centre (lib/family-tell-centre.ts): the educator switches it on or
  * off for one of her own open links. Off by default; nothing else changes.
+ * Held off (TELL_CENTRE_ON): 404 for everyone, before anything is read.
  */
 export async function PATCH(request: NextRequest, context: RouteContext) {
+  if (!TELL_CENTRE_ON) return NextResponse.json({ error: "Not found." }, { status: 404 });
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
