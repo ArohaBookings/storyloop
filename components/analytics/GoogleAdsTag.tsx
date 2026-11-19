@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import Script from "next/script";
+import { usePathname } from "next/navigation";
+import { adsTagAllowedOn } from "@/lib/analytics/ad-free-pages";
 import { CONSENT_CHANGED, currentConsent, type ConsentChoice } from "@/lib/analytics/consent";
 import { GOOGLE_ADS_ID, updateAdsConsent } from "@/lib/analytics/google-ads";
 
@@ -16,8 +18,24 @@ import { GOOGLE_ADS_ID, updateAdsConsent } from "@/lib/analytics/google-ads";
  * EU, EEA, UK and Switzerland (no banner there) and denied inside them until
  * "Allow". Ad personalisation is always denied. url_passthrough carries
  * Google's click id from the landing page to the signup page without a cookie.
+ *
+ * Never on a page that shows a child's story to a family or a leader
+ * (lib/analytics/ad-free-pages.ts): there nothing renders, and if the tag was
+ * already loaded earlier in the visit, ad consent is withdrawn.
  */
 export default function GoogleAdsTag() {
+  const pathname = usePathname();
+  const allowed = adsTagAllowedOn(pathname);
+  useEffect(() => {
+    if (allowed) return;
+    const gtag = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
+    if (typeof gtag === "function") gtag("consent", "update", { ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied" });
+  }, [allowed]);
+  if (!allowed) return null;
+  return <GoogleTag />;
+}
+
+function GoogleTag() {
   useEffect(() => {
     const onChange = (event: Event) => {
       const detail = (event as CustomEvent<ConsentChoice>).detail ?? currentConsent();
