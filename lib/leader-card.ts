@@ -16,14 +16,22 @@ import { showsOnBoardCard, type WorkRole } from "@/lib/work-role";
  *  - her own story, and she has saved at least two (she has seen what it does);
  *  - someone in no centre, not on a centre plan, and not a leader or owner
  *    herself (the same people as "Get your centre on board", lib/work-role.ts);
+ *  - ONCE (release decision, 19 Nov 2026): after it has been offered
+ *    LEADER_CARD_MAX_SHOWS times it never comes back, whatever she did;
  *  - never again once she has sent any story to a leader, or said No thanks.
- * "No thanks" is kept on the server, as a page_events row with her id like the
- * centre card's (lib/work-role-server.ts), so it holds on every device.
+ * It takes the story's one prompt slot (lib/one-prompt.ts), so the review ask
+ * never shows beside it. "Offered" and "No thanks" are kept on the server, as
+ * page_events rows with her id like the centre card's (lib/work-role-server.ts),
+ * so both hold on every device.
  */
 
 export const LEADER_CARD_DISMISSED_EVENT = "leader_card_dismissed";
+/** Kept when the server answers "show": how "once" is counted, on every device. */
+export const LEADER_CARD_OFFERED_EVENT = "leader_card_offered";
 /** The card starts with her second saved story. */
 export const LEADER_CARD_MIN_STORIES = 2;
+/** How many times it is ever offered: once (release decision, 19 Nov 2026). */
+export const LEADER_CARD_MAX_SHOWS = 1;
 
 export type LeaderCardFacts = {
   /** The story she copied is one of her own saved stories. */
@@ -37,12 +45,15 @@ export type LeaderCardFacts = {
   dismissed: boolean;
   /** She has made a leader check before, for any story. */
   sentBefore: boolean;
+  /** How many times the card has been offered to her before. */
+  offeredBefore: number;
 };
 
 /** Whether the card shows after this copy. Pure. */
 export function showsLeaderCard(facts: LeaderCardFacts): boolean {
   if (!facts.storyIsHers || facts.stories < LEADER_CARD_MIN_STORIES) return false;
   if (facts.dismissed || facts.sentBefore) return false;
+  if (!(facts.offeredBefore < LEADER_CARD_MAX_SHOWS)) return false;
   return showsOnBoardCard({ role: facts.role, inCentre: facts.inCentre, centrePlan: facts.centrePlan });
 }
 

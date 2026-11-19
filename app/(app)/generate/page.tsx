@@ -42,6 +42,7 @@ import AppLimitWall from "@/components/app/AppLimitWall";
 import PriceReminder from "@/components/app/PriceReminder";
 import CheckoutReturn from "@/components/app/CheckoutReturn";
 import { trackEvent } from "@/lib/analytics/track-event";
+import { claimPrompt, mayShowPrompt, priceReminderMayShow, type PromptSlot } from "@/lib/one-prompt";
 import { keepWallWork, takeWallWork } from "@/lib/app-wall";
 import { looksNonLatin } from "@/lib/note-language";
 import { ROOM_HANDOFF_STORY } from "@/lib/room-mode";
@@ -900,6 +901,8 @@ export default function GeneratePage() {
   const regenerations = useRef(0);
   // The story she last copied: "Send this to my leader" may follow it (19 Nov 2026).
   const [copiedStoryId, setCopiedStoryId] = useState("");
+  // One prompt per story (lib/one-prompt.ts): the card that took the slot of the story on screen.
+  const [promptSlot, setPromptSlot] = useState<PromptSlot>(null);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(story);
@@ -2180,10 +2183,17 @@ export default function GeneratePage() {
             )}
           </div>
 
-          {/* "Send this to my leader" (lib/leader-card.ts): only after she copies this story, in the page, never over it. */}
+          {/* "Send this to my leader" (lib/leader-card.ts): only after she copies this story, in the page, never over it.
+              It takes the story's one prompt slot (lib/one-prompt.ts). */}
           {storyId && copiedStoryId === storyId && !loading && (
             <div className="mb-4 min-w-0">
-              <LeaderCard key={storyId} storyId={storyId} onSend={() => jumpTo("leader-check")} />
+              <LeaderCard
+                key={storyId}
+                storyId={storyId}
+                canShow={mayShowPrompt("leader_card", storyId, promptSlot)}
+                onShown={() => setPromptSlot((slot) => claimPrompt(slot, storyId, "leader_card"))}
+                onSend={() => jumpTo("leader-check")}
+              />
             </div>
           )}
 
@@ -2594,13 +2604,14 @@ export default function GeneratePage() {
                 </div>
               </div>
               {/* After a wall on an earlier visit: one quiet line, away from the note box. */}
-              {!showLimitModal && !checkoutReturn && <PriceReminder free={accountAtLoad !== null && accountPlan === "free"} returnTo="/generate" className="mt-3 w-full sm:ml-auto sm:max-w-sm" />}
+              {!showLimitModal && !checkoutReturn && priceReminderMayShow(promptSlot, storyId) && <PriceReminder free={accountAtLoad !== null && accountPlan === "free"} returnTo="/generate" className="mt-3 w-full sm:ml-auto sm:max-w-sm" />}
             </div>
           )}
           {/* Outside the branches above and never keyed, so it stays mounted through
               Regenerate: a half-written review survives a new story. Hidden, not
-              removed, while a story is being written. */}
-          <div hidden={loading || !story}>
+              removed, while a story is being written, or while another card holds
+              this story's one prompt slot (lib/one-prompt.ts). */}
+          <div hidden={loading || !story || !mayShowPrompt("review_ask", storyId, promptSlot)}>
             <StoryReviewAsk storyId={storyId} />
           </div>
         </div>

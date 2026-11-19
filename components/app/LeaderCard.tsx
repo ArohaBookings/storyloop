@@ -6,27 +6,45 @@ import { trackEvent } from "@/lib/analytics/track-event";
 
 /**
  * "Send this to my leader" (lib/leader-card.ts): mounted under a story only
- * after she copies it. It asks the server once whether to show, and shows
- * quietly in the page, never over it. "Send it to my leader" opens the
- * story's own leader check (the caller's onSend); "No thanks" hides it for good.
- * Events: ui_action with the story's id only.
+ * after she copies it. It asks the server once whether to show (the server
+ * offers it once ever), and shows quietly in the page, never over it. "Send it
+ * to my leader" opens the story's own leader check (the caller's onSend); "No
+ * thanks" hides it for good.
+ *
+ * One prompt per story (lib/one-prompt.ts): canShow false means another card
+ * already holds this story's slot, so it does not even ask; onShown tells the
+ * page it took the slot. Events: ui_action with the story's id only.
  */
-export default function LeaderCard({ storyId, onSend }: { storyId: string; onSend: () => void }) {
+export default function LeaderCard({
+  storyId,
+  onSend,
+  canShow = true,
+  onShown,
+}: {
+  storyId: string;
+  onSend: () => void;
+  canShow?: boolean;
+  onShown?: () => void;
+}) {
   const [show, setShow] = useState(false);
   const asked = useRef("");
+  // Read when the answer arrives, without asking again when it changes.
+  const shown = useRef(onShown);
+  useEffect(() => { shown.current = onShown; }, [onShown]);
 
   useEffect(() => {
-    if (!storyId || asked.current === storyId) return;
+    if (!storyId || !canShow || asked.current === storyId) return;
     asked.current = storyId;
     fetch("/api/leader-card", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "check", storyId }) })
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => {
         if (data?.show !== true) return;
         setShow(true);
+        shown.current?.();
         trackEvent("ui_action", { action: "leader_card_shown", story_id: storyId });
       })
       .catch(() => {});
-  }, [storyId]);
+  }, [storyId, canShow]);
 
   if (!show) return null;
 
