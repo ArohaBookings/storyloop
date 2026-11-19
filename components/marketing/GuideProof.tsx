@@ -20,10 +20,13 @@ import StoryDemo from "@/components/landing/StoryDemo";
 export default function GuideProof({
   framework,
   demo = framework,
+  withTry = true,
 }: {
   framework: "NZ" | "AU";
   /** The curriculum the "try your own note" draft uses. "visitor": their country decides (NZ gets Te Whāriki, everyone else EYLF). */
   demo?: "NZ" | "AU" | "visitor";
+  /** False on a page whose first screen already has the note box (components/buyer/ProductHero): one box per page. */
+  withTry?: boolean;
 }) {
   const example = proofExample(framework);
   if (!example) return null;
@@ -72,6 +75,7 @@ export default function GuideProof({
           </figure>
         </div>
 
+        {withTry && (
         <div id="try" className="mt-12 scroll-mt-24">
           <h3 className="font-display text-2xl font-bold leading-tight text-ink-900 text-balance md:text-3xl">
             Now try it with your own note. No signup.
@@ -92,6 +96,7 @@ export default function GuideProof({
             : 3 stories a month, no card. You check every word before anything is shared.
           </p>
         </div>
+        )}
       </div>
     </section>
   );

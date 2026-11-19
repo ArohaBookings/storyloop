@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Eye, FileCheck2, Lock, MapPin, ShieldCheck, UserCheck } from "lucide-react";
 import { GuideCta, GuideFaq, GuideFigure, GuideHero, GuidePage, GuideSection, GuideSources, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 import { ACCURACY_REPORT as R } from "@/lib/accuracy-report";
+import { ANSWER_BLOCKS } from "@/lib/answer-blocks";
 
 export const metadata: Metadata = {
   title: { absolute: "Children's information and AI at StoryLoop" },
@@ -28,6 +29,8 @@ const COMMITMENTS = [
 ];
 
 const FAQS = [
+  // The plain answer assistants quote (lib/answer-blocks.ts, block D): the same words as the data sheet.
+  { q: ANSWER_BLOCKS.D.question, a: ANSWER_BLOCKS.D.answer },
   {
     q: "Is StoryLoop just a chatbot with a prompt?",
     a: "No. StoryLoop uses models from OpenAI or Anthropic through their business services, never a public chat app, with its own instructions and checks around every draft: quotes checked against the note, the right curriculum for your country, a privacy check, and a list of what the draft assumed. Under those business terms, what we send is not used to train their models.",

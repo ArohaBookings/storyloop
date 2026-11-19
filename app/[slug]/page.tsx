@@ -10,6 +10,12 @@ import FoundingCentreOffer from "@/components/centre/FoundingCentreOffer";
 import PageTracker from "@/components/analytics/PageTracker";
 import OfferText from "@/components/offer/OfferText";
 import { fillOfferText } from "@/lib/offer-wording";
+import { withAnswerBlocks } from "@/lib/answer-blocks";
+import ProductHero, { type ProductHeroRegion } from "@/components/buyer/ProductHero";
+import CentrePriceTable from "@/components/buyer/CentrePriceTable";
+import FamilyArrival from "@/components/buyer/FamilyArrival";
+import CentrePriceWords from "@/components/buyer/CentrePriceWords";
+import { buyerPageLive, liveLinks } from "@/lib/buyer-pages";
 import GuideProof from "@/components/marketing/GuideProof";
 import InternationalTry from "@/components/marketing/InternationalTry";
 import TransitionDemo from "@/components/marketing/TransitionDemo";
@@ -155,6 +161,16 @@ const EXIT_SURFACES: Record<string, "pricing" | "for_centres"> = { pricing: "pri
 function anchorFor(heading: string) {
   return heading.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
 }
+// Product pages that open on the product itself (18 Nov 2026 re-aim): a real
+// note, what StoryLoop wrote from it and the note box on a phone's first
+// screen, like the pages for buyers. Educators who search for a tool turned
+// into signups at about 3.3% on product pages against 0.6% on guides; these
+// are the product pages they land on. The guide's real draft stays below.
+const PRODUCT_HERO: Record<string, ProductHeroRegion> = {
+  "learning-story-generator": "visitor",
+  "te-whariki-learning-stories": "NZ",
+  "eylf-learning-stories": "AU",
+};
 // Pages with their own job: prices first, or a list of answers.
 const NO_PROOF_SLUGS = new Set(["pricing", "faq"]);
 // Regulation guides shared in educator Facebook groups. Directors read them
@@ -168,7 +184,7 @@ const EDUCATOR_FIRST_SLUGS = new Set([
   "nqs-standards",
 ]);
 import { DEDICATED_ROUTE_SLUGS, SEO_PAGES, SEO_PAGE_SLUGS } from "@/lib/seo-pages";
-import { ExternalLink, PenLine, ShieldCheck } from "lucide-react";
+import { ArrowRight, Check, ExternalLink, PenLine, ShieldCheck } from "lucide-react";
 import { ORGANIZATION_REF } from "@/lib/site-identity";
 
 const SITE_URL = "https://storyloop.space";
@@ -219,10 +235,12 @@ export default async function SeoPage({ params }: PageProps) {
     notFound();
   }
 
+  // The plain answers assistants quote (lib/answer-blocks.ts) open this page's questions.
+  const faqs = withAnswerBlocks(`/${page.slug}`, page.faqs);
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: page.faqs.map((faq) => ({
+    mainEntity: faqs.map((faq) => ({
       "@type": "Question",
       name: faq.question,
       acceptedAnswer: {
@@ -262,6 +280,13 @@ export default async function SeoPage({ params }: PageProps) {
   const hasExample = TRANSITION_DEMOS[page.slug]?.mode === "transition";
   const demo = TRANSITION_DEMOS[page.slug];
   const heroDrafter = HERO_DRAFTER_SLUGS.has(page.slug) && demo ? demo : null;
+  const productHero = PRODUCT_HERO[page.slug] ?? null;
+  // Never a link to a page held out of the release (lib/buyer-pages.ts HELD_BUYER_PAGES_ON).
+  const siblingLinks = liveLinks(page.siblingLinks?.links ?? []);
+  // A first screen with a tool on it, or a centre's one button: less space above on a phone.
+  const tightHero = Boolean(heroDrafter || productHero || page.checklist || CENTRE_SLUGS.has(page.slug));
+  // A product hero or a first-screen checklist needs a two-line heading on a phone to fit.
+  const compactHeading = Boolean(productHero || page.checklist);
   // The short example on the first screen: the start of the real draft below,
   // or, on the end-of-year guide, the start of its own example paragraph.
   const exampleBlock = page.deepDive?.find((block) => block.heading.startsWith("Example paragraph"));
@@ -280,7 +305,7 @@ export default async function SeoPage({ params }: PageProps) {
           invisible, and their source was lost before they reached signup. */}
       <PageTracker />
       <Navbar />
-      <main className={heroDrafter ? "pt-[68px] sm:pt-28" : "pt-28"}>
+      <main className={tightHero ? "pt-[68px] sm:pt-28" : "pt-28"}>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
         {articleJsonLd && (
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
@@ -288,10 +313,37 @@ export default async function SeoPage({ params }: PageProps) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
         <section className="pb-16 paper-texture">
           <div className="wide-shell">
-            <p className={`section-title ${heroDrafter ? "mb-1.5 sm:mb-4" : "mb-4"}`}>{page.kicker}</p>
-            <h1 className={`font-display font-bold text-ink-900 tracking-tight max-w-5xl ${heroDrafter ? "text-[24px] leading-[1.15] sm:text-5xl md:text-6xl" : "text-4xl sm:text-5xl md:text-6xl"}`}>
+            {/* Someone sent here by a family's message from /ask-your-centre (nothing shows otherwise). */}
+            {page.slug === "for-centres" && buyerPageLive("ask-your-centre") && <FamilyArrival />}
+            <p className={`section-title ${tightHero ? "mb-1.5 sm:mb-4" : "mb-4"}`}>{page.kicker}</p>
+            <h1 className={`font-display font-bold text-ink-900 tracking-tight max-w-5xl ${heroDrafter ? "text-[24px] leading-[1.15] sm:text-5xl md:text-6xl" : compactHeading ? "text-[1.65rem] leading-[1.12] text-balance sm:text-5xl md:text-6xl" : "text-4xl sm:text-5xl md:text-6xl"}`}>
               {page.heading}
             </h1>
+            {productHero && <ProductHero region={productHero} />}
+            {/* The checklist the title promises, on the first screen, then what StoryLoop does for that job. */}
+            {page.checklist && (
+              <div className="mt-3 max-w-2xl rounded-3xl border border-sage-200 bg-white px-4 py-3.5 shadow-soft sm:mt-6 sm:p-5" data-testid="first-screen-checklist">
+                <p className="text-xs font-bold uppercase tracking-wider text-sage-700">{page.checklist.heading}</p>
+                <ul className="mt-2 space-y-1.5">
+                  {page.checklist.items.map((item) => (
+                    <li key={item} className="flex gap-2.5 text-[15px] leading-snug text-ink-800">
+                      <Check className="mt-0.5 h-4 w-4 flex-none text-sage-600" aria-hidden="true" />
+                      <span className="min-w-0">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2.5 border-t border-sage-100 pt-2.5 text-sm leading-relaxed text-ink-700">{page.checklist.note}</p>
+                <Link
+                  href={page.checklist.link.href}
+                  className="inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900"
+                  data-track="guide_checklist_link"
+                >
+                  {page.checklist.link.label} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+              </div>
+            )}
+            {/* The plain price answer, first: StoryLoop's own two centre prices (no other pricing model shown). */}
+            {page.slug === "learning-story-software-cost-for-centres" && <CentrePriceTable />}
             {heroDrafter && (
               <GuideHeroDrafter
                 framework={heroDrafter.framework}
@@ -373,6 +425,26 @@ export default async function SeoPage({ params }: PageProps) {
                     Setting it up for a whole centre?
                   </Link>
                 </>
+              ) : page.slug === "for-centres" ? (
+                // The centre landing's first phone screen (scope decision, 19 Nov 2026): one line on
+                // the job, one button, the free period as it stands that day with no card, and the
+                // flat price in her currency. The founding offer and the rest follow below.
+                <span className="flex flex-col gap-1">
+                  <Link href="/signup?plan=centre_starter" className="btn-primary justify-center" data-track="guide_hero_centre_month">
+                    Start your centre free
+                  </Link>
+                  <span className="text-center text-sm text-ink-600" data-testid="guide-centre-trial">
+                    <CentreTrialWords initial={centreTrialWordsCapital(new Date())} capital />, no card.
+                  </span>
+                  <span className="text-center text-sm text-ink-600" data-testid="guide-centre-price">
+                    <CentrePriceWords />, unlimited children.
+                  </span>
+                </span>
+              ) : page.slug === "learning-story-software-cost-for-centres" ? (
+                // The start button is under the price table, on the first screen (CentrePriceTable).
+                <Link href="#founding" className="btn-secondary justify-center">
+                  See the founding offer
+                </Link>
               ) : CENTRE_SLUGS.has(page.slug) ? (
                 <>
                   <span className="flex flex-col gap-1">
@@ -389,6 +461,11 @@ export default async function SeoPage({ params }: PageProps) {
                     See the founding offer
                   </Link>
                 </>
+              ) : productHero ? (
+                // The note box is on the first screen already; this is the way on for someone ready now.
+                <Link href="/signup" className="btn-secondary justify-center" data-track="guide_hero_start">
+                  Start free
+                </Link>
               ) : hasTry ? (
                 <>
                   {/* Search visitors came for an answer, not a form. The demo
@@ -423,11 +500,11 @@ export default async function SeoPage({ params }: PageProps) {
                 Or see a finished example first
               </Link>
             )}
-            {page.siblingLinks && (
+            {page.siblingLinks && siblingLinks.length > 0 && (
               <nav aria-label={page.siblingLinks.heading} className="mt-6 max-w-4xl" data-testid="sibling-links">
                 <p className="text-sm font-semibold text-ink-700">{page.siblingLinks.heading}</p>
                 <ul className="mt-2 flex flex-wrap gap-2">
-                  {page.siblingLinks.links.map((link) => (
+                  {siblingLinks.map((link) => (
                     <li key={link.href}>
                       <Link href={link.href} className="inline-flex min-h-11 items-center rounded-full border border-clay-200 bg-white px-4 text-sm font-semibold text-clay-800 transition-colors hover:border-clay-400">
                         {link.label}
@@ -535,6 +612,7 @@ export default async function SeoPage({ params }: PageProps) {
           <GuideProof
             framework={AU_SLUGS.has(page.slug) ? "AU" : "NZ"}
             demo={AU_SLUGS.has(page.slug) ? "AU" : NZ_SLUGS.has(page.slug) ? "NZ" : "visitor"}
+            withTry={!productHero}
           />
         )}
 
@@ -548,6 +626,17 @@ export default async function SeoPage({ params }: PageProps) {
               <article key={section.title} className="card p-6">
                 <h2 className="font-display text-xl font-bold text-ink-900 mb-3"><OfferText text={section.title} /></h2>
                 <p className="text-sm text-ink-600 leading-relaxed"><OfferText text={section.body} /></p>
+                {section.links && liveLinks(section.links).length ? (
+                  <ul className="mt-2">
+                    {liveLinks(section.links).map((link) => (
+                      <li key={link.href}>
+                        <Link href={link.href} className="inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900">
+                          {link.label} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </article>
             ))}
           </div>
@@ -633,8 +722,8 @@ export default async function SeoPage({ params }: PageProps) {
               </h2>
             </div>
             <div className="space-y-3">
-              {page.faqs.map((faq) => (
-                <details key={faq.question} className="card p-5 group">
+              {faqs.map((faq) => (
+                <details key={faq.question} className="card p-5 group" open={faq.block ? true : undefined} data-answer={faq.block}>
                   <summary className="font-semibold text-ink-900 text-sm list-none flex min-h-[44px] items-center justify-between gap-4 cursor-pointer">
                     {faq.question}
                     <span className="text-clay-500 text-xl flex-shrink-0 group-open:rotate-45 transition-transform">+</span>

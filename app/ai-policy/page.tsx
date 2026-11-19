@@ -5,6 +5,7 @@ import PageTracker from "@/components/analytics/PageTracker";
 import Footer from "@/components/landing/Footer";
 import PolicyGenerator from "@/components/policy/PolicyGenerator";
 import CentreTrialWords from "@/components/centre/CentreTrialWords";
+import { ANSWER_BLOCKS } from "@/lib/answer-blocks";
 
 export const metadata: Metadata = {
   title: "Free AI Policy Template for Early Childhood Services",
@@ -20,6 +21,8 @@ export const metadata: Metadata = {
 };
 
 const FAQS = [
+  // The plain answer assistants quote (lib/answer-blocks.ts, block F).
+  { q: ANSWER_BLOCKS.F.question, a: ANSWER_BLOCKS.F.answer },
   {
     q: "Does an early childhood service need an AI policy?",
     a: "If any educator uses AI to help write documentation about children, yes. Many already do without one, which leaves both the educator and the service exposed. A short written policy sets out which tools are allowed, what information never goes into a general AI tool, and that a person reviews everything before it is shared.",
@@ -59,6 +62,19 @@ export default function AiPolicyPage() {
 
         <PolicyGenerator />
 
+        {/* 18 Nov 2026 re-aim: one quiet line under the generator for the leader who came for the policy. */}
+        <p className="mx-auto mt-6 max-w-3xl text-center text-sm leading-relaxed text-ink-600 print:hidden" data-testid="ai-policy-storyloop-line">
+          Using AI for learning stories?{" "}
+          <Link href="/safety" className="font-semibold text-clay-700 underline underline-offset-2" data-track="ai_policy_line_safety">
+            See how StoryLoop keeps children&apos;s notes private
+          </Link>
+          , and{" "}
+          <Link href="/for-centres?utm_source=ai_policy&utm_medium=site" className="font-semibold text-clay-700 underline underline-offset-2" data-track="ai_policy_line_centre">
+            what it does for a whole centre
+          </Link>
+          .
+        </p>
+
         {/* 12 Nov 2026: leaders now arrive asking whether a rule makes them have one. Each line below
             was checked on the official page it links to that day; see the header of lib/ai-policy.ts. */}
         <section className="mx-auto mt-12 max-w-3xl rounded-3xl border border-clay-100 bg-paper p-6 sm:p-8 print:hidden" data-testid="ai-policy-rules">
@@ -83,6 +99,13 @@ export default function AiPolicyPage() {
               </a>{" "}
               is that the Privacy Act 2020 applies to everyone using AI tools. Before your team uses one, you need to understand how it
               handles children&apos;s information, and a written policy is the plain way to show that you do.
+            </p>
+            <p>
+              Running a service in Aotearoa?{" "}
+              <Link href="/ai-policy-nz-early-childhood" className="font-semibold text-clay-700 underline underline-offset-2" data-track="ai_policy_nz_page">
+                The New Zealand page
+              </Link>{" "}
+              has the same generator, in kaiako, tamariki and whānau terms.
             </p>
           </div>
         </section>

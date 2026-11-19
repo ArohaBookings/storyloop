@@ -9,8 +9,9 @@ import { REAL_EXAMPLES, REAL_EXAMPLES_DATE } from "@/lib/real-examples";
 
 export const metadata: Metadata = {
   title: "Learning story examples: 12 real notes and drafts",
+  // 18 Nov 2026 re-aim: the page is also the best proof the product works, so it ends on trying it.
   description:
-    "Twelve real educator notes, from babies to five-year-olds, and the unedited learning story drafts StoryLoop wrote from them, with Te Whāriki and EYLF links.",
+    "Twelve real educator notes, from babies to five-year-olds, and the unedited drafts StoryLoop wrote from them. Try it with your own note, free.",
   alternates: { canonical: "https://storyloop.space/examples" },
   openGraph: {
     title: "Learning story examples: 12 real notes and drafts",
@@ -65,7 +66,8 @@ export default function ExamplesPage() {
                 <Link href="/accuracy" className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4">accuracy report</Link>.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link href="/#live-demo" className="btn-primary px-7 py-3.5 text-base">
+                {/* 18 Nov 2026: the note box on /try, not a scroll down the homepage. */}
+                <Link href="/try?from=examples" className="btn-primary px-7 py-3.5 text-base" data-track="examples_try">
                   <Sparkles className="h-4 w-4" /> Try it with your own note
                 </Link>
                 <Link href="/signup" className="btn-secondary px-7 py-3.5 text-base">Start free</Link>

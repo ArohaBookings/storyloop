@@ -190,7 +190,7 @@ export const GUIDE_TOPICS: GuideTopic[] = [
     angle: "Coverage, responsiveness and the link from assessment to planning. Read by directors, who buy centre plans.",
     intent: "problem", region: "NZ", category: "guide",
     keywords: ["ero documentation requirements", "ero evidence learning stories"],
-    manualOnly: "States what ERO looks for; needs ERO's current framework verified first.",
+    manualOnly: "Retired 18 Nov 2026: /ero-early-childhood-regulation-2026 owns this search (the documentation part), and a post would compete with it.",
   },
   {
     slug: "acecqa-documentation-requirements",

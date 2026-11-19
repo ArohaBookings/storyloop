@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, HelpCircle, PenLine } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Check, HelpCircle, PenLine } from "lucide-react";
 import DraftStory from "@/components/examples/DraftStory";
 import type { RealExample } from "@/lib/real-examples";
 import { track } from "@/lib/analytics/client";
@@ -102,6 +103,14 @@ export default function ExamplesBrowser({ examples }: { examples: RealExample[] 
                 <DraftStory story={example.story} note={example.note} showTitle={false} />
               </div>
             </div>
+            {/* 18 Nov 2026 re-aim: every example leads to writing one, on /try. */}
+            <Link
+              href="/try?from=examples"
+              className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900"
+              data-track="examples_write_one"
+            >
+              Write one like this from your note <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
           </article>
         ))}
         {shown.length === 0 && (

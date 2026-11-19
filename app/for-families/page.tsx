@@ -3,11 +3,18 @@ import Link from "next/link";
 import { BookHeart, Languages, MessageCircleQuestion, ShieldCheck } from "lucide-react";
 import { GuideFaq, GuideFigure, GuideHero, GuidePage, GuideSection, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 import ShareWithCentre from "@/components/marketing/ShareWithCentre";
+import { buyerPageLive } from "@/lib/buyer-pages";
 
+// /ask-your-centre is held out of this release (lib/buyer-pages.ts): until it is on,
+// the first-screen button opens this page's own "Tell your centre" message instead.
+const ASK_LIVE = buyerPageLive("ask-your-centre");
+
+// 18 Nov 2026 re-aim (the parent path): what a parent would type about her own
+// child's stories, not the product's name. 19 impressions and no clicks before.
 export const metadata: Metadata = {
-  title: { absolute: "What StoryLoop means for your child's learning stories" },
+  title: { absolute: "Learning stories about your child: what to look for" },
   description:
-    "What families see when educators use StoryLoop: stories in plain words, a question for home, wall cards in your language, and your child's data protected.",
+    "What a learning story tells you about your child, how to read one, and how to ask your centre for more stories like it.",
   alternates: { canonical: "https://storyloop.space/for-families" },
   openGraph: { title: "StoryLoop for families", description: "More stories about your child's learning, in plain words and your own language.", url: "https://storyloop.space/for-families", type: "website" },
 };
@@ -60,7 +67,12 @@ export default function ForFamiliesPage() {
         image="/images/scenes/family.jpg"
         imageAlt="A parent on the couch smiling at a StoryLoop wall card on her phone, a toddler leaning on her arm, seen from behind"
         imagePosition="50% 30%"
-      />
+      >
+        {/* 18 Nov 2026, the parent path: the one thing a parent can do, on the first screen. */}
+        <Link href={ASK_LIVE ? "/ask-your-centre" : "#tell-your-centre"} className="btn-primary mt-5 inline-flex justify-center" data-track="for_families_hero_ask">
+          Ask your centre for more stories
+        </Link>
+      </GuideHero>
 
       <GuideSection id="what-you-see" kicker="What changes for you" title="What you will notice">
         <ul className="grid gap-4 sm:grid-cols-2">
@@ -94,11 +106,21 @@ export default function ForFamiliesPage() {
       </GuideSection>
 
       <GuideSection id="tell-your-centre" kicker="Know a centre that should try it?" title="Tell your centre about StoryLoop">
+        {/* The parent path's guardrail (18 Nov 2026 check, C8): nothing that reads as criticism of her child's teachers. */}
         <p>
-          If your child&apos;s educators are writing stories late at night, they might like to know about it. Copy this
-          message, or share the link.
+          Learning stories take time to write. StoryLoop helps educators write one from a quick note, during the day. If
+          you think your centre would like to know, copy this message, or share the link.
         </p>
         <ShareWithCentre />
+        {ASK_LIVE && (
+          <p>
+            Or{" "}
+            <Link href="/ask-your-centre" className="font-semibold text-clay-700 underline" data-track="for_families_ask_centre">
+              open a ready message to copy or email
+            </Link>
+            , with what happens to your child&apos;s information.
+          </p>
+        )}
       </GuideSection>
 
       <GuideSection id="faq" tone="white" title="Questions families ask">

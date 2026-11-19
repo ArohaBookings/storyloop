@@ -7,6 +7,8 @@ import Footer from "@/components/landing/Footer";
 import PageTracker from "@/components/analytics/PageTracker";
 import GuideProof from "@/components/marketing/GuideProof";
 import { getPublishedPost, listPublishedPosts, renderMarkdown, readingMinutes, plainSummary } from "@/lib/blog";
+import AnswerList from "@/components/buyer/AnswerList";
+import { answerBlocksFor, splitAfterFirstExample } from "@/lib/answer-blocks";
 import { ORGANIZATION_REF } from "@/lib/site-identity";
 
 export const revalidate = 300;
@@ -59,6 +61,10 @@ export default async function BlogPostPage({ params }: Params) {
   // written for families (tagged "parent") keep the plain ending.
   const forFamilies = post.tags.some((tag) => /parent|famil/i.test(tag));
   const url = `https://storyloop.space/blog/${post.slug}`;
+  // StoryLoop's plain answer for assistants (correction C17, 18 Nov 2026): on
+  // the examples post, directly after its first worked example.
+  const answers = answerBlocksFor(`/blog/${post.slug}`);
+  const answerSplit = answers.length ? splitAfterFirstExample(post.body_markdown) : null;
 
   // Article schema so search engines and answer engines can attribute and cite
   // this correctly, which is what actually earns a mention in an AI answer.
@@ -106,10 +112,20 @@ export default async function BlogPostPage({ params }: Params) {
               )}
             </div>
 
-            <div
-              className="story-prose max-w-none text-ink-700"
-              dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body_markdown) }}
-            />
+            {answerSplit ? (
+              // The post's own answer first: its opening and its first worked example, untouched.
+              // Then StoryLoop's plain answer (lib/answer-blocks.ts), then the rest of the post.
+              <>
+                <div className="story-prose max-w-none text-ink-700" dangerouslySetInnerHTML={{ __html: renderMarkdown(answerSplit.before) }} />
+                <AnswerList blocks={answers} heading="About StoryLoop" variant="inline" />
+                <div className="story-prose max-w-none text-ink-700" dangerouslySetInnerHTML={{ __html: renderMarkdown(answerSplit.after) }} />
+              </>
+            ) : (
+              <div
+                className="story-prose max-w-none text-ink-700"
+                dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body_markdown) }}
+              />
+            )}
 
             {forFamilies && (
               <div className="mt-12 rounded-3xl border border-clay-200 bg-gradient-to-br from-cream-50 via-white to-sage-50 p-6 text-center md:p-8">
@@ -126,6 +142,9 @@ export default async function BlogPostPage({ params }: Params) {
             )}
           </div>
         </article>
+
+        {/* A post with an answer block but no worked example to follow: the block follows the whole post. */}
+        {!answerSplit && <AnswerList blocks={answers} heading="About StoryLoop" />}
 
         {!forFamilies && <GuideProof framework={post.region === "AU" ? "AU" : "NZ"} demo="visitor" />}
 
