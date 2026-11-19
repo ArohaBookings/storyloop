@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, Loader2, Lock } from "lucide-react";
+import { Check, Loader2, Lock, Send } from "lucide-react";
 import StoryText from "@/components/app/StoryText";
 import { track } from "@/lib/analytics/client";
+import { trackEvent } from "@/lib/analytics/track-event";
 import { FAMILY_REPLY_MAX, familyTokenFromHash, type FamilyView } from "@/lib/family-link";
+import { TELL_CENTRE_ON, tellCentreMailto, tellCentreMessage } from "@/lib/family-tell-centre";
 
 const AT = { path: "/family" };
 
@@ -30,6 +32,8 @@ export default function FamilyPage() {
   const [sending, setSending] = useState("");
   const [sent, setSent] = useState<Record<string, boolean>>({});
   const [error, setError] = useState("");
+  // Tell your centre (lib/family-tell-centre.ts): only when the educator switched it on for this link.
+  const [tellCentre, setTellCentre] = useState(false);
 
   useEffect(() => {
     const key = familyTokenFromHash(window.location.hash);
@@ -40,10 +44,31 @@ export default function FamilyPage() {
         const data = await response.json().catch(() => ({}));
         if (!response.ok || !data.view) { setPhase("gone"); return; }
         setView(data.view); setPhase("open");
+        // Held off (TELL_CENTRE_ON): never shown, whatever the server says.
+        const tell = TELL_CENTRE_ON && data.tellCentre === true;
+        setTellCentre(tell);
         track("family_link_opened", { stories: data.view.stories.length, translated: Boolean(data.view.language) }, AT);
+        // A count of the line being shown: never the link, the child or the family.
+        if (tell && data.view.stories.length > 0) trackEvent("ui_action", { action: "family_tell_centre_shown", page: "/family" });
       })
       .catch(() => setPhase("gone"));
   }, []);
+
+  // Their own share sheet, or their own mail app, with a note they can change. Nothing is sent from here.
+  const tellTheCentre = async () => {
+    trackEvent("ui_action", { action: "family_tell_centre_tap", page: "/family" });
+    const text = tellCentreMessage();
+    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+      try {
+        await navigator.share({ text });
+        return;
+      } catch (shareError) {
+        // Closed the share sheet: that is their choice, not a reason to open mail.
+        if (shareError instanceof DOMException && shareError.name === "AbortError") return;
+      }
+    }
+    window.location.href = tellCentreMailto(text);
+  };
 
   const reply = async (storyId: string) => {
     const text = (drafts[storyId] ?? "").trim();
@@ -154,6 +179,15 @@ export default function FamilyPage() {
         })}
 
         {error && <p role="alert" className="mt-4 rounded-lg border border-clay-200 bg-clay-50 px-3 py-2 text-sm text-clay-800">{error}</p>}
+
+        {tellCentre && view.stories.length > 0 && (
+          <section className="mt-8 rounded-2xl border border-sage-200 bg-sage-50 p-5 text-center" data-testid="family-tell-centre">
+            <p className="text-base font-semibold text-ink-900">Enjoying these? Tell your centre.</p>
+            <button type="button" onClick={tellTheCentre} className="btn-secondary mt-3 min-h-[44px] px-5 text-sm" data-testid="family-tell-centre-button">
+              <Send className="h-4 w-4" /> Send a note to the centre
+            </button>
+          </section>
+        )}
 
         <footer className="mt-10 text-center text-xs leading-relaxed text-ink-500">
           <p className="flex items-center justify-center gap-1.5"><Lock className="h-3.5 w-3.5" /> Only people with this link can open this page. No photographs are kept here.</p>

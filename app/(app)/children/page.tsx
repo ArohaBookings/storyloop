@@ -8,6 +8,9 @@ import { getAccessProfile } from "@/lib/supabase/profiles";
 import { hasFeatureAccess } from "@/lib/plans";
 import { buildQuietChildRadar } from "@/lib/quiet-radar";
 import { isMissingTermSettingsColumn, parseTermSettings } from "@/lib/term-settings";
+import { getTeamContext, loadTeamRadarInput } from "@/lib/centre-team-server";
+import { leaderTeamScopes, pickTeamViewScope } from "@/lib/centre-team";
+import TeamScopeSwitch from "@/components/app/TeamScopeSwitch";
 
 export const metadata = { title: "Child learning profiles" };
 
@@ -15,7 +18,7 @@ export const metadata = { title: "Child learning profiles" };
 // while, bounded so a long-standing account never scans its whole history.
 const LOOKBACK_DAYS = 150;
 
-export default async function ChildrenPage() {
+export default async function ChildrenPage({ searchParams }: { searchParams?: Promise<{ scope?: string }> }) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -47,7 +50,33 @@ export default async function ChildrenPage() {
     const defaultFramework = (profile.story_preferences as { defaultFramework?: string } | null)?.defaultFramework ?? null;
     const settings = parseTermSettings(settingsAvailable ? termRow?.term_settings : null, defaultFramework);
 
-    if (hasAccess) {
+    // A leader whose team shares with her (18 Nov 2026) sees who has gone
+    // unnoticed across the whole team, each child counted once; "Just mine" is
+    // the radar as it always was. Everyone else sees exactly what they did.
+    const team = await getTeamContext(user.id);
+    const teamScopes = leaderTeamScopes(team);
+    const scope = teamScopes.length ? pickTeamViewScope((await searchParams)?.scope, teamScopes) : "mine";
+
+    if (scope === "team") {
+      const since = new Date(Date.now() - LOOKBACK_DAYS * 86_400_000).toISOString();
+      const input = await loadTeamRadarInput(team, since);
+      const radar = input.children.length
+        ? buildQuietChildRadar(input.children, input.moments, { today: new Date(), jurisdiction: settings.jurisdiction, followsSchoolTerms: settings.followsSchoolTerms })
+        : null;
+      radarPanel = (
+        <>
+          <div className="mb-3">
+            <TeamScopeSwitch
+              scopes={teamScopes}
+              current="team"
+              hrefs={{ team: "/children?scope=team", mine: "/children?scope=mine", sample: "/children" }}
+              labels={{ team: "Whole team", mine: "My children", sample: "Sample team" }}
+            />
+          </div>
+          <QuietChildRadarPanel radar={radar} settings={settings} hasAccess settingsAvailable={settingsAvailable} team />
+        </>
+      );
+    } else if (hasAccess) {
       let radar = null;
       if (children.length > 0) {
         const since = new Date(Date.now() - LOOKBACK_DAYS * 86_400_000).toISOString();
@@ -66,7 +95,19 @@ export default async function ChildrenPage() {
         );
       }
       radarPanel = (
-        <QuietChildRadarPanel radar={radar} settings={settings} hasAccess settingsAvailable={settingsAvailable} />
+        <>
+          {teamScopes.length > 0 && (
+            <div className="mb-3">
+              <TeamScopeSwitch
+                scopes={teamScopes}
+                current="mine"
+                hrefs={{ team: "/children?scope=team", mine: "/children?scope=mine", sample: "/children" }}
+                labels={{ team: "Whole team", mine: "My children", sample: "Sample team" }}
+              />
+            </div>
+          )}
+          <QuietChildRadarPanel radar={radar} settings={settings} hasAccess settingsAvailable={settingsAvailable} />
+        </>
       );
     } else if (children.length >= 2) {
       // Only offer it once it would actually be useful to them.

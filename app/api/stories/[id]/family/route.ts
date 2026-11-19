@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { familyStateForStory, markFamilyRepliesSeen, shareStoryWithFamily, unshareStory } from "@/lib/family-link-server";
+import { tellCentreByLink } from "@/lib/family-tell-centre-server";
+import { TELL_CENTRE_ON } from "@/lib/family-tell-centre";
+
+/**
+ * The family state, with the Tell your centre switch on each link
+ * (lib/family-tell-centre.ts). Held off: the state exactly as before, nothing read.
+ */
+async function withTellCentre<T extends { child: { id: string } | null }>(userId: string, state: T) {
+  if (!TELL_CENTRE_ON) return state;
+  return { ...state, tellCentre: state.child ? await tellCentreByLink(userId, state.child.id) : {} };
+}
 
 export const maxDuration = 60;
 
@@ -21,7 +32,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     const { id } = await context.params;
     const state = await familyStateForStory(user.id, id);
     if (!state) return NextResponse.json({ error: "Story not found." }, { status: 404 });
-    return NextResponse.json(state);
+    return NextResponse.json(await withTellCentre(user.id, state));
   } catch (error) {
     console.error("Family state error:", error);
     return NextResponse.json({ error: "Could not load that." }, { status: 500 });
@@ -56,7 +67,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
     if ("failed" in result) return NextResponse.json({ error: "Could not share that. Try again." }, { status: 500 });
     const state = await familyStateForStory(user.id, id);
-    return NextResponse.json({ ...state, translated: result.translated });
+    return NextResponse.json({ ...(state ? await withTellCentre(user.id, state) : state), translated: result.translated });
   } catch (error) {
     console.error("Family share error:", error);
     return NextResponse.json({ error: "Could not share that. Try again." }, { status: 500 });
@@ -72,7 +83,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     if (!(await unshareStory(user.id, id))) return NextResponse.json({ error: "Could not stop sharing. Try again." }, { status: 500 });
     const state = await familyStateForStory(user.id, id);
     if (!state) return NextResponse.json({ error: "Story not found." }, { status: 404 });
-    return NextResponse.json(state);
+    return NextResponse.json(await withTellCentre(user.id, state));
   } catch (error) {
     console.error("Family unshare error:", error);
     return NextResponse.json({ error: "Could not stop sharing. Try again." }, { status: 500 });

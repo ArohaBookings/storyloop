@@ -13,7 +13,18 @@ import { REVIEW_ASK_DELAY_MS } from "@/lib/review-ask";
  * after "No thanks"; it remembers that it asked. One tap on a star is already
  * useful; the sentence is optional and goes to the moderated queue.
  */
-export default function StoryReviewAsk({ storyId, copies, page = "/generate" }: { storyId: string; copies: number; page?: "/generate" | "/history" }) {
+export default function StoryReviewAsk({
+  storyId,
+  copies,
+  page = "/generate",
+  onShown,
+}: {
+  storyId: string;
+  copies: number;
+  page?: "/generate" | "/history";
+  /** The ask came up for this story: it takes the story's one prompt slot (lib/one-prompt.ts). */
+  onShown?: (storyId: string) => void;
+}) {
   const [askedFor, setAskedFor] = useState("");
   const [rating, setRating] = useState(0);
   const [closed, setClosed] = useState(false);
@@ -27,6 +38,8 @@ export default function StoryReviewAsk({ storyId, copies, page = "/generate" }: 
   // The copies already asked about. A new story arriving is not a copy: only a
   // copy the server has not been asked about yet may bring the ask up.
   const checkedCopies = useRef(0);
+  const shown = useRef(onShown);
+  useEffect(() => { shown.current = onShown; }, [onShown]);
 
   useEffect(() => {
     if (copies <= checkedCopies.current || !storyId || settled.current) return;
@@ -36,7 +49,11 @@ export default function StoryReviewAsk({ storyId, copies, page = "/generate" }: 
       checkedCopies.current = copies;
       fetch(`/api/reviews/ask?at=copy&story=${encodeURIComponent(storyId)}&page=${encodeURIComponent(page)}`, { cache: "no-store" })
         .then((res) => (res.ok ? res.json() : null))
-        .then((data) => { if (active && data?.ask) setAskedFor(storyId); })
+        .then((data) => {
+          if (!active || !data?.ask) return;
+          setAskedFor(storyId);
+          shown.current?.(storyId);
+        })
         .catch(() => {});
     }, REVIEW_ASK_DELAY_MS);
     return () => { active = false; window.clearTimeout(timer); };

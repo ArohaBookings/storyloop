@@ -34,6 +34,55 @@ export type EvidenceStory = {
 
 export type EvidenceChild = { id: string; name: string };
 
+export type EvidenceStoryRow = {
+  id: unknown;
+  child_id: unknown;
+  created_at: unknown;
+  outcomes: unknown;
+  next_steps: unknown;
+  metadata: unknown;
+};
+
+function readRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
+
+const textOf = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
+
+/**
+ * A saved story as the pack counts it. `localDay` turns the saved instant into
+ * the service's own calendar day (lib/terms.ts localDate). The same reading the
+ * educator's own pack has always used, shared with the team pack (18 Nov 2026).
+ */
+export function evidenceStoryFromRow(row: EvidenceStoryRow, localDay: (instant: string) => string | null): EvidenceStory {
+  const metadata = readRecord(row.metadata);
+  const savedSteps = Array.isArray(metadata.nextStepProgress)
+    ? metadata.nextStepProgress.flatMap((entry) => {
+        const item = readRecord(entry);
+        const stepText = textOf(item.text);
+        const status = item.status === "tried" || item.status === "continue" ? item.status : "planned";
+        return stepText ? [{ text: stepText, status }] : [];
+      })
+    : [];
+  const generated = Array.isArray(row.next_steps)
+    ? row.next_steps.filter((step): step is string => typeof step === "string").map((step) => ({ text: step, status: "planned" }))
+    : [];
+  return {
+    id: row.id as string,
+    childId: (row.child_id as string | null) ?? null,
+    date: localDay(row.created_at as string) ?? String(row.created_at).slice(0, 10),
+    title: textOf(metadata.storyTitle),
+    summary: textOf(metadata.learningSummary),
+    outcomes: Array.isArray(row.outcomes) ? row.outcomes.filter((item): item is string => typeof item === "string") : [],
+    dispositions: Array.isArray(metadata.learningDispositions)
+      ? metadata.learningDispositions.filter((item): item is string => typeof item === "string")
+      : [],
+    nextSteps: savedSteps.length ? savedSteps : generated,
+    reflection: textOf(metadata.educatorReflection),
+    familyVoice: textOf(metadata.whanauVoice),
+  };
+}
+
 export type CoverageRow = {
   childId: string;
   name: string;

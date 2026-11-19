@@ -35,6 +35,7 @@ import QuillAssistant from "@/components/app/QuillAssistant";
 import ExportPackPanel from "@/components/app/ExportPackPanel";
 import FamilyTranslationPanel from "@/components/app/FamilyTranslationPanel";
 import LeaderCheck from "@/components/app/LeaderCheck";
+import LeaderCard from "@/components/app/LeaderCard";
 import FamilyShare from "@/components/app/FamilyShare";
 import StoryReviewAsk from "@/components/app/StoryReviewAsk";
 import AppLimitWall from "@/components/app/AppLimitWall";
@@ -44,8 +45,8 @@ import NextStoryCard from "@/components/app/NextStoryCard";
 import CopyPackButton from "@/components/app/CopyPackButton";
 import { showCopyPackBeside } from "@/lib/copy-pack";
 import { nextStoryCard, shouldOfferNextStory, type NextStoryChoice } from "@/lib/next-story";
-import { mayShowPrompt } from "@/lib/one-prompt";
 import { trackEvent } from "@/lib/analytics/track-event";
+import { claimPrompt, mayShowPrompt, reviewCopyCounts, type LeaderAnswer, type PromptSlot } from "@/lib/one-prompt";
 import { keepWallWork, takeWallWork } from "@/lib/app-wall";
 import { looksNonLatin } from "@/lib/note-language";
 import { ROOM_HANDOFF_STORY } from "@/lib/room-mode";
@@ -959,20 +960,36 @@ export default function GeneratePage() {
   const copiedStories = useRef(new Set<string>());
   const editedStories = useRef(new Set<string>());
   const regenerations = useRef(0);
-  // The story she last copied: the copy pack button sits beside Copy for it (lib/copy-pack.ts).
+  // The story she last copied: the copy pack button sits beside Copy for it
+  // (lib/copy-pack.ts), and "Send this to my leader" may follow it (lib/leader-card.ts).
   const [packBesideCopy, setPackBesideCopy] = useState("");
-  // One prompt at a time (lib/one-prompt.ts): what wants the screen right now.
-  // The first-story prompt says "try one more": the next-story card says it
+  // One prompt at a time, one card per story (lib/one-prompt.ts). The
+  // first-story prompt says "try one more": the next-story card says it
   // better, so once the card has been offered that prompt stays away.
   const upgradeWanted = showUpgradePrompt && !(upgradePromptKind === "first_story" && nextStory !== "none");
   const promptsWanted = { wall: showLimitModal, next_story: nextStory === "offered" && !editingStory, upgrade: upgradeWanted };
-  // Each copy on this page (Copy or a copy pack): the review ask may follow it
-  // (lib/review-ask.ts), but never while another prompt has the screen: a copy
-  // then does not count here (the server still counts it toward a later ask).
+  // The story card that took the slot of the story on screen.
+  const [promptSlot, setPromptSlot] = useState<PromptSlot>(null);
+  const promptScreen = { wanted: promptsWanted, storyId, slot: promptSlot };
+  const claimSlot = (prompt: "leader_card" | "review_ask", id: string) => setPromptSlot((slot) => claimPrompt(slot, id, prompt));
+  // What the leader card said for each story it was asked about.
+  const leaderAnswers = useRef(new Map<string, LeaderAnswer>());
+  // A copy waiting for the leader card's answer before it may count toward the review ask.
+  const reviewCopyWaiting = useRef("");
+  // Each copy on this page (Copy or a copy pack) that counts toward the review
+  // ask (lib/review-ask.ts): never while another prompt has the screen, and only
+  // once the leader card has declined this story.
   const [reviewCopies, setReviewCopies] = useState(0);
   const noteReviewCopy = () => {
-    if (!mayShowPrompt("review_ask", promptsWanted)) return;
-    setReviewCopies((n) => n + 1);
+    const verdict = reviewCopyCounts(promptScreen, leaderAnswers.current.get(storyId) ?? "unknown");
+    if (verdict === "count") setReviewCopies((n) => n + 1);
+    reviewCopyWaiting.current = verdict === "wait" ? storyId : "";
+  };
+  const leaderDeclined = (id: string) => {
+    leaderAnswers.current.set(id, "declined");
+    if (reviewCopyWaiting.current !== id) return;
+    reviewCopyWaiting.current = "";
+    if (reviewCopyCounts({ ...promptScreen, storyId: id }, "declined") === "count") setReviewCopies((n) => n + 1);
   };
 
   const handleCopy = async () => {
@@ -2157,7 +2174,7 @@ export default function GeneratePage() {
           )}
 
           {/* One prompt at a time (lib/one-prompt.ts): never beside the wall or the next-story card. */}
-          {upgradeWanted && mayShowPrompt("upgrade", promptsWanted) && (
+          {upgradeWanted && mayShowPrompt("upgrade", promptScreen) && (
             <div className="rounded-2xl border border-clay-200 bg-cream-50 p-4 shadow-soft">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -2263,13 +2280,31 @@ export default function GeneratePage() {
             )}
           </div>
 
+          {/* "Send this to my leader" (lib/leader-card.ts): only after she copies this story, in the page, never over it.
+              It takes the story's one prompt slot (lib/one-prompt.ts). */}
+          {storyId && packBesideCopy === storyId && !loading && (
+            <div className="mb-4 min-w-0" hidden={!mayShowPrompt("leader_card", promptScreen)}>
+              <LeaderCard
+                key={storyId}
+                storyId={storyId}
+                canShow={mayShowPrompt("leader_card", promptScreen)}
+                onShown={() => {
+                  leaderAnswers.current.set(storyId, "shown");
+                  claimSlot("leader_card", storyId);
+                }}
+                onDeclined={() => leaderDeclined(storyId)}
+                onSend={() => jumpTo("leader-check")}
+              />
+            </div>
+          )}
+
           {/* The review ask, right under Copy at the moment she copies (lib/review-ask.ts).
               Outside the branches below and never keyed, so it stays mounted through
               Regenerate: a half-written review survives a new story. Hidden, not
-              removed, while a story is being written or another prompt has the
-              screen (lib/one-prompt.ts). */}
-          <div hidden={loading || !story || !mayShowPrompt("review_ask", promptsWanted)}>
-            <StoryReviewAsk storyId={storyId} copies={reviewCopies} />
+              removed, while a story is being written, another prompt has the
+              screen, or another card holds this story's slot (lib/one-prompt.ts). */}
+          <div hidden={loading || !story || !mayShowPrompt("review_ask", promptScreen)}>
+            <StoryReviewAsk storyId={storyId} copies={reviewCopies} onShown={(id) => claimSlot("review_ask", id)} />
           </div>
 
           {loading ? (
@@ -2428,7 +2463,7 @@ export default function GeneratePage() {
                 </p>
               )}
               {/* Right under her first story, once she has taken it away: the next one in one tap. */}
-              {promptsWanted.next_story && mayShowPrompt("next_story", promptsWanted) && (
+              {promptsWanted.next_story && mayShowPrompt("next_story", promptScreen) && (
                 <NextStoryCard card={nextStoryCard({ childName, fromExample: firstNoteWasExample.current })} onChoose={startNextStory} />
               )}
               {limitWall && <div className="mt-4">{limitWall}</div>}
@@ -2521,7 +2556,7 @@ export default function GeneratePage() {
               {/* key: a new story starts with a fresh panel, never the last story's link. */}
               {storyId && (
                 <div id="leader-check" tabIndex={-1} className="scroll-mt-24 rounded-2xl focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay-600">
-                  <LeaderCheck key={storyId} storyId={storyId} />
+                  <LeaderCheck key={storyId} storyId={storyId} refreshKey={story} />
                 </div>
               )}
               {storyId && (
@@ -2687,7 +2722,7 @@ export default function GeneratePage() {
                 </div>
               </div>
               {/* After a wall on an earlier visit: one quiet line, away from the note box. */}
-              {mayShowPrompt("price_reminder", promptsWanted) && !checkoutReturn && <PriceReminder free={accountAtLoad !== null && accountPlan === "free"} returnTo="/generate" className="mt-3 w-full sm:ml-auto sm:max-w-sm" />}
+              {mayShowPrompt("price_reminder", promptScreen) && !checkoutReturn && <PriceReminder free={accountAtLoad !== null && accountPlan === "free"} returnTo="/generate" className="mt-3 w-full sm:ml-auto sm:max-w-sm" />}
             </div>
           )}
         </div>

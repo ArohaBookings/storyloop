@@ -17,11 +17,14 @@ export default function QuietChildRadarPanel({
   settings,
   hasAccess,
   settingsAvailable,
+  team = false,
 }: {
   radar: QuietChildRadar | null;
   settings: TermSettings;
   hasAccess: boolean;
   settingsAvailable: boolean;
+  /** A leader's whole team (18 Nov 2026): each child once, from the stories her team shares with her. */
+  team?: boolean;
 }) {
   if (!hasAccess) {
     return (
@@ -57,6 +60,11 @@ export default function QuietChildRadarPanel({
         <div>
           <p className="section-title mb-1">{radar?.termLabel ?? "This term"}</p>
           <h2 className="font-display text-xl font-bold text-ink-900">Who hasn&apos;t been noticed lately?</h2>
+          {team && (
+            <p className="mt-1 text-xs text-ink-500" data-testid="team-radar-note">
+              Across your team, each child once, from your stories and those shared with you.
+            </p>
+          )}
         </div>
         {radar && (
           <p className="text-xs text-ink-500">
@@ -76,7 +84,7 @@ export default function QuietChildRadarPanel({
       )}
 
       {!radar ? (
-        <p className="text-sm text-ink-500">Add a child profile to see this.</p>
+        <p className="text-sm text-ink-500">{team ? "Nobody in your team has a child profile yet." : "Add a child profile to see this."}</p>
       ) : radar.onHoliday ? (
         <p className="flex items-start gap-2 rounded-2xl bg-sage-50 p-4 text-sm text-ink-700">
           <Sun className="mt-0.5 h-4 w-4 flex-none text-sage-600" />
@@ -97,9 +105,11 @@ export default function QuietChildRadarPanel({
                   {" · "}
                   {quietSentence(entry, radar.termLabel)}
                 </span>
-                <Link href={`/today?child=${encodeURIComponent(entry.childId)}`} className="text-xs font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900">
-                  Capture a moment
-                </Link>
+                {!team && (
+                  <Link href={`/today?child=${encodeURIComponent(entry.childId)}`} className="text-xs font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900">
+                    Capture a moment
+                  </Link>
+                )}
               </li>
             ))}
           </ul>

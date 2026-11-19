@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import LeaderCheck from "@/components/app/LeaderCheck";
+import LeaderCard from "@/components/app/LeaderCard";
 import FamilyShare from "@/components/app/FamilyShare";
 import type { EducatorCheckView } from "@/lib/story-check";
+import type { AuthorReviewView } from "@/lib/team-queue";
+import CentreReviewNote from "@/components/app/CentreReviewNote";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Copy, Download, Loader2, Pencil, RefreshCw, Save, X } from "lucide-react";
@@ -14,6 +17,7 @@ import ExportPackPanel from "@/components/app/ExportPackPanel";
 import CopyPackButton from "@/components/app/CopyPackButton";
 import StoryReviewAsk from "@/components/app/StoryReviewAsk";
 import { showCopyPackBeside } from "@/lib/copy-pack";
+import { claimPrompt, mayShowPrompt, reviewCopyCounts, type LeaderAnswer, type PromptSlot } from "@/lib/one-prompt";
 import FamilyTranslationPanel from "@/components/app/FamilyTranslationPanel";
 import { trackEvent } from "@/lib/analytics/track-event";
 import {
@@ -32,6 +36,8 @@ import type { PrivacyGuardianResult } from "@/lib/privacy-guardian";
 type StoryHistoryItemProps = {
   /** Where this story's leader check stands (lib/story-check.ts). */
   check?: EducatorCheckView;
+  /** What her centre's leader said about this story in team stories (lib/centre-team-server.ts). */
+  centreReview?: AuthorReviewView;
   story: {
     id: string;
     child_name: string | null;
@@ -68,7 +74,7 @@ function toDownloadName(childName?: string | null) {
   return (childName || "learning-story").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "learning-story";
 }
 
-export default function StoryHistoryItem({ story, plan = "free", check }: StoryHistoryItemProps) {
+export default function StoryHistoryItem({ story, plan = "free", check, centreReview }: StoryHistoryItemProps) {
   const router = useRouter();
   const initialMetadata = asRecord(story.metadata);
   const initialSettings = asRecord(initialMetadata.storySettings);
@@ -79,10 +85,28 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
   const [saving, setSaving] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [copied, setCopied] = useState(false);
-  // Once copied, the copy pack button sits beside Copy (lib/copy-pack.ts).
+  // Once copied, the copy pack button sits beside Copy (lib/copy-pack.ts) and
+  // "Send this to my leader" may follow (lib/leader-card.ts).
   const [copiedOnce, setCopiedOnce] = useState(false);
-  // Each copy here (Copy or a copy pack): the review ask may follow it (lib/review-ask.ts).
+  // One card per story (lib/one-prompt.ts): the leader card or the review ask, never both.
+  const [promptSlot, setPromptSlot] = useState<PromptSlot>(null);
+  const promptScreen = { wanted: {}, storyId: story.id, slot: promptSlot };
+  const [leaderAnswer, setLeaderAnswer] = useState<LeaderAnswer>("unknown");
+  const [reviewCopyWaiting, setReviewCopyWaiting] = useState(false);
+  // Each copy here (Copy or a copy pack) that counts toward the review ask
+  // (lib/review-ask.ts): only once the leader card has declined this story.
   const [reviewCopies, setReviewCopies] = useState(0);
+  const noteReviewCopy = () => {
+    const verdict = reviewCopyCounts(promptScreen, leaderAnswer);
+    if (verdict === "count") setReviewCopies((n) => n + 1);
+    setReviewCopyWaiting(verdict === "wait");
+  };
+  const leaderDeclined = () => {
+    setLeaderAnswer("declined");
+    if (!reviewCopyWaiting) return;
+    setReviewCopyWaiting(false);
+    if (reviewCopyCounts(promptScreen, "declined") === "count") setReviewCopies((n) => n + 1);
+  };
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [upgradeRequired, setUpgradeRequired] = useState(false);
@@ -340,7 +364,16 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
     setTimeout(() => setCopied(false), 2000);
     trackEvent("app_story_copied", { story_id: story.id, how: "button" });
     setCopiedOnce(true);
-    setReviewCopies((n) => n + 1);
+    noteReviewCopy();
+  };
+
+  // "Send this to my leader" (lib/leader-card.ts): the card's button opens this story's own leader check.
+  const openLeaderCheck = () => {
+    const panel = document.getElementById(`leader-${story.id}`);
+    if (!panel) return;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    panel.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    window.setTimeout(() => panel.focus({ preventScroll: true }), reduce ? 0 : 400);
   };
 
   const downloadStory = () => {
@@ -365,6 +398,7 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
             {story.age_group && <span className="text-xs text-ink-500">· {story.age_group}</span>}
             <span className="text-xs text-ink-400">· Created {formatDate(story.created_at)}</span>
             {wasEdited && <span className="text-xs text-clay-600">· Edited {formatDate(currentUpdatedAt)}</span>}
+            {centreReview && <CentreReviewNote review={centreReview} compact />}
           </div>
           <p className="text-sm text-ink-600 line-clamp-2">{storyText.slice(0, 200)}...</p>
           {currentOutcomes.length > 0 && (
@@ -402,8 +436,31 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
           </div>
         </div>
 
-        {/* The review ask, right under Copy at the moment she copies (lib/review-ask.ts). */}
-        <StoryReviewAsk storyId={story.id} copies={reviewCopies} page="/history" />
+        {copiedOnce && (
+          <div className="mb-4 min-w-0" hidden={!mayShowPrompt("leader_card", promptScreen)}>
+            <LeaderCard
+              storyId={story.id}
+              canShow={mayShowPrompt("leader_card", promptScreen)}
+              onShown={() => {
+                setLeaderAnswer("shown");
+                setPromptSlot((slot) => claimPrompt(slot, story.id, "leader_card"));
+              }}
+              onDeclined={leaderDeclined}
+              onSend={openLeaderCheck}
+            />
+          </div>
+        )}
+
+        {/* The review ask, right under Copy at the moment she copies (lib/review-ask.ts),
+            unless the leader card holds this story's one prompt slot (lib/one-prompt.ts). */}
+        <div hidden={!mayShowPrompt("review_ask", promptScreen)}>
+          <StoryReviewAsk
+            storyId={story.id}
+            copies={reviewCopies}
+            page="/history"
+            onShown={(id) => setPromptSlot((slot) => claimPrompt(slot, id, "review_ask"))}
+          />
+        </div>
 
         {editing ? (
           <div className="space-y-3">
@@ -630,7 +687,12 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
           followUpPrompt={followUpPrompt}
         />
 
-        <LeaderCheck storyId={story.id} initial={check} />
+        {centreReview && <CentreReviewNote review={centreReview} />}
+        <LeaderCheck
+          storyId={story.id}
+          initial={check}
+          review={{ story: storyText, note: story.observations, outcomes: currentOutcomes, curriculumLinks, childName: story.child_name }}
+        />
         <FamilyShare storyId={story.id} childName={story.child_name} />
 
         <div id={`copy-pack-${story.id}`} tabIndex={-1} className="scroll-mt-24 rounded-3xl focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay-600">
@@ -648,7 +710,7 @@ export default function StoryHistoryItem({ story, plan = "free", check }: StoryH
           nextSteps={currentNextSteps}
           familyQuestion={familyQuestion}
           framework={currentFramework}
-          onCopied={() => setReviewCopies((n) => n + 1)}
+          onCopied={noteReviewCopy}
         />
         </div>
 

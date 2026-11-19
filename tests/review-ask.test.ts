@@ -85,9 +85,9 @@ test("one ask, at the copy: the dashboard no longer asks, and the server only sa
   assert.match(route, /searchParams\.get\("at"\) !== "copy"/);
   assert.match(route, /shouldAskAtCopy\(/);
   const page = readFileSync("app/(app)/generate/page.tsx", "utf8");
-  assert.match(page, /<StoryReviewAsk storyId=\{storyId\} copies=\{reviewCopies\} \/>/);
+  assert.match(page, /<StoryReviewAsk storyId=\{storyId\} copies=\{reviewCopies\} onShown=\{\(id\) => claimSlot\("review_ask", id\)\} \/>/);
   const history = readFileSync("components/app/StoryHistoryItem.tsx", "utf8");
-  assert.match(history, /<StoryReviewAsk storyId=\{story\.id\} copies=\{reviewCopies\} page="\/history" \/>/);
+  assert.match(history, /<StoryReviewAsk\s+storyId=\{story\.id\}\s+copies=\{reviewCopies\}\s+page="\/history"\s+onShown=/);
   // A new story arriving (Generate or Regenerate) is not a copy: the server is
   // only asked about a copy it has not been asked about yet.
   const ask = readFileSync("components/app/StoryReviewAsk.tsx", "utf8");

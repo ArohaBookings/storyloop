@@ -6,9 +6,15 @@ import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { hasFeatureAccess } from "@/lib/plans";
 import { addDays, latestStartedTerm, localDate } from "@/lib/terms";
 import { isMissingTermSettingsColumn, parseTermSettings } from "@/lib/term-settings";
-import { buildEvidencePack, type EvidenceStory } from "@/lib/evidence-pack";
+import { buildEvidencePack, evidenceStoryFromRow, type EvidencePack, type EvidenceStory } from "@/lib/evidence-pack";
 import PrintButton from "@/components/app/PrintButton";
 import EvidencePackView from "@/components/app/EvidencePackView";
+import TeamScopeSwitch from "@/components/app/TeamScopeSwitch";
+import TeamChildJoin from "@/components/app/TeamChildJoin";
+import { SampleTeamBanner } from "@/components/app/SampleTeam";
+import { getTeamContext, loadTeamEvidence, type TeamEvidence } from "@/lib/centre-team-server";
+import { pickTeamViewScope, teamViewScopes, type TeamViewScope } from "@/lib/centre-team";
+import { sampleCountryFor, sampleEvidence } from "@/lib/sample-team";
 
 export const metadata = { title: "Evidence pack" };
 
@@ -25,16 +31,10 @@ type PeriodKey = keyof typeof PERIODS;
 const isPeriod = (value: unknown): value is PeriodKey =>
   typeof value === "string" && Object.prototype.hasOwnProperty.call(PERIODS, value);
 
-function readMetadata(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
-}
-
-const text = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
-
 export default async function EvidencePackPage({
   searchParams,
 }: {
-  searchParams: Promise<{ period?: string }>;
+  searchParams: Promise<{ period?: string; scope?: string }>;
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -47,7 +47,19 @@ export default async function EvidencePackPage({
     </Link>
   );
 
-  if (!hasFeatureAccess(profile.plan, "evidencePack")) {
+  // A leader's team (18 Nov 2026): the whole team's pack, her own, or the
+  // sample team. For anyone else the page is exactly as it was.
+  const team = await getTeamContext(user.id);
+  const params = await searchParams;
+  const scopes = teamViewScopes({
+    ownAccess: hasFeatureAccess(profile.plan, "evidencePack"),
+    teamAccess: team.access.kind === "team",
+    teamShares: (team.scope?.reviewAuthorIds.length ?? 0) > 0,
+    sample: team.sample.show,
+  });
+  const scope: TeamViewScope | null = pickTeamViewScope(params.scope, scopes);
+
+  if (!scope) {
     return (
       <div className="mx-auto max-w-3xl p-4 sm:p-6 md:p-8">
         {back}
@@ -67,7 +79,6 @@ export default async function EvidencePackPage({
     );
   }
 
-  const params = await searchParams;
   const period: PeriodKey = isPeriod(params.period) ? params.period : "term";
 
   const { data: termRow, error: termError } = await supabase
@@ -89,53 +100,40 @@ export default async function EvidencePackPage({
         ? { periodStart: addDays(today, -365), periodEnd: today, periodLabel: "Last 12 months" }
         : { periodStart: addDays(today, -90), periodEnd: today, periodLabel: "Last 90 days" };
 
-  const [childrenRes, storiesRes] = await Promise.all([
-    supabase.from("child_profiles").select("id, name").eq("user_id", user.id).order("name"),
-    supabase
-      .from("stories")
-      .select("id, child_id, created_at, outcomes, next_steps, metadata")
-      .eq("user_id", user.id)
-      .gte("created_at", `${periodStart}T00:00:00.000Z`)
-      .order("created_at", { ascending: false })
-      .limit(2000),
-  ]);
+  const localDay = (instant: string | Date) => localDate(instant, settings.jurisdiction);
+  let teamEvidence: TeamEvidence | null = null;
+  let pack: EvidencePack;
+  if (scope === "team") {
+    teamEvidence = await loadTeamEvidence(team, `${periodStart}T00:00:00.000Z`, localDay);
+    pack = buildEvidencePack({ children: teamEvidence.children, stories: teamEvidence.stories, periodLabel, periodStart, periodEnd });
+  } else if (scope === "sample") {
+    const sample = sampleEvidence(new Date(), (day) => localDay(day) ?? day.toISOString().slice(0, 10), sampleCountryFor(defaultFramework));
+    pack = buildEvidencePack({ children: sample.children, stories: sample.stories, periodLabel, periodStart, periodEnd });
+  } else {
+    // The educator's own pack, read exactly as it always has been.
+    const [childrenRes, storiesRes] = await Promise.all([
+      supabase.from("child_profiles").select("id, name").eq("user_id", user.id).order("name"),
+      supabase
+        .from("stories")
+        .select("id, child_id, created_at, outcomes, next_steps, metadata")
+        .eq("user_id", user.id)
+        .gte("created_at", `${periodStart}T00:00:00.000Z`)
+        .order("created_at", { ascending: false })
+        .limit(2000),
+    ]);
+    const stories: EvidenceStory[] = (storiesRes.data ?? []).map((row) => evidenceStoryFromRow(row, localDay));
+    pack = buildEvidencePack({
+      children: (childrenRes.data ?? []).map((child) => ({ id: child.id as string, name: child.name as string })),
+      stories,
+      periodLabel,
+      periodStart,
+      periodEnd,
+    });
+  }
 
-  const stories: EvidenceStory[] = (storiesRes.data ?? []).map((row) => {
-    const metadata = readMetadata(row.metadata);
-    const savedSteps = Array.isArray(metadata.nextStepProgress)
-      ? metadata.nextStepProgress.flatMap((entry) => {
-          const item = readMetadata(entry);
-          const stepText = text(item.text);
-          const status = item.status === "tried" || item.status === "continue" ? item.status : "planned";
-          return stepText ? [{ text: stepText, status }] : [];
-        })
-      : [];
-    const generated = Array.isArray(row.next_steps)
-      ? row.next_steps.filter((step): step is string => typeof step === "string").map((step) => ({ text: step, status: "planned" }))
-      : [];
-    return {
-      id: row.id as string,
-      childId: (row.child_id as string | null) ?? null,
-      date: localDate(row.created_at as string, settings.jurisdiction) ?? String(row.created_at).slice(0, 10),
-      title: text(metadata.storyTitle),
-      summary: text(metadata.learningSummary),
-      outcomes: Array.isArray(row.outcomes) ? row.outcomes.filter((item): item is string => typeof item === "string") : [],
-      dispositions: Array.isArray(metadata.learningDispositions)
-        ? metadata.learningDispositions.filter((item): item is string => typeof item === "string")
-        : [],
-      nextSteps: savedSteps.length ? savedSteps : generated,
-      reflection: text(metadata.educatorReflection),
-      familyVoice: text(metadata.whanauVoice),
-    };
-  });
-
-  const pack = buildEvidencePack({
-    children: (childrenRes.data ?? []).map((child) => ({ id: child.id as string, name: child.name as string })),
-    stories,
-    periodLabel,
-    periodStart,
-    periodEnd,
-  });
+  const scopeHref = (key: TeamViewScope) => `/evidence?period=${period}&scope=${key}`;
+  const sharing = team.scope?.reviewAuthorIds.length ?? 0;
+  const privateMembers = team.scope?.privateMemberIds.length ?? 0;
 
   return (
     <div className="mx-auto max-w-4xl p-4 sm:p-6 md:p-8 print:max-w-none print:p-0">
@@ -144,11 +142,22 @@ export default async function EvidencePackPage({
         <PrintButton label="Print or save as PDF" />
       </div>
 
+      {scopes.length > 1 && (
+        <div className="mt-4">
+          <TeamScopeSwitch
+            scopes={scopes}
+            current={scope}
+            hrefs={{ team: scopeHref("team"), mine: scopeHref("mine"), sample: scopeHref("sample") }}
+            labels={{ team: "Whole team", mine: "My stories", sample: "Sample team" }}
+          />
+        </div>
+      )}
+
       <div className="mt-4 flex flex-wrap gap-2 print:hidden">
         {(Object.keys(PERIODS) as PeriodKey[]).map((key) => (
           <Link
             key={key}
-            href={`/evidence?period=${key}`}
+            href={scopes.length > 1 ? `/evidence?period=${key}&scope=${scope}` : `/evidence?period=${key}`}
             className={`rounded-full border px-3 py-1.5 text-sm ${
               key === period ? "border-clay-700 bg-clay-700 text-paper" : "border-clay-200 text-ink-700 hover:border-clay-300"
             }`}
@@ -158,7 +167,31 @@ export default async function EvidencePackPage({
         ))}
       </div>
 
-      <EvidencePackView pack={pack} />
+      {scope === "sample" && (
+        <div className="mt-4">
+          <SampleTeamBanner evidenceLink={false} />
+        </div>
+      )}
+
+      {scope === "team" && teamEvidence && (
+        <div className="mt-4 print:mt-0" data-testid="team-evidence-note">
+          <p className="text-sm leading-relaxed text-ink-700 print:text-xs">
+            The whole team: your stories and those of {sharing} {sharing === 1 ? "educator who shares" : "educators who share"} with
+            you. Each child is counted once.
+            {privateMembers > 0 && (
+              <>
+                {" "}
+                {privateMembers} {privateMembers === 1 ? "educator keeps their" : "educators keep their"} stories private:{" "}
+                {teamEvidence.privateStories} {teamEvidence.privateStories === 1 ? "story" : "stories"} this period, counted here
+                as a number only.
+              </>
+            )}
+          </p>
+          <TeamChildJoin suggestions={teamEvidence.suggestions} joined={teamEvidence.joined} />
+        </div>
+      )}
+
+      <EvidencePackView pack={pack} sample={scope === "sample"} />
     </div>
   );
 }

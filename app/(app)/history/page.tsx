@@ -5,6 +5,7 @@ import StoryHistoryItem from "@/components/app/StoryHistoryItem";
 import DownloadEverything from "@/components/app/DownloadEverything";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { latestChecksByStory } from "@/lib/story-check-server";
+import { reviewsForAuthor } from "@/lib/centre-team-server";
 
 export const metadata = { title: "Story history" };
 
@@ -20,6 +21,8 @@ export default async function HistoryPage() {
     .eq("user_id", user!.id)
     .order("created_at", { ascending: false });
   const checks = await latestChecksByStory(user!.id);
+  // What her centre's leaders said about her shared stories (18 Nov 2026). Empty for anyone not in a centre.
+  const centreReviews = await reviewsForAuthor(user!.id, { markSeen: true });
 
   return (
     <div className="w-full max-w-none p-4 sm:p-6 md:p-8">
@@ -47,7 +50,7 @@ export default async function HistoryPage() {
       ) : (
         <div className="space-y-4">
           {stories.map((story) => (
-            <StoryHistoryItem key={story.id} story={story} plan={profile.plan ?? "free"} check={checks[story.id]} />
+            <StoryHistoryItem key={story.id} story={story} plan={profile.plan ?? "free"} check={checks[story.id]} centreReview={centreReviews[story.id]} />
           ))}
         </div>
       )}

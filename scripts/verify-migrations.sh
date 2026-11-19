@@ -51,6 +51,8 @@ MIGRATIONS=(
   "supabase/migrations/20261110_family_links.sql"
   "supabase/migrations/20261112_rate_limit_long_windows.sql"
   "supabase/migrations/20261113_leader_offer.sql"
+  "supabase/migrations/20261118_centre_team_review.sql"
+  "supabase/migrations/20261119_family_tell_centre.sql"
 )
 TESTS=(
   "supabase/tests/centre_team_model.test.sql"
@@ -60,6 +62,8 @@ TESTS=(
   "supabase/tests/child_voice_notes.test.sql"
   "supabase/tests/rate_limit.test.sql"
   "supabase/tests/leader_offer.test.sql"
+  "supabase/tests/centre_team_review.test.sql"
+  "supabase/tests/family_tell_centre.test.sql"
 )
 
 # A free port, checked rather than assumed: another project's database may be

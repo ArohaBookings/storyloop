@@ -41,6 +41,7 @@ export const SIGNUP_DESTINATIONS: ReadonlySet<string> = new Set([
   "/roi",
   "/centre",
   "/centre-tools",
+  "/team",
   "/support",
   "/feedback",
 ]);

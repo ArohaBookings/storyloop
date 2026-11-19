@@ -6,8 +6,10 @@ import { track } from "@/lib/analytics/client";
 import { trackEvent } from "@/lib/analytics/track-event";
 import { WALL_LANGUAGES } from "@/lib/wall-languages";
 import type { EducatorFamilyView } from "@/lib/family-link";
+import { TELL_CENTRE_ON } from "@/lib/family-tell-centre";
 
-type State = { shared: boolean; child: { id: string; name: string } | null; family: EducatorFamilyView };
+/** tellCentre: the Tell your centre switch on each link, by link id (lib/family-tell-centre.ts). Off when missing. */
+type State = { shared: boolean; child: { id: string; name: string } | null; family: EducatorFamilyView; tellCentre?: Record<string, boolean> };
 const WHO = ["Mum", "Dad", "Nana", "Grandad", "Caregiver"];
 
 function when(value: string | null | undefined) {
@@ -100,6 +102,22 @@ export default function FamilyShare({ storyId, childName }: { storyId: string; c
     } finally { setBusy(""); }
   };
 
+  // Tell your centre (19 Nov 2026): the educator's own switch on one link, off until she turns it on.
+  const switchTellCentre = async (linkId: string, on: boolean) => {
+    if (busy || !state?.child) return;
+    setBusy(`switch-${linkId}`); setError("");
+    try {
+      const response = await fetch(`/api/children/${encodeURIComponent(state.child.id)}/family-links`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ linkId, tellCentre: on }),
+      });
+      if (!response.ok) { setError("Could not change that. Try again."); return; }
+      setState({ ...state, tellCentre: { ...(state.tellCentre ?? {}), [linkId]: on } });
+      trackEvent("ui_action", { action: "family_tell_centre_switch", on, story_id: storyId });
+    } catch {
+      setError("Could not change that. Check your connection and try again.");
+    } finally { setBusy(""); }
+  };
+
   const copy = async () => {
     try { await navigator.clipboard.writeText(url); setCopied(true); window.setTimeout(() => setCopied(false), 1800); } catch { /* the link is on screen to copy by hand */ }
   };
@@ -141,19 +159,45 @@ export default function FamilyShare({ storyId, childName }: { storyId: string; c
 
           {links.length > 0 && (
             <ul className="space-y-1.5" data-testid="family-links">
-              {links.map((link) => (
-                <li key={link.id} className="flex items-center justify-between gap-2 rounded-xl border border-clay-100 bg-cream-50 py-1 pl-3 pr-1 text-sm text-ink-700">
-                  <span className="min-w-0 flex-1 break-words">
-                    <strong className="font-semibold text-ink-900">{link.label}</strong>
-                    {link.language ? `, ${WALL_LANGUAGES.find((l) => l.code === link.language)?.english ?? link.language}` : ""}
-                    <span className="text-ink-500"> · {link.opened ? `opened ${when(link.lastOpenedAt)}` : "not opened yet"}</span>
-                  </span>
-                  <button type="button" onClick={() => cancelLink(link.id)} disabled={Boolean(busy)} aria-label={`Cancel ${link.label}'s link`} className="flex h-11 w-11 flex-none items-center justify-center rounded-full text-ink-400 hover:bg-cream-100 hover:text-ink-700">
-                    {busy === link.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
-                  </button>
-                </li>
-              ))}
+              {links.map((link) => {
+                const tellOn = state?.tellCentre?.[link.id] === true;
+                return (
+                  <li key={link.id} className="rounded-xl border border-clay-100 bg-cream-50 py-1 pl-3 pr-1 text-sm text-ink-700" data-testid="family-link-row">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="min-w-0 flex-1 break-words">
+                        <strong className="font-semibold text-ink-900">{link.label}</strong>
+                        {link.language ? `, ${WALL_LANGUAGES.find((l) => l.code === link.language)?.english ?? link.language}` : ""}
+                        <span className="text-ink-500"> · {link.opened ? `opened ${when(link.lastOpenedAt)}` : "not opened yet"}</span>
+                      </span>
+                      <button type="button" onClick={() => cancelLink(link.id)} disabled={Boolean(busy)} aria-label={`Cancel ${link.label}'s link`} className="flex h-11 w-11 flex-none items-center justify-center rounded-full text-ink-400 hover:bg-cream-100 hover:text-ink-700">
+                        {busy === link.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    {/* Tell your centre (lib/family-tell-centre.ts): off unless she switches it on for this link. Held: no switch at all. */}
+                    {TELL_CENTRE_ON && <button
+                      type="button"
+                      role="switch"
+                      aria-checked={tellOn}
+                      onClick={() => switchTellCentre(link.id, !tellOn)}
+                      disabled={Boolean(busy)}
+                      className="flex min-h-[44px] w-full min-w-0 items-center gap-2.5 pr-2 text-left text-xs font-semibold text-ink-700 disabled:opacity-60"
+                      data-testid="family-tell-centre-switch"
+                    >
+                      <span aria-hidden className={`relative inline-flex h-5 w-9 flex-none rounded-full transition-colors ${tellOn ? "bg-sage-600" : "bg-ink-300"}`}>
+                        <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-paper shadow transition-transform ${tellOn ? "translate-x-[18px]" : "translate-x-0.5"}`} />
+                      </span>
+                      <span className="min-w-0">Let {link.label} tell your centre about StoryLoop</span>
+                    </button>}
+                  </li>
+                );
+              })}
             </ul>
+          )}
+          {TELL_CENTRE_ON && links.length > 0 && (
+            <p className="text-xs leading-relaxed text-ink-500" data-testid="family-tell-centre-help">
+              Switched on, their page shows a button that opens their own messages with a short note to your centre. It names
+              nobody and nothing is sent from here.
+            </p>
           )}
 
           {url && (
