@@ -93,6 +93,10 @@ export async function POST(request: NextRequest) {
         plan_intent: plan,
         access_code: accessCodeGrant?.code ?? null,
       },
+      // Set up here, once (19 Nov 2026). app_metadata, unlike user_metadata,
+      // cannot be changed by the account itself, so /api/auth/oauth-complete
+      // can never be talked into setting this account up a second time.
+      app_metadata: { storyloop_onboarded_at: new Date().toISOString(), signup_method: "email" },
     });
 
     if (createError) {

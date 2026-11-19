@@ -83,6 +83,19 @@ export function googleSignInEnabled(): Promise<boolean> {
   return enabledPromise;
 }
 
+/** Remembers the plan, codes and destination across a Google round trip or an emailed link. */
+export function rememberOAuthContext(context: Omit<OAuthContext, "startedAt">) {
+  try {
+    // Session storage survives the round trip in the same tab; local storage
+    // covers a browser that opens the return in a new tab.
+    const value = JSON.stringify({ ...context, startedAt: Date.now() });
+    window.sessionStorage.setItem(OAUTH_CONTEXT_KEY, value);
+    window.localStorage.setItem(OAUTH_CONTEXT_KEY, value);
+  } catch {
+    /* storage blocked: the account is still created, just without the plan or referral */
+  }
+}
+
 export function readOAuthContext(): OAuthContext | null {
   try {
     const raw = window.sessionStorage.getItem(OAUTH_CONTEXT_KEY) ?? window.localStorage.getItem(OAUTH_CONTEXT_KEY);
@@ -107,16 +120,7 @@ export function clearOAuthContext() {
 
 /** Sends the browser to Google. Returns an error message if it could not start. */
 export async function startGoogleSignIn(context: Omit<OAuthContext, "startedAt">): Promise<string | null> {
-  const full: OAuthContext = { ...context, startedAt: Date.now() };
-  try {
-    // Session storage survives the round trip in the same tab; local storage
-    // covers a browser that opens the return in a new tab.
-    const value = JSON.stringify(full);
-    window.sessionStorage.setItem(OAUTH_CONTEXT_KEY, value);
-    window.localStorage.setItem(OAUTH_CONTEXT_KEY, value);
-  } catch {
-    /* storage blocked: the account is still created, just without the plan or referral */
-  }
+  rememberOAuthContext(context);
   track("oauth_started", { provider: "google", intent: context.intent });
   // The intent rides in the URL too, so a browser that blocks storage still
   // knows whether this was a sign-in or a signup.

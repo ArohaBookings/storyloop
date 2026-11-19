@@ -6,10 +6,13 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Check, Link2, Loader2 } from "lucide-react";
 import { getAttribution, getSessionId, track } from "@/lib/analytics/client";
+import { trackEvent } from "@/lib/analytics/track-event";
 import { reportSignupConversion } from "@/lib/analytics/google-ads";
 import { clearOAuthContext, readOAuthContext, type OAuthIntent } from "@/lib/auth/oauth";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 import { signupDestination } from "@/lib/signup-next";
+import { linkErrorFromHash, sessionFromHash } from "@/lib/auth/signup-link";
+import { authStartPage, type AuthOutcome } from "@/lib/auth/start-page";
 import { createClient } from "@/lib/supabase/client";
 import { GoogleMark } from "@/components/auth/GoogleButton";
 import PageTracker from "@/components/analytics/PageTracker";
@@ -47,6 +50,15 @@ function Finish() {
   const context = contextRef.current;
   const intent: OAuthIntent = (params.get("intent") ?? context?.intent) === "login" ? "login" : "signup";
   const plan = context?.plan ?? "free";
+  const viaLink = params.get("method") === "link";
+  // Back to signup or sign-in with a note, still carrying the page she was heading for.
+  const startPage = useCallback(
+    (outcome: AuthOutcome) => {
+      const finishPath = `/auth/finish?${new URLSearchParams({ next: params.get("next") ?? context?.next ?? "", intent }).toString()}`;
+      return authStartPage(finishPath, outcome);
+    },
+    [context, intent, params],
+  );
 
   const complete = useCallback(
     async (confirm: boolean) => {
@@ -65,11 +77,13 @@ function Finish() {
       if (res.status === 401) {
         // The Google step did not leave a session (cancelled, or blocked cookies).
         track("oauth_error", { provider: "google", stage: "no_session", intent });
-        window.location.replace(`${intent === "signup" ? "/signup" : "/login"}?oauth=failed`);
+        window.location.replace(startPage(viaLink ? "expired" : "nosession"));
         return;
       }
       if (!res.ok) throw new Error(`oauth-complete ${res.status}`);
       const data = await res.json();
+      // Back from Google with a session (the signup page records the cancels).
+      if (!confirm && !viaLink) trackEvent("oauth_returned", { provider: "google", intent, new_account: Boolean(data.isNew) });
 
       if (data.needsConfirm) {
         setView({ kind: "confirm", email: typeof data.email === "string" ? data.email : "" });
@@ -78,7 +92,7 @@ function Finish() {
 
       clearOAuthContext();
       if (data.isNew) {
-        track("signup_completed", { plan, method: "google" });
+        track("signup_completed", { plan, method: viaLink ? "link" : "google" });
         await reportSignupConversion();
         if (plan !== "free") {
           const checkout = await fetch("/api/stripe/checkout", {
@@ -110,14 +124,28 @@ function Finish() {
       track("oauth_signed_in", { provider: "google", intent });
       window.location.replace(target);
     },
-    [context, intent, params, plan],
+    [context, intent, params, plan, startPage, viaLink],
   );
 
   useEffect(() => {
     if (ran.current) return;
     ran.current = true;
-    complete(false).catch(() => setView({ kind: "failed" }));
-  }, [complete]);
+    // An emailed signup link (/api/auth/signup-link) brings the session in the
+    // address after the #: keep it, take it out of the address, then finish.
+    const hash = window.location.hash;
+    const fromLink = viaLink ? sessionFromHash(hash) : null;
+    if (viaLink && !fromLink && linkErrorFromHash(hash)) {
+      window.location.replace(startPage("expired"));
+      return;
+    }
+    const ready = fromLink
+      ? createClient().auth.setSession(fromLink).then(({ error }) => {
+          window.history.replaceState(null, "", window.location.pathname + window.location.search);
+          if (error) throw error;
+        })
+      : Promise.resolve();
+    ready.then(() => complete(false)).catch(() => (viaLink ? window.location.replace(startPage("expired")) : setView({ kind: "failed" })));
+  }, [complete, startPage, viaLink]);
 
   // Linked: give them a moment to read it, then carry on.
   useEffect(() => {
@@ -140,7 +168,7 @@ function Finish() {
     track("oauth_new_declined", { provider: "google" });
     clearOAuthContext();
     await createClient().auth.signOut().catch(() => {});
-    window.location.replace("/login?oauth=different");
+    window.location.replace(startPage("different"));
   };
 
   return (
@@ -249,7 +277,10 @@ function Finish() {
                 Google signed you in, but we couldn&apos;t finish opening your account. Your account is safe.
               </p>
               <div className="mt-6 space-y-3">
-                <Link href="/dashboard" className="btn-primary w-full py-3">
+                <Link
+                  href={intent === "signup" ? signupDestination(params.get("next") ?? context?.next ?? null) : safeRedirectPath(params.get("next") ?? context?.next ?? null)}
+                  className="btn-primary w-full py-3"
+                >
                   Open StoryLoop
                 </Link>
                 <button

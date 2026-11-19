@@ -21,12 +21,19 @@ export default function SignInLinkForm({ redirect, defaultEmail = "", compact = 
         body: JSON.stringify({ email, redirect }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error ?? "Could not send the link.");
+      if (!res.ok) {
+        // The server's own plain words (a rate limit, an unusable address), or
+        // a plain line when the answer was not ours (a host's error page).
+        setState("error");
+        setError(typeof data.error === "string" && data.error ? data.error : "We couldn't send the link just then. Please try again in a moment.");
+        return;
+      }
       setState("sent");
       track("cta_click", { name: "sign_in_link_sent", redirect });
-    } catch (err) {
+    } catch {
+      // No answer at all: never the browser's raw "Failed to fetch".
       setState("error");
-      setError(err instanceof Error ? err.message : "Could not send the link.");
+      setError("We couldn't reach StoryLoop. Check your internet connection and try again.");
     }
   };
 

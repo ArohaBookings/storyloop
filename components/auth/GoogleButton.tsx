@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { googleSignInEnabled, isInAppBrowser, startGoogleSignIn, type OAuthIntent } from "@/lib/auth/oauth";
+import { trackEvent } from "@/lib/analytics/track-event";
 
 /** Google's "G" mark, as their branding guidelines ask (four colours, white ground). */
 export function GoogleMark({ className = "h-5 w-5" }: { className?: string }) {
@@ -29,6 +30,8 @@ export default function GoogleButton({
   currency,
   referralCode,
   accessCode,
+  placement = "top",
+  onStart,
 }: {
   intent: OAuthIntent;
   next: string;
@@ -36,10 +39,18 @@ export default function GoogleButton({
   currency?: string | null;
   referralCode?: string | null;
   accessCode?: string | null;
+  /** "top": above the email form, with the "or with your email" line under it.
+   *  "after": under the email form (the signup page in an in-app browser, where email leads). */
+  placement?: "top" | "after";
+  /** Told when the button is pressed (the signup page records where she left to). */
+  onStart?: () => void;
 }) {
   const [state, setState] = useState<"hidden" | "ready" | "in-app">("hidden");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  // In Facebook's or Instagram's own browser Google refuses sign-in, so the
+  // button explains how to open the page in a real browser instead of failing.
+  const [inAppHint, setInAppHint] = useState(false);
 
   useEffect(() => {
     let live = true;
@@ -61,23 +72,52 @@ export default function GoogleButton({
 
   if (state === "hidden") return null;
 
+  const divider = (
+    <div className={`${placement === "top" ? "mt-4" : "mb-4"} flex items-center gap-3 text-xs text-ink-400`} aria-hidden="true">
+      <span className="h-px flex-1 bg-clay-200" />
+      {placement === "top" ? "or with your email" : "or"}
+      <span className="h-px flex-1 bg-clay-200" />
+    </div>
+  );
+
   if (state === "in-app") {
     return (
-      <p className="mb-5 rounded-xl border border-clay-200 bg-cream-50 px-3 py-2.5 text-xs leading-relaxed text-ink-600">
-        Want to use Google? Google sign-in doesn&apos;t work inside the Facebook or Instagram app. Tap the menu (•••) and open this page in
-        your browser, or use your email below.
-      </p>
+      <div className={placement === "top" ? "mb-4" : "mt-4"}>
+        {placement === "after" && divider}
+        <button
+          type="button"
+          onClick={() => {
+            setInAppHint(true);
+            trackEvent("oauth_cancelled", { provider: "google", stage: "in_app_blocked", in_app: true });
+          }}
+          className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-clay-300 bg-white px-4 text-[15px] font-semibold text-ink-900 shadow-sm"
+          data-track={`google_${intent}_in_app`}
+          aria-expanded={inAppHint}
+        >
+          <GoogleMark />
+          Continue with Google
+        </button>
+        {inAppHint && (
+          <p role="status" className="mt-2 rounded-xl border border-clay-200 bg-cream-50 px-3 py-2.5 text-xs leading-relaxed text-ink-700" data-testid="google-in-app-hint">
+            Google doesn&apos;t allow sign-in inside the Facebook or Instagram app. Tap the menu (•••) and choose Open in browser, or use your
+            email {placement === "after" ? "above" : "below"}.
+          </p>
+        )}
+        {placement === "top" && divider}
+      </div>
     );
   }
 
   return (
-    <div className="mb-5">
+    <div className={placement === "top" ? "mb-4" : "mt-4"}>
+      {placement === "after" && divider}
       <button
         type="button"
         disabled={loading}
         onClick={async () => {
           setLoading(true);
           setError("");
+          onStart?.();
           const failed = await startGoogleSignIn({ intent, next, plan, currency, referralCode, accessCode });
           if (failed) {
             setError(failed);
@@ -93,17 +133,14 @@ export default function GoogleButton({
       {error ? (
         <p role="alert" className="mt-2 text-center text-xs text-red-600">{error}</p>
       ) : (
-        <p className="mt-2 text-center text-[11px] leading-relaxed text-ink-500">
+        // Hidden on a phone's signup page, where every line pushes the Create button down.
+        <p className={`mt-2 text-center text-[11px] leading-relaxed text-ink-500 ${intent === "signup" ? "hidden sm:block" : ""}`}>
           {intent === "login"
             ? "Signed up with your email before? Use the same Google email and you’ll land in that account."
             : "No password to remember. Google only shares your name and email with us."}
         </p>
       )}
-      <div className="mt-5 flex items-center gap-3 text-xs text-ink-400" aria-hidden="true">
-        <span className="h-px flex-1 bg-clay-200" />
-        or with your email
-        <span className="h-px flex-1 bg-clay-200" />
-      </div>
+      {placement === "top" && divider}
     </div>
   );
 }
