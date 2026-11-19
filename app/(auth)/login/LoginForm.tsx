@@ -10,6 +10,7 @@ import SignInLinkForm from "@/components/auth/SignInLinkForm";
 import GoogleButton from "@/components/auth/GoogleButton";
 import { googleSignInEnabled } from "@/lib/auth/oauth";
 import { signupPathFor } from "@/lib/signup-next";
+import { signInErrorMessage } from "@/lib/auth/sign-in-error";
 import PageTracker from "@/components/analytics/PageTracker";
 
 const DEFAULT_REDIRECT = "/dashboard";
@@ -74,15 +75,14 @@ export default function LoginForm({ initialRedirect = null, offerSignup = false 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true); setError("");
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    // Supabase says "Invalid login credentials" for a wrong password and for
+    // an account that only ever used Google; every refusal is said in plain
+    // words with what to do next (lib/auth/sign-in-error.ts), never raw.
+    const { error } = await supabase.auth
+      .signInWithPassword({ email, password })
+      .catch((thrown: unknown) => ({ error: { message: thrown instanceof Error ? thrown.message : "", status: 0, code: null } }));
     if (error) {
-      // Supabase says "Invalid login credentials" for a wrong password and for
-      // an account that only ever used Google. Say what to do about both.
-      setError(
-        /invalid login credentials/i.test(error.message)
-          ? `That email and password don't match.${googleOn ? " If you signed up with Google, use Continue with Google above." : ""} Or reset your password below.${offerSignup ? " New here? Create a free account above." : ""}`
-          : error.message,
-      );
+      setError(signInErrorMessage(error, { googleOn, offerSignup }));
       setLoading(false);
       return;
     }

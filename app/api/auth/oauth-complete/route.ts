@@ -6,6 +6,7 @@ import { getOrCreateReferralCode, recordReferralSignup } from "@/lib/referrals";
 import { incrementAccessCodeRedemption, resolveAccessCode } from "@/lib/access-codes";
 import { mergeStoryPreferences } from "@/lib/story-options";
 import { sendLifecycleEmail } from "@/lib/email/send";
+import { SIGNUP_EMAIL_LINK_ON } from "@/lib/auth/signup-link";
 
 /**
  * Finishes a "Continue with Google" sign-in (20 Oct 2026).
@@ -57,8 +58,12 @@ export async function POST(request: NextRequest) {
   const alreadyOnboarded = Boolean(user.app_metadata?.storyloop_onboarded_at);
   // An account made by "Email me a link" (/api/auth/signup-link): only an
   // email identity, marked at creation, made in the last day and not yet set up.
+  // signup_via is user_metadata, which an account can write itself, so it only
+  // counts while the link signup is switched on, and never for a password
+  // signup (/api/auth/signup stamps storyloop_onboarded_at in app_metadata).
   const createdAt = Date.parse(user.created_at ?? "");
   const viaLink =
+    SIGNUP_EMAIL_LINK_ON &&
     !google &&
     user.user_metadata?.signup_via === "link" &&
     Number.isFinite(createdAt) &&
