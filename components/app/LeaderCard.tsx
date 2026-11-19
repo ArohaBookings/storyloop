@@ -46,12 +46,15 @@ export default function LeaderCard({
       .catch(() => {});
   }, [storyId, canShow]);
 
-  if (!show) return null;
+  // Another card took this story's slot first: this one stays out of sight.
+  if (!show || !canShow) return null;
 
   const send = () => {
     trackEvent("ui_action", { action: "leader_card_send", story_id: storyId });
     setShow(false);
-    onSend();
+    // Scroll once the card has left the page: started together, the panel would
+    // land short by the card's own height, its heading off the top of a phone.
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => onSend()));
   };
 
   const noThanks = () => {

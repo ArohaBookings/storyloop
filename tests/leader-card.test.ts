@@ -95,6 +95,9 @@ test("the card takes the story's one prompt slot: it does not even ask while ano
   const card = readFileSync(new URL("../components/app/LeaderCard.tsx", import.meta.url), "utf8");
   assert.match(card, /if \(!storyId \|\| !canShow \|\| asked\.current === storyId\) return;/);
   assert.match(card, /shown\.current\?\.\(\);/);
+  assert.match(card, /if \(!show \|\| !canShow\) return null;/, "and it stays out of sight if another card took the slot first");
+  // Send: the card leaves first, then the page moves, so the leader check lands with its heading on screen.
+  assert.match(card, /setShow\(false\);\s*\/\/[^\n]*\n\s*\/\/[^\n]*\n\s*window\.requestAnimationFrame\(\(\) => window\.requestAnimationFrame\(\(\) => onSend\(\)\)\);/);
   const page = readFileSync(new URL("../app/(app)/generate/page.tsx", import.meta.url), "utf8");
   assert.match(page, /canShow=\{mayShowPrompt\("leader_card", storyId, promptSlot\)\}/);
   assert.match(page, /onShown=\{\(\) => setPromptSlot\(\(slot\) => claimPrompt\(slot, storyId, "leader_card"\)\)\}/);
