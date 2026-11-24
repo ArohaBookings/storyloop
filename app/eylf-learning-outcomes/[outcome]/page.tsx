@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import GuideProof from "@/components/marketing/GuideProof";
+import { ProductBlockFor } from "@/components/marketing/GuideProductBlock";
 import PrintableCard from "@/components/marketing/PrintableCard";
 import { GuideCta, GuideFaq, GuideHero, GuidePage, GuideSection, GuideSources, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 import { EYLF_OUTCOMES, EYLF_SOURCE, eylfOutcomeBySlug, realExampleForOutcome } from "@/lib/eylf-outcomes";
@@ -117,6 +118,8 @@ export default async function EylfOutcomePage({ params }: PageProps) {
         </GuideSection>
       )}
 
+      {/* The sentence assistants quote, beside the note box (25 Nov 2026, lib/guide-product.ts; renders nothing for pages without one). */}
+      <ProductBlockFor slug={`eylf-learning-outcomes/outcome-${outcome.n}`} className="" wrapperClassName="wide-shell pt-10" />
       <GuideProof framework="AU" />
 
       <GuideSection id="faq" title="Questions educators ask">

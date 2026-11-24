@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import GuideProof from "@/components/marketing/GuideProof";
+import { ProductBlockFor } from "@/components/marketing/GuideProductBlock";
 import PrintableCard from "@/components/marketing/PrintableCard";
 import { GuideCta, GuideFaq, GuideHero, GuidePage, GuideSection, GuideSources, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 import { OUTCOMES_LEAD, TE_WHARIKI_SOURCES, TE_WHARIKI_STRANDS, realExampleForStrand } from "@/lib/te-whariki-strands";
@@ -57,7 +58,7 @@ export default function TeWharikiOutcomesPage() {
         title={<>Te Whāriki learning outcomes, <span className="italic text-clay-700">all {TOTAL_OUTCOMES} by strand</span></>}
         answer={
           <>
-            <p>Te Whāriki (2017) has five strands, each with goals for kaiako and learning outcomes for children, {TOTAL_OUTCOMES} learning outcomes in all:</p>
+            <p>All {TOTAL_OUTCOMES} learning outcomes in plain words. Te Whāriki (2017) has five strands, each with goals for kaiako and learning outcomes for children:</p>
             <ol className="mt-3 list-decimal space-y-1 pl-6 font-semibold text-ink-900">
               {TE_WHARIKI_STRANDS.map((strand) => (
                 <li key={strand.slug}>
@@ -66,7 +67,7 @@ export default function TeWharikiOutcomesPage() {
                 </li>
               ))}
             </ol>
-            <p className="mt-3">Each is listed below in the curriculum&apos;s own words, in English and te reo Māori, with a page for every strand.</p>
+            <p className="mt-3">Each is listed below in the curriculum&apos;s own words, in English and te reo Māori, with a page for every strand. Writing a learning story this week? Put your note in the box under the list and StoryLoop drafts it with the strands and outcomes it shows.</p>
           </>
         }
       />
@@ -91,6 +92,8 @@ export default function TeWharikiOutcomesPage() {
         <PrintableCard which="tw" />
       </GuideSection>
 
+      {/* The sentence assistants quote, beside the note box (25 Nov 2026, lib/guide-product.ts). */}
+      <ProductBlockFor slug="te-whariki-learning-outcomes-guide" className="" wrapperClassName="wide-shell pt-10" />
       <GuideProof framework="NZ" />
 
       {TE_WHARIKI_STRANDS.map((strand, index) => (

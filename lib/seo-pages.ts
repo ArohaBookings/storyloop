@@ -1726,13 +1726,13 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
   "intentional-teaching": {
     slug: "intentional-teaching",
-    title: "Intentional Teaching in Early Childhood: Examples by Age",
+    title: "Intentional Teaching Examples for Childcare, by Age",
     description:
-      "What intentional teaching means, the strategies educators use every day, examples for babies, toddlers and preschoolers, and how to show it in a learning story.",
+      "Intentional teaching examples for babies, toddlers and preschoolers, the strategies behind them, and how to show intentional teaching in a learning story.",
     kicker: "Teaching practice · Australia and Aotearoa",
-    heading: "Intentional teaching: purposeful, not scripted.",
+    heading: "Intentional teaching examples, by age.",
     intro:
-      "Intentional teaching means being deliberate, purposeful and thoughtful about your decisions and actions, inside children's play as much as in planned experiences. In the EYLF V2.0 it sits within the practice of play-based learning and intentionality. It does not mean adult-led lessons: it means knowing why you step in, how, and when to step back.",
+      "Intentional teaching is what you do on purpose to stretch a child's learning, inside play as much as in planned experiences. It does not mean adult-led lessons: it means knowing why you step in, how, and when to step back. Examples by age are below. Got a story to write about it? Put your note in the box.",
     image: { src: "/images/scenes/classroom.jpg", alt: "An educator in a centre with a tablet, children building with blocks in the background", position: "45% 60%" },
     sections: [
       {
@@ -1849,13 +1849,13 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
   "observation-methods-early-childhood": {
     slug: "observation-methods-early-childhood",
-    title: "Observation Methods in Early Childhood: Types and Examples",
+    title: "Observation Methods: Anecdotal, Running Record and More",
     description:
-      "Jottings, anecdotal records, running records, learning stories, work samples, checklists, time and event samples: what each is for, with worked examples.",
+      "Jottings, anecdotal records, running records and learning stories: when to use each, a worked example of each, and a quick way to write yours up.",
     kicker: "Observation and documentation",
-    heading: "Observation methods: which one, and when.",
+    heading: "Observation methods in early childhood, with an example of each.",
     intro:
-      "There is no single required observation method. Most educators use a mix: quick jottings, anecdotal records, running records, learning stories, photos and work samples, checklists, and time or event samples. ACECQA says there is no one way to meet documentation requirements, so pick the method that fits what you are trying to understand, and write what you saw before what you think it means.",
+      "Most days you jot something down in the room and write it up later. There is no single required method: ACECQA says there is no one way to meet documentation requirements. Here is each method side by side, and a box below that turns your jotting into a learning story.",
     image: { src: "/images/scenes/kitchen.jpg", alt: "An educator at home reading a learning story draft on her laptop", position: "62% 50%" },
     sections: [
       {

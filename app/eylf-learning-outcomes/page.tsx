@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import GuideProof from "@/components/marketing/GuideProof";
+import { ProductBlockFor } from "@/components/marketing/GuideProductBlock";
 import PrintableCard from "@/components/marketing/PrintableCard";
 import { GuideCta, GuideFaq, GuideHero, GuidePage, GuideSection, GuideSources, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 import { REAL_EXAMPLES } from "@/lib/real-examples";
@@ -100,6 +101,8 @@ export default function EylfOutcomesPage() {
         <PrintableCard which="eylf" />
       </GuideSection>
 
+      {/* The sentence assistants quote, beside the note box (25 Nov 2026, lib/guide-product.ts; renders nothing for pages without one). */}
+      <ProductBlockFor slug={"eylf-learning-outcomes"} className="" wrapperClassName="wide-shell pt-10" />
       <GuideProof framework="AU" />
 
       {OUTCOMES.map((outcome, index) => (

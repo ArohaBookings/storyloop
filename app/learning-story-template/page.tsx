@@ -3,6 +3,7 @@ import Link from "next/link";
 import CopyTemplate from "@/components/marketing/CopyTemplate";
 import PrintableCard from "@/components/marketing/PrintableCard";
 import GuideProof from "@/components/marketing/GuideProof";
+import { ProductBlockFor } from "@/components/marketing/GuideProductBlock";
 import { GuideCta, GuideFaq, GuideHero, GuidePage, GuideSection, RELATED, RelatedGuides } from "@/components/marketing/Guide";
 
 export const metadata: Metadata = {
@@ -88,7 +89,7 @@ export default function LearningStoryTemplatePage() {
         title={<>Learning story template, <span className="italic text-clay-700">free to copy</span></>}
         answer={
           <p>
-            Two versions, one for Te Whāriki in Aotearoa New Zealand and one for the EYLF V2.0 in Australia. Each follows
+            Print it, or skip the template and put your note in the box below. Two versions, one for Te Whāriki in Aotearoa New Zealand and one for the EYLF V2.0 in Australia. Each follows
             notice, recognise, respond: what happened, what learning it shows, and where to next, with a prompt under every
             heading. Copy it into Word, Google Docs, Canva or the app your centre uses.
           </p>
@@ -102,9 +103,11 @@ export default function LearningStoryTemplatePage() {
           <PrintableCard which="templateNz" />
           <PrintableCard which="templateAu" />
         </div>
+        {/* The faster path beside the download (25 Nov 2026): the page's one note box. */}
+        <ProductBlockFor slug="learning-story-template" className="mt-8" />
       </GuideHero>
 
-      <GuideProof framework="NZ" demo="visitor" />
+      <GuideProof framework="NZ" demo="visitor" withTry={false} />
 
       <GuideSection id="nz" kicker="Aotearoa New Zealand" title="Te Whāriki learning story template">
         <CopyTemplate id="nz" label="Te Whāriki template" text={NZ_TEMPLATE} />
