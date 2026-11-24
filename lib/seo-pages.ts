@@ -2087,6 +2087,13 @@ for (const page of Object.values(NOV_2026_PAGES)) {
   SEO_PAGES[page.slug] = { ...page, faqs: [...page.faqs, ...sharedFaqs] };
 }
 
+// Re-aimed guides built and held, 25 Nov 2026 (lib/seo-pages-held.ts): same URL, new words, only when switched on.
+import { EYLF_PLANNING_CYCLE_REAIM } from "./seo-pages-held";
+import { heldPageOn } from "./held-pages";
+if (heldPageOn("eylf-planning-cycle")) {
+  SEO_PAGES["eylf-planning-cycle"] = { ...EYLF_PLANNING_CYCLE_REAIM, faqs: [...EYLF_PLANNING_CYCLE_REAIM.faqs, ...sharedFaqs] };
+}
+
 // Attach long-form bodies to the pages that have them. Kept separate so the
 // heavy prose lives in its own file and this one stays a readable index.
 import { SEO_DEEP_DIVES } from "./seo-deep-dives";

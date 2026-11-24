@@ -98,3 +98,26 @@ test("all 12 owned sentences from the search re-aim have a place", () => {
   const blog = readFileSync(new URL("../app/blog/[slug]/page.tsx", import.meta.url), "utf8");
   assert.match(blog, /ProductBlockFor slug=\{`blog\/\$\{post\.slug\}`\}/);
 });
+
+test("the three held pages: every switch off, the live planning cycle page untouched, the re-aims fit a search result", async () => {
+  const { HELD_PAGE_ON } = await import("../lib/held-pages");
+  const { EYLF_PLANNING_CYCLE_REAIM } = await import("../lib/seo-pages-held");
+  const { BUYER_PAGES, buyerPageLive, isHeldPath } = await import("../lib/buyer-pages");
+  assert.ok(Object.values(HELD_PAGE_ON).every((on) => on === false));
+  assert.equal(SEO_PAGES["eylf-planning-cycle"].title, "EYLF Planning Cycle: From Observation to Response");
+  assert.ok(!buyerPageLive("educational-leader-checklist") && !buyerPageLive("exceeding-nqs-documentation"));
+  assert.ok(isHeldPath("/educational-leader-checklist"));
+  const pages = [
+    { title: EYLF_PLANNING_CYCLE_REAIM.title, description: EYLF_PLANNING_CYCLE_REAIM.description, words: JSON.stringify(EYLF_PLANNING_CYCLE_REAIM) },
+    ...(["educational-leader-checklist", "exceeding-nqs-documentation"] as const).map((slug) => ({ title: BUYER_PAGES[slug].title, description: BUYER_PAGES[slug].description, words: JSON.stringify(BUYER_PAGES[slug]) })),
+  ];
+  const titles = new Set(Object.values(SEO_PAGES).map((page) => page.title.toLowerCase()));
+  for (const page of pages) {
+    assert.ok(page.title.length <= 60, page.title);
+    assert.ok(page.description.length <= 155, page.description);
+    assert.ok(!titles.has(page.title.toLowerCase()) || page.title === SEO_PAGES["eylf-planning-cycle"].title, page.title);
+    assert.deepEqual(rivalNames(page.words), [], page.title);
+    assert.ok(!page.words.includes("—"), page.title);
+  }
+  assert.match(JSON.stringify(BUYER_PAGES["educational-leader-checklist"]), /Send it to my leader/);
+});

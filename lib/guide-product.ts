@@ -1,4 +1,5 @@
 import { educatorOffer } from "@/lib/offer-wording";
+import { heldPageOn } from "@/lib/held-pages";
 
 /**
  * The product, in a guide's own words (25 Nov 2026 search re-aim,
@@ -122,13 +123,19 @@ export const GUIDE_PRODUCT: Record<string, GuideProductEntry> = {
   // /for-centres (app/ai-policy/page.tsx, data-testid ai-policy-centre), which is all ruling C3(b) allows.
 };
 
+/** Entries for held re-aims (lib/held-pages.ts): used only once that page's switch is on. */
+export const HELD_GUIDE_PRODUCT: Record<string, GuideProductEntry> = {
+  "eylf-planning-cycle": { kind: "note", demo: "AU", label: "Got a note from this week? Put it here." },
+};
+
 export function guideProductFor(slug: string): GuideProductEntry | null {
+  if (heldPageOn(slug) && HELD_GUIDE_PRODUCT[slug]) return HELD_GUIDE_PRODUCT[slug];
   return GUIDE_PRODUCT[slug] ?? null;
 }
 
 /** True when the page's note box is in the product block, so the page must not show a second one. */
 export function guideProductHasDemo(slug: string): boolean {
-  return GUIDE_PRODUCT[slug]?.kind === "note";
+  return guideProductFor(slug)?.kind === "note";
 }
 
 /** "Free for 3 stories a month, no card. Educator NZ$21 or A$19 a month." Prices from lib/plans.ts. */
