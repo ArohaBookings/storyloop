@@ -332,7 +332,11 @@ test("the one-tap invitation never hands the leader an address", () => {
   const invites = readFileSync("app/api/centres/invites/route.ts", "utf8");
   assert.match(invites, /fromOffer \? \{ \.\.\.row, email: null \}/);
   const roster = readFileSync("app/api/centres/route.ts", "utf8");
-  assert.match(roster, /viaOffer\.has\(member\.user_id\) \? \{ \.\.\.member, full_name: educatorFirstName\(member\.full_name\), email: null \}/);
+  // 25 Nov 2026: the masking moved to lib/centre-roster-privacy.ts (it also covers the tick beside Send);
+  // tests/centre-roster-privacy.test.ts proves it on data.
+  assert.match(roster, /members = maskOfferMembers\(rows, viaOffer\)/);
+  const privacy = readFileSync("lib/centre-roster-privacy.ts", "utf8");
+  assert.match(privacy, /viaOffer\.has\(member\.user_id\) \? \{ \.\.\.member, full_name: educatorFirstName\(member\.full_name\), email: null \}/);
 });
 
 test("the migration is additive, and both tables stay service-role only", () => {

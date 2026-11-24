@@ -4,7 +4,7 @@ import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getMembership, getCentre, countActiveMembers, canManageTeam, seatsRemaining } from "@/lib/centres";
 import { getPlanByKey } from "@/lib/plans";
 import { isCentrePlan } from "@/lib/centre-offer";
-import { educatorFirstName } from "@/lib/story-check";
+import { maskOfferMembers, offerJoinedIds } from "@/lib/centre-roster-privacy";
 import { showsOnBoardCard } from "@/lib/work-role";
 import { workRoleFacts } from "@/lib/work-role-server";
 import { getTeamContext, loadTeamQueue } from "@/lib/centre-team-server";
@@ -49,11 +49,21 @@ export async function GET() {
         admin.rpc("centre_activity", { p_centre_id: centre.id }),
         admin.from("centre_invites").select("accepted_by").eq("centre_id", centre.id).eq("from_leader_offer", true).not("accepted_by", "is", null),
       ]);
-      // Somebody who joined from a one-tap invitation (lib/leader-offer-server.ts)
-      // is shown as the leader first met them: a first name, never an address.
-      const viaOffer = new Set((fromOffer ?? []).map((row) => row.accepted_by as string));
-      members = (Array.isArray(data) ? data : []).map((member: { user_id: string; full_name: string | null; email: string | null }) =>
-        viaOffer.has(member.user_id) ? { ...member, full_name: educatorFirstName(member.full_name), email: null } : member);
+      const rows: { user_id: string; full_name: string | null; email: string | null }[] = Array.isArray(data) ? data : [];
+      const memberIds = rows.map((member) => member.user_id);
+      // Somebody who joined from a leader check or a statement set (the one-tap
+      // invitation, or the tick beside Send) is shown as the leader first met
+      // them: a first name, never an address (lib/centre-roster-privacy.ts).
+      const ticked = memberIds.length
+        ? await Promise.all((["story_checks", "leader_sets"] as const).map((table) =>
+            admin.from(table).select("user_id, offer_claimed_by, join_consent").in("offer_claimed_by", memberIds).eq("join_consent", true)))
+        : [];
+      const viaOffer = offerJoinedIds({
+        memberIds,
+        acceptedOfferInvites: (fromOffer ?? []) as { accepted_by: string | null }[],
+        tickedOffers: ticked.flatMap((result) => (result.data ?? []) as { user_id: string | null; offer_claimed_by: string | null; join_consent: boolean | null }[]),
+      });
+      members = maskOfferMembers(rows, viaOffer);
     }
 
     return NextResponse.json({
