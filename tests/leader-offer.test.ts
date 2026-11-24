@@ -316,7 +316,8 @@ test("the leader's page links the data sheet, starts signup, and keeps the refer
   assert.match(page, /already writes with StoryLoop\./);
   assert.match(page, /data-private=""/, "click analytics must not record the link's address");
   assert.doesNotMatch(page, /for-centres\?utm_source=leader_check/);
-  const panel = readFileSync("components/app/LeaderCheck.tsx", "utf8");
+  // 25 Nov 2026: the form that makes the link moved to components/app/SendToLeader.tsx.
+  const panel = readFileSync("components/app/LeaderCheck.tsx", "utf8") + readFileSync("components/app/SendToLeader.tsx", "utf8");
   assert.match(panel, /Send this story to your leader/);
   assert.match(panel, /Also show my leader how many children I have written about lately \(numbers only, no names\)/);
   for (const id of ["leader-check-panel", "leader-check-make", "leader-check-link", "leader-check-result"]) assert.ok(panel.includes(`data-testid="${id}"`), id);

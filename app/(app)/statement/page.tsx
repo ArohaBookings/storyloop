@@ -4,6 +4,8 @@ import { getAccessProfile } from "@/lib/supabase/profiles";
 import { hasFeatureAccess } from "@/lib/plans";
 import StatementFromNotes from "@/components/app/StatementFromNotes";
 import KeptStatement from "@/components/app/KeptStatement";
+import ClassSetPanel from "@/components/app/ClassSetPanel";
+import { CLASS_SET_ON } from "@/lib/build-switches";
 
 export const metadata = { title: "Statement or summary from your notes" };
 
@@ -30,6 +32,8 @@ export default async function StatementPage() {
       {/* A draft written on a guide before signing up (lib/keep-story.ts). */}
       <KeptStatement />
       <StatementFromNotes freePlan={freePlan} />
+      {/* This sitting's statements, to check with her leader as one set (25 Nov 2026). Off: the page as before. */}
+      {CLASS_SET_ON && <ClassSetPanel />}
     </div>
   );
 }

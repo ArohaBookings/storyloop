@@ -56,7 +56,7 @@ async function post(body: Record<string, unknown>) {
  * `preview`: the educator's "See what your leader will see". The same page
  * from her own data, every button inert, nothing fetched.
  */
-export default function LeaderCheckPage({ preview }: { preview?: PageView } = {}) {
+export default function LeaderCheckPage({ preview }: { preview?: PageView }) {
   const [phase, setPhase] = useState<Phase>(preview ? "ready" : "loading");
   const [cover, setCover] = useState<CoverView | null>(null);
   const [view, setView] = useState<PageView | null>(preview ?? null);

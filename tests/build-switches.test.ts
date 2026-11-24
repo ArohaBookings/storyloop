@@ -40,6 +40,12 @@ const SWITCH_READERS: Record<string, string> = {
   // Lane A (leader path). Off: no cover, the offer under the story from the start, the site's own bar.
   [path.join("components", "marketing", "LeaderCheckPage.tsx")]: "tests/leader-check-page.test.ts",
   [path.join("app", "check", "page.tsx")]: "tests/leader-check-page.test.ts",
+  [path.join("components", "app", "SendToLeader.tsx")]: "tests/leader-switches-off.test.ts",
+  [path.join("components", "marketing", "TransitionDemo.tsx")]: "tests/leader-switches-off.test.ts",
+  [path.join("app", "(app)", "statement", "page.tsx")]: "tests/leader-switches-off.test.ts",
+  [path.join("app", "api", "leader-sets", "route.ts")]: "tests/leader-switches-off.test.ts",
+  [path.join("app", "api", "leader-email", "route.ts")]: "tests/leader-switches-off.test.ts",
+  [path.join("lib", "email", "leader-check.ts")]: "tests/leader-switches-off.test.ts",
 };
 
 function sourceFiles(dir: string): string[] {
@@ -63,11 +69,11 @@ test("every file that reads a switch has a test for the switch off", () => {
 });
 
 test("the stubs change nothing a person sees", async () => {
-  assert.equal(renderToStaticMarkup(React.createElement(SendToLeader, { kind: "story", storyId: "3f2b8c1e-9a4d-4c7b-8e21-6d5a0b9c1f42" })), "");
+  // SendToLeader is built now (lane A): an empty set still renders nothing.
   assert.equal(renderToStaticMarkup(React.createElement(SendToLeader, { kind: "set", pieces: [] })), "");
   assert.equal(renderToStaticMarkup(React.createElement(SourceLines, { note: "n", text: "Mia & the tower", kind: "story" })), "Mia &amp; the tower");
   assert.equal(renderToStaticMarkup(React.createElement(GuideProductBlock, { page: { slug: "x" } as SeoPage })), "");
-  assert.deepEqual(await joinFromLeaderOffer("a", "b"), { joined: false });
+  assert.deepEqual(await joinFromLeaderOffer("a", "b"), { joined: false }, "no claimed offer, nobody joins");
   const response = await startFree();
   assert.equal(response.status, 501);
   assert.deepEqual(await response.json(), { error: "Not available yet.", code: "not_built" });
