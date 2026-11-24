@@ -44,9 +44,8 @@ export async function POST(request: NextRequest) {
     const plan = ALLOWED_PLANS.has(requestedPlan) ? requestedPlan : "free";
     const accessCodeGrant = plan === "free" && accessCode ? await resolveAccessCode(accessCode, email) : null;
 
-    if (!name) {
-      return NextResponse.json({ error: "Please add your name", code: "missing_name" }, { status: 400 });
-    }
+    // No name is asked at signup since 25 Nov 2026 (B4): StoryLoop asks for a
+    // first name only where one is needed (sending to a leader).
 
     if (!email) {
       return NextResponse.json({ error: "Please add your email", code: "missing_email" }, { status: 400 });
@@ -89,7 +88,7 @@ export async function POST(request: NextRequest) {
       password,
       email_confirm: true,
       user_metadata: {
-        full_name: name,
+        ...(name ? { full_name: name } : {}),
         plan_intent: plan,
         access_code: accessCodeGrant?.code ?? null,
       },
@@ -112,6 +111,9 @@ export async function POST(request: NextRequest) {
 
     if (createdUser.user) {
       await getOrCreateProfile(createdUser.user);
+      // No name given: none on the profile either (the database would otherwise
+      // use the start of her email address), so every greeting says "there".
+      if (!name) await admin.from("profiles").update({ full_name: null }).eq("id", createdUser.user.id);
 
       // Give every account its own share code, and attribute this signup to a
       // referrer if they arrived through one. Both are best-effort: a referral

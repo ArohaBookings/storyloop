@@ -1,4 +1,5 @@
 "use client";
+import { hasKeptNote } from "@/lib/keep-story";
 import { CENTRE_START_NO_CHECKOUT } from "@/lib/build-switches";
 import { paidPlanDestination } from "@/lib/centre-start-client";
 import { useEffect, useRef, useState } from "react";
@@ -62,7 +63,6 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | "timeout">
  * "Claim a founding spot" sees the centre wording from the first frame.
  */
 export default function SignupForm({ initialPlan = null, initialNext = null }: { initialPlan?: string | null; initialNext?: string | null }) {
-  const [name, setName] = useState("");
   // Already signed in on this device: point them back into the app.
   const [signedIn, setSignedIn] = useState(false);
   const [email, setEmail] = useState("");
@@ -91,6 +91,9 @@ export default function SignupForm({ initialPlan = null, initialNext = null }: {
   // A story written in the demo, or a statement drafted on a guide, before
   // signing up, waiting for the new account (lib/keep-story.ts).
   const [keptWaiting, setKeptWaiting] = useState<"story" | "statement" | "summary" | null>(null);
+  // Her note from the demo's limit (B5, 25 Nov 2026): it opens in the box on her first page.
+  const [noteKept, setNoteKept] = useState(false);
+  useEffect(() => { setNoteKept(hasKeptNote()); }, []);
   const [currency, setCurrency] = useState<CurrencyCode>("AUD");
   const [referralCode, setReferralCode] = useState("");
   // Where a free account lands: the first story, unless the link asked for a
@@ -258,7 +261,6 @@ export default function SignupForm({ initialPlan = null, initialNext = null }: {
     const typo = suggestEmailFix(email);
     const linkMode = mode !== "password";
     const problem = checkSignupForm({
-      name: linkMode ? name || "-" : name,
       email,
       password: linkMode ? "------" : password,
       typo,
@@ -303,7 +305,6 @@ export default function SignupForm({ initialPlan = null, initialNext = null }: {
             headers: { "Content-Type": "application/json" },
             signal: controller.signal,
             body: JSON.stringify({
-              name,
               email,
               password,
               plan,
@@ -378,6 +379,8 @@ export default function SignupForm({ initialPlan = null, initialNext = null }: {
     async function afterAccount() {
       done.current = true;
       track("signup_completed", { plan, method: "email" });
+      // No name was asked (B4, 25 Nov 2026): it is asked later, only where it is needed.
+      trackEvent("signup_name_skipped", { method: "email" });
       // Tell Google Ads (if this visit came from an ad) before the page changes.
       await reportSignupConversion();
 
@@ -420,7 +423,7 @@ export default function SignupForm({ initialPlan = null, initialNext = null }: {
       const res = await fetch("/api/auth/signup-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, plan, next: destination, website, ...(human && human !== "timeout" ? human : {}) }),
+        body: JSON.stringify({ email, plan, next: destination, website, ...(human && human !== "timeout" ? human : {}) }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -537,6 +540,11 @@ export default function SignupForm({ initialPlan = null, initialNext = null }: {
           {notice && (
             <p role="status" className="mb-3 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-xs text-amber-700">{notice}</p>
           )}
+          {noteKept && !keptWaiting && (
+            <p role="status" className="mb-3 rounded-xl border border-sage-200 bg-sage-50 px-3 py-2 text-sm text-ink-800" data-testid="kept-note-waiting">
+              Your note is kept. Create your account and it is in the box, ready to write.
+            </p>
+          )}
           {keptWaiting && (
             <p role="status" className="mb-3 rounded-xl border border-sage-200 bg-sage-50 px-3 py-2 text-sm text-ink-800" data-testid="kept-story-waiting">
               {keptWaiting === "story"
@@ -586,11 +594,6 @@ export default function SignupForm({ initialPlan = null, initialNext = null }: {
             <div aria-hidden="true" className="pointer-events-none absolute left-0 top-0 h-px w-px overflow-hidden opacity-0">
               <label htmlFor="signup-website">Website</label>
               <input id="signup-website" name="website" type="text" tabIndex={-1} autoComplete="off" defaultValue="" />
-            </div>
-            <div>
-              <label htmlFor="signup-name" className="label">Your name</label>
-              <input id="signup-name" data-field="name" value={name} onChange={e => { setName(e.target.value); typed(); if (error?.field === "name") setError(null); }} autoComplete="name" className="input" placeholder="Jane Smith" aria-invalid={Boolean(fieldError("name"))} aria-describedby={fieldError("name") ? "signup-name-error" : undefined} />
-              {errorLine(fieldError("name"), "signup-name-error")}
             </div>
             <div>
               <label htmlFor="signup-email" className="label">Email</label>
