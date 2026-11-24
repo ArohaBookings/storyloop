@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, BarChart3, Clock, LockKeyhole, MessageCircleHeart, Sparkles, TrendingUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { redirectToLogin } from "@/lib/auth/login-redirect";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { buildPlanningBoard } from "@/lib/planning-board";
 import { hasFeatureAccess } from "@/lib/plans";
@@ -25,20 +26,22 @@ function formatHours(minutes: number) {
 export default async function RoiPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const profile = await getOrCreateProfile(user!);
+  // A signed-out visit crashed here (user was null), as /history did: send it to sign in instead.
+  if (!user) return redirectToLogin();
+  const profile = await getOrCreateProfile(user);
   const canUseRoi = hasFeatureAccess(profile.plan, "directorRoiDashboard");
 
   const [{ data: stories }, { data: children }] = await Promise.all([
     supabase
       .from("stories")
       .select("id, child_id, child_name, story_text, outcomes, next_steps, metadata, created_at")
-      .eq("user_id", user!.id)
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(500),
     supabase
       .from("child_profiles")
       .select("id, name, age_group, interests")
-      .eq("user_id", user!.id)
+      .eq("user_id", user.id)
       .limit(500),
   ]);
 
