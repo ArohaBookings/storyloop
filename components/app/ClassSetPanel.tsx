@@ -18,6 +18,8 @@ export default function ClassSetPanel() {
   const [pieces, setPieces] = useState<ClassPiece[]>([]);
   const [open, setOpen] = useState(false);
   const [sets, setSets] = useState<SentSet[]>([]);
+  // What was just sent stays on screen with its link (shown once) after the tab's set is emptied.
+  const [sent, setSent] = useState<ClassPiece[] | null>(null);
 
   useEffect(() => {
     const read = () => setPieces(listClassSet());
@@ -28,16 +30,20 @@ export default function ClassSetPanel() {
   }, []);
 
   const count = pieces.length;
+  const shown = sent ?? pieces;
   return (
     <>
-      {count > 0 && (
+      {(count > 0 || sent) && (
         <section className="mt-6 rounded-2xl border border-clay-100 bg-cream-50/60 p-4 sm:p-5" data-testid="class-set-panel" aria-live="polite">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-sm font-bold text-ink-900" data-testid="class-set-count">{count} {count === 1 ? "statement" : "statements"} this sitting</h2>
-              <p className="text-xs text-ink-600">{pieces.map((p) => p.childFirstName).join(", ")}. Kept in this tab until you send them.</p>
+              <h2 className="text-sm font-bold text-ink-900" data-testid="class-set-count">{shown.length} {shown.length === 1 ? "statement" : "statements"} {sent ? "sent" : "this sitting"}</h2>
+              <p className="text-xs text-ink-600">{shown.map((p) => p.childFirstName).join(", ")}.{sent ? "" : " Kept in this tab until you send them."}</p>
             </div>
-            {!open && (
+            {sent && (
+              <button type="button" onClick={() => { setSent(null); setOpen(false); }} className="btn-ghost min-h-[44px] px-3 text-xs" data-testid="class-set-done">Done</button>
+            )}
+            {!open && !sent && (
               <button type="button" onClick={() => setOpen(true)} className="btn-secondary min-h-[44px] px-4 text-xs" data-testid="class-set-send">
                 <UserCheck className="h-3.5 w-3.5" /> Check with my leader
               </button>
@@ -46,9 +52,9 @@ export default function ClassSetPanel() {
           {open && (
             <SendToLeader
               kind="set"
-              pieces={pieces}
+              pieces={shown}
               where="statement"
-              onSent={(result) => { if (result?.setId) { clearClassSet(); fetch("/api/leader-sets").then((r) => r.json()).then((d) => d?.sets && setSets(d.sets)).catch(() => {}); } }}
+              onSent={(result) => { if (result?.setId) { setSent(pieces); clearClassSet(); fetch("/api/leader-sets").then((r) => r.json()).then((d) => d?.sets && setSets(d.sets)).catch(() => {}); } }}
             />
           )}
         </section>
