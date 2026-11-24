@@ -7,7 +7,7 @@ import DocumentationTimeCalculator from "@/components/tools/DocumentationTimeCal
 export const metadata: Metadata = {
   title: "Documentation Time Calculator for Early Childhood Centres",
   description:
-    "Work out how many hours your educators spend writing learning stories each month, what that time costs, and what a first draft would change. Free, no signup.",
+    "Work out how many hours your educators spend writing learning stories each month, what that time costs and what a first draft would change. Free.",
   alternates: { canonical: "/documentation-time-calculator" },
   openGraph: {
     title: "How many hours does your centre spend on learning stories?",

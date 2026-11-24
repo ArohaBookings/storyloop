@@ -8,9 +8,11 @@ import { ACCURACY_REPORT as R } from "@/lib/accuracy-report";
 import { buyerPageLive } from "@/lib/buyer-pages";
 
 export const metadata: Metadata = {
-  title: { absolute: "What is a learning story? A plain guide for educators" },
+  // 25 Nov 2026 re-aim: the one page where parents already reach us (Google's AI Overview cites it for
+  // "how do I reply to my child's learning story"), so the title names them too.
+  title: { absolute: "What Is a Learning Story? For Educators and Parents" },
   description:
-    "What a learning story is, where it came from, its three parts (notice, recognise, respond), how it differs from an observation, and a real example.",
+    "A learning story is a short written account of one moment of a child's learning. What goes in one, why centres write them, and how parents can reply.",
   alternates: { canonical: "https://storyloop.space/what-is-a-learning-story" },
   openGraph: { title: "What is a learning story?", description: "The three parts, the history, and a real example.", url: "https://storyloop.space/what-is-a-learning-story", type: "article" },
 };
@@ -91,8 +93,8 @@ export default function WhatIsALearningStoryPage() {
         title={<>What is a <span className="italic text-clay-700">learning story?</span></>}
         answer={
           <p>
-            A learning story is a short written account of something a child did, told as a story, that shows what they
-            were learning and what could come next. The approach was developed in Aotearoa New Zealand in the 1990s by
+            A learning story is a short story an educator writes about one moment of a child&apos;s learning, what it
+            shows, and what could come next. Parents: <a href="#reply" className="font-semibold text-clay-700 underline">how to reply</a> is further down. The approach was developed in Aotearoa New Zealand in the 1990s by
             Margaret Carr and colleagues, and it is now the main way early childhood services in New Zealand assess
             learning under Te Whāriki. Many Australian services use it alongside the EYLF.
           </p>
@@ -100,6 +102,20 @@ export default function WhatIsALearningStoryPage() {
         image="/images/scenes/classroom.jpg"
         imageAlt="An educator holds an iPad showing a StoryLoop learning story draft while two toddlers build a block tower"
       />
+
+      {/* Two short paths (25 Nov 2026): the educator to the note box, the parent to how to reply. No offer to parents. */}
+      <div className="wide-shell pt-10">
+        <div className="grid max-w-4xl gap-3 sm:grid-cols-2" data-testid="two-paths">
+          <a href="#try" className="flex min-h-[44px] flex-col rounded-2xl border border-clay-200 bg-white p-4 shadow-soft hover:border-clay-400" data-track="what_is_path_educator">
+            <span className="text-xs font-bold uppercase tracking-wider text-clay-700">Educator</span>
+            <span className="mt-1 font-semibold text-ink-900">Write one from your note</span>
+          </a>
+          <a href="#reply" className="flex min-h-[44px] flex-col rounded-2xl border border-sage-200 bg-sage-50/80 p-4 shadow-soft hover:border-sage-400" data-track="what_is_path_parent">
+            <span className="text-xs font-bold uppercase tracking-wider text-sage-700">Parent</span>
+            <span className="mt-1 font-semibold text-ink-900">How to reply to your child&apos;s story</span>
+          </a>
+        </div>
+      </div>
 
       <GuideProof framework="NZ" demo="visitor" />
 
@@ -140,6 +156,36 @@ export default function WhatIsALearningStoryPage() {
           <PrintableCard which="templateNz" compact />
           <PrintableCard which="templateAu" compact />
         </div>
+      </GuideSection>
+
+      <GuideSection id="reply" tone="cream" kicker="For parents and whānau" title="How to reply to your child's learning story">
+        <p>
+          A reply does not need to be long or clever. A line from home helps educators know your child better, and it
+          can shape what they offer next.
+        </p>
+        <ul className="list-disc space-y-1.5 pl-6">
+          <li>Say what you noticed or liked in the story.</li>
+          <li>Add something from home: does your child do this there too, or talk about it?</li>
+          <li>Ask a question if you have one, or share an idea for what could come next.</li>
+        </ul>
+        <p>Two example replies, written for this page to show the idea:</p>
+        <div className="grid gap-3 md:grid-cols-2">
+          <blockquote className="rounded-2xl border border-clay-100 bg-paper p-4 text-[15px] italic text-ink-700">
+            Example: &ldquo;We loved this. Mia has been building towers with the couch cushions all week, so this
+            makes sense. She told us the tall one was for the cat.&rdquo;
+          </blockquote>
+          <blockquote className="rounded-2xl border border-clay-100 bg-paper p-4 text-[15px] italic text-ink-700">
+            Example: &ldquo;Thank you for noticing how long he kept trying. At home he gets frustrated with puzzles. Is
+            there anything you say that helps him keep going?&rdquo;
+          </blockquote>
+        </div>
+        <p>
+          Reply wherever your centre shares stories with you. More for families:{" "}
+          <Link href="/for-families" className="font-semibold text-clay-700 underline" data-track="what_is_for_families">
+            what you will see, in plain words
+          </Link>
+          .
+        </p>
       </GuideSection>
 
       <GuideSection id="example" tone="white" kicker="A real example" title="From a two-line note to a story">

@@ -1,5 +1,6 @@
 import type { AnswerBlockId } from "@/lib/answer-blocks";
 import { educatorOffer } from "@/lib/offer-wording";
+import { heldPageOn } from "@/lib/held-pages";
 
 /**
  * Pages for the people who buy (18 Nov 2026, the search re-aim).
@@ -124,6 +125,10 @@ const ACECQA_13 = {
 const ACECQA_NQS = {
   label: "ACECQA: the National Quality Standard",
   url: "https://www.acecqa.gov.au/nqf/national-quality-standard",
+};
+const ACECQA_AR = {
+  label: "ACECQA: the assessment and rating process",
+  url: "https://www.acecqa.gov.au/assessment/assessment-and-rating-process",
 };
 const SECTOR_EXCEEDING = {
   label: "The Sector: Exceeding NQS in 2026, what the latest ACECQA data tells us",
@@ -272,17 +277,26 @@ const PAGES = {
     audience: {
       buyer: "centre",
       who: "An educational leader or head teacher who checks her team's documentation (the person who brings a tool into a centre)",
-      typed: ["educational leader checklist", "educational leader weekly checklist", "educational leader checklist early childhood", "acecqa educational leader checklist"],
+      // 25 Nov 2026 re-aim (analysis/search.json new_pages): leaders search the role, not the checklist.
+      typed: ["educational leader", "educational leader role", "educational leader resources", "educational leader checklist", "educational leader responsibilities"],
       firstScreen: "Copy, in one tap, a message asking her team to write one story in StoryLoop and send it to her to check: the first real story check of her own team's work.",
     },
-    title: "Educational leader checklist: weekly, monthly and per room",
+    title: "Educational Leader Role: What It Is and a Weekly Checklist",
     description:
-      "What an educational leader checks each week, month and term, and how to check one learning story in two minutes, with the educator's note beside it.",
+      "What the educational leader role is under the National Regulations and the NQS, a weekly checklist, and how to check a learning story in two minutes.",
     kicker: "For educational leaders and head teachers",
-    h1: "An educational leader checklist you can actually get through.",
+    h1: "The educational leader role, and a checklist for the week.",
     lead: "The quickest check is one real story. Ask an educator to send you one.",
     action: { kind: "leader_ask" },
     sections: [
+      {
+        id: "the-role",
+        heading: "What the educational leader role is",
+        paragraphs: [
+          "Every approved service in Australia must have one. Regulation 118 of the Education and Care Services National Regulations says the approved provider designates a suitably qualified and experienced educator, co-ordinator or other person as educational leader, to lead the development and implementation of educational programs.",
+          "Element 7.2.2 of the National Quality Standard says the educational leader is supported and leads the development and implementation of the educational program and assessment and planning cycle. In a week, that mostly means reading the team's documentation, coaching, and keeping the cycle moving. In Aotearoa the head teacher or curriculum leader often does the same job.",
+        ],
+      },
       {
         id: "weekly",
         heading: "Every week",
@@ -324,6 +338,13 @@ const PAGES = {
           "Five questions, in order. Is it true to the note? Are the child's words exactly theirs? Does each link point at something that happened? Is there a next step somebody could do next week? Would this family be glad to read it? Say one thing that is right and one thing to change, and let the educator change it.",
         ],
         link: { href: "/how-to-check-a-learning-story", label: "The two-minute check, in full" },
+      },
+      {
+        id: "leader-check",
+        heading: "Check a story with the educator's note beside it",
+        paragraphs: [
+          "In StoryLoop an educator taps Send it to my leader on a story. You get a private link that opens that one story with her note beside it, and you need no account to read it. Tap Looks good, or Suggest a change and say what, and she sees your answer. The link lasts 14 days and she can switch it off at any time.",
+        ],
       },
       {
         id: "unnoticed",
@@ -598,22 +619,43 @@ const PAGES = {
     slug: "exceeding-nqs-documentation",
     audience: {
       buyer: "centre",
-      who: "An Australian director or educational leader working towards an Exceeding rating",
-      typed: ["exceeding nqs themes", "exceeding nqs meaning", "exceeding nqs theme guidance", "nqf exceeding themes"],
-      firstScreen: "Read the three Exceeding themes in one sentence and start her centre's free period with one button, no card (or jump to a real story that shows them).",
+      who: "An Australian director or educational leader with an assessment and rating visit coming, or working towards Exceeding",
+      // 25 Nov 2026 re-aim (analysis/search.json new_pages): directors search the visit, not the theme guidance.
+      typed: ["assessment and rating", "assessment and rating childcare", "assessment and rating documentation", "exceeding nqs"],
+      firstScreen: "Read in one line what an assessor reads in her documentation and start her centre's free period with one button, no card.",
     },
-    title: "Exceeding NQS: what your documentation needs to show",
+    title: "Assessment and Rating: The Documentation Assessors Read",
     description:
-      "The three Exceeding themes in plain words, and what an assessor looks for in your learning stories, planning and reflection to see them.",
+      "What happens at an assessment and rating visit, the Quality Area 1 documentation an assessor reads element by element, and what Exceeding looks like.",
     kicker: "For directors and educational leaders · NQS",
-    h1: "Exceeding the NQS: what your documentation has to show.",
-    // The three themes, as ACECQA names them (checked against ACECQA's own documents, 19 Nov 2026).
-    lead: "For a Standard to be rated Exceeding, an assessor must see three themes in practice: embedded in service operations, informed by critical reflection, and shaped by meaningful engagement with families and/or the community.",
+    h1: "Assessment and rating: what your documentation needs to show.",
+    lead: "At an assessment and rating visit, an authorised officer observes your practice, talks it through with your team and sights your documents. Quality Area 1 is where your documentation is read most closely.",
     action: { kind: "centre" },
     sections: [
       {
+        id: "visit",
+        heading: "What happens at a visit",
+        list: [
+          "Your regulatory authority tells you the visit is coming and asks for your Quality Improvement Plan.",
+          "An authorised officer spends time in the rooms: they observe, discuss and sight. Documentation is what they sight.",
+          "You get a draft report and can give feedback on it before the final report.",
+          "Each quality area gets a rating, and the service gets an overall rating: Significant Improvement Required, Working Towards, Meeting or Exceeding the NQS. Excellent is a separate application to ACECQA.",
+        ],
+        link: { href: "/assessment-and-rating-evidence", label: "The evidence to have ready" },
+      },
+      {
+        id: "quality-area-1",
+        heading: "Quality Area 1, the documentation an assessor reads",
+        list: [
+          "1.3.1 Assessment and planning cycle: each child's learning is assessed as part of an ongoing cycle of observation, analysis, documentation, planning, implementation and reflection. Show the cycle for one child, from a note to a next step that happened.",
+          "1.3.2 Critical reflection: reflection on children's learning, as individuals and in groups, drives planning. Show a team conversation that changed what you offered.",
+          "1.3.3 Information for families: families are told about the program and their child's progress. Show stories families have read, and what they said back.",
+        ],
+        link: { href: "/nqs-standard-1-3-assessment-and-planning", label: "Standard 1.3, element by element" },
+      },
+      {
         id: "themes",
-        heading: "The three themes, plainly",
+        heading: "What Exceeding needs: three themes",
         list: [
           "Embedded in service operations: the practice is usual for that Standard, across the service, not a one-off.",
           "Informed by critical reflection: the team keeps questioning and re-evaluating its practice to make it better for children, families and educators.",
@@ -632,6 +674,18 @@ const PAGES = {
           "Next steps too vague to act on, that nobody comes back to.",
           "Family voice that never reaches the next story.",
           "Reflection written once a term, not part of the week.",
+        ],
+      },
+      {
+        id: "two-weeks",
+        heading: "A two-week tidy-up plan for the leader",
+        list: [
+          "Week 1: count stories per child this term, not pages, and list the children with none.",
+          "Week 1: read one story from each educator with the five questions: true to the note, the child's own words, a reason for each link, a next step, would the family be glad to read it.",
+          "Week 1: check last month's next steps against the planning. Did they happen?",
+          "Week 2: write up the children with no story, from notes the team already has.",
+          "Week 2: talk one story through as a team, and write down what you would change.",
+          "Week 2: check family voice is reaching the next story.",
         ],
       },
       {
@@ -656,6 +710,10 @@ const PAGES = {
         a: "All three. A Standard is rated Exceeding only when all three themes are shown in practice for that Standard.",
       },
       {
+        q: "What ratings can a service get?",
+        a: "Significant Improvement Required, Working Towards NQS, Meeting NQS or Exceeding NQS, for each quality area and overall. A service rated Exceeding NQS overall can apply to ACECQA for the Excellent rating.",
+      },
+      {
         q: "Can software make a service Exceeding?",
         a: "No. Exceeding is about practice. Documentation is part of the evidence an assessor reads, not the practice itself.",
       },
@@ -665,8 +723,9 @@ const PAGES = {
       { href: "/nqs-standard-1-3-assessment-and-planning", title: "NQS Standard 1.3", body: "What assessors look for in assessment and planning, element by element." },
       { href: "/critical-reflection-early-childhood", title: "Critical reflection", body: "Three examples, a filled-in template and the NQS 1.3.2 evidence list." },
       { href: "/assessment-and-rating-evidence", title: "Assessment and rating", body: "The evidence to have ready in the few days' notice you get." },
+      { href: "/educational-leader-checklist", title: "The educational leader role", body: "What the role is, and a checklist for the week." },
     ],
-    sources: [ACECQA_NQS, ACECQA_13, SECTOR_EXCEEDING],
+    sources: [ACECQA_AR, ACECQA_NQS, ACECQA_13, SECTOR_EXCEEDING],
     reviewedAt: REVIEWED,
   },
 } satisfies Record<string, BuyerPage>;
@@ -685,7 +744,8 @@ export const BUYER_PAGE_SLUGS = Object.keys(BUYER_PAGES) as BuyerSlug[];
  * be reached. Their code stays here, switched off. While this is false each of
  * them answers 404 (page and share image), is left out of the sitemap, and no
  * page links to it: every link list goes through liveLinks() or relatedFor().
- * Switching it on puts all four back exactly as they were built.
+ * Switching it on puts all four back exactly as they were built. Each one also
+ * has its own switch in lib/held-pages.ts (25 Nov 2026), to release them one by one.
  */
 export const HELD_BUYER_PAGES_ON = false;
 
@@ -698,7 +758,7 @@ export const HELD_BUYER_SLUGS: readonly BuyerSlug[] = [
 
 /** Whether a buyer page is served in this release. Pure. */
 export function buyerPageLive(slug: BuyerSlug): boolean {
-  return HELD_BUYER_PAGES_ON || !HELD_BUYER_SLUGS.includes(slug);
+  return HELD_BUYER_PAGES_ON || !HELD_BUYER_SLUGS.includes(slug) || heldPageOn(slug);
 }
 
 /** The buyer pages this release serves: the sitemap lists these, and only these. */
@@ -708,7 +768,7 @@ export const LIVE_BUYER_PAGE_SLUGS: BuyerSlug[] = BUYER_PAGE_SLUGS.filter(buyerP
 export function isHeldPath(href: string): boolean {
   if (HELD_BUYER_PAGES_ON) return false;
   const path = href.replace(/^https:\/\/storyloop\.space/, "").split(/[?#]/)[0].replace(/\/$/, "");
-  return HELD_BUYER_SLUGS.some((slug) => path === `/${slug}`);
+  return HELD_BUYER_SLUGS.some((slug) => path === `/${slug}` && !heldPageOn(slug));
 }
 
 /** A list of links without the held pages. Pure. */

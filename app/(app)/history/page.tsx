@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { redirectToLogin } from "@/lib/auth/login-redirect";
 import Link from "next/link";
 import { BookOpen, Sparkles } from "lucide-react";
 import StoryHistoryItem from "@/components/app/StoryHistoryItem";
@@ -14,15 +15,17 @@ export default async function HistoryPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const profile = await getOrCreateProfile(user!);
+  // A signed-out visit used to crash here (user was null). The layout's own redirect does not stop the page rendering.
+  if (!user) return redirectToLogin();
+  const profile = await getOrCreateProfile(user);
   const { data: stories } = await supabase
     .from("stories")
     .select("*")
-    .eq("user_id", user!.id)
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false });
-  const checks = await latestChecksByStory(user!.id);
+  const checks = await latestChecksByStory(user.id);
   // What her centre's leaders said about her shared stories (18 Nov 2026). Empty for anyone not in a centre.
-  const centreReviews = await reviewsForAuthor(user!.id, { markSeen: true });
+  const centreReviews = await reviewsForAuthor(user.id, { markSeen: true });
 
   return (
     <div className="w-full max-w-none p-4 sm:p-6 md:p-8">

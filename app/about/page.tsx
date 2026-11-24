@@ -7,6 +7,7 @@ import Footer from "@/components/landing/Footer";
 import PageTracker from "@/components/analytics/PageTracker";
 import TrustStatement from "@/components/marketing/TrustStatement";
 import ExitFeedback from "@/components/landing/ExitFeedback";
+import { founderCountLine } from "@/lib/founder-facts";
 
 export const metadata: Metadata = {
   title: { absolute: "About StoryLoop: who builds it, and why" },
@@ -123,14 +124,14 @@ export default function AboutPage() {
                     sizes="(max-width: 768px) 220px, 220px"
                   />
                   <p className="mt-3 text-center text-xs leading-relaxed text-ink-500 md:text-left">
-                    Leo, 20<br />
+                    Leo<br />
                     <span className="text-ink-400">Ōtautahi Christchurch, Aotearoa</span>
                   </p>
                 </div>
 
                 <div className="min-w-0 space-y-5 text-[17px] leading-relaxed text-ink-700">
                   <h2 className="font-display text-3xl font-bold leading-tight text-ink-900 md:text-4xl">
-                    Hi, I&apos;m Leo. I built the first version of this when I was 19.
+                    Hi, I&apos;m Leo. I build StoryLoop in Ōtautahi Christchurch.
                   </h2>
                   <p>
                     I am not an early childhood teacher. I want to be upfront about that, because it would be easy
@@ -157,8 +158,7 @@ export default function AboutPage() {
                     week.
                   </p>
                   <p className="font-display text-xl leading-snug text-ink-900">
-                    I am 20, building this for a sector I did not grow up in. What keeps it honest is that the
-                    people using it tell me, straight, when I get it wrong.
+                    {founderCountLine("StoryLoop has been live since May 2026. Since then")}
                   </p>
                 </div>
               </div>
@@ -209,6 +209,14 @@ export default function AboutPage() {
                 The honest trade-off: one person ships big features slower than a company with thirty engineers,
                 and if it is the middle of the night in New Zealand your email waits until morning. What you get
                 back is that the person who built the thing is the person who reads your message.
+              </p>
+              {/* For centres (25 Nov 2026): the age is said once, here, with the answer to the worry beside it. */}
+              <p>
+                I&apos;m 20 and I build StoryLoop on my own. If you run a centre and that worries you, email me at{" "}
+                <a href="mailto:ariacareapp@gmail.com" className="text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900">
+                  ariacareapp@gmail.com
+                </a>{" "}
+                and ask me anything. Your stories stay in your account, and you can export all of them at any time.
               </p>
               {/* The plain facts a director checks before putting a team on
                   something, in one place instead of scattered through prose. */}

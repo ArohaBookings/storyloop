@@ -32,6 +32,7 @@ import type { HeroExample } from "@/components/marketing/GuideHeroDrafter";
 import StatementGuideHero from "@/components/marketing/StatementGuideHero";
 import DrafterSeen from "@/components/marketing/DrafterSeen";
 import GuideProductBlock from "@/components/marketing/GuideProductBlock";
+import { guideProductHasDemo } from "@/lib/guide-product";
 import ExitFeedback from "@/components/landing/ExitFeedback";
 import PlanChooser from "@/components/landing/PlanChooser";
 
@@ -284,6 +285,8 @@ export default async function SeoPage({ params }: PageProps) {
   const demo = TRANSITION_DEMOS[page.slug];
   const heroDrafter = HERO_DRAFTER_SLUGS.has(page.slug) && demo ? demo : null;
   const productHero = PRODUCT_HERO[page.slug] ?? null;
+  // The note box sits in the product block under the intro (lib/guide-product.ts): one box per page.
+  const productBlockDemo = guideProductHasDemo(page.slug);
   // Never a link to a page held out of the release (lib/buyer-pages.ts HELD_BUYER_PAGES_ON).
   const siblingLinks = liveLinks(page.siblingLinks?.links ?? []);
   // A first screen with a tool on it, or a centre's one button: less space above on a phone.
@@ -427,7 +430,7 @@ export default async function SeoPage({ params }: PageProps) {
                     See the founding offer
                   </Link>
                 </>
-              ) : productHero ? (
+              ) : productHero || productBlockDemo ? (
                 // The note box is on the first screen already; this is the way on for someone ready now.
                 <Link href="/signup" className="btn-secondary justify-center" data-track="guide_hero_start">
                   Start free
@@ -579,7 +582,7 @@ export default async function SeoPage({ params }: PageProps) {
           <GuideProof
             framework={AU_SLUGS.has(page.slug) ? "AU" : "NZ"}
             demo={AU_SLUGS.has(page.slug) ? "AU" : NZ_SLUGS.has(page.slug) ? "NZ" : "visitor"}
-            withTry={!productHero}
+            withTry={!productHero && !productBlockDemo}
           />
         )}
 

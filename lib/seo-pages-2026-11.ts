@@ -121,7 +121,7 @@ export const NOV_2026_PAGES: Record<string, SeoPage> = {
     slug: "writing-learning-stories-english-second-language",
     title: "Writing Learning Stories in English as a Second Language",
     description:
-      "For educators who think in another language: how to write a clear learning story in English without losing what you noticed or what the child actually said.",
+      "For educators who think in another language: how to write a clear learning story in English without losing what you noticed or what the child said.",
     kicker: "For educators · writing in a second language",
     heading: "You noticed it in your own language. Start there.",
     intro:
@@ -185,7 +185,7 @@ export const NOV_2026_PAGES: Record<string, SeoPage> = {
     slug: "how-to-check-a-learning-story",
     title: "How to Check a Learning Story: A Leader's Two-Minute Guide",
     description:
-      "What an educational leader or head teacher should check in a learning story before families see it: five questions, about two minutes, and feedback that helps.",
+      "What an educational leader or head teacher should check in a learning story before families see it: five questions, about two minutes, feedback that helps.",
     kicker: "For educational leaders and head teachers",
     heading: "Check a learning story in two minutes, and say something useful.",
     intro:

@@ -134,13 +134,13 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
   // are our plain-words summaries; the official wording is linked.
   "nqs-standards": {
     slug: "nqs-standards",
-    title: "NQS Standards 2026: All 7 Quality Areas and 40 Elements",
+    title: "NQS 2026: All 7 Quality Areas and 40 Elements, Explained",
     description:
-      "The revised National Quality Standard from 1 January 2026 in plain words: all 7 quality areas, 15 standards and 40 elements, and what changed for child safety.",
+      "The revised National Quality Standard in plain words: 7 quality areas, 40 elements, what changed in 2026 and what Quality Area 1 asks you to show.",
     kicker: "Australia · NQS 2026",
-    heading: "The National Quality Standard in plain words, revised for 2026.",
+    heading: "The NQS in 2026: all 7 quality areas and 40 elements.",
     intro:
-      "The National Quality Standard (NQS) is the benchmark Australian early childhood and outside school hours care services are assessed and rated against. It has 7 quality areas, 15 standards and 40 elements, and every service gets a rating for each quality area and an overall rating. It was revised from 1 January 2026 to strengthen child safety in Quality Areas 2 and 7. This page lists every standard and element with what it means in practice, and where your documentation counts.",
+      "The National Quality Standard in plain words, for the educational leader and the room. It has 7 quality areas, 15 standards and 40 elements, and every service is rated on each quality area and overall. It was revised from 1 January 2026 to strengthen child safety in Quality Areas 2 and 7. Quality Area 1 is where your documentation is read, so it comes first.",
     reviewedAt: "2026-11-03",
     sections: [
       {
@@ -534,7 +534,7 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
     // Statement page ("Access the Transition to School Digital Statement").
     title: "NSW Transition to School Statement 2026: Login and Examples",
     description:
-      "Where to log in to the NSW Transition to School Digital Statement, what each section asks for, example wording, and a draft of the outcomes from your notes.",
+      "Where to log in to the NSW Transition to School Digital Statement, what each section asks for, example wording and a draft of the outcomes from your notes.",
     kicker: "New South Wales · Term 4 2026",
     heading: "The NSW Transition to School Statement, section by section.",
     officialLinks: {
@@ -833,7 +833,7 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
     kicker: "Educator guide · EYLF V2.0",
     heading: "EYLF observation examples, from the rough note to the learning story.",
     intro:
-      "Six short examples, from a baby to a child about to start school. Each one shows the note an educator might jot down in the moment, the observation written from it, the EYLF V2.0 outcome and key component it shows, a next step, and the learning story paragraph it becomes. The children are imagined, to show the shape. Yours should come from what you saw today.",
+      "Six EYLF observations, from a baby to a child about to start school, each from a rough note: the observation, the V2.0 outcome it shows, a next step and the learning story paragraph it becomes. The children are imagined, to show the shape. Put your own rough note in the box and get it written up as a learning story.",
     reviewedAt: "2026-11-03",
     sections: [
       {

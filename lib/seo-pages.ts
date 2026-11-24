@@ -432,7 +432,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     slug: "story-quality-check",
     title: "Story Quality Check for Learning Stories",
     description:
-      "StoryLoop reviews learning story drafts for educator tone, evidence, child voice, curriculum fit, next steps, and invented-detail risk before educators edit.",
+      "StoryLoop reviews learning story drafts for tone, evidence, child voice, curriculum fit, next steps and invented-detail risk before educators edit.",
     kicker: "Educator review helper",
     heading: "A story quality check before the draft reaches you.",
     intro:
@@ -1726,13 +1726,13 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
   "intentional-teaching": {
     slug: "intentional-teaching",
-    title: "Intentional Teaching in Early Childhood: Examples by Age",
+    title: "Intentional Teaching Examples for Childcare, by Age",
     description:
-      "What intentional teaching means, the strategies educators use every day, examples for babies, toddlers and preschoolers, and how to show it in a learning story.",
+      "Intentional teaching examples for babies, toddlers and preschoolers, the strategies behind them, and how to show intentional teaching in a learning story.",
     kicker: "Teaching practice · Australia and Aotearoa",
-    heading: "Intentional teaching: purposeful, not scripted.",
+    heading: "Intentional teaching examples, by age.",
     intro:
-      "Intentional teaching means being deliberate, purposeful and thoughtful about your decisions and actions, inside children's play as much as in planned experiences. In the EYLF V2.0 it sits within the practice of play-based learning and intentionality. It does not mean adult-led lessons: it means knowing why you step in, how, and when to step back.",
+      "Intentional teaching is what you do on purpose to stretch a child's learning, inside play as much as in planned experiences. It does not mean adult-led lessons: it means knowing why you step in, how, and when to step back. Examples by age are below. Got a story to write about it? Put your note in the box.",
     image: { src: "/images/scenes/classroom.jpg", alt: "An educator in a centre with a tablet, children building with blocks in the background", position: "45% 60%" },
     sections: [
       {
@@ -1849,13 +1849,13 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   },
   "observation-methods-early-childhood": {
     slug: "observation-methods-early-childhood",
-    title: "Observation Methods in Early Childhood: Types and Examples",
+    title: "Observation Methods: Anecdotal, Running Record and More",
     description:
-      "Jottings, anecdotal records, running records, learning stories, work samples, checklists, time and event samples: what each is for, with worked examples.",
+      "Jottings, anecdotal records, running records and learning stories: when to use each, a worked example of each, and a quick way to write yours up.",
     kicker: "Observation and documentation",
-    heading: "Observation methods: which one, and when.",
+    heading: "Observation methods in early childhood, with an example of each.",
     intro:
-      "There is no single required observation method. Most educators use a mix: quick jottings, anecdotal records, running records, learning stories, photos and work samples, checklists, and time or event samples. ACECQA says there is no one way to meet documentation requirements, so pick the method that fits what you are trying to understand, and write what you saw before what you think it means.",
+      "Most days you jot something down in the room and write it up later. There is no single required method: ACECQA says there is no one way to meet documentation requirements. Here is each method side by side, and a box below that turns your jotting into a learning story.",
     image: { src: "/images/scenes/kitchen.jpg", alt: "An educator at home reading a learning story draft on her laptop", position: "62% 50%" },
     sections: [
       {
@@ -2002,7 +2002,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     slug: "eylf-v2-changes",
     title: "EYLF V2.0 Changes: What Is New Since Version 1",
     description:
-      "What changed in EYLF V2.0: three new principles, seven practices instead of eight, reworded sub-outcomes, and the dates it took effect, checked against ACECQA.",
+      "What changed in EYLF V2.0: three new principles, seven practices instead of eight, reworded sub-outcomes and when it took effect, checked against ACECQA.",
     kicker: "EYLF V2.0 · Australia",
     heading: "What changed in EYLF V2.0, and what it means for your documentation.",
     intro:
@@ -2085,6 +2085,13 @@ for (const page of Object.values(INTERNATIONAL_PAGES)) {
 import { NOV_2026_PAGES } from "./seo-pages-2026-11";
 for (const page of Object.values(NOV_2026_PAGES)) {
   SEO_PAGES[page.slug] = { ...page, faqs: [...page.faqs, ...sharedFaqs] };
+}
+
+// Re-aimed guides built and held, 25 Nov 2026 (lib/seo-pages-held.ts): same URL, new words, only when switched on.
+import { EYLF_PLANNING_CYCLE_REAIM } from "./seo-pages-held";
+import { heldPageOn } from "./held-pages";
+if (heldPageOn("eylf-planning-cycle")) {
+  SEO_PAGES["eylf-planning-cycle"] = { ...EYLF_PLANNING_CYCLE_REAIM, faqs: [...EYLF_PLANNING_CYCLE_REAIM.faqs, ...sharedFaqs] };
 }
 
 // Attach long-form bodies to the pages that have them. Kept separate so the

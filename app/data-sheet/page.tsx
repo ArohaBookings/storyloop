@@ -35,7 +35,7 @@ import PageTracker from "@/components/analytics/PageTracker";
 export const metadata: Metadata = {
   title: { absolute: "StoryLoop data sheet" },
   description:
-    "One printable page for owners, boards and approved providers: who runs StoryLoop, what goes in, where it is stored, who processes it, export, deletion and price.",
+    "One printable page for owners, boards and approved providers: who runs StoryLoop, what goes in, where it is stored, who processes it, deletion and price.",
   alternates: { canonical: "/data-sheet" },
   robots: { index: true, follow: true },
   openGraph: {
@@ -86,6 +86,7 @@ const ROWS: Row[] = [
       "Children's first names, the educator's note (written or recorded), the learning story drafted from it, and the child profiles an educator chooses to create.",
       "For the account: the educator's name, email address and a hashed password.",
       "A voice memo is turned into text and not kept as audio. A photo of written notes is read into text and not kept.",
+      "If an educator gives a family a Family link, what the family writes back is kept with the story and shown only to that educator.",
     ],
   },
   {
@@ -107,7 +108,8 @@ const ROWS: Row[] = [
     lines: [
       "Supabase: stores the database, on Amazon Web Services in Sydney.",
       "Vercel: hosts the website and runs the servers.",
-      "OpenAI or Anthropic, in the United States: draft stories. OpenAI transcribes voice notes and reads photos of written notes.",
+      "OpenAI or Anthropic, in the United States: draft stories, statements and summaries, and help an educator edit a draft.",
+      "OpenAI, in the United States: transcribes voice notes and a child's recorded words, reads photos of written notes, splits a group note into one note per child, and translates. That covers a note written in another language, a story an educator translates for a family, a family's reply read back into English, and a wall card's translations.",
       "Stripe: processes payments. StoryLoop never sees or stores card details.",
       "Resend: delivers emails.",
       "Ads: if someone arrives from one of StoryLoop's ads and signs up, Meta or Google is told that it happened. Nothing about the children you teach is ever sent to them.",
@@ -140,7 +142,7 @@ const ROWS: Row[] = [
   {
     label: "Deletion",
     lines: [
-      "Delete any story or child profile yourself at any time.",
+      "Delete any child profile yourself at any time. To delete a single story, email ariacareapp@gmail.com and it is deleted within 30 days.",
       "Or email ariacareapp@gmail.com and the whole account, stories and child profiles are deleted within 30 days. Backups are overwritten on a rolling cycle after that.",
     ],
   },
