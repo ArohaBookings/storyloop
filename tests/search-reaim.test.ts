@@ -75,3 +75,26 @@ test("each owned sentence appears once in the code", () => {
     assert.equal(count, 1, entry.ownedSentence);
   }
 });
+
+test("all 12 owned sentences from the search re-aim have a place", () => {
+  const places = [
+    "nsw-transition-to-school-statement",
+    "tlds-examples",
+    "blog/learning-story-examples-templates",
+    "eylf-learning-outcomes",
+    "eylf-learning-outcomes/outcome-5",
+    "qld-kindergarten-transition-statement",
+    "transition-statement-consent-form",
+    "te-whariki-learning-outcomes-guide",
+    "summative-assessment-examples",
+    "learning-story-template",
+    "eylf-learning-outcomes/outcome-4",
+    "observation-methods-early-childhood",
+  ];
+  for (const place of places) {
+    const entry = GUIDE_PRODUCT[place];
+    assert.ok(entry && entry.kind !== "leader" && entry.ownedSentence, place);
+  }
+  const blog = readFileSync(new URL("../app/blog/[slug]/page.tsx", import.meta.url), "utf8");
+  assert.match(blog, /ProductBlockFor slug=\{`blog\/\$\{post\.slug\}`\}/);
+});

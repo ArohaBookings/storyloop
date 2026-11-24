@@ -171,7 +171,7 @@ export default function WhatIsALearningStoryPage() {
         <p>Two example replies, written for this page to show the idea:</p>
         <div className="grid gap-3 md:grid-cols-2">
           <blockquote className="rounded-2xl border border-clay-100 bg-paper p-4 text-[15px] italic text-ink-700">
-            Example: &ldquo;We loved this. Aroha has been building towers with the couch cushions all week, so this
+            Example: &ldquo;We loved this. Mia has been building towers with the couch cushions all week, so this
             makes sense. She told us the tall one was for the cat.&rdquo;
           </blockquote>
           <blockquote className="rounded-2xl border border-clay-100 bg-paper p-4 text-[15px] italic text-ink-700">

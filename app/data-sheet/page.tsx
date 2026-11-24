@@ -35,7 +35,7 @@ import PageTracker from "@/components/analytics/PageTracker";
 export const metadata: Metadata = {
   title: { absolute: "StoryLoop data sheet" },
   description:
-    "One printable page for owners, boards and approved providers: who runs StoryLoop, what goes in, where it is stored, who processes it, export, deletion and price.",
+    "One printable page for owners, boards and approved providers: who runs StoryLoop, what goes in, where it is stored, who processes it, deletion and price.",
   alternates: { canonical: "/data-sheet" },
   robots: { index: true, follow: true },
   openGraph: {

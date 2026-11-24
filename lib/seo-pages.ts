@@ -432,7 +432,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     slug: "story-quality-check",
     title: "Story Quality Check for Learning Stories",
     description:
-      "StoryLoop reviews learning story drafts for educator tone, evidence, child voice, curriculum fit, next steps, and invented-detail risk before educators edit.",
+      "StoryLoop reviews learning story drafts for tone, evidence, child voice, curriculum fit, next steps and invented-detail risk before educators edit.",
     kicker: "Educator review helper",
     heading: "A story quality check before the draft reaches you.",
     intro:
@@ -2002,7 +2002,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     slug: "eylf-v2-changes",
     title: "EYLF V2.0 Changes: What Is New Since Version 1",
     description:
-      "What changed in EYLF V2.0: three new principles, seven practices instead of eight, reworded sub-outcomes, and the dates it took effect, checked against ACECQA.",
+      "What changed in EYLF V2.0: three new principles, seven practices instead of eight, reworded sub-outcomes and when it took effect, checked against ACECQA.",
     kicker: "EYLF V2.0 · Australia",
     heading: "What changed in EYLF V2.0, and what it means for your documentation.",
     intro:

@@ -10,6 +10,7 @@ import { getPublishedPost, listPublishedPosts, renderMarkdown, readingMinutes, p
 import AnswerList from "@/components/buyer/AnswerList";
 import { answerBlocksFor, splitAfterFirstExample } from "@/lib/answer-blocks";
 import { ORGANIZATION_REF } from "@/lib/site-identity";
+import { ProductBlockFor } from "@/components/marketing/GuideProductBlock";
 
 export const revalidate = 300;
 
@@ -146,6 +147,8 @@ export default async function BlogPostPage({ params }: Params) {
         {/* A post with an answer block but no worked example to follow: the block follows the whole post. */}
         {!answerSplit && <AnswerList blocks={answers} heading="About StoryLoop" />}
 
+        {/* The sentence assistants quote, just above the note box (25 Nov 2026, lib/guide-product.ts; nothing for other posts). */}
+        {!forFamilies && <ProductBlockFor slug={`blog/${post.slug}`} className="" wrapperClassName="mx-auto w-full max-w-3xl px-4 pt-6 sm:px-6" />}
         {!forFamilies && <GuideProof framework={post.region === "AU" ? "AU" : "NZ"} demo="visitor" />}
 
         {others.length > 0 && (

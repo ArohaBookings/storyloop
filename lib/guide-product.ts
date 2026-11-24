@@ -61,6 +61,23 @@ export const GUIDE_PRODUCT: Record<string, GuideProductEntry> = {
     kind: "sentence",
     ownedSentence: "Once consent is sorted, StoryLoop drafts the statement itself from your own notes about the child, for you to check line by line.",
   },
+  // The three statement guides open on their own drafter (TRANSITION_DEMOS in app/[slug]/page.tsx, no signup),
+  // so "Free to try on this page" is true there; lib/ai/transition-draft.ts holds VEYLDF, EYLF and QKLG.
+  "nsw-transition-to-school-statement": {
+    kind: "sentence",
+    ownedSentence:
+      "StoryLoop drafts the NSW Transition to School Statement from your own notes about the child: you check every line, then copy it into the department's digital statement. Free to try on this page.",
+  },
+  "tlds-examples": {
+    kind: "sentence",
+    ownedSentence:
+      "StoryLoop drafts a Victorian TLDS from your own notes, written against the VEYLDF outcomes: you check every line, then copy it into Insight. Free to try on this page.",
+  },
+  "qld-kindergarten-transition-statement": {
+    kind: "sentence",
+    ownedSentence:
+      "StoryLoop drafts the Queensland kindergarten transition statement from your own notes, written against the QKLG: you check every line before it goes into the KTS app. Free to try on this page.",
+  },
   "summative-assessment-examples": {
     kind: "sentence",
     // lib/child-statement.ts drafts a summary from saved observations and keeps only quotes the educator wrote.
@@ -93,6 +110,13 @@ export const GUIDE_PRODUCT: Record<string, GuideProductEntry> = {
   "eylf-learning-outcomes/outcome-5": {
     kind: "sentence",
     ownedSentence: "To link a story to Outcome 5, StoryLoop drafts the learning story from your own note with the EYLF V2.0 outcomes it shows, and you check every word.",
+  },
+  // A post from the blog store: its words are not in the code (proposed edits go to the release step),
+  // but the page template shows this sentence above the post's note box (app/blog/[slug]/page.tsx).
+  "blog/learning-story-examples-templates": {
+    kind: "sentence",
+    ownedSentence:
+      "StoryLoop is an app that writes the learning story from an educator's own note, linked to Te Whāriki or the EYLF, for the educator to check. Free for 3 stories a month.",
   },
   // /ai-policy: no entry. Its page already ends on a centre block that gives the free period and links
   // /for-centres (app/ai-policy/page.tsx, data-testid ai-policy-centre), which is all ruling C3(b) allows.

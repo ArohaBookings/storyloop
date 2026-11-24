@@ -13,7 +13,7 @@ export const revalidate = 86400;
 export const metadata: Metadata = {
   title: "Learning stories in numbers",
   description:
-    "How early childhood educators in New Zealand and Australia use StoryLoop: note length, draft length, curriculum links and privacy checks, from real use, updated daily.",
+    "How educators in New Zealand and Australia use StoryLoop: note length, draft length, curriculum links and privacy checks, from real use, updated daily.",
   alternates: { canonical: "/learning-story-data" },
   openGraph: {
     title: "Learning stories in numbers",

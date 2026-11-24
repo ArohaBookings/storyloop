@@ -534,7 +534,7 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
     // Statement page ("Access the Transition to School Digital Statement").
     title: "NSW Transition to School Statement 2026: Login and Examples",
     description:
-      "Where to log in to the NSW Transition to School Digital Statement, what each section asks for, example wording, and a draft of the outcomes from your notes.",
+      "Where to log in to the NSW Transition to School Digital Statement, what each section asks for, example wording and a draft of the outcomes from your notes.",
     kicker: "New South Wales · Term 4 2026",
     heading: "The NSW Transition to School Statement, section by section.",
     officialLinks: {

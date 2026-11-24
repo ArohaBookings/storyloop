@@ -8,7 +8,7 @@ import ReviewReadinessCheck from "@/components/tools/ReviewReadinessCheck";
 export const metadata: Metadata = {
   title: "Review Visit Readiness Check for Early Childhood Services",
   description:
-    "Ten honest questions about your documentation, answered in two minutes. See the gaps a review conversation would surface, in the order to fix them. Free, no signup.",
+    "Ten honest questions about your documentation, answered in two minutes: the gaps a review conversation would surface, in the order to fix them. Free.",
   alternates: { canonical: "/review-readiness-check" },
   openGraph: {
     title: "Would your documentation hold up if the call came tomorrow?",
