@@ -1,4 +1,6 @@
 "use client";
+import { CENTRE_START_NO_CHECKOUT } from "@/lib/build-switches";
+import { paidPlanDestination } from "@/lib/centre-start-client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -389,19 +391,14 @@ export default function SignupForm({ initialPlan = null, initialNext = null }: {
 
       if (plan !== "free") {
         // The account exists now: whatever happens to checkout, Billing is the way on.
-        const checkoutData = await fetch("/api/stripe/checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ plan, currency, sessionId: getSessionId() }),
-        })
-          .then(async (r) => (r.ok ? await r.json().catch(() => ({})) : {}))
-          .catch(() => ({}));
-        if (typeof checkoutData.url !== "string" || !checkoutData.url) {
+        // A centre starts free with no payment page; anything else goes to checkout (lib/centre-start-client.ts).
+        const next = await paidPlanDestination({ plan, currency, sessionId: getSessionId() });
+        if (!next) {
           setError(signupErrorView("checkout_failed", ""));
           finish();
           return;
         }
-        window.location.replace(checkoutData.url);
+        window.location.replace(next);
         return;
       }
 
@@ -523,7 +520,9 @@ export default function SignupForm({ initialPlan = null, initialNext = null }: {
           </h1>
           <p className="mb-3 text-sm text-ink-500 sm:mb-4">
             {isCentre
-              ? "Then confirm the centre plan. No card needed."
+              ? CENTRE_START_NO_CHECKOUT
+                ? "Your centre starts free now. No card needed, and no payment page."
+                : "Then confirm the centre plan. No card needed."
               : isPaidPlan
                 ? "Then your trial starts on secure checkout."
                 : destination === "/statement"

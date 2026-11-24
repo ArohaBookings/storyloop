@@ -10,7 +10,6 @@ import SendToLeader from "../components/app/SendToLeader";
 import SourceLines from "../components/app/SourceLines";
 import GuideProductBlock from "../components/marketing/GuideProductBlock";
 import StatementGuideHero from "../components/marketing/StatementGuideHero";
-import { POST as startFree } from "../app/api/centres/start-free/route";
 import type { SeoPage } from "../lib/seo-pages";
 
 (globalThis as unknown as { React: typeof React }).React = React; // the components use the classic JSX runtime
@@ -36,7 +35,18 @@ test("the five switches exist, are plain booleans, and are set as ruled on 24 No
 // Every file that reads a switch, and the test that proves what it does with
 // that switch false. A lane that makes a file read a switch adds it here with
 // its test; a reader missing from this list fails the build.
-const SWITCH_READERS: Record<string, string> = {};
+const SWITCH_READERS: Record<string, string> = {
+  // Lane B (statements pay today). Off: no rewrite, the old wall, checkout keeps the free week.
+  [path.join("lib", "statement-gate-server.ts")]: "tests/statements-pay-today-off.test.ts",
+  [path.join("components", "app", "AppLimitWall.tsx")]: "tests/statements-pay-today-off.test.ts",
+  [path.join("app", "api", "stripe", "start-today", "route.ts")]: "tests/statements-pay-today-off.test.ts",
+  [path.join("app", "api", "stripe", "checkout", "route.ts")]: "tests/checkout-terms-statement.test.ts",
+  // Lane B (centre start with no payment page). Off: today's checkout page, nobody joined by the route.
+  [path.join("app", "api", "centres", "start-free", "route.ts")]: "tests/centre-start.test.ts",
+  [path.join("app", "api", "centres", "route.ts")]: "tests/centre-start.test.ts",
+  [path.join("lib", "centre-start-client.ts")]: "tests/centre-start.test.ts",
+  [path.join("app", "(auth)", "signup", "SignupForm.tsx")]: "tests/centre-start.test.ts",
+};
 
 function sourceFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((entry) => {
@@ -64,9 +74,7 @@ test("the stubs change nothing a person sees", async () => {
   assert.equal(renderToStaticMarkup(React.createElement(SourceLines, { note: "n", text: "Mia & the tower", kind: "story" })), "Mia &amp; the tower");
   assert.equal(renderToStaticMarkup(React.createElement(GuideProductBlock, { page: { slug: "x" } as SeoPage })), "");
   assert.deepEqual(await joinFromLeaderOffer("a", "b"), { joined: false });
-  const response = await startFree();
-  assert.equal(response.status, 501);
-  assert.deepEqual(await response.json(), { error: "Not available yet.", code: "not_built" });
+  // start-free is built now (lane B): tests/centre-start.test.ts.
 });
 
 test("the guide slot renders the official links as the page did", () => {
