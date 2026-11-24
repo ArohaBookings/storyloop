@@ -524,7 +524,7 @@ export default function SignupForm({ initialPlan = null, initialNext = null }: {
           <p className="mb-3 text-sm text-ink-500 sm:mb-4">
             {isCentre
               ? CENTRE_START_NO_CHECKOUT
-                ? "Your centre starts free now. No card needed, and no payment page."
+                ? "Your centre starts free now. No card needed."
                 : "Then confirm the centre plan. No card needed."
               : isPaidPlan
                 ? "Then your trial starts on secure checkout."
@@ -540,9 +540,9 @@ export default function SignupForm({ initialPlan = null, initialNext = null }: {
           {notice && (
             <p role="status" className="mb-3 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-xs text-amber-700">{notice}</p>
           )}
-          {noteKept && !keptWaiting && (
+          {noteKept && (
             <p role="status" className="mb-3 rounded-xl border border-sage-200 bg-sage-50 px-3 py-2 text-sm text-ink-800" data-testid="kept-note-waiting">
-              Your note is kept. Create your account and it is in the box, ready to write.
+              Your note is kept. Create your account and it will be in the box, ready to write.
             </p>
           )}
           {keptWaiting && (

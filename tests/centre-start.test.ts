@@ -35,7 +35,7 @@ test("CENTRE_START_NO_CHECKOUT off: the route sends everyone to checkout, nobody
   assert.match(route, /if \(!CENTRE_START_NO_CHECKOUT\) return needsCheckout\(\);/);
   assert.match(readFileSync("app/api/centres/route.ts", "utf8"), /if \(CENTRE_START_NO_CHECKOUT\) await joinFromLeaderOffer\(user\.id, centre\.id\);/);
   assert.match(readFileSync("lib/centre-start-client.ts", "utf8"), /if \(!CENTRE_START_NO_CHECKOUT \|\| !isCentrePlan\(input\.plan\)\) return checkout\(\);/);
-  assert.match(readFileSync("app/(auth)/signup/SignupForm.tsx", "utf8"), /\? CENTRE_START_NO_CHECKOUT\s*\? "Your centre starts free now\. No card needed, and no payment page\."\s*: "Then confirm the centre plan\. No card needed\."/);
+  assert.match(readFileSync("app/(auth)/signup/SignupForm.tsx", "utf8"), /\? CENTRE_START_NO_CHECKOUT\s*\? "Your centre starts free now\. No card needed\."\s*: "Then confirm the centre plan\. No card needed\."/);
   // The API-made subscription carries checkout's metadata keys, and a double tap makes one.
   for (const key of ["app:", "user_id:", "plan,", "currency,", "founding_centre:", "trial_days:", "trial_end:", "no_card:", 'source: "start_free"']) assert.ok(route.includes(key), key);
   assert.match(route, /idempotencyKey: `start-free-\$\{user\.id\}/);

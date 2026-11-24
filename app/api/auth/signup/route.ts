@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       password,
       email_confirm: true,
       user_metadata: {
-        ...(name ? { full_name: name } : {}),
+        ...(name ? { full_name: name } : { name_skipped: true }),
         plan_intent: plan,
         access_code: accessCodeGrant?.code ?? null,
       },

@@ -127,8 +127,21 @@ export async function POST(request: NextRequest) {
       subscription = await create(null);
     }
 
-    await updateProfileForSubscription(admin, subscription, { userId: user.id, plan, customerId });
+    // From here the centre's subscription exists: nothing below may send her to checkout
+    // (that would make a second one). Each step fails on its own; /centre picks up the rest.
+    await updateProfileForSubscription(admin, subscription, { userId: user.id, plan, customerId }).catch((error) => console.error("Start-free profile sync failed (the webhook repeats it):", error));
+    return NextResponse.json<StartFreeResponse>(await afterSubscription({ userId: user.id, body, now, trialEnd }));
+  } catch (error) {
+    // Never a dead end: today's no-card checkout page takes over.
+    return needsCheckout(String(error instanceof Error ? error.message : error));
+  }
+}
 
+/** The centre, the offer and the join, once the subscription exists. Never throws. */
+async function afterSubscription({ userId, body, now, trialEnd }: { userId: string; body: StartFreeRequest; now: Date; trialEnd: Date }): Promise<{ centreId: string | null; trialEndsAt: string }> {
+  const admin = createAdminSupabase();
+  try {
+    const user = { id: userId };
     let fromSet = false;
     let offerName: string | null = null;
     if (body.offerRef) {
@@ -155,9 +168,9 @@ export async function POST(request: NextRequest) {
       path: "/api/centres/start-free",
       metadata: { from: body.offerRef ? (fromSet ? "leader_set" : "leader_check") : "direct", educator_joined: joined },
     }).catch(() => undefined);
-    return NextResponse.json<StartFreeResponse>({ centreId, trialEndsAt: trialEnd.toISOString() });
+    return { centreId, trialEndsAt: trialEnd.toISOString() };
   } catch (error) {
-    // Never a dead end: today's no-card checkout page takes over.
-    return needsCheckout(String(error instanceof Error ? error.message : error));
+    console.error("Start-free after the subscription failed; /centre asks for the rest:", error);
+    return { centreId: null, trialEndsAt: trialEnd.toISOString() };
   }
 }

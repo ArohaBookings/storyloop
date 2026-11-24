@@ -63,12 +63,23 @@ export async function POST() {
   if (!(await consumeRateLimit({ scope: "start-today", key: user.id, limit: 5, windowSeconds: 3600 }))) {
     return NextResponse.json({ error: "Too many tries. Wait a little, or go to Billing.", code: "failed" }, { status: 429 });
   }
+  // The key names the card too: Stripe replays a declined answer for its key for 24 hours,
+  // so after she updates her card on Billing the next tap must be a new request. A double
+  // tap on the same card is one request; after success the trialing check refuses a second.
+  let cardId = typeof sub.default_payment_method === "string" ? sub.default_payment_method : sub.default_payment_method?.id ?? null;
+  if (!cardId) {
+    try {
+      const customer = await stripe.customers.retrieve(typeof sub.customer === "string" ? sub.customer : sub.customer.id);
+      const pm = "deleted" in customer && customer.deleted ? null : customer.invoice_settings?.default_payment_method;
+      cardId = typeof pm === "string" ? pm : pm?.id ?? null;
+    } catch { /* the key without it */ }
+  }
   let updated: Stripe.Subscription;
   try {
     updated = await stripe.subscriptions.update(
       sub.id,
       { trial_end: "now", proration_behavior: "none", payment_behavior: "error_if_incomplete" },
-      { idempotencyKey: `start-today-${sub.id}` },
+      { idempotencyKey: `start-today-${sub.id}-${cardId ?? "none"}` },
     );
   } catch (error) {
     const failure = startTodayFailure(error);

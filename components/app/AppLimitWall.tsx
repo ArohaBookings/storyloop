@@ -14,7 +14,7 @@ import { STATEMENTS_PAY_TODAY } from "@/lib/build-switches";
 import { statementTodayLine } from "@/lib/wall-offer";
 
 /** What "Start my plan today" will charge a trialing account, from Stripe's preview (app/api/stripe/start-today). */
-type StartToday = { eligible: true; line: string; currency: "NZD" | "AUD" } | { eligible: false };
+type StartToday = { eligible: true; line: string; currency: "NZD" | "AUD" } | { eligible: false; failed?: boolean };
 
 /** This sitting's statements, if lane A's class set is there (lib/class-set.ts). Never throws. */
 async function readClassSet(): Promise<ClassPiece[]> {
@@ -90,13 +90,16 @@ export default function AppLimitWall({
       .then((data) => {
         if (!live) return;
         const ok = data?.eligible === true && typeof data.line === "string" && (data.currency === "NZD" || data.currency === "AUD");
-        setStartToday(ok ? { eligible: true, line: data.line, currency: data.currency } : { eligible: false });
+        // "failed": her free week is on but Stripe's preview did not answer. Never checkout then
+        // (that would be a second plan): Billing is the way on.
+        setStartToday(ok ? { eligible: true, line: data.line, currency: data.currency } : { eligible: false, failed: data?.code === "failed" });
       })
-      .catch(() => { if (live) setStartToday({ eligible: false }); });
+      .catch(() => { if (live) setStartToday({ eligible: false, failed: true }); });
     return () => { live = false; };
   }, [payToday]);
   const trialing = startToday?.eligible === true;
-  const todayLine = !payToday || !startToday ? null : startToday.eligible ? startToday.line : discount ? statementTodayLine(lineCurrency, discount) : null;
+  const previewFailed = startToday?.eligible === false && startToday.failed === true;
+  const todayLine = !payToday || !startToday || previewFailed ? null : startToday.eligible ? startToday.line : discount ? statementTodayLine(lineCurrency, discount) : null;
   const payTodayShown = useRef(false);
   useEffect(() => {
     if (!payToday || !todayLine || payTodayShown.current) return;
@@ -253,12 +256,17 @@ export default function AppLimitWall({
             <h2 className="font-display text-xl font-bold leading-tight text-ink-900">Finish my class</h2>
             <p className="mt-1.5 text-sm leading-relaxed text-ink-600" data-testid="wall-line">
               {trialing
-                ? "Your free week covers stories. For more statements today, your plan needs to start. Your notes are still here."
+                ? "Your free week covers stories. More statements today need your plan. Your notes are still here."
                 : "Free statements are 3 an hour and 9 a day. Educator covers as many as you need. Your notes are still here."}
             </p>
             <p className="mt-3 min-h-[1.5rem] text-base font-semibold text-ink-900" data-testid="wall-offer">
               {todayLine ? `Educator: ${todayLine}` : " "}
             </p>
+            {previewFailed && (
+              <p role="alert" className="mt-2 text-sm text-clay-700" data-testid="wall-preview-failed">
+                The amount could not be checked just now. <Link href="/billing" className="font-semibold underline">Start your plan on Billing</Link>.
+              </p>
+            )}
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               <button
                 type="button"
@@ -300,7 +308,7 @@ export default function AppLimitWall({
                   <SendToLeader kind="set" pieces={centrePieces} />
                 ) : (
                   <p className="flex items-start gap-1.5 text-sm text-sage-800" data-testid="wall-reason-thanks">
-                    <Check className="mt-0.5 h-4 w-4 flex-none" /> Thanks. Draft one statement, then you can send it to your leader from under it.
+                    <Check className="mt-0.5 h-4 w-4 flex-none" /> Thanks. Draft a statement first, then send it to your leader from under it.
                   </p>
                 )}
               </div>
