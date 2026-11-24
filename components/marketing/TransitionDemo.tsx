@@ -9,6 +9,8 @@ import { trackEvent } from "@/lib/analytics/track-event";
 import { rememberStatement } from "@/lib/keep-story";
 import type { TransitionDraft, TransitionFramework, TransitionMode } from "@/lib/ai/transition-draft";
 import { STATEMENT_SIGNUP_HREF } from "@/lib/signup-next";
+import { addToClassSet } from "@/lib/class-set";
+import { CLASS_SET_ON } from "@/lib/build-switches";
 
 /**
  * "Paste your notes, get the five outcomes drafted" on the TLDS, transition
@@ -156,6 +158,11 @@ export default function TransitionDemo({
         return;
       }
       setDraft(data.draft);
+      // In the app, each finished draft joins this sitting's class set (lib/class-set.ts, 25 Nov 2026), kept in this tab only.
+      if (inApp && CLASS_SET_ON) {
+        const d = data.draft as TransitionDraft;
+        addToClassSet({ childFirstName: childName.trim() || d.childName || "", mode: d.mode, framework: d.framework, note: notes, draft: d, at: Date.now() });
+      }
       // On a guide, her own draft is remembered as she writes it, so any way she
       // goes to signup carries it (lib/keep-story.ts). The sample child is not.
       if (!inApp && !usingSample) {
@@ -213,7 +220,8 @@ export default function TransitionDemo({
   };
 
   return (
-    <div className="grid min-w-0 gap-4 lg:grid-cols-2 lg:items-start">
+    // In a guide's hero (a 7/12 column) the drafter stays one column: two would be cramped (25 Nov 2026, B1).
+    <div className={hero ? "grid min-w-0 gap-4" : "grid min-w-0 gap-4 lg:grid-cols-2 lg:items-start"}>
       <div className={`card-warm min-w-0 ${hero ? "p-3.5" : "p-5"} sm:p-6`} data-testid={hero ? "guide-hero-drafter" : undefined}>
         {choices && choices.length > 1 && (
           // At the top of a guide the picker sits on one line beside its label, so the note box and its button fit the first phone screen.

@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { SITE_URL } from "@/lib/email/config";
-import { checkExpiry, checkUrl, cleanCentreName, educatorView, type CheckRow } from "@/lib/story-check";
+import { checkExpiry, checkUrl, cleanCentreName, educatorView, leaderView, type CheckRow } from "@/lib/story-check";
+import { emailLeaderIfAsked } from "@/lib/leader-send-server";
 import { hashOfferRef, newCheckToken, offerRefFor } from "@/lib/story-check-token";
 import { CHECK_COLUMNS, endStoryLinks } from "@/lib/story-check-server";
 
@@ -34,11 +35,32 @@ async function latestCheck(storyId: string, userId: string) {
   return (data as CheckRow | null) ?? null;
 }
 
-/** Where this story's check stands: waiting, opened, or what the leader said. */
-export async function GET(_request: NextRequest, context: RouteContext) {
+/**
+ * Where this story's check stands: waiting, opened, or what the leader said.
+ * With ?preview=1 (25 Nov 2026, A1): exactly the page her leader will get,
+ * built by the same leaderView from the saved story, before any link exists.
+ */
+export async function GET(request: NextRequest, context: RouteContext) {
   try {
     const own = await ownStory(context);
     if ("error" in own) return own.error;
+    if (request.nextUrl.searchParams.get("preview") === "1") {
+      const admin = createAdminSupabase();
+      const [{ data: story }, { data: profile }] = await Promise.all([
+        admin.from("stories").select("child_name, observations, story_text, outcomes, next_steps, created_at").eq("id", own.storyId).eq("user_id", own.user.id).maybeSingle(),
+        admin.from("profiles").select("full_name").eq("id", own.user.id).maybeSingle(),
+      ]);
+      if (!story) return NextResponse.json({ error: "Story not found." }, { status: 404 });
+      const now = new Date();
+      const check: CheckRow = {
+        id: "preview", story_id: own.storyId, user_id: own.user.id, status: "opened", leader_name: null, comment: null,
+        created_at: now.toISOString(), opened_at: now.toISOString(), decided_at: null, expires_at: checkExpiry(now).toISOString(), revoked_at: null,
+        centre_name: cleanCentreName(request.nextUrl.searchParams.get("centre") ?? "") || null, share_counts: false,
+        join_consent: request.nextUrl.searchParams.get("join") === "1",
+      };
+      const view = leaderView({ story, check, educatorName: profile?.full_name ?? null, now, offer: null });
+      return NextResponse.json({ view: { ...view, offer: null } }, { headers: { "Cache-Control": "no-store" } });
+    }
     return NextResponse.json({ check: educatorView(await latestCheck(own.storyId, own.user.id)) });
   } catch (error) {
     console.error("Leader check status error:", error);
@@ -62,6 +84,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const body = await request.json().catch(() => ({}));
     const centreName = cleanCentreName(body?.centreName) || null;
     const shareCounts = body?.shareCounts === true;
+    // 25 Nov 2026: "If my leader starts our centre on StoryLoop, add me to the team" (on by default in the panel).
+    const joinConsent = body?.joinConsent === true;
 
     const allowed = await consumeRateLimit({ scope: "leader-check", key: own.user.id, limit: 30, windowSeconds: 24 * 60 * 60 });
     if (!allowed) return NextResponse.json({ error: "That is a lot of links for one day. Try again tomorrow." }, { status: 429 });
@@ -81,6 +105,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         expires_at: checkExpiry(now).toISOString(),
         centre_name: centreName,
         share_counts: shareCounts,
+        join_consent: joinConsent,
         // Not the link key and opens nothing; see lib/story-check-token.ts offerRefFor.
         offer_ref_hash: hashOfferRef(offerRefFor(token)),
       })
@@ -90,7 +115,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
       console.error("Leader check create failed:", error?.message);
       return NextResponse.json({ error: "Could not make the link. Try again." }, { status: 500 });
     }
-    return NextResponse.json({ url: checkUrl(SITE_URL, token), check: educatorView(data as CheckRow, now) });
+    // StoryLoop emails the leader when she asked it to (A2); the link is returned either way.
+    const email = await emailLeaderIfAsked({
+      userId: own.user.id, body: (body ?? {}) as Record<string, unknown>, kind: "story", checkId: (data as CheckRow).id, token,
+      centreName: centreName ?? "", pieces: 1, expiresAt: (data as CheckRow).expires_at,
+    });
+    return NextResponse.json({ url: checkUrl(SITE_URL, token), check: educatorView(data as CheckRow, now), email });
   } catch (error) {
     console.error("Leader check create error:", error);
     return NextResponse.json({ error: "Could not make the link. Try again." }, { status: 500 });

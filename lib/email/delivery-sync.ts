@@ -80,7 +80,14 @@ export async function syncDeliveryStatus({ limit = 20, now = new Date() }: { lim
       await sb.from("email_events").update(patch).eq("id", row.id);
       updated += 1;
       if (status === "bounced" || status === "complained") {
-        await suppressAddress({ userId: row.user_id, email: row.recipient, reason: status, eventId: row.id });
+        // A leader email (25 Nov 2026) is to the leader, never to the educator who asked
+        // for it: her own marketing preference must not change because her leader's
+        // address bounced, so no account is passed.
+        const leader = row.metadata?.kind === "leader";
+        if (leader && typeof row.metadata?.send_id === "string") {
+          await sb.from("leader_emails").update({ status: "bounced", recipient: null }).eq("id", row.metadata.send_id);
+        }
+        await suppressAddress({ userId: leader ? null : row.user_id, email: row.recipient, reason: status, eventId: row.id });
         suppressed += 1;
       }
     } catch (syncError) {

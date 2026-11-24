@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import Navbar from "@/components/landing/Navbar";
+import AnimatedLogo from "@/components/brand/AnimatedLogo";
+import { LEADER_EMAIL_ON } from "@/lib/build-switches";
 import Footer from "@/components/landing/Footer";
 import LeaderCheckPage from "@/components/marketing/LeaderCheckPage";
 import PageTracker from "@/components/analytics/PageTracker";
@@ -21,11 +24,25 @@ export default function CheckPage() {
     <>
       {/* The visit and taps only: the story and the note are never recorded. */}
       <PageTracker mode="private" />
-      <Navbar />
-      <main className="bg-cream-50/60 pb-16 pt-24 sm:pt-28">
+      {/* 25 Nov 2026: the logo only, so nothing competes with the one job on this page. Off: the site's own bar. */}
+      {LEADER_EMAIL_ON ? <CheckHeader /> : <Navbar />}
+      <main className={`bg-cream-50/60 pb-16 ${LEADER_EMAIL_ON ? "pt-6 sm:pt-10" : "pt-24 sm:pt-28"}`}>
         <LeaderCheckPage />
       </main>
       <Footer />
     </>
+  );
+}
+
+function CheckHeader() {
+  return (
+    <header className="border-b border-clay-100 bg-paper" data-testid="check-header">
+      <div className="edge-shell flex h-14 items-center">
+        <Link href="/" className="flex min-h-[44px] items-center gap-2">
+          <AnimatedLogo size={28} />
+          <span className="font-display text-lg font-bold tracking-tight text-ink-800">StoryLoop</span>
+        </Link>
+      </div>
+    </header>
   );
 }

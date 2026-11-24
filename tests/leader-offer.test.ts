@@ -287,7 +287,8 @@ test("cancelling or replacing a link ends the offer on every check for the story
   const panel = readFileSync("components/app/LeaderCheck.tsx", "utf8");
   assert.match(panel, /\(waiting \|\| answered\) && \(\s*<button[\s\S]{0,200}data-testid="leader-check-cancel"/, "Cancel the link shows on an answered check");
   const page = readFileSync("components/marketing/LeaderCheckPage.tsx", "utf8");
-  assert.match(page, /\{offer && \(\s*\{?\/?\*?[\s\S]{0,40}<section[^>]*data-testid="leader-check-centre"/);
+  // 25 Nov 2026: the offer is its own block, which renders nothing when the offer has ended.
+  assert.match(page, /function StartBlock[\s\S]{0,200}const offer = view\.offer;\s*if \(!offer\) return null;/);
 });
 
 test("a cancelled link ends the offer at once; an expired one keeps it 30 more days", () => {
@@ -315,7 +316,8 @@ test("the leader's page links the data sheet, starts signup, and keeps the refer
   assert.match(page, /already writes with StoryLoop\./);
   assert.match(page, /data-private=""/, "click analytics must not record the link's address");
   assert.doesNotMatch(page, /for-centres\?utm_source=leader_check/);
-  const panel = readFileSync("components/app/LeaderCheck.tsx", "utf8");
+  // 25 Nov 2026: the form that makes the link moved to components/app/SendToLeader.tsx.
+  const panel = readFileSync("components/app/LeaderCheck.tsx", "utf8") + readFileSync("components/app/SendToLeader.tsx", "utf8");
   assert.match(panel, /Send this story to your leader/);
   assert.match(panel, /Also show my leader how many children I have written about lately \(numbers only, no names\)/);
   for (const id of ["leader-check-panel", "leader-check-make", "leader-check-link", "leader-check-result"]) assert.ok(panel.includes(`data-testid="${id}"`), id);

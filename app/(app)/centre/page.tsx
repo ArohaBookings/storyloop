@@ -58,6 +58,7 @@ export default function CentrePage() {
   const [state, setState] = useState<CentreState | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [name, setName] = useState("");
@@ -189,6 +190,20 @@ export default function CentrePage() {
     } finally { setBusy(false); }
   };
 
+  // "Leave this team" (25 Nov 2026): her own undo of joining, never the owner's.
+  const leaveTeam = async () => {
+    setBusy(true); setError("");
+    try {
+      const response = await fetch("/api/centres/leave", { method: "POST" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error ?? "That did not work. Try again.");
+      setLeaving(false);
+      await load();
+    } catch (leaveError) {
+      setError(leaveError instanceof Error ? leaveError.message : "That did not work. Try again.");
+    } finally { setBusy(false); }
+  };
+
   if (loading) {
     return <div className="flex items-center gap-2 p-8 text-ink-500"><Loader2 className="h-4 w-4 animate-spin" /> Loading your centre…</div>;
   }
@@ -298,6 +313,25 @@ export default function CentrePage() {
                 >
                   {membership?.sharesStories ? "Stop sharing" : "Share my stories and notes with my leaders"}
                 </button>
+                {membership?.role !== "owner" && (
+                  <div className="mt-4 border-t border-clay-100 pt-3" data-testid="leave-team">
+                    {leaving ? (
+                      <>
+                        <p className="text-sm leading-relaxed text-ink-700" data-testid="leave-team-confirm-line">
+                          Your leader will no longer see you in the team. Stories you already sent stay sent. If the centre was paying for your plan, you go back to the free plan.
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <button onClick={leaveTeam} disabled={busy} className="btn-secondary min-h-[44px] text-xs" data-testid="leave-team-confirm">Leave this team</button>
+                          <button onClick={() => setLeaving(false)} disabled={busy} className="btn-ghost min-h-[44px] text-xs">Stay in the team</button>
+                        </div>
+                      </>
+                    ) : (
+                      <button onClick={() => setLeaving(true)} disabled={busy} className="min-h-[44px] text-xs font-semibold text-ink-600 underline decoration-clay-200 underline-offset-4" data-testid="leave-team-open">
+                        Leave this team
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

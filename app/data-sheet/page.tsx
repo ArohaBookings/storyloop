@@ -127,6 +127,7 @@ const ROWS: Row[] = [
       "Educators keep their drafts private unless they choose to share. Sharing is off by default and only the educator can turn it on.",
       "A centre leader sees activity (how many stories, when last written), never content they were not given.",
       "A leader check link opens one story for 14 days. A Family link opens only the stories an educator chose to share about one child. Both can be cancelled.",
+      "Statements sent to a leader as a set are kept for the link's 14 days, then deleted within 7 days of it ending. A leader's email address is kept only until the link is opened or ends.",
     ],
   },
   {

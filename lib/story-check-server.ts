@@ -1,6 +1,7 @@
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import {
   canAnswer,
+  coverView,
   canReadThroughLink,
   cleanCheckComment,
   cleanLeaderName,
@@ -12,6 +13,7 @@ import {
   offerEndedMarker,
   type CheckDecision,
   type CheckRow,
+  type CoverView,
   type EducatorCheckView,
   type LeaderCounts,
   type LeaderView,
@@ -20,8 +22,11 @@ import { hashCheckToken, hashOfferRef, offerRefFor } from "@/lib/story-check-tok
 import { getOrCreateReferralCode } from "@/lib/referrals";
 import { getMembership } from "@/lib/centres";
 import { isCentrePlan } from "@/lib/centre-offer";
+import type { SetView } from "@/lib/leader-sets";
+import { coverForSet, findSet, openLeaderSet, type FoundSet } from "@/lib/leader-sets-server";
 
-export const CHECK_COLUMNS = "id, story_id, user_id, status, leader_name, comment, created_at, opened_at, decided_at, expires_at, revoked_at, centre_name, share_counts";
+// join_consent and show_sources (25 Nov 2026) have defaults, so every row made before them reads as a no.
+export const CHECK_COLUMNS = "id, story_id, user_id, status, leader_name, comment, created_at, opened_at, decided_at, expires_at, revoked_at, centre_name, share_counts, join_consent, show_sources";
 const COLUMNS = CHECK_COLUMNS;
 
 type FoundCheck = CheckRow & { offer_ref_hash?: string | null };
@@ -30,6 +35,34 @@ async function findCheck(token: string): Promise<FoundCheck | null> {
   if (!looksLikeCheckToken(token)) return null;
   const { data } = await createAdminSupabase().from("story_checks").select(`${COLUMNS}, offer_ref_hash`).eq("token_hash", hashCheckToken(token)).maybeSingle();
   return (data as FoundCheck | null) ?? null;
+}
+
+/**
+ * A link key may open a story check (since 10 Nov 2026) or a whole room's set
+ * (25 Nov 2026). Story checks are looked up first with the same query as
+ * before; only a miss looks in leader sets, so every link made before this
+ * build behaves exactly as it did (A6).
+ */
+async function findAny(token: string): Promise<{ kind: "story"; check: FoundCheck } | { kind: "set"; set: FoundSet } | null> {
+  const check = await findCheck(token);
+  if (check) return { kind: "story", check };
+  const set = await findSet(token);
+  return set ? { kind: "set", set } : null;
+}
+
+/**
+ * The cover (lib/story-check.ts coverView): who sent it and how many pieces,
+ * read without opening anything and without recording an open. Null for every
+ * "no", the same as opening.
+ */
+export async function coverLeaderCheck(token: string, now = new Date()): Promise<CoverView | null> {
+  const found = await findAny(token);
+  if (!found) return null;
+  if (found.kind === "set") return coverForSet(found.set, now);
+  const check = found.check;
+  if (!canReadThroughLink(check, now)) return null;
+  const { data: profile } = await createAdminSupabase().from("profiles").select("full_name").eq("id", check.user_id).maybeSingle();
+  return coverView({ kind: "story", check, educatorName: profile?.full_name ?? null, pieces: 1, now });
 }
 
 /**
@@ -59,7 +92,7 @@ async function countsFor(userId: string, now: Date): Promise<LeaderCounts | null
  * herself? Then the leader is offered nothing: the story check is all the page
  * is. Errs towards no offer when it cannot tell.
  */
-async function alreadyInCentre(userId: string, plan: string | null | undefined): Promise<boolean> {
+export async function alreadyInCentre(userId: string, plan: string | null | undefined): Promise<boolean> {
   if (isCentrePlan(plan)) return true;
   try {
     return Boolean(await getMembership(userId));
@@ -104,9 +137,12 @@ async function viewFor(check: CheckRow, now: Date, token: string, offerRefHash: 
  * cancelled or past its 14 days. Every "no" looks the same from outside, so a
  * guessed link learns nothing. The first open is recorded for the educator.
  */
-export async function openLeaderCheck(token: string, now = new Date()): Promise<LeaderView | null> {
-  const check = await findCheck(token);
-  if (!check || !canReadThroughLink(check, now)) return null;
+export async function openLeaderCheck(token: string, now = new Date()): Promise<LeaderView | SetView | null> {
+  const found = await findAny(token);
+  if (!found) return null;
+  if (found.kind === "set") return openLeaderSet(found.set, token, now);
+  const check = found.check;
+  if (!canReadThroughLink(check, now)) return null;
   if (check.status === "sent") {
     const { data } = await createAdminSupabase()
       .from("story_checks")

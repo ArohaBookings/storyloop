@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { Check, CheckCircle2, Copy, Loader2, MessageSquareText, Share2, UserCheck } from "lucide-react";
-import { trackEvent } from "@/lib/analytics/track-event";
-import { CENTRE_NAME_MAX, CHECK_DAYS, type EducatorCheckView } from "@/lib/story-check";
+import { CheckCircle2, MessageSquareText, UserCheck } from "lucide-react";
+import SendToLeader from "@/components/app/SendToLeader";
+import { type EducatorCheckView } from "@/lib/story-check";
 import type { StoryCheckInput, StoryCheckResult } from "@/lib/check-my-story";
 import StoryCheckList, { StoryCheckSummary } from "@/components/app/StoryCheckList";
 
@@ -114,12 +114,10 @@ export default function LeaderCheck({
   const [check, setCheck] = useState<EducatorCheckView>(initial ?? { state: "none" });
   const panel = useRef<HTMLElement>(null);
   const storyCheck = useOwnStoryCheck(storyId, review, refreshKey, useSeen(panel));
-  const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
-  const [centreName, setCentreName] = useState("");
-  const [shareCounts, setShareCounts] = useState(false);
+  const [where, setWhere] = useState<"generate" | "history">("history");
+  useEffect(() => { if (window.location.pathname.startsWith("/generate")) setWhere("generate"); }, []);
 
   // Arriving from "Send a story to your leader": open this story and bring the panel into view.
   useEffect(() => {
@@ -129,18 +127,15 @@ export default function LeaderCheck({
     window.setTimeout(() => panel.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
   }, [storyId]);
 
-  const call = async (method: "POST" | "DELETE") => {
+  // Cancel the link, answered or not (the form that makes a link is components/app/SendToLeader.tsx, 25 Nov 2026).
+  const cancel = async () => {
     if (busy) return;
     setBusy(true); setError("");
     try {
-      const response = await fetch(`/api/stories/${encodeURIComponent(storyId)}/check`, method === "POST"
-        ? { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ centreName: centreName.trim(), shareCounts }) }
-        : { method });
+      const response = await fetch(`/api/stories/${encodeURIComponent(storyId)}/check`, { method: "DELETE" });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) { setError(data.error ?? "That did not work. Try again."); return; }
       setCheck(data.check ?? { state: "none" });
-      setUrl(method === "POST" ? data.url ?? "" : "");
-      if (method === "POST") trackEvent("leader_check_sent", { centre_name: Boolean(centreName.trim()), counts: shareCounts, story_id: storyId });
     } catch {
       setError("That did not work. Check your connection and try again.");
     } finally {
@@ -148,24 +143,6 @@ export default function LeaderCheck({
     }
   };
 
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true); setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setError("Could not copy. Press and hold the link to copy it.");
-    }
-  };
-
-  const share = async () => {
-    try {
-      await navigator.share({ title: "A learning story to check", text: "Could you check this learning story for me? It takes two minutes.", url });
-    } catch {
-      /* closed the share sheet */
-    }
-  };
-
-  const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
   const who = check.state !== "none" && check.leaderName ? check.leaderName : "Your leader";
   const waiting = check.state === "open";
   const answered = check.state === "answered";
@@ -192,86 +169,40 @@ export default function LeaderCheck({
         </div>
       )}
 
-      {url ? (
-        <div className="mt-3" data-testid="leader-check-link">
-          <p className="text-sm leading-relaxed text-ink-700">
-            Send this link to your head teacher or mentor. It opens this one story, with your note beside it, for {CHECK_DAYS} days.
-          </p>
-          <input readOnly value={url} onFocus={(e) => e.currentTarget.select()} className="input mt-2 font-mono text-xs" aria-label="Private link to this story" />
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" onClick={copy} className="btn-primary px-4 py-2 text-xs">
-              {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />} {copied ? "Copied" : "Copy link"}
-            </button>
-            {canShare && (
-              <button type="button" onClick={share} className="btn-secondary px-4 py-2 text-xs">
-                <Share2 className="h-3.5 w-3.5" /> Share
-              </button>
-            )}
-            <button type="button" onClick={() => call("DELETE")} disabled={busy} className="btn-ghost px-3 py-2 text-xs">Cancel the link</button>
-          </div>
-          <p className="mt-2 text-xs leading-relaxed text-ink-500">
-            Copy it now: for safety it is shown once and not kept. You can always make a new one.
-          </p>
-        </div>
-      ) : (
-        <div className="mt-2">
-          <p className="text-sm leading-relaxed text-ink-700">
-            {waiting
-              ? check.opened
-                ? `Your leader opened it. Waiting for their answer (link made ${day(check.sentAt)}).`
-                : `Waiting for your leader to open it (link made ${day(check.sentAt)}).`
-              : answered
-                ? "Edited it since? Send it again."
-                : cancelled && hasAnswer
-                  ? "You cancelled the link, so it no longer opens this story. Edited it since? Send it again."
-                  : "Send your head teacher or mentor a private link to this one story. They see your note beside the story and answer in about two minutes. They do not need an account."}
-          </p>
-          {storyCheck && (
-            <details className="group mt-3 min-w-0" open={storyCheck.looks > 0} data-testid="own-story-check">
-              <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
-                <StoryCheckSummary check={storyCheck} as="span" />
-                <span className="text-xs font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 group-open:hidden">What it checks</span>
-              </summary>
-              <StoryCheckList check={storyCheck} heading="What your leader will look for" className="mt-1" />
-            </details>
-          )}
-          <div className="mt-3 grid gap-2 sm:max-w-md">
-            <label htmlFor={`leader-centre-${storyId}`} className="text-xs font-semibold text-ink-700">
-              Your centre&apos;s name <span className="font-normal text-ink-500">(optional)</span>
-            </label>
-            <input
-              id={`leader-centre-${storyId}`}
-              value={centreName}
-              maxLength={CENTRE_NAME_MAX}
-              onChange={(e) => setCentreName(e.target.value)}
-              autoComplete="organization"
-              className="input text-sm"
-              data-testid="leader-check-centre-name"
-            />
-            <label className="flex min-h-[44px] cursor-pointer items-start gap-2.5 text-xs leading-relaxed text-ink-700">
-              <input
-                type="checkbox"
-                checked={shareCounts}
-                onChange={(e) => setShareCounts(e.target.checked)}
-                className="mt-0.5 h-4 w-4 flex-none accent-clay-700"
-                data-testid="leader-check-share-counts"
-              />
-              Also show my leader how many children I have written about lately (numbers only, no names)
-            </label>
-          </div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" onClick={() => call("POST")} disabled={busy} className="btn-secondary px-4 py-2 text-xs disabled:opacity-60" data-testid="leader-check-make">
-              {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserCheck className="h-3.5 w-3.5" />}
-              {waiting || answered || hasAnswer ? "Make a new link" : "Make the link"}
-            </button>
-            {/* Answered too: the educator can always end a link, and the centre offer it carried (lib/story-check-server.ts endStoryLinks). */}
-            {(waiting || answered) && (
-              <button type="button" onClick={() => call("DELETE")} disabled={busy} className="btn-ghost px-3 py-2 text-xs" data-testid="leader-check-cancel">Cancel the link</button>
-            )}
-          </div>
-          {waiting && <p className="mt-2 text-xs text-ink-500">A new link stops the old one working.</p>}
-        </div>
-      )}
+      <div className="mt-2">
+        <p className="text-sm leading-relaxed text-ink-700">
+          {waiting
+            ? check.opened
+              ? `Your leader opened it. Waiting for their answer (link made ${day(check.sentAt)}).`
+              : `Waiting for your leader to open it (link made ${day(check.sentAt)}).`
+            : answered
+              ? "Edited it since? Send it again."
+              : cancelled && hasAnswer
+                ? "You cancelled the link, so it no longer opens this story. Edited it since? Send it again."
+                : "Send your head teacher or mentor this one story. They see your note beside the story and answer in about two minutes. They do not need an account."}
+        </p>
+        {storyCheck && (
+          <details className="group mt-3 min-w-0" open={storyCheck.looks > 0} data-testid="own-story-check">
+            <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
+              <StoryCheckSummary check={storyCheck} as="span" />
+              <span className="text-xs font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 group-open:hidden">What it checks</span>
+            </summary>
+            <StoryCheckList check={storyCheck} heading="What your leader will look for" className="mt-1" />
+          </details>
+        )}
+        <SendToLeader
+          kind="story"
+          storyId={storyId}
+          where={where}
+          again={waiting || answered || hasAnswer}
+          onSent={(result) => { if (result?.check) setCheck(result.check); }}
+        />
+        {/* Answered too: the educator can always end a link, and the centre offer it carried (lib/story-check-server.ts endStoryLinks). */}
+        {(waiting || answered) && (
+          <button type="button" onClick={cancel} disabled={busy} className="btn-ghost mt-2 px-3 py-2 text-xs" data-testid="leader-check-cancel">Cancel the link</button>
+        )}
+        {waiting && <p className="mt-2 text-xs text-ink-500">A new link stops the old one working.</p>}
+      </div>
 
       {error && <p className="mt-3 rounded-lg border border-clay-200 bg-clay-50 px-3 py-2 text-xs text-clay-800" role="alert">{error}</p>}
     </section>
