@@ -30,6 +30,7 @@ import { INTERNATIONAL_SLUG_FRAMEWORK } from "@/lib/seo-pages-international";
 import TransitionExample from "@/components/marketing/TransitionExample";
 import type { HeroExample } from "@/components/marketing/GuideHeroDrafter";
 import StatementGuideHero from "@/components/marketing/StatementGuideHero";
+import DrafterSeen from "@/components/marketing/DrafterSeen";
 import GuideProductBlock from "@/components/marketing/GuideProductBlock";
 import ExitFeedback from "@/components/landing/ExitFeedback";
 import PlanChooser from "@/components/landing/PlanChooser";
@@ -547,14 +548,14 @@ export default async function SeoPage({ params }: PageProps) {
                   {heroDrafter.button}
                 </a>
               ) : (
-                <div className="mt-8">
+                <DrafterSeen className="mt-8" kind={TRANSITION_DEMOS[page.slug].mode === "summary" ? "summary" : "statement"}>
                   <TransitionDemo
                     framework={TRANSITION_DEMOS[page.slug].framework}
                     mode={TRANSITION_DEMOS[page.slug].mode}
                     choices={TRANSITION_DEMOS[page.slug].choices}
                     followZone={page.slug === "end-of-year-learning-summary"}
                   />
-                </div>
+                </DrafterSeen>
               )}
             </div>
           </section>

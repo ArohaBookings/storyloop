@@ -49,7 +49,7 @@ import { nextStoryCard, shouldOfferNextStory, type NextStoryChoice } from "@/lib
 import { trackEvent } from "@/lib/analytics/track-event";
 import { claimPrompt, mayShowPrompt, reviewCopyCounts, type LeaderAnswer, type PromptSlot } from "@/lib/one-prompt";
 import { keepWallWork, takeWallWork } from "@/lib/app-wall";
-import { readKeptStory } from "@/lib/keep-story";
+import { readKeptStory, takeKeptNote } from "@/lib/keep-story";
 import { looksNonLatin } from "@/lib/note-language";
 import { ROOM_HANDOFF_STORY } from "@/lib/room-mode";
 import type { ChildProfile } from "@/lib/children";
@@ -356,7 +356,12 @@ export default function GeneratePage() {
           // loses most of them, while the identical content sitting there
           // already does not. Only ever for an account with zero stories, and
           // never over text the educator has started typing.
-          if (!observationsRef.current.trim()) {
+          // Her own note from the demo's limit (B5, 25 Nov 2026) goes in the box instead of the sample.
+          const keptNote = justSignedUp ? takeKeptNote() : null;
+          if (keptNote && !observationsRef.current.trim()) {
+            setObservations(keptNote);
+            setInputMethod("typed");
+          } else if (!observationsRef.current.trim()) {
             setObservations(SAMPLE_OBSERVATION);
             setInputMethod("sample");
           }

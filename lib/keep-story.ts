@@ -217,3 +217,106 @@ export function frameworkFromStory(story: string): KeptFramework | null {
   if (/\bEYLF\b|Outcome [1-5]/i.test(story)) return "AU";
   return null;
 }
+
+// ---- The demo limit (25 Nov 2026, B5 and B5+). ----
+
+/**
+ * The free demo is one draft per browser per day, wherever the demo is (the
+ * homepage, a guide, /try). It was one per page load, so a reload gave
+ * another draft (13 in a row for one visitor on 20 Nov). The server's own
+ * hourly and daily limits still stand behind it.
+ */
+export const DEMO_USED_KEY = "storyloop_demo_used";
+
+/** "2026-11-25" in this browser's own day. Pure. */
+export function localDay(now: number): string {
+  const d = new Date(now);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Whether a stored value says the demo was used today. Pure. */
+export function demoUsedOn(raw: unknown, now: number): boolean {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return false;
+  const value = raw as Record<string, unknown>;
+  return value.day === localDay(now) && typeof value.n === "number" && value.n >= 1;
+}
+
+export function demoUsedToday(now = Date.now()): boolean {
+  try {
+    const raw = window.localStorage.getItem(DEMO_USED_KEY);
+    return raw ? demoUsedOn(JSON.parse(raw), now) : false;
+  } catch {
+    return false;
+  }
+}
+
+export function markDemoUsed(now = Date.now()) {
+  try {
+    const raw = window.localStorage.getItem(DEMO_USED_KEY);
+    const previous = raw ? (JSON.parse(raw) as { day?: string; n?: number }) : null;
+    const n = previous?.day === localDay(now) && typeof previous.n === "number" ? previous.n + 1 : 1;
+    window.localStorage.setItem(DEMO_USED_KEY, JSON.stringify({ day: localDay(now), n }));
+  } catch {
+    /* storage blocked: the server's limit still stands */
+  }
+}
+
+/**
+ * Her own typed note, carried from the demo limit into signup and onto her
+ * first /generate (B5). Kept only if she typed it (not the sample or the
+ * unchanged example), 20 to 2000 characters, for 2 hours, in this browser.
+ */
+export const KEEP_NOTE_KEY = "storyloop_keep_note";
+export const KEEP_NOTE_MIN = 20;
+export const KEEP_NOTE_MAX_AGE_MS = 2 * 3_600_000;
+
+/** The note to keep, or null when it may not be kept. Pure. */
+export function noteToKeep(note: string, notMine: string[]): string | null {
+  const text = note.trim();
+  if (text.length < KEEP_NOTE_MIN || text.length > KEEP_NOTE_MAX) return null;
+  if (notMine.some((sample) => sample.trim() && sample.trim() === text)) return null;
+  return text;
+}
+
+/** A stored kept note as it may be trusted, or null. Pure. */
+export function cleanKeptNote(raw: unknown, now = Date.now()): string | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const value = raw as Record<string, unknown>;
+  const at = typeof value.at === "number" ? value.at : Number.NaN;
+  if (!Number.isFinite(at) || at > now + 60_000 || now - at > KEEP_NOTE_MAX_AGE_MS) return null;
+  return typeof value.note === "string" ? noteToKeep(value.note, []) : null;
+}
+
+/** Keeps her note; true when it was kept. */
+export function rememberNote(note: string, notMine: string[]): boolean {
+  const text = noteToKeep(note, notMine);
+  if (!text) return false;
+  try {
+    window.localStorage.setItem(KEEP_NOTE_KEY, JSON.stringify({ note: text, at: Date.now() }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Whether a note is waiting (signup's one line), without taking it. */
+export function hasKeptNote(): boolean {
+  try {
+    const raw = window.localStorage.getItem(KEEP_NOTE_KEY);
+    return Boolean(raw && cleanKeptNote(JSON.parse(raw)));
+  } catch {
+    return false;
+  }
+}
+
+/** Her kept note, once: it is removed as it is read. */
+export function takeKeptNote(): string | null {
+  try {
+    const raw = window.localStorage.getItem(KEEP_NOTE_KEY);
+    if (!raw) return null;
+    window.localStorage.removeItem(KEEP_NOTE_KEY);
+    return cleanKeptNote(JSON.parse(raw));
+  } catch {
+    return null;
+  }
+}

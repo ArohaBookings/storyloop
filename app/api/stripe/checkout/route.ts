@@ -15,6 +15,9 @@ import { createAdminSupabase } from "@/lib/supabase/admin";
 import { recordServerEvent } from "@/lib/analytics/server";
 import { checkoutReturnPath } from "@/lib/app-wall";
 import { paidReturnSuccessUrl } from "@/lib/paid-return";
+import { STATEMENTS_PAY_TODAY } from "@/lib/build-switches";
+import { ensureCustomer } from "@/lib/stripe-customer";
+import { statementWallPaysToday } from "@/lib/wall-offer";
 
 function getStripe() {
   return createStripe();
@@ -113,16 +116,7 @@ export async function POST(request: NextRequest) {
       offerGrantId = grant?.id ?? null;
     }
 
-    let customerId = profile?.stripe_customer_id;
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        name: profile?.full_name ?? undefined,
-        metadata: { user_id: user.id },
-      });
-      customerId = customer.id;
-      await supabase.from("profiles").update({ stripe_customer_id: customerId }).eq("id", user.id);
-    }
+    const customerId = await ensureCustomer({ stripe, supabase, user, profile });
 
     // Someone who signed up through a referral link gets their first month
     // free (Oct 2026; it was 10%). It goes ahead of the early-educator offer,
@@ -189,7 +183,7 @@ export async function POST(request: NextRequest) {
         hadCentreBefore = false;
       }
     }
-    const terms = offer === "pro_month"
+    const baseTerms = offer === "pro_month"
       ? { trialDays: PRO_MONTH_TRIAL_DAYS, noCardNeeded: false, foundingCoupon: null }
       : offer === "winback"
         // They know StoryLoop: no second trial, the discount starts today.
@@ -201,6 +195,12 @@ export async function POST(request: NextRequest) {
           couponId: foundingCouponId(),
           now,
         });
+    // The statement wall (25 Nov 2026, lib/build-switches.ts STATEMENTS_PAY_TODAY):
+    // statements past the free allowance need the first payment, so this checkout
+    // has no free week and charges the first month today. Stories keep theirs.
+    const terms = statementWallPaysToday({ switchOn: STATEMENTS_PAY_TODAY, wall: fromWall, specialOffer: Boolean(offer), centrePlan: isCentrePlan(selectedPlan) })
+      ? { ...baseTerms, trialDays: 0 }
+      : baseTerms;
     // A centre starting in 2026 is free until the end of 31 January 2027 (New
     // Zealand time). Stripe is given that exact moment rather than a count of
     // days, so finishing checkout later the same day cannot move the date.

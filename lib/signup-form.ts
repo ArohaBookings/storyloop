@@ -27,7 +27,8 @@ const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 /** The browser's own checks, in order, before anything is sent. Null when the form can go. */
 export function checkSignupForm(input: {
-  name: string;
+  /** Optional since 25 Nov 2026 (B4): signup never stops on the name. */
+  name?: string;
   email: string;
   password: string;
   /** suggestEmailFix(email): a likely mistyped domain, or null. */
@@ -36,7 +37,6 @@ export function checkSignupForm(input: {
   typoAccepted: boolean;
 }): SignupErrorView | null {
   const email = input.email.trim();
-  if (!input.name.trim()) return { code: "missing_name", field: "name", message: "Please add your name." };
   if (!email) return { code: "missing_email", field: "email", message: "Please add your email." };
   if (!EMAIL_SHAPE.test(email)) {
     return { code: "invalid_email", field: "email", message: "That email doesn't look complete. It needs an @ and a full stop, like you@centre.co.nz." };

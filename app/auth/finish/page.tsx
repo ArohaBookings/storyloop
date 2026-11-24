@@ -1,5 +1,6 @@
 "use client";
 
+import { paidPlanDestination } from "@/lib/centre-start-client";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -97,13 +98,9 @@ function Finish() {
         track("signup_completed", { plan, method: viaLink ? "link" : "google" });
         await reportSignupConversion();
         if (plan !== "free") {
-          const checkout = await fetch("/api/stripe/checkout", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ plan, currency: context?.currency ?? undefined, sessionId: getSessionId() }),
-          });
-          const checkoutData = await checkout.json().catch(() => ({}));
-          window.location.replace(checkout.ok && checkoutData.url ? checkoutData.url : "/billing");
+          // A centre starts free with no payment page; anything else goes to checkout (lib/centre-start-client.ts).
+          const next = await paidPlanDestination({ plan, currency: context?.currency ?? null, sessionId: getSessionId() });
+          window.location.replace(next ?? "/billing");
           return;
         }
         // The first story, unless they came from a page on lib/signup-next.ts's short list.

@@ -5,7 +5,7 @@ import Link from "next/link";
 import GeneratingIndicator from "@/components/app/GeneratingIndicator";
 import { track } from "@/lib/analytics/client";
 import { trackEvent } from "@/lib/analytics/track-event";
-import { frameworkFromStory, rememberStory } from "@/lib/keep-story";
+import { demoUsedToday, frameworkFromStory, markDemoUsed, rememberNote, rememberStory } from "@/lib/keep-story";
 import { heroRegionForZone } from "@/lib/hero-proofs";
 
 const PLACEHOLDER = `For example:
@@ -204,6 +204,8 @@ export default function StoryDemo({
   // Phones: the visitor tapped "watch it write one" above the box, so the story
   // panel moves above the box and they see it being written without scrolling.
   const [exampleFirst, setExampleFirst] = useState(false);
+  // One free try per browser per day, not per page load (B5+, 25 Nov 2026): a reload gave another.
+  useEffect(() => { if (demoUsedToday()) setUsage((n) => Math.max(n, 1)); }, []);
 
   // The example in the visitor's own curriculum (lib/demo-examples.ts). Australia's
   // is in this file; Aotearoa, England and Ireland load theirs after the page is up,
@@ -321,7 +323,7 @@ export default function StoryDemo({
         return;
       }
       if (!data.story) throw new Error("No story came back. Please try again.");
-      setOutput(data.story); setOutputNote(input); setUsage(usage + 1);
+      setOutput(data.story); setOutputNote(input); setUsage(usage + 1); markDemoUsed();
       // Remembered as she writes it, so any way she goes to signup carries it (lib/keep-story.ts).
       rememberStory(input, data.story, framework ?? frameworkFromStory(data.story), true);
       setBasicDraft(data.basicDraft === true);
@@ -341,6 +343,8 @@ export default function StoryDemo({
     track("keep_story_clicked", { surface });
   };
   const ownDraft = Boolean(output) && !(outputNote === example.note && output === example.story);
+  // B5: a new note she typed after her free try goes with her into signup.
+  const newNote = touched && input.trim() !== outputNote.trim() && input.trim() !== example.note.trim() && input.trim() !== SAMPLE.trim() && input.trim().length >= 20;
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(output);
@@ -423,20 +427,24 @@ export default function StoryDemo({
         {limitHit && (
           <div className="mt-3 rounded-xl border border-sage-200 bg-sage-50 px-3 py-3 text-sm text-ink-800" data-testid="demo-limit">
             <p>
-              {ownDraft
-                ? "That was your free try here. Keep the story you wrote and write 3 stories a month free, no card."
-                : "The free tries here are used up for now. Write 3 stories a month free in your own account, no card."}
+              {newNote
+                ? "That was your free try here. Keep this note and write it in your own free account."
+                : ownDraft
+                  ? "That was your free try here. Keep the story you wrote and write 3 stories a month free, no card."
+                  : "The free tries here are used up for now. Write 3 stories a month free in your own account, no card."}
             </p>
             <Link
               href="/signup?keep=1"
               onClick={() => {
                 if (ownDraft) keepThis();
+                if (newNote && rememberNote(input, [example.note, SAMPLE])) trackEvent("demo_limit_note_kept", { page: window.location.pathname });
                 trackEvent("guide_limit_tap", { page: window.location.pathname, wall: "demo" });
               }}
               className="btn-primary mt-2 inline-flex px-4 py-2 text-xs"
               data-track="demo_limit_keep"
+              data-testid="demo-limit-keep"
             >
-              {ownDraft ? "Keep my story" : "Start free"}
+              {newNote ? "Keep my note and sign up free" : ownDraft ? "Keep my story" : "Start free"}
             </Link>
           </div>
         )}

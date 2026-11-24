@@ -76,3 +76,30 @@ export function educatorCheckoutLine(currency: CurrencyCode, discount: EducatorD
   if (discount === "referral") return sentence(`${start}your first month free, then ${offer.perMonth}.`);
   return offer.offerLine;
 }
+
+/**
+ * The statement wall pays today (25 Nov 2026, STATEMENTS_PAY_TODAY): its
+ * checkout has no free week. Only for Educator from that wall, never a special
+ * offer or a centre plan. Pure.
+ */
+export function statementWallPaysToday(input: { switchOn: boolean; wall: string | null | undefined; specialOffer: boolean; centrePlan: boolean }): boolean {
+  return input.switchOn && input.wall === "statement" && !input.specialOffer && !input.centrePlan;
+}
+
+/**
+ * What checkout charges today from the statement wall, as one line, from the
+ * same discount checkout applies (no free week). Pure.
+ *   none:       "NZ$21 today, then NZ$21 a month."
+ *   activation: "NZ$10.50 today and next month, then NZ$21 a month."
+ *   referral:   "Nothing today: your first month is free, then NZ$21 a month."
+ */
+export function statementTodayLine(currency: CurrencyCode, discount: EducatorDiscount): string {
+  const offer = educatorOffer(currency, "educator");
+  const full = moneyLabel(offer.price, currency);
+  if (discount === "activation") {
+    const half = moneyLabel(activationMonthly(offer.price), currency);
+    return ACTIVATION_MONTHS === 2 ? `${half} today and next month, then ${full} a month.` : `${half} today, then ${full} a month after ${ACTIVATION_MONTHS} months.`;
+  }
+  if (discount === "referral") return `Nothing today: your first month is free, then ${full} a month.`;
+  return `${full} today, then ${full} a month.`;
+}

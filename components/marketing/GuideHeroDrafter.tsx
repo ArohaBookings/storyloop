@@ -1,4 +1,5 @@
 import { ArrowDown } from "lucide-react";
+import DrafterSeen from "@/components/marketing/DrafterSeen";
 import TransitionDemo from "@/components/marketing/TransitionDemo";
 import type { TransitionFramework, TransitionMode } from "@/lib/ai/transition-draft";
 import TransitionExample from "@/components/marketing/TransitionExample";
@@ -30,6 +31,7 @@ export default function GuideHeroDrafter({
   example,
   official,
   followZone = false,
+  desktopColumns = false,
 }: {
   framework: TransitionFramework;
   mode: TransitionMode;
@@ -39,19 +41,27 @@ export default function GuideHeroDrafter({
   official?: string;
   /** Open the drafter on the visitor's own curriculum (review 2, R2-11). */
   followZone?: boolean;
+  /**
+   * The desktop first screen (25 Nov 2026, B1): at 1024px and wider this block
+   * opens into its parent's two-column grid (StatementGuideHero): the example
+   * under the official card on the left, the drafter on the right. Below
+   * 1024px nothing moves.
+   */
+  desktopColumns?: boolean;
 }) {
   return (
-    <div className="mt-3 sm:mt-6" data-testid="guide-hero-drafter-block">
+    <div className={desktopColumns ? "mt-3 sm:mt-6 lg:contents" : "mt-3 sm:mt-6"} data-testid="guide-hero-drafter-block">
       {official && (
         <a
           href="#official-links"
-          className="inline-flex min-h-[32px] items-center gap-1.5 text-sm font-semibold text-sage-800 underline decoration-sage-300 underline-offset-2 hover:text-sage-900"
+          className={`${desktopColumns ? "lg:hidden " : ""}inline-flex min-h-[32px] items-center gap-1.5 text-sm font-semibold text-sage-800 underline decoration-sage-300 underline-offset-2 hover:text-sage-900`}
           data-track="guide_hero_official"
         >
           <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />
           {official}
         </a>
       )}
+      <div className={desktopColumns ? "lg:col-start-1 lg:row-start-2 lg:min-w-0" : undefined}>
       {example?.kind === "draft" && <TransitionExample framework={example.framework} compact />}
       {example?.kind === "paragraph" && (
         <div className="mt-2 max-w-3xl rounded-2xl border border-clay-200 bg-white/90 px-3.5 py-2.5" data-testid="guide-hero-example">
@@ -68,9 +78,10 @@ export default function GuideHeroDrafter({
           <p className="mt-0.5 line-clamp-2 text-[13px] leading-snug text-ink-800">{example.text}</p>
         </div>
       )}
-      <div id="transition-try" className="mt-2 max-w-5xl scroll-mt-24 sm:mt-3">
-        <TransitionDemo framework={framework} mode={mode} choices={choices} hero followZone={followZone} />
       </div>
+      <DrafterSeen id="transition-try" kind={mode === "summary" ? "summary" : "statement"} className={`mt-2 max-w-5xl scroll-mt-24 sm:mt-3${desktopColumns ? " lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:min-w-0" : ""}`}>
+        <TransitionDemo framework={framework} mode={mode} choices={choices} hero followZone={followZone} />
+      </DrafterSeen>
     </div>
   );
 }

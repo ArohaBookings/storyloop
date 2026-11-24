@@ -31,6 +31,9 @@ const PROFILE_SELECT =
 function deriveFullName(user: Pick<User, "email" | "user_metadata">) {
   const fullName = typeof user.user_metadata?.full_name === "string" ? user.user_metadata.full_name.trim() : "";
   if (fullName) return fullName;
+  // Signed up with no name on purpose (25 Nov 2026, B4): she is asked where a name is
+  // needed, and greetings say "there", never the start of her email address.
+  if (user.user_metadata?.name_skipped === true) return "";
   return user.email?.split("@")[0] ?? "StoryLoop user";
 }
 
@@ -96,7 +99,7 @@ export async function getOrCreateProfile(user: Pick<User, "id" | "email" | "user
     .insert({
       id: user.id,
       email,
-      full_name: fullName,
+      full_name: fullName || null,
     })
     .select(PROFILE_SELECT)
     .single();

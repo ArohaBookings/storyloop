@@ -2,7 +2,6 @@ import { NextRequest, NextResponse, after } from "next/server";
 import Stripe from "stripe";
 import { createStripe } from "@/lib/stripe-client";
 import { createAdminSupabase } from "@/lib/supabase/admin";
-import { normalizePlanKey } from "@/lib/plans";
 import { creditEarnedReferrals, grantReferralCreditForPayment, notifyReferrer } from "@/lib/referrals";
 import { newlyScheduledCancellation, paymentFailureNotice, sendBillingEmail } from "@/lib/email/billing";
 import { cancellationFeedbackMetadata } from "@/lib/churn-reasons";
@@ -13,31 +12,12 @@ import { SITE_URL } from "@/lib/email/config";
 import { recordServerEvent } from "@/lib/analytics/server";
 import { PLAN_ORDER } from "@/lib/plans";
 import { sendsPaymentReceipt, stripeEventFacts, type StripeEventFacts } from "@/lib/stripe-events";
+import { invoiceSubscriptionId, stripeDate, subscriptionPeriodEnd, updateProfileForSubscription } from "@/lib/stripe-profile-sync";
 
 function getStripe() {
   return createStripe();
 }
 
-function stripeDate(value: number | null | undefined) {
-  return typeof value === "number" ? new Date(value * 1000).toISOString() : null;
-}
-
-function subscriptionPeriodEnd(subscription: Stripe.Subscription) {
-  const periodEnds = subscription.items.data.map((item) => item.current_period_end);
-  return periodEnds.length ? Math.max(...periodEnds) : subscription.cancel_at;
-}
-
-function invoiceSubscriptionId(invoice: Stripe.Invoice) {
-  const subscription = invoice.parent?.subscription_details?.subscription;
-  return typeof subscription === "string" ? subscription : subscription?.id;
-}
-
-function normalizeStripeStatus(status: string | null | undefined) {
-  if (status === "unpaid" || status === "incomplete" || status === "incomplete_expired" || status === "paused") {
-    return "payment_required";
-  }
-  return status ?? "payment_required";
-}
 
 function isDuplicateError(error: { code?: string; message?: string } | null) {
   return error?.code === "23505" || Boolean(error?.message?.toLowerCase().includes("duplicate"));
@@ -78,38 +58,6 @@ async function finishWebhookEvent(
   if (error && !isMissingIdempotencyTable(error)) throw error;
 }
 
-async function updateProfileForSubscription(
-  admin: ReturnType<typeof createAdminSupabase>,
-  subscription: Stripe.Subscription,
-  fallback?: { userId?: string | null; plan?: string | null; customerId?: string | null }
-) {
-  const userId = subscription.metadata?.user_id ?? fallback?.userId ?? null;
-  const customerId =
-    typeof subscription.customer === "string"
-      ? subscription.customer
-      : subscription.customer?.id ?? fallback?.customerId ?? null;
-  const plan = normalizePlanKey(subscription.metadata?.plan ?? fallback?.plan ?? "educator");
-  const status = normalizeStripeStatus(subscription.status);
-
-  const update = {
-    plan,
-    subscription_status: status,
-    stripe_customer_id: customerId,
-    stripe_subscription_id: subscription.id,
-    trial_ends_at: stripeDate(subscription.trial_end),
-    current_period_end: stripeDate(subscriptionPeriodEnd(subscription)),
-    upgraded_at: status === "active" || status === "trialing" ? new Date().toISOString() : undefined,
-  };
-
-  if (userId) {
-    await admin.from("profiles").update(update).eq("id", userId);
-    return;
-  }
-
-  if (customerId) {
-    await admin.from("profiles").update(update).eq("stripe_customer_id", customerId);
-  }
-}
 
 async function updateProfileByInvoiceCustomer(
   admin: ReturnType<typeof createAdminSupabase>,
