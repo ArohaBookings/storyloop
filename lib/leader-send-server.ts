@@ -48,6 +48,6 @@ export async function emailLeaderIfAsked(input: {
     expiresAt: input.expiresAt,
   });
   if (result.sent) return { asked: true, sent: true };
-  const message = result.reason === "failed" ? "We could not send it. Copy the link instead." : heldMessage(result.reason);
+  const message = result.reason === "failed" ? "We could not send it. Try again, or copy the link and send it yourself." : heldMessage(result.reason);
   return { asked: true, sent: false, reason: result.reason, message };
 }

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CLASS_SET_MAX, addToClassSet, clearClassSet, listClassSet, type ClassPiece } from "../lib/class-set";
+import { CLASS_SET_MAX, addToClassSet, clearClassSet, listClassSet, unnamedCount, type ClassPiece } from "../lib/class-set";
 
 function memory() {
   const data = new Map<string, string>();
@@ -44,4 +44,15 @@ test("storage that throws gives an empty set, never an error", () => {
   assert.equal(addToClassSet(piece("Aria"), NOW, broken), false);
   assert.doesNotThrow(() => clearClassSet(broken));
   assert.deepEqual(listClassSet(NOW, null), []);
+});
+
+test("a draft with no first name is left out, and counted so the panel can say why", () => {
+  const s = memory();
+  assert.equal(addToClassSet(piece(""), NOW, s), false);
+  assert.equal(addToClassSet(piece("  "), NOW, s), false);
+  assert.equal(addToClassSet(piece("Aria"), NOW, s), true);
+  assert.equal(unnamedCount(s), 2);
+  assert.equal(listClassSet(NOW, s).length, 1);
+  clearClassSet(s);
+  assert.equal(unnamedCount(s), 0);
 });

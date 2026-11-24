@@ -175,7 +175,15 @@ export default function SendToLeader(props: SendToLeaderProps) {
               Sent to {typed}. If it is not opened in two days, StoryLoop sends one reminder. Then nothing more.
             </p>
           ) : email.asked ? (
-            <p className="rounded-xl border border-clay-200 bg-clay-50 p-3 text-sm leading-relaxed text-clay-900" role="status" data-testid="leader-email-held">{email.message}</p>
+            <div className="rounded-xl border border-clay-200 bg-clay-50 p-3" role="status">
+              <p className="text-sm leading-relaxed text-clay-900" data-testid="leader-email-held">{email.message}</p>
+              {/* A send that did not leave is not counted: she can try again with the same link. */}
+              {email.reason === "failed" && (
+                <button type="button" onClick={sendExisting} disabled={busy} className="btn-secondary mt-2 min-h-[44px] px-4 text-xs" data-testid="leader-email-retry">
+                  {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Mail className="h-3.5 w-3.5" />} Try again
+                </button>
+              )}
+            </div>
           ) : null}
           <p className="mt-3 text-sm leading-relaxed text-ink-700">
             {email.asked && email.sent ? "The same link, if you want it:" : `Send this link to your leader. It opens ${what}, with your notes beside ${props.kind === "set" ? "them" : "it"}, for ${CHECK_DAYS} days.`}

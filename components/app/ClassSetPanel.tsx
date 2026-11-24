@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, MessageSquareText, UserCheck } from "lucide-react";
 import SendToLeader from "@/components/app/SendToLeader";
-import { CLASS_SET_EVENT, clearClassSet, listClassSet, type ClassPiece } from "@/lib/class-set";
+import { CLASS_SET_EVENT, clearClassSet, listClassSet, unnamedCount, type ClassPiece } from "@/lib/class-set";
 
 type SentSet = { id: string; sentAt: string; opened: boolean; pieces: number; approved: number; changes: number; open: boolean; comments: Array<{ childName: string; comment: string }> };
 
@@ -16,13 +16,14 @@ type SentSet = { id: string; sentAt: string; opened: boolean; pieces: number; ap
  */
 export default function ClassSetPanel() {
   const [pieces, setPieces] = useState<ClassPiece[]>([]);
+  const [unnamed, setUnnamed] = useState(0);
   const [open, setOpen] = useState(false);
   const [sets, setSets] = useState<SentSet[]>([]);
   // What was just sent stays on screen with its link (shown once) after the tab's set is emptied.
   const [sent, setSent] = useState<ClassPiece[] | null>(null);
 
   useEffect(() => {
-    const read = () => setPieces(listClassSet());
+    const read = () => { setPieces(listClassSet()); setUnnamed(unnamedCount()); };
     read();
     window.addEventListener(CLASS_SET_EVENT, read);
     fetch("/api/leader-sets").then((r) => (r.ok ? r.json() : null)).then((data) => { if (data?.sets) setSets(data.sets); }).catch(() => {});
@@ -33,22 +34,29 @@ export default function ClassSetPanel() {
   const shown = sent ?? pieces;
   return (
     <>
-      {(count > 0 || sent) && (
+      {(count > 0 || sent || unnamed > 0) && (
         <section className="mt-6 rounded-2xl border border-clay-100 bg-cream-50/60 p-4 sm:p-5" data-testid="class-set-panel" aria-live="polite">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-sm font-bold text-ink-900" data-testid="class-set-count">{shown.length} {shown.length === 1 ? "statement" : "statements"} {sent ? "sent" : "this sitting"}</h2>
-              <p className="text-xs text-ink-600">{shown.map((p) => p.childFirstName).join(", ")}.{sent ? "" : " Kept in this tab until you send them."}</p>
+              {shown.length > 0 && <p className="text-xs text-ink-600">{shown.map((p) => p.childFirstName).join(", ")}.{sent ? "" : " Kept in this tab until you send them."}</p>}
             </div>
             {sent && (
               <button type="button" onClick={() => { setSent(null); setOpen(false); }} className="btn-ghost min-h-[44px] px-3 text-xs" data-testid="class-set-done">Done</button>
             )}
-            {!open && !sent && (
+            {!open && !sent && count > 0 && (
               <button type="button" onClick={() => setOpen(true)} className="btn-secondary min-h-[44px] px-4 text-xs" data-testid="class-set-send">
                 <UserCheck className="h-3.5 w-3.5" /> Check with my leader
               </button>
             )}
           </div>
+          {unnamed > 0 && !sent && (
+            <p className="mt-2 text-xs leading-relaxed text-clay-800" data-testid="class-set-unnamed">
+              {unnamed === 1
+                ? "1 draft has no first name, so it is not in this set. Add a first name and draft it again to include it."
+                : `${unnamed} drafts have no first name, so they are not in this set. Add a first name and draft them again to include them.`}
+            </p>
+          )}
           {open && (
             <SendToLeader
               kind="set"

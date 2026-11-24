@@ -25,6 +25,18 @@ export const CLASS_SET_KEY = "storyloop_class_set";
 export const CLASS_SET_EVENT = "storyloop:class-set";
 export const CLASS_SET_MAX = 30;
 export const CLASS_SET_HOURS = 12;
+/** How many drafts this sitting had no first name, so the panel can say why they are not in the set. */
+export const CLASS_SET_UNNAMED_KEY = "storyloop_class_set_unnamed";
+
+/** Drafts left out of the set because they had no first name. */
+export function unnamedCount(s: Store | null = store()): number {
+  try {
+    const n = Number(s?.getItem(CLASS_SET_UNNAMED_KEY) ?? 0);
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+  } catch {
+    return 0;
+  }
+}
 
 type Store = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
@@ -72,7 +84,13 @@ function announce(count: number) {
  * piece has no first name, or storage is blocked.
  */
 export function addToClassSet(piece: ClassPiece, now = Date.now(), s: Store | null = store()): boolean {
-  if (!s || !piece.childFirstName.trim() || !piece.draft) return false;
+  if (!s || !piece.draft) return false;
+  if (!piece.childFirstName.trim()) {
+    // Not in the set (the leader's list needs a name), but counted so she is told.
+    try { s.setItem(CLASS_SET_UNNAMED_KEY, String(unnamedCount(s) + 1)); } catch { /* storage blocked */ }
+    announce(listClassSet(now, s).length);
+    return false;
+  }
   const list = listClassSet(now, s);
   const key = (p: ClassPiece) => `${p.childFirstName.trim().toLocaleLowerCase("en-NZ")}|${p.mode}`;
   const rest = list.filter((p) => key(p) !== key(piece));
@@ -90,6 +108,7 @@ export function addToClassSet(piece: ClassPiece, now = Date.now(), s: Store | nu
 export function clearClassSet(s: Store | null = store()) {
   try {
     s?.removeItem(CLASS_SET_KEY);
+    s?.removeItem(CLASS_SET_UNNAMED_KEY);
   } catch {
     /* nothing to clear */
   }

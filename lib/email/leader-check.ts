@@ -247,9 +247,15 @@ export async function sendLeaderEmail(input: {
     expiresAt: input.expiresAt,
     reminder: false,
   });
-  const result = await deliver({ to: input.address, rendered, idempotencyKey: `leader-first-${row.id}`, type: LEADER_EMAIL_TYPE, sendId: row.id, stopUrl });
+  // Keyed on the link and the address, not the row: if a send that looked failed did
+  // leave, a retry to the same address is the same email to Resend and goes once.
+  const linkId = input.checkId ?? input.setId ?? row.id;
+  const result = await deliver({ to: input.address, rendered, idempotencyKey: `leader-first-${linkId}-${recipientHash(input.address).slice(0, 16)}`, type: LEADER_EMAIL_TYPE, sendId: row.id, stopUrl });
   if (!result.ok) {
-    await sb.from("leader_emails").update({ status: "failed", recipient: null, first_event_id: result.eventId }).eq("id", row.id);
+    // It did not leave: the row goes, so it is not "already emailed", does not use one
+    // of her 3 a day, and no reminder is ever due for it. The email_events row keeps
+    // the failure on record.
+    await sb.from("leader_emails").delete().eq("id", row.id);
     return { sent: false, reason: "failed" };
   }
   await sb.from("leader_emails").update({ first_event_id: result.eventId }).eq("id", row.id);
