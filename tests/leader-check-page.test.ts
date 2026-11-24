@@ -45,7 +45,7 @@ test("before the answer there is no start block; after it, the block with her ce
   assert.ok(after.includes('data-testid="leader-check-centre"'));
   assert.ok(after.includes("Start Kowhai Kindergarten free"));
   assert.ok(after.includes("Sam is already in your team the moment you start."));
-  assert.ok(after.includes("No card, no payment page."));
+  assert.ok(after.includes("No card needed."));
   const untick = render(leaderView({ story, check: row({ status: "approved", join_consent: false }), educatorName: "Sam", now: NOW, offer }));
   assert.ok(untick.includes("Sam is one tap away once you start.") && !untick.includes("already in your team"));
   const inCentre = render(leaderView({ story, check: row({ status: "approved" }), educatorName: "Sam", now: NOW, offer: null }));

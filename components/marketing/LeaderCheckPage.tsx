@@ -232,7 +232,7 @@ function StartBlock({ view, answered, preview }: { view: PageView; answered: boo
       </h2>
       {counts && <p className="mt-2 text-base leading-relaxed text-ink-700" data-testid="leader-offer-counts">{leaderCountsSentence(view.educator, counts)}</p>}
       <ul className="mt-3 space-y-1.5 text-base leading-relaxed text-ink-700" data-testid="leader-offer-terms">
-        <li><strong className="font-semibold text-ink-900"><CentreTrialWords capital />.</strong> No card, no payment page.</li>
+        <li><strong className="font-semibold text-ink-900"><CentreTrialWords capital />.</strong> No card needed.</li>
         <li data-testid="leader-offer-team">
           {view.joinConsent
             ? `${view.educator} is already in your team the moment you start.`
@@ -466,7 +466,7 @@ function SetPage({ view, token, preview, onView, heading }: PageProps<SetView>) 
         <h1 ref={heading} tabIndex={-1} className="mt-2 font-display text-3xl font-bold leading-tight text-ink-900 outline-none">
           {view.items.length} {noun} from {view.educator}
         </h1>
-        <p className="mt-2 text-base leading-relaxed text-ink-600">Tap any to read it, or mark them all as looking good.</p>
+        <p className="mt-2 text-base leading-relaxed text-ink-600">Tap a name to read it, or tap All look good.</p>
 
         <ul className="mt-5 divide-y divide-clay-100 overflow-hidden rounded-2xl border border-clay-100 bg-paper" data-testid="leader-set-list">
           {view.items.map((piece) => {

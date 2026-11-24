@@ -66,10 +66,10 @@ export function canSendLeaderEmail(f: SendFacts): { ok: true } | { ok: false; re
 }
 
 /** What she reads when it is held. The link is always made, so there is never a dead end. */
-export function heldMessage(reason: HeldReason, leaderLabel = "your leader") {
+export function heldMessage(reason: HeldReason) {
   switch (reason) {
     case "cap": return `StoryLoop sends at most ${LEADER_EMAILS_PER_DAY} of these a day for you. Copy the link and send it yourself.`;
-    case "suppressed": return `${leaderLabel === "your leader" ? "That address" : leaderLabel} asked StoryLoop not to email them. Copy the link and send it yourself.`;
+    case "suppressed": return "That address asked StoryLoop not to email it. Copy the link and send it yourself.";
     case "paused": return "StoryLoop's email is paused just now. Copy the link and send it yourself.";
     case "no_name": return "Add your first name so your leader knows who it is from.";
     case "invalid": return "That email address does not look right. Check it, or copy the link instead.";

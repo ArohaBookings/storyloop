@@ -172,7 +172,7 @@ export default function SendToLeader(props: SendToLeaderProps) {
         <div data-testid="leader-check-link">
           {email.asked && email.sent ? (
             <p className="rounded-xl border border-sage-200 bg-sage-50 p-3 text-sm font-semibold leading-relaxed text-sage-900" role="status" data-testid="leader-email-sent">
-              Sent to {typed}. If it is not opened, StoryLoop sends one reminder in about two days, then nothing more.
+              Sent to {typed}. If it is not opened in two days, StoryLoop sends one reminder. Then nothing more.
             </p>
           ) : email.asked ? (
             <p className="rounded-xl border border-clay-200 bg-clay-50 p-3 text-sm leading-relaxed text-clay-900" role="status" data-testid="leader-email-held">{email.message}</p>
@@ -228,7 +228,7 @@ export default function SendToLeader(props: SendToLeaderProps) {
           {LEADER_EMAIL_ON && (
             <>
               <label htmlFor={`leader-email-${id}`} className="mt-1 text-xs font-semibold text-ink-700">
-                Your leader&apos;s email <span className="font-normal text-ink-500">(StoryLoop sends it for you, or leave it empty and copy the link)</span>
+                Your leader&apos;s email <span className="font-normal text-ink-500">(optional: StoryLoop emails it for you, or leave it empty to copy the link)</span>
               </label>
               <input id={`leader-email-${id}`} type="email" inputMode="email" value={address} onChange={(e) => { setAddress(e.target.value); setError(""); }} autoComplete="off" className="input text-sm" data-testid="leader-email-input" />
             </>
