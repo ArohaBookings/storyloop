@@ -101,6 +101,11 @@ export const DRAFT_KINDS = ["story", "statement", "summary"] as const;
 export const NOTE_METHODS = ["typed", "voice", "photo", "example", "room"] as const;
 export const CARD_STATUSES = ["past_due", "unpaid", "incomplete"] as const;
 const PLANS = PLAN_ORDER;
+/** The leader path (25 Nov 2026): one story, or a whole room's statements sent as one set. */
+export const LEADER_KINDS = ["story", "set"] as const;
+export const LEADER_SEND_PLACES = ["generate", "history", "statement", "wall"] as const;
+export const LEADER_EMAIL_HELD_REASONS = ["cap", "suppressed", "paused", "no_name", "invalid"] as const;
+export const CENTRE_START_SOURCES = ["leader_check", "leader_set", "direct"] as const;
 
 export const EVENTS = {
   // ---- In the app (signed in). Ids and counts only, never story text. ----
@@ -138,7 +143,85 @@ export const EVENTS = {
     where: "the row beside Copy: Send this story to your leader (existing event, keys extended)",
     consent: "any",
     isNew: false,
-    keys: { centre_name: BOOL, counts: BOOL, story_id: ID },
+    keys: {
+      centre_name: BOOL,
+      counts: BOOL,
+      story_id: ID,
+      // 25 Nov 2026, the leader path: one story or a whole room's statements, emailed or copied.
+      kind: oneOf(...LEADER_KINDS),
+      pieces: num(30),
+      emailed: BOOL,
+      join_consent: BOOL,
+      sources: BOOL,
+    },
+  },
+
+  // ---- The leader path (25 Nov 2026). Never a name, an address or a word of a story. ----
+  leader_send_offered: {
+    where: "the 'Check with my leader' card shown under a story, in History, on the statement page or at the wall (A1)",
+    consent: "any",
+    isNew: true,
+    keys: { kind: oneOf(...LEADER_KINDS), where: oneOf(...LEADER_SEND_PLACES) },
+  },
+  leader_preview_opened: {
+    where: "the 'ready for your leader' preview opened before sending (A1)",
+    consent: "any",
+    isNew: true,
+    keys: { kind: oneOf(...LEADER_KINDS) },
+  },
+  leader_email_sent: {
+    where: "server: StoryLoop emailed the leader for the educator, or sent the one reminder (A2)",
+    consent: "any",
+    isNew: true,
+    keys: { kind: oneOf(...LEADER_KINDS), reminder: BOOL },
+  },
+  leader_email_held: {
+    where: "server: the leader email was not sent, and why (A2)",
+    consent: "any",
+    isNew: true,
+    keys: { reason: oneOf(...LEADER_EMAIL_HELD_REASONS) },
+  },
+  leader_email_stopped: {
+    where: "server: the leader used the 'stop these emails' link (A2); kind is which link it came from",
+    consent: "any",
+    isNew: true,
+    keys: { kind: oneOf(...LEADER_KINDS) },
+  },
+  leader_check_cover_tap: {
+    where: "the leader's page: the cover's button tapped to show the story or the statements (A3)",
+    consent: "any",
+    isNew: true,
+    keys: { kind: oneOf(...LEADER_KINDS) },
+  },
+  leader_check_answered: {
+    where: "the leader's page: Looks good or Suggest a change sent (existing event, keys extended; all = 'All look good' on a set)",
+    consent: "any",
+    isNew: false,
+    keys: { decision: oneOf("approved", "changes"), kind: oneOf(...LEADER_KINDS), all: BOOL },
+  },
+  leader_set_saved: {
+    where: "the leader's page: a whole room's statements saved as one file (A5)",
+    consent: "any",
+    isNew: true,
+    keys: { pieces: num(30) },
+  },
+  centre_started_free: {
+    where: "server: a centre started free with no payment page, from a leader's page or directly (A3, B6)",
+    consent: "any",
+    isNew: true,
+    keys: { from: oneOf(...CENTRE_START_SOURCES), educator_joined: BOOL },
+  },
+  statement_wall_pay_today: {
+    where: "the statement wall in its pay-today form shown (B2, switch STATEMENTS_PAY_TODAY)",
+    consent: "any",
+    isNew: true,
+    keys: { trialing: BOOL, currency: oneOf(...CURRENCIES) },
+  },
+  statement_plan_started: {
+    where: "server: the first month paid today from the statement wall (B2)",
+    consent: "any",
+    isNew: true,
+    keys: { from: oneOf("trial", "free"), currency: oneOf(...CURRENCIES), amount_cents: num(100_000) },
   },
   app_first_session_open: {
     where: "app/(app) layout: the first signed-in page an account opens in its first session",
@@ -331,6 +414,18 @@ export const EVENTS = {
     consent: "any",
     isNew: true,
     keys: { kind: oneOf(...DRAFT_KINDS) },
+  },
+  signup_name_skipped: {
+    where: "SignupForm: the account was made without a name, to be asked later (B4, 25 Nov 2026)",
+    consent: "any",
+    isNew: true,
+    keys: { method: oneOf("email", "google") },
+  },
+  demo_limit_note_kept: {
+    where: "the demo or guide limit: its button carried the typed note into signup (a flag only, never the note; B5, 25 Nov 2026)",
+    consent: "any",
+    isNew: true,
+    keys: { page: PATH },
   },
 
   // ---- Guides (public). ----

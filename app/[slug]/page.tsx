@@ -28,7 +28,9 @@ import { RelatedGuides } from "@/components/marketing/Guide";
 import { SLUG_PRINTABLES, relatedFor } from "@/components/marketing/guide-links";
 import { INTERNATIONAL_SLUG_FRAMEWORK } from "@/lib/seo-pages-international";
 import TransitionExample from "@/components/marketing/TransitionExample";
-import GuideHeroDrafter, { type HeroExample } from "@/components/marketing/GuideHeroDrafter";
+import type { HeroExample } from "@/components/marketing/GuideHeroDrafter";
+import StatementGuideHero from "@/components/marketing/StatementGuideHero";
+import GuideProductBlock from "@/components/marketing/GuideProductBlock";
 import ExitFeedback from "@/components/landing/ExitFeedback";
 import PlanChooser from "@/components/landing/PlanChooser";
 
@@ -184,7 +186,7 @@ const EDUCATOR_FIRST_SLUGS = new Set([
   "nqs-standards",
 ]);
 import { DEDICATED_ROUTE_SLUGS, SEO_PAGES, SEO_PAGE_SLUGS } from "@/lib/seo-pages";
-import { ArrowRight, Check, ExternalLink, PenLine, ShieldCheck } from "lucide-react";
+import { ArrowRight, Check, PenLine, ShieldCheck } from "lucide-react";
 import { ORGANIZATION_REF } from "@/lib/site-identity";
 
 const SITE_URL = "https://storyloop.space";
@@ -344,67 +346,29 @@ export default async function SeoPage({ params }: PageProps) {
             )}
             {/* The plain price answer, first: StoryLoop's own two centre prices (no other pricing model shown). */}
             {page.slug === "learning-story-software-cost-for-centres" && <CentrePriceTable />}
-            {heroDrafter && (
-              <GuideHeroDrafter
-                framework={heroDrafter.framework}
-                mode={heroDrafter.mode}
-                choices={heroDrafter.choices}
-                followZone={page.slug === "end-of-year-learning-summary"}
-                example={heroExample}
-                official={page.officialLinks?.heading}
-              />
-            )}
-            {/* /pricing: every plan and its button on the first screen (fault P09).
-                The full cards, with everything in each plan, follow as before. */}
-            {page.slug === "pricing" && <PlanChooser />}
-            {/* The official login, form or guide the searcher came for, before
-                anything else asks for their attention. New tab, so this page and
-                its draft box are still here when they come back. */}
-            {page.officialLinks && (
-              <div id="official-links" className="mt-6 max-w-3xl scroll-mt-24 rounded-3xl border border-sage-200 bg-white p-5 shadow-soft" data-testid="official-links">
-                <p className="text-xs font-bold uppercase tracking-wider text-sage-700">{page.officialLinks.heading}</p>
-                <ul className="mt-3 space-y-2.5">
-                  {page.officialLinks.links.map((link) => (
-                    <li key={link.url} className="min-w-0">
-                      <a
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        data-track="guide_official_link"
-                        className="inline-flex max-w-full items-start gap-2 text-base font-semibold text-clay-700 underline decoration-clay-300 underline-offset-4 hover:text-clay-900"
-                      >
-                        <ExternalLink className="mt-1 h-4 w-4 shrink-0" aria-hidden="true" />
-                        <span className="min-w-0 break-words">{link.label}</span>
-                      </a>
-                      {link.note && <p className="mt-0.5 pl-6 text-sm leading-relaxed text-ink-600">{link.note}</p>}
-                    </li>
-                  ))}
-                </ul>
-                {/* What they came for first, then what StoryLoop does about it,
-                    still on a phone's first screen (the hero buttons sit below
-                    the intro, more than a screen down once this box is here). */}
-                {(TRANSITION_DEMOS[page.slug] || hasTry) && (
-                  <div className="mt-4 border-t border-sage-100 pt-4">
-                    <p className="text-sm leading-relaxed text-ink-700">
-                      Writing it now? StoryLoop drafts the wording from your own notes. You check it, then enter the final wording in the official statement yourself.
-                    </p>
-                    <Link
-                      href={TRANSITION_DEMOS[page.slug] ? "#transition-try" : "#try"}
-                      className="btn-primary mt-3 justify-center"
-                      data-track="guide_official_try"
-                    >
-                      {TRANSITION_DEMOS[page.slug]?.button ?? "Turn a note into a learning story, no signup"}
-                    </Link>
-                    {hasExample && (
-                      <Link href="#transition-example" className="mt-1 flex min-h-[44px] items-center text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2 hover:text-clay-900" data-track="guide_official_example">
-                        Or see a finished example first
-                      </Link>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+            {/* The statement guides' drafter, /pricing's plan chooser (fault P09: every
+                plan and its button on the first screen) and the official links, as one
+                slot (components/marketing/StatementGuideHero, lane B from 25 Nov 2026). */}
+            <StatementGuideHero
+              slug={page.slug}
+              drafter={heroDrafter}
+              example={heroExample}
+              officialLinks={page.officialLinks}
+              tryLink={
+                TRANSITION_DEMOS[page.slug] || hasTry
+                  ? {
+                      href: TRANSITION_DEMOS[page.slug] ? "#transition-try" : "#try",
+                      label: TRANSITION_DEMOS[page.slug]?.button ?? "Turn a note into a learning story, no signup",
+                    }
+                  : null
+              }
+              hasExample={hasExample}
+            >
+              {page.slug === "pricing" && <PlanChooser />}
+            </StatementGuideHero>
             <p className="mt-6 text-lg text-ink-600 max-w-3xl leading-relaxed"><OfferText text={page.intro} /></p>
+            {/* The product, in the page's own words, after the intro (lane C from 25 Nov 2026; renders nothing yet). */}
+            <GuideProductBlock page={page} />
             {/* Buttons straight under the intro, so they are on a phone's first
                 screen. Below the tips they started at 932px on an 844px phone. */}
             <div className="mt-8 flex flex-col sm:flex-row gap-3">

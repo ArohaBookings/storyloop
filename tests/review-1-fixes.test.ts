@@ -47,8 +47,9 @@ test("review 2: the data sheet states privacy facts only, and the end-of-year gu
   const sheet = readFileSync("app/data-sheet/page.tsx", "utf8");
   assert.doesNotMatch(sheet, /daily diary|rolls, fees|subsidy admin|No photo or video sharing/);
   assert.match(sheet, /It takes and stores no photos or videos of children\./);
-  const slug = readFileSync("app/[slug]/page.tsx", "utf8");
-  assert.equal((slug.match(/followZone=\{page\.slug === "end-of-year-learning-summary"\}/g) ?? []).length, 2, "the hero drafter and the one further down");
+  // The hero drafter moved into the guide slot (components/marketing/StatementGuideHero, 25 Nov 2026).
+  const slug = readFileSync("app/[slug]/page.tsx", "utf8") + readFileSync("components/marketing/StatementGuideHero.tsx", "utf8");
+  assert.equal((slug.match(/followZone=\{(page\.)?slug === "end-of-year-learning-summary"\}/g) ?? []).length, 2, "the hero drafter and the one further down");
   const demo = readFileSync("components/marketing/TransitionDemo.tsx", "utf8");
   assert.match(demo, /const own = frameworkForZone\(zone\);\n\s+if \(\(choices \?\? \[\]\)\.includes\(own\)\) setFramework\(own\);/);
 });

@@ -54,6 +54,7 @@ MIGRATIONS=(
   "supabase/migrations/20261118_centre_team_review.sql"
   "supabase/migrations/20261119_family_tell_centre.sql"
   "supabase/migrations/20261119_centre_sharing_since.sql"
+  "supabase/migrations/20261125_leader_path.sql"
 )
 TESTS=(
   "supabase/tests/centre_team_model.test.sql"
@@ -65,6 +66,7 @@ TESTS=(
   "supabase/tests/leader_offer.test.sql"
   "supabase/tests/centre_team_review.test.sql"
   "supabase/tests/family_tell_centre.test.sql"
+  "supabase/tests/leader_path.test.sql"
 )
 
 # A free port, checked rather than assumed: another project's database may be

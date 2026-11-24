@@ -179,3 +179,17 @@ export async function inviteFromLeaderOffer(userId: string, now = new Date()): P
     .then(undefined, (error: unknown) => console.error("Offer invite not marked:", error));
   return { ok: true, summary: { educator: name, centreName: cleanCentreName(row.centre_name ?? ""), status: "invited" } };
 }
+
+/**
+ * Adds the educator who sent a leader's check or set to the centre the claimer
+ * just started, when she ticked "add me to the team" (join_consent). Membership
+ * only: sharing stays her own switch.
+ *
+ * STUB (25 Nov 2026 groundwork): joins nobody yet. Lane A owns the body; lane
+ * B's /api/centres/start-free calls it.
+ */
+export async function joinFromLeaderOffer(claimerId: string, centreId: string): Promise<{ joined: boolean }> {
+  void claimerId;
+  void centreId;
+  return { joined: false };
+}
