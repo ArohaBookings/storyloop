@@ -36,7 +36,11 @@ test("the five switches exist, are plain booleans, and are set as ruled on 24 No
 // Every file that reads a switch, and the test that proves what it does with
 // that switch false. A lane that makes a file read a switch adds it here with
 // its test; a reader missing from this list fails the build.
-const SWITCH_READERS: Record<string, string> = {};
+const SWITCH_READERS: Record<string, string> = {
+  // Lane A (leader path). Off: no cover, the offer under the story from the start, the site's own bar.
+  [path.join("components", "marketing", "LeaderCheckPage.tsx")]: "tests/leader-check-page.test.ts",
+  [path.join("app", "check", "page.tsx")]: "tests/leader-check-page.test.ts",
+};
 
 function sourceFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((entry) => {

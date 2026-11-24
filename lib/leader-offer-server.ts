@@ -34,6 +34,8 @@ export type LeaderOfferSummary = {
 };
 
 type OfferRow = {
+  /** Which table the offer lives in: a story check, or a whole room's set (25 Nov 2026). */
+  table: "story_checks" | "leader_sets";
   id: string;
   user_id: string;
   centre_name: string | null;
@@ -41,9 +43,13 @@ type OfferRow = {
   revoked_at: string | null;
   offer_claimed_by: string | null;
   offer_invited_at: string | null;
+  join_consent: boolean | null;
+  created_at: string;
 };
 
-const OFFER_COLUMNS = "id, user_id, centre_name, expires_at, revoked_at, offer_claimed_by, offer_invited_at";
+const OFFER_COLUMNS = "id, user_id, centre_name, expires_at, revoked_at, offer_claimed_by, offer_invited_at, join_consent, created_at";
+const OFFER_TABLES = ["story_checks", "leader_sets"] as const;
+const tagged = (table: OfferRow["table"], data: unknown) => (data ? ({ ...(data as Omit<OfferRow, "table">), table }) as OfferRow : null);
 
 async function educatorAccount(userId: string): Promise<{ firstName: string; email: string | null }> {
   const admin = createAdminSupabase();
@@ -88,21 +94,26 @@ export async function claimLeaderOffer(userId: string, ref: unknown, now = new D
   if (!userId || !looksLikeOfferRef(ref)) return null;
   try {
     const admin = createAdminSupabase();
-    const { data } = await admin.from("story_checks").select(OFFER_COLUMNS).eq("offer_ref_hash", hashOfferRef(ref)).maybeSingle();
-    const row = data as OfferRow | null;
+    // Story checks first, as before; a reference from a whole room's set lives in leader_sets.
+    let row: OfferRow | null = null;
+    for (const table of OFFER_TABLES) {
+      const { data } = await admin.from(table).select(OFFER_COLUMNS).eq("offer_ref_hash", hashOfferRef(ref)).maybeSingle();
+      row = tagged(table, data);
+      if (row) break;
+    }
     if (!row || !canUseOffer(row, now) || row.user_id === userId) return null;
     if (row.offer_claimed_by && row.offer_claimed_by !== userId) return null;
     if (!row.offer_claimed_by) {
       // Conditional, so two accounts claiming at once cannot both win.
       const { data: claimed } = await admin
-        .from("story_checks")
+        .from(row.table)
         .update({ offer_claimed_by: userId, offer_claimed_at: now.toISOString() })
         .eq("id", row.id)
         .is("offer_claimed_by", null)
         .select(OFFER_COLUMNS)
         .maybeSingle();
       if (!claimed) return null;
-      return summarise(userId, claimed as OfferRow);
+      return summarise(userId, tagged(row.table, claimed) as OfferRow);
     }
     return summarise(userId, row);
   } catch (error) {
@@ -113,13 +124,14 @@ export async function claimLeaderOffer(userId: string, ref: unknown, now = new D
 
 /** The most recent live offer this account has claimed, if any. */
 async function claimedOffer(userId: string, now: Date): Promise<OfferRow | null> {
-  const { data } = await createAdminSupabase()
-    .from("story_checks")
-    .select(OFFER_COLUMNS)
-    .eq("offer_claimed_by", userId)
-    .order("created_at", { ascending: false })
-    .limit(5);
-  return ((data ?? []) as OfferRow[]).find((row) => canUseOffer(row, now) && row.user_id !== userId) ?? null;
+  const admin = createAdminSupabase();
+  const rows: OfferRow[] = [];
+  for (const table of OFFER_TABLES) {
+    const { data } = await admin.from(table).select(OFFER_COLUMNS).eq("offer_claimed_by", userId).order("created_at", { ascending: false }).limit(5);
+    for (const item of data ?? []) rows.push(tagged(table, item) as OfferRow);
+  }
+  rows.sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
+  return rows.find((row) => canUseOffer(row, now) && row.user_id !== userId) ?? null;
 }
 
 export async function leaderOfferFor(userId: string, now = new Date()): Promise<LeaderOfferSummary | null> {
@@ -175,21 +187,49 @@ export async function inviteFromLeaderOffer(userId: string, now = new Date()): P
 
   const made = await createCentreInvite({ centre, email: account.email, role: "educator", invitedBy: userId, fromLeaderOffer: true });
   if (!made.ok) return { ok: false, status: 500, error: "Could not create the invitation. Try again." };
-  await createAdminSupabase().from("story_checks").update({ offer_invited_at: now.toISOString() }).eq("id", row.id)
+  await createAdminSupabase().from(row.table).update({ offer_invited_at: now.toISOString() }).eq("id", row.id)
     .then(undefined, (error: unknown) => console.error("Offer invite not marked:", error));
   return { ok: true, summary: { educator: name, centreName: cleanCentreName(row.centre_name ?? ""), status: "invited" } };
 }
 
 /**
  * Adds the educator who sent a leader's check or set to the centre the claimer
- * just started, when she ticked "add me to the team" (join_consent). Membership
- * only: sharing stays her own switch.
+ * just started, when she ticked "If my leader starts our centre on StoryLoop,
+ * add me to the team" (join_consent). Membership only: sharing stays her own
+ * switch (shares_stories false, as for every invitation), so the leader sees
+ * only what she sent. Lane B's /api/centres/start-free calls it.
  *
- * STUB (25 Nov 2026 groundwork): joins nobody yet. Lane A owns the body; lane
- * B's /api/centres/start-free calls it.
+ * Nobody is added when: no live offer is claimed by this account, she did not
+ * tick the box, she is already in a centre, the claimer does not run this
+ * centre, or there is no seat. Each of those is simply { joined: false }; the
+ * one-tap invitation stays for the leader as before.
  */
-export async function joinFromLeaderOffer(claimerId: string, centreId: string): Promise<{ joined: boolean }> {
-  void claimerId;
-  void centreId;
-  return { joined: false };
+export async function joinFromLeaderOffer(claimerId: string, centreId: string, now = new Date()): Promise<{ joined: boolean }> {
+  if (!claimerId || !centreId) return { joined: false };
+  try {
+    const row = await claimedOffer(claimerId, now);
+    if (!row || row.join_consent !== true || row.user_id === claimerId) return { joined: false };
+    const membership = await getMembership(claimerId);
+    if (!membership || membership.centreId !== centreId || !canManageTeam(membership)) return { joined: false };
+    if (await getMembership(row.user_id)) return { joined: false };
+    const centre = await getCentre(centreId);
+    if (!centre) return { joined: false };
+    if (seatsRemaining(centre.seatLimit, await countActiveMembers(centre.id)) <= 0) return { joined: false };
+    const { error } = await createAdminSupabase().from("centre_members").insert({
+      centre_id: centre.id,
+      user_id: row.user_id,
+      role: "educator",
+      status: "active",
+      // Joining never hands over her drafts: sharing is her own switch.
+      shares_stories: false,
+    });
+    if (error) {
+      console.error("Leader offer join failed:", error.message);
+      return { joined: false };
+    }
+    return { joined: true };
+  } catch (error) {
+    console.error("Leader offer join failed:", error);
+    return { joined: false };
+  }
 }

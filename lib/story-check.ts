@@ -54,6 +54,10 @@ export type CheckRow = {
   /** What the educator chose to send with the story (13 Nov 2026). Absent on rows read before the migration. */
   centre_name?: string | null;
   share_counts?: boolean | null;
+  /** "If my leader starts our centre, add me to the team" (25 Nov 2026). Absent on rows read before that migration. */
+  join_consent?: boolean | null;
+  /** Where each line came from (A4, held behind LEADER_SOURCES_ON). */
+  show_sources?: boolean | null;
 };
 
 /** Link keys are 32 URL-safe characters. Anything else is not looked up at all. */
@@ -294,6 +298,7 @@ export function leaderView(input: { story: StoryForLeader; check: CheckRow; educ
   // undefined: a row from before the offer existed, so the offer without a code.
   const offer = input.offer;
   return {
+    kind: "story" as const,
     state: checkState(check, now),
     educator: educatorFirstName(input.educatorName),
     childName: (story.child_name ?? "").trim().split(/\s+/)[0] ?? "",
@@ -307,6 +312,8 @@ export function leaderView(input: { story: StoryForLeader; check: CheckRow; educ
     leaderName: check.leader_name ?? "",
     comment: check.comment ?? "",
     centreName: cleanCentreName(check.centre_name ?? ""),
+    // She ticked "add me to the team" when she sent it. Strictly true; an old row is a no.
+    joinConsent: check.join_consent === true,
     // The numbers only if she ticked the box, and only if there are enough of them.
     offer: offer === null
       ? null
@@ -319,6 +326,32 @@ export function leaderView(input: { story: StoryForLeader; check: CheckRow; educ
 }
 
 export type LeaderView = ReturnType<typeof leaderView>;
+
+/**
+ * The cover (25 Nov 2026): what the leader's page shows before the tap. Who
+ * sent it, the centre name she typed, how many pieces and until when. Never a
+ * child's name, a note or a word of the story, so a link preview, a mail
+ * scanner or a mistyped address learns nothing about a child, and "opened"
+ * means a person tapped.
+ */
+export function coverView(input: {
+  kind: "story" | "set";
+  check: Pick<CheckRow, "status" | "expires_at" | "revoked_at" | "centre_name">;
+  educatorName: string | null | undefined;
+  pieces: number;
+  now?: Date;
+}) {
+  return {
+    kind: input.kind,
+    state: checkState(input.check, input.now ?? new Date()),
+    educator: educatorFirstName(input.educatorName),
+    centreName: cleanCentreName(input.check.centre_name ?? ""),
+    pieces: Math.max(1, Math.min(30, Math.floor(input.pieces) || 1)),
+    expiresAt: input.check.expires_at,
+  };
+}
+
+export type CoverView = ReturnType<typeof coverView>;
 
 /** What the educator sees on their own story. */
 export function educatorView(check: CheckRow | null, now = new Date()) {
