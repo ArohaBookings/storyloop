@@ -57,6 +57,11 @@ export const EYLF_PLANNING_CYCLE_REAIM: Omit<SeoPage, "faqs"> & { faqs: SeoPage[
       title: "Where the learning story fits",
       body:
         "A learning story is steps 1 to 3 written up for the family: what happened, what it shows, and where to next. StoryLoop drafts that part from your own note, with EYLF V2.0 links and a next step, and you check every line before you use it. Steps 4 and 5 stay with you and your team.",
+      links: [
+        { label: "EYLF observation examples, from the rough note", href: "/eylf-observation-examples" },
+        { label: "Observation methods, side by side", href: "/observation-methods-early-childhood" },
+        { label: "Intentional teaching examples, by age", href: "/intentional-teaching" },
+      ],
     },
     {
       title: "What the assessor looks for",
