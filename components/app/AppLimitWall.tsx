@@ -305,7 +305,7 @@ export default function AppLimitWall({
             {centrePieces && (
               <div className="mt-4 border-t border-clay-100 pt-3" data-testid="wall-centre">
                 {centrePieces.length > 0 ? (
-                  <SendToLeader kind="set" pieces={centrePieces} />
+                  <SendToLeader kind="set" pieces={centrePieces} where="wall" />
                 ) : (
                   <p className="flex items-start gap-1.5 text-sm text-sage-800" data-testid="wall-reason-thanks">
                     <Check className="mt-0.5 h-4 w-4 flex-none" /> Thanks. Draft a statement first, then send it to your leader from under it.

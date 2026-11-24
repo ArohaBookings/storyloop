@@ -40,6 +40,20 @@ export function senderFirstName(fullName: string | null | undefined, ownEmail: s
   return clean;
 }
 
+/**
+ * The first name to save on her profile from the send panel, or null. She is
+ * asked only when her profile has no usable first name (signup no longer asks
+ * for one, 25 Nov 2026 B4); the first time she gives it, it is kept, and once
+ * kept she is never asked again because senderFirstName then finds it. A name
+ * already on her profile is never overwritten. `typed` is already cleaned
+ * (cleanFirstName). Pure.
+ */
+export function firstNameToSave(typed: string, fullName: string | null | undefined, ownEmail: string | null | undefined): string | null {
+  if (!typed) return null;
+  if (senderFirstName(fullName, ownEmail)) return null;
+  return senderFirstName(typed, ownEmail) ? typed : null;
+}
+
 export type SendFacts = {
   switchOn: boolean;
   address: string;

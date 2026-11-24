@@ -7,6 +7,7 @@ import { CENTRE_NAME_MAX, CHECK_DAYS, type EducatorCheckView, type LeaderView } 
 import type { SetView } from "@/lib/leader-sets";
 import { suggestEmailFix } from "@/lib/email-typo";
 import { trackEvent } from "@/lib/analytics/track-event";
+import { LEADER_SEND_PLACES } from "@/lib/analytics/events";
 import { LEADER_EMAIL_ON } from "@/lib/build-switches";
 import LeaderCheckPage from "@/components/marketing/LeaderCheckPage";
 
@@ -22,8 +23,8 @@ import LeaderCheckPage from "@/components/marketing/LeaderCheckPage";
  */
 export type SendToLeaderProps = ({ kind: "story"; storyId: string } | { kind: "set"; pieces: ClassPiece[] }) & {
   onSent?: (result?: { check?: EducatorCheckView; setId?: string }) => void;
-  /** Where the card is shown, for leader_send_offered. */
-  where?: "generate" | "history" | "statement" | "wall";
+  /** Where the card is shown (a story, the statement page, the statement wall), recorded on leader_send_offered and leader_check_sent. */
+  where?: LeaderSendPlace;
   /** Story only: the existing "how many children I have written about lately" tick. */
   showCounts?: boolean;
   /** Story only: the panel already has a live link, so the button makes a new one. */
@@ -34,6 +35,14 @@ export type SendToLeaderProps = ({ kind: "story"; storyId: string } | { kind: "s
 export const JOIN_WORDS = "If my leader starts our centre on StoryLoop, add me to the team. My drafts stay private, and if I pay for my own plan I keep paying until I change it.";
 /** What the set panel says before she sends (RULINGS.txt answer 4). */
 export const KEEP_WORDS = "To send this, StoryLoop keeps these statements for 14 days so your leader can open them, then deletes them.";
+
+export type LeaderSendPlace = (typeof LEADER_SEND_PLACES)[number];
+
+/** Where the card is, as recorded: what the page passed, else a story's or a set's usual place. Pure. */
+export function leaderSendPlace(kind: "story" | "set", where?: LeaderSendPlace | null): LeaderSendPlace {
+  if (where && (LEADER_SEND_PLACES as readonly string[]).includes(where)) return where;
+  return kind === "set" ? "statement" : "history";
+}
 
 type Step = "form" | "confirm" | "done";
 type Email = { asked: false } | { asked: true; sent: true } | { asked: true; sent: false; reason: string; message: string };
@@ -56,12 +65,13 @@ export default function SendToLeader(props: SendToLeaderProps) {
   const offered = useRef(false);
   const id = props.kind === "story" ? props.storyId : "set";
   const pieces = props.kind === "set" ? props.pieces : null;
+  const place = leaderSendPlace(props.kind, props.where);
 
   useEffect(() => {
     if (offered.current) return;
     offered.current = true;
-    trackEvent("leader_send_offered", { kind: props.kind, where: props.where ?? (props.kind === "set" ? "statement" : "history") });
-  }, [props.kind, props.where]);
+    trackEvent("leader_send_offered", { kind: props.kind, where: place });
+  }, [props.kind, place]);
 
   if (props.kind === "set" && (!pieces || pieces.length === 0)) return null;
 
@@ -105,6 +115,7 @@ export default function SendToLeader(props: SendToLeaderProps) {
       setUrl(data.url); setSetId(data.setId ?? ""); setEmail(outcome); setStep("done");
       trackEvent("leader_check_sent", {
         kind: props.kind,
+        where: place,
         pieces: props.kind === "set" ? data.pieces ?? pieces?.length ?? 0 : 1,
         emailed: outcome.asked && outcome.sent,
         join_consent: join,
@@ -167,7 +178,7 @@ export default function SendToLeader(props: SendToLeaderProps) {
   const what = props.kind === "set" ? `${pieces?.length ?? 0} ${pieces?.length === 1 ? "statement" : "statements"}` : "this story";
 
   return (
-    <div className="mt-3" data-testid="send-to-leader" data-kind={props.kind}>
+    <div className="mt-3" data-testid="send-to-leader" data-kind={props.kind} data-where={place}>
       {step === "done" && url ? (
         <div data-testid="leader-check-link">
           {email.asked && email.sent ? (

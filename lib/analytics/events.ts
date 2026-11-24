@@ -103,7 +103,7 @@ export const CARD_STATUSES = ["past_due", "unpaid", "incomplete"] as const;
 const PLANS = PLAN_ORDER;
 /** The leader path (25 Nov 2026): one story, or a whole room's statements sent as one set. */
 export const LEADER_KINDS = ["story", "set"] as const;
-export const LEADER_SEND_PLACES = ["generate", "history", "statement", "wall"] as const;
+export const LEADER_SEND_PLACES = ["story", "generate", "history", "statement", "wall"] as const;
 export const LEADER_EMAIL_HELD_REASONS = ["cap", "suppressed", "paused", "no_name", "invalid"] as const;
 export const CENTRE_START_SOURCES = ["leader_check", "leader_set", "direct"] as const;
 
@@ -149,6 +149,7 @@ export const EVENTS = {
       story_id: ID,
       // 25 Nov 2026, the leader path: one story or a whole room's statements, emailed or copied.
       kind: oneOf(...LEADER_KINDS),
+      where: oneOf(...LEADER_SEND_PLACES),
       pieces: num(30),
       emailed: BOOL,
       join_consent: BOOL,
@@ -218,7 +219,7 @@ export const EVENTS = {
     keys: { trialing: BOOL, currency: oneOf(...CURRENCIES) },
   },
   statement_plan_started: {
-    where: "server: the first month paid today from the statement wall (B2)",
+    where: "server: the first month paid today from the statement wall (B2): Start my plan today (from trial), or a free account's statement-wall checkout completing (from free, app/api/stripe/webhook)",
     consent: "any",
     isNew: true,
     keys: { from: oneOf("trial", "free"), currency: oneOf(...CURRENCIES), amount_cents: num(100_000) },

@@ -18,6 +18,7 @@ import { paidReturnSuccessUrl } from "@/lib/paid-return";
 import { STATEMENTS_PAY_TODAY } from "@/lib/build-switches";
 import { ensureCustomer } from "@/lib/stripe-customer";
 import { statementWallPaysToday } from "@/lib/wall-offer";
+import { STATEMENT_WALL_KEY } from "@/lib/start-today";
 
 function getStripe() {
   return createStripe();
@@ -198,9 +199,8 @@ export async function POST(request: NextRequest) {
     // The statement wall (25 Nov 2026, lib/build-switches.ts STATEMENTS_PAY_TODAY):
     // statements past the free allowance need the first payment, so this checkout
     // has no free week and charges the first month today. Stories keep theirs.
-    const terms = statementWallPaysToday({ switchOn: STATEMENTS_PAY_TODAY, wall: fromWall, specialOffer: Boolean(offer), centrePlan: isCentrePlan(selectedPlan) })
-      ? { ...baseTerms, trialDays: 0 }
-      : baseTerms;
+    const paysToday = statementWallPaysToday({ switchOn: STATEMENTS_PAY_TODAY, wall: fromWall, specialOffer: Boolean(offer), centrePlan: isCentrePlan(selectedPlan) });
+    const terms = paysToday ? { ...baseTerms, trialDays: 0 } : baseTerms;
     // A centre starting in 2026 is free until the end of 31 January 2027 (New
     // Zealand time). Stripe is given that exact moment rather than a count of
     // days, so finishing checkout later the same day cannot move the date.
@@ -225,6 +225,8 @@ export async function POST(request: NextRequest) {
         trial_days: String(terms.trialDays),
         ...(trialEndsAt ? { trial_end: trialEndsAt.toISOString() } : {}),
         no_card: terms.noCardNeeded ? "true" : "false",
+        // Counted as statement_plan_started when it completes (app/api/stripe/webhook).
+        ...(paysToday ? { [STATEMENT_WALL_KEY]: "true" } : {}),
         ...(offer === "pro_month" ? { offer_id: PRO_MONTH_OFFER_ID } : {}),
         ...(offer === "winback" ? { offer_id: WINBACK_OFFER_ID } : {}),
       };

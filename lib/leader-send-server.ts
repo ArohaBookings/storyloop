@@ -1,6 +1,6 @@
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { cleanFirstName } from "@/lib/statement-from-notes";
-import { cleanLeaderAddress, heldMessage, senderFirstName, type HeldReason } from "@/lib/leader-email";
+import { cleanLeaderAddress, firstNameToSave, heldMessage, type HeldReason } from "@/lib/leader-email";
 import { sendLeaderEmail } from "@/lib/email/leader-check";
 
 /**
@@ -29,10 +29,11 @@ export async function emailLeaderIfAsked(input: {
   let fullName = (profile?.full_name as string | null) ?? null;
   const ownEmail = (profile?.email as string | null) ?? null;
   // She was asked for her first name: keep it on her profile, as the rest of the app shows it.
-  const typed = cleanFirstName(input.body.firstName);
-  if (typed && !senderFirstName(fullName, ownEmail)) {
-    await admin.from("profiles").update({ full_name: typed }).eq("id", input.userId);
-    fullName = typed;
+  const toSave = firstNameToSave(cleanFirstName(input.body.firstName), fullName, ownEmail);
+  if (toSave) {
+    const { error } = await admin.from("profiles").update({ full_name: toSave }).eq("id", input.userId);
+    if (error) console.error("Leader send: first name not saved:", error.message);
+    fullName = toSave;
   }
   const result = await sendLeaderEmail({
     userId: input.userId,

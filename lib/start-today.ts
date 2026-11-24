@@ -48,3 +48,23 @@ export function startTodayFailure(error: unknown): { code: "declined" | "needs_a
   if (e.type === "StripeCardError" || e.type === "card_error" || code === "card_declined" || code === "expired_card" || code === "insufficient_funds") return { code: "declined", hostedInvoiceUrl: null };
   return { code: "failed", hostedInvoiceUrl: null };
 }
+
+/** The checkout metadata key that marks a statement-wall checkout with no free week. */
+export const STATEMENT_WALL_KEY = "statement_wall";
+
+/**
+ * A free account that pays from the statement wall goes through checkout (no
+ * card on file to charge). When that checkout completes, the webhook records
+ * the same statement_plan_started as "Start my plan today", from "free", so
+ * both ways of paying from the wall are counted. Null for any other checkout.
+ * Pure.
+ */
+export function statementPlanStartedFromCheckout(session: {
+  metadata?: Record<string, string> | null;
+  amount_total?: number | null;
+  currency?: string | null;
+}): { from: "free"; currency?: CurrencyCode; amount_cents: number } | null {
+  if (session.metadata?.[STATEMENT_WALL_KEY] !== "true") return null;
+  const currency = currencyFromStripe(session.metadata?.currency ?? session.currency) ?? undefined;
+  return { from: "free", currency, amount_cents: Math.max(0, session.amount_total ?? 0) };
+}

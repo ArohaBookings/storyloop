@@ -10,6 +10,7 @@ import { settleFoundingDiscount, trialLapsedWithoutCard } from "@/lib/centre-off
 import { applySavedCard } from "@/lib/billing-manage";
 import { SITE_URL } from "@/lib/email/config";
 import { recordServerEvent } from "@/lib/analytics/server";
+import { statementPlanStartedFromCheckout } from "@/lib/start-today";
 import { PLAN_ORDER } from "@/lib/plans";
 import { sendsPaymentReceipt, stripeEventFacts, type StripeEventFacts } from "@/lib/stripe-events";
 import { invoiceSubscriptionId, stripeDate, subscriptionPeriodEnd, updateProfileForSubscription } from "@/lib/stripe-profile-sync";
@@ -468,6 +469,11 @@ async function recordStoryLoopCheckout(admin: ReturnType<typeof createAdminSupab
         checkout_session: session.id,
       },
     });
+    // A free account that paid from the statement wall: the same count as "Start my plan today".
+    const wallStart = statementPlanStartedFromCheckout(session);
+    if (wallStart) {
+      await recordServerEvent(admin, { event: "statement_plan_started", userId, path: "/api/stripe/webhook", metadata: wallStart });
+    }
     const offerId = session.metadata?.offer_id;
     if (offerId) {
       await admin

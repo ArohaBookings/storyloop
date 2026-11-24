@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { canSendLeaderEmail, cleanLeaderAddress, reminderDue, senderFirstName, stopToken, verifyStopToken, type SendFacts } from "../lib/leader-email";
+import { canSendLeaderEmail, cleanLeaderAddress, firstNameToSave, reminderDue, senderFirstName, stopToken, verifyStopToken, type SendFacts } from "../lib/leader-email";
 import { renderLeaderEmail } from "../lib/email/leader-check";
 
 const facts = (over: Partial<SendFacts> = {}): SendFacts => ({ switchOn: true, address: "jo@kowhai.nz", ownEmail: "sam@x.nz", firstName: "Sam", suppressed: false, sentLast24h: 0, alreadyForThisLink: false, paused: false, ...over });
@@ -79,4 +79,26 @@ test("the email names no child, quotes no note, shows no price or offer, tracks 
   assert.equal(renderLeaderEmail({ ...base, kind: "set", pieces: 12 }).subject, "Sam asked you to check 12 statements");
   const reminder = renderLeaderEmail({ ...base, reminder: true, linkUrl: "" });
   assert.ok(!reminder.html.includes("/check#"), "the reminder never carries a key: it is not kept");
+});
+
+test("her first name from the send panel is saved once, and then she is never asked again", async () => {
+  // No name on the profile (signup skipped it, 25 Nov B4): the name she typed is saved.
+  assert.equal(firstNameToSave("Sam", null, "sam.k@x.nz"), "Sam");
+  assert.equal(firstNameToSave("Sam", "", "sam.k@x.nz"), "Sam");
+  // An older account whose name is only the start of her email address: that is not a name.
+  assert.equal(firstNameToSave("Sam", "samk", "samk@x.nz"), "Sam");
+  // Saved: senderFirstName finds it, so the email is not held for no_name and the panel never asks.
+  assert.equal(senderFirstName("Sam", "sam.k@x.nz"), "Sam");
+  assert.deepEqual(canSendLeaderEmail(facts({ firstName: senderFirstName("Sam", "sam.k@x.nz") })), { ok: true });
+  // A name already on her profile is never overwritten, and nothing typed saves nothing.
+  assert.equal(firstNameToSave("Jo", "Sam Kele", "sam.k@x.nz"), null);
+  assert.equal(firstNameToSave("", null, "sam.k@x.nz"), null);
+  assert.equal(firstNameToSave("samk", null, "samk@x.nz"), null, "her email's start typed as a name is not kept");
+  // Both doors (the first send and the resend after no_name) go through the one helper that saves.
+  const { readFileSync } = await import("node:fs");
+  const server = readFileSync("lib/leader-send-server.ts", "utf8");
+  assert.match(server, /const toSave = firstNameToSave\(cleanFirstName\(input\.body\.firstName\), fullName, ownEmail\);\s*if \(toSave\) \{\s*const \{ error \} = await admin\.from\("profiles"\)\.update\(\{ full_name: toSave \}\)/);
+  assert.match(readFileSync("app/api/leader-email/route.ts", "utf8"), /emailLeaderIfAsked\(/);
+  // The panel asks only when the server held the email for no_name.
+  assert.match(readFileSync("components/app/SendToLeader.tsx", "utf8"), /outcome\.reason === "no_name"\) \{\s*\/\/[^\n]*\n\s*setAskName\(true\);/);
 });
