@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { STATEMENTS_PAY_TODAY } from "./lib/build-switches";
 
 const nextConfig: NextConfig = {
   images: {
@@ -31,6 +32,22 @@ const nextConfig: NextConfig = {
       { source: "/storypark-alternative", destination: "/for-centres", permanent: true },
       { source: "/storypark-educa-export-packs", destination: "/features", permanent: true },
     ];
+  },
+  // Statements past the free allowance need the first payment (25 Nov 2026,
+  // lib/statement-gate.ts). The two statement routes are protected files, so
+  // they are not edited: both go through a gate that hands the untouched
+  // request to the protected handler. beforeFiles runs after middleware, so the
+  // session refresh is unchanged. Switch off: no rewrite at all.
+  async rewrites() {
+    if (!STATEMENTS_PAY_TODAY) return { beforeFiles: [], afterFiles: [], fallback: [] };
+    return {
+      beforeFiles: [
+        { source: "/api/statement-from-notes", destination: "/api/statement-gate" },
+        { source: "/api/children/:id/statement", destination: "/api/statement-gate/child/:id" },
+      ],
+      afterFiles: [],
+      fallback: [],
+    };
   },
   async headers() {
     return [
