@@ -78,7 +78,7 @@ export default function AppLimitWall({
   const payToday = STATEMENTS_PAY_TODAY && wall === "statement";
   const [startToday, setStartToday] = useState<StartToday | null>(null);
   const [started, setStarted] = useState(false);
-  const [startError, setStartError] = useState<{ text: string; billing: boolean; newTab?: boolean } | null>(null);
+  const [startError, setStartError] = useState<{ text: string; billing: boolean; newTab?: boolean; url?: string } | null>(null);
   const [centrePieces, setCentrePieces] = useState<ClassPiece[] | null>(null);
 
   // The pay-today form: is this account in its free week? Stripe's own preview says what today costs.
@@ -161,13 +161,29 @@ export default function AppLimitWall({
         return;
       }
       // Her bank wants a confirmation (MERGE2 2f): Billing opens in a new tab, so this page and her notes stay as they are.
-      setStartError({ text: typeof data.error === "string" ? data.error : "That did not go through. Nothing was charged.", billing: true, newTab: data.code === "needs_action" });
+      // Not paid yet (26 Nov 2026): Stripe's secure invoice page finishes it, in a new tab, so this page and her notes stay as they are.
+      const url = data.code === "needs_action" && typeof data.url === "string" && /^https:\/\/[a-z0-9.-]*stripe\.com\//.test(data.url) ? data.url : undefined;
+      setStartError({ text: typeof data.error === "string" ? data.error : "That did not go through. Nothing was charged.", billing: true, newTab: data.code === "needs_action", url });
     } catch {
       setStartError({ text: "No connection. Nothing was charged. Try again.", billing: false });
     } finally {
       setBusy(false);
     }
   };
+
+  // After the secure page (26 Nov 2026): when she comes back to this tab, see whether the payment went through.
+  useEffect(() => {
+    if (!startError?.url || started) return;
+    const check = async () => {
+      const data = await fetch("/api/stripe/start-today").then((r) => r.json()).catch(() => ({}));
+      if (data?.code === "already_paying") {
+        setStarted(true);
+        setStartError(null);
+      }
+    };
+    window.addEventListener("focus", check);
+    return () => window.removeEventListener("focus", check);
+  }, [startError?.url, started]);
 
   const askCentre = async () => {
     if (!reason) {
@@ -312,6 +328,12 @@ export default function AppLimitWall({
                 {startError.billing && (
                   <>
                     {" "}
+                    {startError.url && (
+                      <>
+                        <a href={startError.url} target="_blank" rel="noopener" className="font-semibold underline" data-testid="wall-finish-secure">Finish on the secure page</a>
+                        {", or "}
+                      </>
+                    )}
                     {startError.newTab ? (
                       <a href="/billing" target="_blank" rel="noopener" className="font-semibold underline" data-testid="wall-billing-new-tab">Open Billing in a new tab</a>
                     ) : (

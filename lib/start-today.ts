@@ -99,6 +99,16 @@ export function startTodayLine(todayCents: number, monthlyCents: number, currenc
 export const NEEDS_ACTION_MESSAGE =
   "Your bank wants you to confirm this payment, and this button cannot ask for that. Nothing was charged and your free week carries on. On Billing, tap Update card and confirm your card with your bank there. Then come back and tap Start my plan today again.";
 
+/**
+ * When her bank wants to confirm the payment, or the card did not go through (26 Nov 2026).
+ * "Start my plan today" asks Stripe with payment_behavior pending_if_incomplete: nothing changes
+ * and nothing is charged until the first invoice is paid, the free week carries on, and Stripe
+ * holds the change for 23 hours. Stripe's own secure invoice page asks her bank to confirm, or
+ * takes another card; the plan starts the moment it is paid.
+ */
+export const FINISH_ON_SECURE_PAGE_MESSAGE =
+  "Your bank has not let this payment through yet. Finish it on the secure page: your bank can confirm it there, or you can use another card. Your plan starts the moment it goes through. Nothing is charged until then and your free week carries on.";
+
 /** Card errors from Stripe, in plain words. Pure. */
 export function startTodayFailure(error: unknown): { code: "declined" | "needs_action" | "failed"; hostedInvoiceUrl: string | null } {
   const e = (error ?? {}) as { code?: string; type?: string; raw?: { code?: string; payment_intent?: { status?: string } }; payment_intent?: { status?: string } };

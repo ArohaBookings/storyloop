@@ -8,7 +8,7 @@ import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { recordServerEvent } from "@/lib/analytics/server";
 import { updateProfileForSubscription } from "@/lib/stripe-profile-sync";
-import { NEEDS_ACTION_MESSAGE, currencyFromStripe, startTodayFailure, startTodayLine, startTodayPlanName, startTodayState } from "@/lib/start-today";
+import { NEEDS_ACTION_MESSAGE, FINISH_ON_SECURE_PAGE_MESSAGE, currencyFromStripe, startTodayFailure, startTodayLine, startTodayPlanName, startTodayState } from "@/lib/start-today";
 
 /**
  * "Start my plan today" (lib/start-today.ts).
@@ -83,7 +83,7 @@ export async function POST() {
   try {
     updated = await stripe.subscriptions.update(
       sub.id,
-      { trial_end: "now", proration_behavior: "none", payment_behavior: "error_if_incomplete" },
+      { trial_end: "now", proration_behavior: "none", payment_behavior: "pending_if_incomplete", expand: ["latest_invoice"] },
       { idempotencyKey: `start-today-${sub.id}-${cardId ?? "none"}` },
     );
   } catch (error) {
@@ -100,6 +100,25 @@ export async function POST() {
     }
     console.error("Start-today failed:", error);
     return NextResponse.json({ error: "That did not go through. Nothing was charged. Try again, or go to Billing.", code: "failed" }, { status: 502 });
+  }
+
+  // Not paid yet (her bank wants a confirmation, or the card did not go through): Stripe keeps the
+  // free week and holds the change until the invoice is paid (pending_if_incomplete). Its own secure
+  // invoice page asks the bank or takes another card; the plan starts the moment it is paid.
+  if (updated.pending_update) {
+    let url: string | null = null;
+    try {
+      const invoice = typeof updated.latest_invoice === "string" ? await stripe.invoices.retrieve(updated.latest_invoice) : updated.latest_invoice;
+      url = invoice?.hosted_invoice_url ?? null;
+    } catch (error) {
+      console.error("Start-today invoice read failed:", error);
+    }
+    return NextResponse.json(
+      url
+        ? { error: FINISH_ON_SECURE_PAGE_MESSAGE, code: "needs_action", needsAction: true, url }
+        : { error: NEEDS_ACTION_MESSAGE, code: "needs_action", needsAction: true },
+      { status: 402 },
+    );
   }
 
   const admin = createAdminSupabase();
