@@ -8,6 +8,7 @@ import {
   type CheckState,
   type LeaderOffer,
 } from "@/lib/story-check";
+import { LEADER_SOURCES_ON } from "@/lib/build-switches";
 
 /**
  * A whole room on one link (25 Nov 2026, A1 and A5, switch CLASS_SET_ON).
@@ -80,6 +81,8 @@ export type SetRow = {
   status: "sent" | "opened" | "answered";
   centre_name: string | null;
   join_consent: boolean | null;
+  /** Where each line came from (A4). Absent on rows read without the column. */
+  show_sources?: boolean | null;
   created_at: string;
   opened_at: string | null;
   expires_at: string;
@@ -175,6 +178,7 @@ export function setView(input: { set: SetRow; items: SetItemRow[]; educatorName:
     educator: educatorFirstName(input.educatorName),
     centreName: cleanCentreName(input.set.centre_name ?? ""),
     joinConsent: input.set.join_consent === true,
+    showSources: LEADER_SOURCES_ON && input.set.show_sources === true,
     expiresAt: input.set.expires_at,
     items,
     offer: offer === null || offer === undefined ? null : { code: offer.code ?? null, ref: offer.ref ?? null, counts: null },

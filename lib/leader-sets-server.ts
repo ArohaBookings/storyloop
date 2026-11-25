@@ -1,3 +1,4 @@
+import { LEADER_SOURCES_ON } from "@/lib/build-switches";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { cleanCheckComment, cleanCentreName, cleanLeaderName, coverView, looksLikeCheckToken, offerEnded, type CoverView } from "@/lib/story-check";
 import { hashCheckToken, hashOfferRef, newCheckToken, offerRefFor } from "@/lib/story-check-token";
@@ -23,7 +24,7 @@ import { forgetLeaderAddressOnOpen } from "@/lib/email/leader-check";
  * only: the tables have RLS on and no policies.
  */
 
-const SET_COLUMNS = "id, user_id, status, centre_name, join_consent, created_at, opened_at, expires_at, revoked_at, purged_at";
+const SET_COLUMNS = "id, user_id, status, centre_name, join_consent, show_sources, created_at, opened_at, expires_at, revoked_at, purged_at";
 const ITEM_COLUMNS = "position, mode, framework, child_first_name, note, draft, decision, comment, decided_at";
 
 export type FoundSet = SetRow & { offer_ref_hash: string | null };
@@ -151,6 +152,7 @@ export async function createLeaderSet(input: {
   pieces: CleanPiece[];
   centreName: unknown;
   joinConsent: boolean;
+  showSources?: boolean;
   now?: Date;
 }): Promise<{ ok: true; token: string; setId: string } | { ok: false }> {
   const now = input.now ?? new Date();
@@ -164,6 +166,7 @@ export async function createLeaderSet(input: {
       offer_ref_hash: hashOfferRef(offerRefFor(token)),
       centre_name: cleanCentreName(input.centreName) || null,
       join_consent: input.joinConsent,
+      show_sources: LEADER_SOURCES_ON && input.showSources === true,
       expires_at: setExpiry(now).toISOString(),
     })
     .select("id")

@@ -1,3 +1,4 @@
+import { LEADER_SOURCES_ON } from "@/lib/build-switches";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
@@ -86,6 +87,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const shareCounts = body?.shareCounts === true;
     // 25 Nov 2026: "If my leader starts our centre on StoryLoop, add me to the team" (on by default in the panel).
     const joinConsent = body?.joinConsent === true;
+    // 25 Nov 2026 (A4): she ticked "Show my leader where each line came from" in the preview.
+    const showSources = LEADER_SOURCES_ON && body?.showSources === true;
 
     const allowed = await consumeRateLimit({ scope: "leader-check", key: own.user.id, limit: 30, windowSeconds: 24 * 60 * 60 });
     if (!allowed) return NextResponse.json({ error: "That is a lot of links for one day. Try again tomorrow." }, { status: 429 });
@@ -106,6 +109,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         centre_name: centreName,
         share_counts: shareCounts,
         join_consent: joinConsent,
+        ...(showSources ? { show_sources: true } : {}),
         // Not the link key and opens nothing; see lib/story-check-token.ts offerRefFor.
         offer_ref_hash: hashOfferRef(offerRefFor(token)),
       })

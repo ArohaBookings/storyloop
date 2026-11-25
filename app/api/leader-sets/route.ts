@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     if (!(await consumeRateLimit({ scope: "leader-set", key: user.id, limit: 20, windowSeconds: 86_400 }))) {
       return NextResponse.json({ error: "That is a lot of sets for one day. Try again tomorrow." }, { status: 429 });
     }
-    const made = await createLeaderSet({ userId: user.id, pieces, centreName: body.centreName, joinConsent: body.joinConsent === true, now });
+    const made = await createLeaderSet({ userId: user.id, pieces, centreName: body.centreName, joinConsent: body.joinConsent === true, showSources: body.showSources === true, now });
     if (!made.ok) return NextResponse.json({ error: "Could not make the link. Try again." }, { status: 500 });
     const email = await emailLeaderIfAsked({
       userId: user.id, body, kind: "set", setId: made.setId, token: made.token,
