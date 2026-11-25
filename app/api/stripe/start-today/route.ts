@@ -8,7 +8,7 @@ import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { recordServerEvent } from "@/lib/analytics/server";
 import { updateProfileForSubscription } from "@/lib/stripe-profile-sync";
-import { currencyFromStripe, startTodayFailure, startTodayLine, startTodayPlanName, startTodayState } from "@/lib/start-today";
+import { NEEDS_ACTION_MESSAGE, currencyFromStripe, startTodayFailure, startTodayLine, startTodayPlanName, startTodayState } from "@/lib/start-today";
 
 /**
  * "Start my plan today" (lib/start-today.ts).
@@ -90,8 +90,10 @@ export async function POST() {
     const failure = startTodayFailure(error);
     if (failure.code === "needs_action") {
       // Her bank wants her to confirm. With error_if_incomplete Stripe changed nothing, so no invoice
-      // page can start the plan (R1-4): she stays here with her notes, and Billing is the way on.
-      return NextResponse.json({ error: "Your bank wants you to confirm this payment, which this button cannot do. Nothing was charged and your free week carries on. Start your plan from Billing.", code: "needs_action", needsAction: true }, { status: 402 });
+      // page can start the plan (R1-4). Billing cannot confirm a payment or start a plan early either
+      // (MERGE2 2f): what it can do is Update card, where her bank confirms the card itself; then
+      // this button again. She stays here with her notes, and Billing opens in a new tab.
+      return NextResponse.json({ error: NEEDS_ACTION_MESSAGE, code: "needs_action", needsAction: true }, { status: 402 });
     }
     if (failure.code === "declined") {
       return NextResponse.json({ error: "Your card was declined. Update it on Billing.", code: "declined" }, { status: 402 });

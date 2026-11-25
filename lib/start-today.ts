@@ -90,6 +90,15 @@ export function startTodayLine(todayCents: number, monthlyCents: number, currenc
   return `${money(todayCents)} today, then ${money(monthlyCents)} a month.`;
 }
 
+/**
+ * What she reads when her bank wants to confirm the first payment (MERGE2 2f).
+ * Billing cannot confirm a payment or start a plan early; it can replace the
+ * card through Update card, where the bank confirms the card itself, and then
+ * this button works with it. So the words send her exactly there, and back.
+ */
+export const NEEDS_ACTION_MESSAGE =
+  "Your bank wants you to confirm this payment, and this button cannot ask for that. Nothing was charged and your free week carries on. On Billing, tap Update card and confirm your card with your bank there. Then come back and tap Start my plan today again.";
+
 /** Card errors from Stripe, in plain words. Pure. */
 export function startTodayFailure(error: unknown): { code: "declined" | "needs_action" | "failed"; hostedInvoiceUrl: string | null } {
   const e = (error ?? {}) as { code?: string; type?: string; raw?: { code?: string; payment_intent?: { status?: string } }; payment_intent?: { status?: string } };

@@ -106,3 +106,21 @@ test("the paid wall line matches the paid daily limit (R4-4)", async () => {
   assert.match(wall, new RegExp(`Educator covers up to ${limit} a day\\.`));
   assert.doesNotMatch(wall, /as many as you need/);
 });
+
+test("when her bank wants a confirmation: nothing charged, the free week carries on, the exact way through Billing, and back (MERGE2 2f)", async () => {
+  const { NEEDS_ACTION_MESSAGE } = await import("../lib/start-today");
+  const { readFileSync } = await import("node:fs");
+  assert.match(NEEDS_ACTION_MESSAGE, /Nothing was charged and your free week carries on\./);
+  assert.match(NEEDS_ACTION_MESSAGE, /On Billing, tap Update card and confirm your card with your bank there\./);
+  assert.match(NEEDS_ACTION_MESSAGE, /tap Start my plan today again\./);
+  assert.ok(!/—/.test(NEEDS_ACTION_MESSAGE));
+  // The words name real controls: Billing's card button and the wall's own button.
+  assert.match(readFileSync("app/(app)/billing/page.tsx", "utf8"), /\{billing\.card \? "Update card" : "Add a card"\}/);
+  assert.match(readFileSync("components/app/AppLimitWall.tsx", "utf8"), /Start my plan today/);
+  // The route sends exactly these words with the needs_action code, and the wall opens Billing in a new tab so her notes stay.
+  const route = readFileSync("app/api/stripe/start-today/route.ts", "utf8");
+  assert.match(route, /error: NEEDS_ACTION_MESSAGE, code: "needs_action"/);
+  const wall = readFileSync("components/app/AppLimitWall.tsx", "utf8");
+  assert.match(wall, /newTab: data\.code === "needs_action"/);
+  assert.match(wall, /href="\/billing" target="_blank" rel="noopener"/);
+});

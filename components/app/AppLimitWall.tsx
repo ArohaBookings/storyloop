@@ -78,7 +78,7 @@ export default function AppLimitWall({
   const payToday = STATEMENTS_PAY_TODAY && wall === "statement";
   const [startToday, setStartToday] = useState<StartToday | null>(null);
   const [started, setStarted] = useState(false);
-  const [startError, setStartError] = useState<{ text: string; billing: boolean } | null>(null);
+  const [startError, setStartError] = useState<{ text: string; billing: boolean; newTab?: boolean } | null>(null);
   const [centrePieces, setCentrePieces] = useState<ClassPiece[] | null>(null);
 
   // The pay-today form: is this account in its free week? Stripe's own preview says what today costs.
@@ -160,7 +160,8 @@ export default function AppLimitWall({
         setStarted(true);
         return;
       }
-      setStartError({ text: typeof data.error === "string" ? data.error : "That did not go through. Nothing was charged.", billing: true });
+      // Her bank wants a confirmation (MERGE2 2f): Billing opens in a new tab, so this page and her notes stay as they are.
+      setStartError({ text: typeof data.error === "string" ? data.error : "That did not go through. Nothing was charged.", billing: true, newTab: data.code === "needs_action" });
     } catch {
       setStartError({ text: "No connection. Nothing was charged. Try again.", billing: false });
     } finally {
@@ -311,7 +312,11 @@ export default function AppLimitWall({
                 {startError.billing && (
                   <>
                     {" "}
-                    <Link href="/billing" className="font-semibold underline">Go to Billing</Link>.
+                    {startError.newTab ? (
+                      <a href="/billing" target="_blank" rel="noopener" className="font-semibold underline" data-testid="wall-billing-new-tab">Open Billing in a new tab</a>
+                    ) : (
+                      <Link href="/billing" className="font-semibold underline">Go to Billing</Link>
+                    )}.
                   </>
                 )}
               </p>
