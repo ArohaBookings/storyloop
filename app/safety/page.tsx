@@ -67,7 +67,7 @@ const FAQS = [
   },
   {
     q: "Can we delete everything?",
-    a: "Yes. Delete any story or child profile yourself at any time, or email ariacareapp@gmail.com and your whole account, stories and child profiles are deleted within 30 days.",
+    a: "Yes. Delete any child profile yourself at any time. To delete a single story, email ariacareapp@gmail.com and it is deleted within 30 days. Or email the same address and your whole account, stories and child profiles are deleted within 30 days.",
   },
 ];
 
