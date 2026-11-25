@@ -622,6 +622,16 @@ export default function GeneratePage() {
     setNextStory("offered");
     trackEvent("second_story_offered", { story_id: storyId || null });
   };
+  // Story 1 to story 3 (26 Nov 2026): the card used to wait for Copy, Export or Save, and new
+  // writers mostly read their first story and left (offered once since 20 Nov; of 12 Australian
+  // writers with one or two stories, none came back another day). It now comes as soon as her
+  // first story is on screen, so the next one is one tap away while she is still here. The rest
+  // of the rule is unchanged (new account, first note, no wall or questions showing).
+  useEffect(() => {
+    if (!story || !storyId) return;
+    offerNextStory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [story, storyId]);
   const startNextStory = (choice: NextStoryChoice) => {
     trackEvent("second_story_started", { story_id: storyId || null, child: choice });
     setNextStory("started");
