@@ -285,7 +285,7 @@ test("on the examples post, the answer goes straight after the first worked exam
 test("titles, headings and descriptions the check said to keep are unchanged", () => {
   assert.match(source("app/layout.tsx"), /default: "StoryLoop: AI learning stories for Te Whāriki and EYLF"/, "C1 homepage title");
   const policy = source("app/ai-policy/page.tsx");
-  assert.match(policy, /title: "Free AI Policy Template for Early Childhood Services"/, "C2 /ai-policy title");
+  assert.match(policy, /title: \{ absolute: "Free AI Policy Template for Early Childhood Services" \}/, "C2 /ai-policy title (absolute since 26 Nov, no brand suffix)");
   assert.match(policy, /"Generate a responsible AI in documentation policy for your early childhood centre or kindergarten in New Zealand or Australia\. Free, no signup, ready to adopt\."/);
   assert.match(policy, /Your service&apos;s AI policy, written in ten minutes\./);
   assert.equal(SEO_PAGES["nsw-transition-to-school-statement"].title, "NSW Transition to School Statement 2026: Login and Examples", "C16");
@@ -296,7 +296,7 @@ test("titles, headings and descriptions the check said to keep are unchanged", (
   // Re-aimed only while its switch is on (MERGE2 2h); off, the live heading.
   assert.equal(SEO_PAGES["assessment-and-rating-evidence"].heading, RATING_REAIMED ? "Assessment and rating: what your documentation needs to show." : "You get a few days' notice, not a few weeks.");
   assert.equal(SEO_PAGES["ero-early-childhood-regulation-2026"].heading, "ERO regulates early childhood education now. Here is what changed.");
-  assert.match(source("app/examples/page.tsx"), /title: "Learning story examples: 12 real notes and drafts"/);
+  assert.match(source("app/examples/page.tsx"), /title: \{ absolute: "Learning story examples: 12 real notes and drafts" \}/);
 });
 
 test("the re-aimed product pages open on the product, and the cost and checklist pages on what their titles promise", () => {
