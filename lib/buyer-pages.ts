@@ -130,6 +130,14 @@ const ACECQA_AR = {
   label: "ACECQA: the assessment and rating process",
   url: "https://www.acecqa.gov.au/assessment/assessment-and-rating-process",
 };
+const ACECQA_QIP_SHEET = {
+  label: "ACECQA: Developing and reviewing your Quality Improvement Plan (QA7 information sheet)",
+  url: "https://www.acecqa.gov.au/nqf/national-quality-standard/quality-area-7-governance-and-leadership/information-sheets-quality-area-7/qa7-developing-and-reviewing-your-quality-improvement-plan",
+};
+const ACECQA_QIP_GUIDE = {
+  label: "ACECQA Guide to the NQF: Self-assessment and quality improvement planning",
+  url: "https://www.acecqa.gov.au/national-quality-framework/guide-nqf/section-3-national-quality-standard-and-assessment-and-rating/assessment-and-rating-process/2-self-assessment-and-quality-improvement-planning",
+};
 const SECTOR_EXCEEDING = {
   label: "The Sector: Exceeding NQS in 2026, what the latest ACECQA data tells us",
   url: "https://thesector.com.au/article/exceeding-nqs-2026-acecqa-latest-data-quality-practice",
@@ -367,6 +375,11 @@ const PAGES = {
       {
         q: "What is the educational leader's job?",
         a: "Element 7.2.2 of the National Quality Standard reads: \"The educational leader is supported and leads the development and implementation of the educational program and assessment and planning cycle.\" Reading the team's documentation is one of the plainest ways to lead that cycle.",
+      },
+      {
+        // Builder X3, 25 Nov 2026: the question leaders ask assistants (growth-ops.json questions_for_assistants).
+        q: "What does an educational leader do each week?",
+        a: "Reads some of the team's documentation, with the educator's note beside it where she can, and checks the planning cycle is moving: a next step tried, a reflection written, family voice coming back. Then she coaches one or two educators on what she read. ACECQA describes the role under element 7.2.2 of the National Quality Standard.",
       },
       {
         q: "How many stories should I check?",
@@ -615,21 +628,26 @@ const PAGES = {
     reviewedAt: REVIEWED,
   },
 
+  // Held, and aimed back at Exceeding (builder X3, 25 Nov 2026). Lane C re-aimed this page at
+  // "assessment and rating" that morning, but the live /assessment-and-rating-evidence already serves
+  // that search and is re-aimed at it behind its own switch (lib/seo-pages-held.ts). Two of our pages
+  // must not split one search, so this one keeps the Exceeding words it was built with on 19 Nov and
+  // stays held (lib/held-pages.ts "exceeding-nqs-documentation": false). Its sections stay as built.
   "exceeding-nqs-documentation": {
     slug: "exceeding-nqs-documentation",
     audience: {
       buyer: "centre",
-      who: "An Australian director or educational leader with an assessment and rating visit coming, or working towards Exceeding",
-      // 25 Nov 2026 re-aim (analysis/search.json new_pages): directors search the visit, not the theme guidance.
-      typed: ["assessment and rating", "assessment and rating childcare", "assessment and rating documentation", "exceeding nqs"],
-      firstScreen: "Read in one line what an assessor reads in her documentation and start her centre's free period with one button, no card.",
+      who: "An Australian director or educational leader working towards an Exceeding rating",
+      typed: ["exceeding nqs themes", "exceeding nqs meaning", "exceeding nqs theme guidance", "nqf exceeding themes"],
+      firstScreen: "Read the three Exceeding themes in one sentence and start her centre's free period with one button, no card (or jump to a real story that shows them).",
     },
-    title: "Assessment and Rating: The Documentation Assessors Read",
+    title: "Exceeding NQS: what your documentation needs to show",
     description:
-      "What happens at an assessment and rating visit, the Quality Area 1 documentation an assessor reads element by element, and what Exceeding looks like.",
+      "The three Exceeding themes in plain words, and what an assessor looks for in your learning stories, planning and reflection to see them.",
     kicker: "For directors and educational leaders · NQS",
-    h1: "Assessment and rating: what your documentation needs to show.",
-    lead: "At an assessment and rating visit, an authorised officer observes your practice, talks it through with your team and sights your documents. Quality Area 1 is where your documentation is read most closely.",
+    h1: "Exceeding the NQS: what your documentation has to show.",
+    // The three themes, as ACECQA names them (checked against ACECQA's own documents, 19 Nov 2026).
+    lead: "For a Standard to be rated Exceeding, an assessor must see three themes in practice: embedded in service operations, informed by critical reflection, and shaped by meaningful engagement with families and/or the community.",
     action: { kind: "centre" },
     sections: [
       {
@@ -728,6 +746,111 @@ const PAGES = {
     sources: [ACECQA_AR, ACECQA_NQS, ACECQA_13, SECTOR_EXCEEDING],
     reviewedAt: REVIEWED,
   },
+  // "qip childcare" (builder X3, 25 Nov 2026): Keyword Planner AU 100-1K a month, NZ 0-10, low
+  // competition; "quality improvement plan childcare" 10-100 in both. Only a director or educational
+  // leader types it, and her weekly job is keeping the plan true. The page is that job, with the
+  // product on it: no template to download, two short entries written for this page and marked as
+  // examples, ACECQA as the source. Held behind lib/held-pages.ts "qip-childcare" (off). The search
+  // map once said a QIP paragraph on /assessment-and-rating-evidence only; the conductor's brief for
+  // this round asked for the page, held, so Leo decides.
+  "qip-childcare": {
+    slug: "qip-childcare",
+    audience: {
+      buyer: "centre",
+      who: "An Australian director or educational leader writing or reviewing her service's Quality Improvement Plan",
+      typed: ["qip childcare", "quality improvement plan childcare", "qip quality area 1", "qip examples childcare"],
+      firstScreen: "Read in two lines what a Quality Area 1 entry in a QIP holds, then start her centre's free period with one button, no card.",
+    },
+    title: "QIP Childcare: Quality Area 1, With Two Examples",
+    description:
+      "What a Quality Improvement Plan entry for Quality Area 1 holds, two worked examples, and how your team's learning stories show the plan is working.",
+    kicker: "For directors and educational leaders · NQS",
+    h1: "Your QIP for Quality Area 1, with two worked examples.",
+    lead: "A good Quality Area 1 entry names one thing to improve, the steps, how you will know it worked and by when. The evidence that it worked is in your team's learning stories.",
+    action: { kind: "centre" },
+    sections: [
+      {
+        id: "what-the-qip-is",
+        heading: "What the QIP is, in plain words",
+        list: [
+          "Every approved service must have one (regulation 55 of the National Regulations).",
+          "It holds three things: your self-assessment against the National Quality Standard, the areas you will improve, and your service philosophy.",
+          "You review and revise it at least once a year (regulation 56), and send the current copy to your regulatory authority when they ask.",
+          "No format is required. ACECQA's template is there if you want it, and your own layout is fine if it covers the three things.",
+        ],
+      },
+      {
+        id: "what-an-entry-holds",
+        heading: "What a Quality Area 1 entry holds",
+        paragraphs: [
+          "Name the element (1.1.1 to 1.3.3), the issue you found, the outcome you want, the steps, how you will measure it, who leads it, by when, and progress notes as it moves. Keep the issue specific enough that someone else could check it. \"Documentation could improve\" cannot be checked. \"Next steps in stories are rarely tried\" can.",
+        ],
+      },
+      {
+        id: "example-1",
+        heading: "Example 1, written for this page: element 1.3.1",
+        list: [
+          "Issue: next steps at the end of learning stories are rarely tried or written about again.",
+          "Outcome: each child's next step is tried within two weeks and the result written in their next story.",
+          "Steps: each educator picks one next step a week to try; the educational leader reads one story from each room on Fridays; the team talks through one closed loop at the monthly meeting.",
+          "Measure: in a read of 10 stories each month, 8 show a next step that was tried and what happened.",
+          "Who and when: educational leader, by the end of Term 1.",
+          "Progress notes: Week 3, 4 of 10. Week 7, 7 of 10.",
+        ],
+      },
+      {
+        id: "example-2",
+        heading: "Example 2, written for this page: element 1.3.3",
+        list: [
+          "Issue: families read stories but what they tell us rarely reaches the child's next story.",
+          "Outcome: family voice appears in at least one story per child each term.",
+          "Steps: end each story with one question for the family; note replies in the child's next story; check names, not pages, at the end of each month.",
+          "Measure: the number of children with family voice in a story this term, out of the roll.",
+          "Who and when: room leaders, reviewed at each staff meeting, by the end of Term 2.",
+          "Progress notes: Month 1, 11 of 40 children. Month 2, 23 of 40.",
+        ],
+      },
+      {
+        id: "weekly-job",
+        heading: "Keeping the plan true, week by week",
+        paragraphs: [
+          "A QIP goes stale when nobody reads the evidence until the review. Both examples above are measured by reading stories: count the next steps that were tried, count the children with family voice. Ten stories on a Friday takes less time than rebuilding a term the week before a visit.",
+        ],
+        link: { href: "/how-to-check-a-learning-story", label: "How to check a learning story in two minutes" },
+      },
+      {
+        id: "for-your-centre",
+        heading: "For your centre",
+        paragraphs: [
+          "On a centre plan, the stories your team shares are in one place. You can check an educator's story with her note beside it in about two minutes, and tell her what is right and what to change. {Centre_trial}, no card.",
+        ],
+        link: { href: "/for-centres", label: "StoryLoop for a whole centre" },
+      },
+    ],
+    answers: ["C"],
+    faqs: [
+      {
+        q: "What goes in a QIP for Quality Area 1?",
+        a: "Your self-assessment against the three standards of Quality Area 1 (program, practice, and assessment and planning), then for each area to improve: the element, the issue, the outcome you want, the steps, how you will measure it, who leads it and by when, with progress notes as it moves.",
+      },
+      {
+        q: "Do I have to use ACECQA's QIP template?",
+        a: "No. ACECQA says the QIP does not have to be in any set format, as long as it covers the self-assessment, the areas for improvement and the service philosophy that regulation 55 asks for.",
+      },
+      {
+        q: "How often does the QIP have to be reviewed?",
+        a: "At least once a year, and whenever the regulatory authority directs (regulation 56). Many services look at their progress notes each term.",
+      },
+    ],
+    related: [
+      { href: "/assessment-and-rating-evidence", title: "Assessment and rating", body: "What the assessor reads, and the evidence to have ready." },
+      { href: "/nqs-standard-1-3-assessment-and-planning", title: "NQS Standard 1.3", body: "What assessors look for in assessment and planning, element by element." },
+      { href: "/critical-reflection-early-childhood", title: "Critical reflection", body: "Three examples, a filled-in template and the NQS 1.3.2 evidence list." },
+      { href: "/how-to-check-a-learning-story", title: "How to check a learning story", body: "Five questions a leader can ask in two minutes, and feedback that helps." },
+    ],
+    sources: [ACECQA_QIP_SHEET, ACECQA_QIP_GUIDE, ACECQA_13],
+    reviewedAt: "2026-11-25",
+  },
 } satisfies Record<string, BuyerPage>;
 
 export type BuyerSlug = keyof typeof PAGES;
@@ -754,6 +877,8 @@ export const HELD_BUYER_SLUGS: readonly BuyerSlug[] = [
   "documentation-workload-early-childhood",
   "exceeding-nqs-documentation",
   "ask-your-centre",
+  // Builder X3, 25 Nov 2026: held from the day it was built (lib/held-pages.ts "qip-childcare").
+  "qip-childcare",
 ];
 
 /** Whether a buyer page is served in this release. Pure. */

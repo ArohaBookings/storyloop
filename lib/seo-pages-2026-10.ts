@@ -296,7 +296,7 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
     kicker: "Examples · Where to next",
     heading: "The next step is the part of a learning story that changes tomorrow.",
     intro:
-      "Most learning stories end with something like \"We will continue to support Mia's interest in painting.\" That is not a next step. A next step names what an educator will do, offer or watch for, so whoever reads it next can act on it. Below are twelve real \"where to next\" sections, each written by StoryLoop from a real note and shown exactly as written, with what makes each one work.",
+      "Twelve real next steps. Or put your note in the box: StoryLoop writes the story with a next step that follows from what the child did. Most learning stories end with something like \"We will continue to support Mia's interest in painting.\" That is not a next step. A next step names what an educator will do, offer or watch for, so whoever reads it next can act on it. Below are twelve real \"where to next\" sections, each written by StoryLoop from a real note and shown exactly as written, with what makes each one work.",
     reviewedAt: "2026-10-13",
     sections: [
       {
@@ -474,7 +474,8 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
       {
         title: "Built from evidence, not memory",
         body:
-          "Every sentence should point to something you documented: a dated observation, a learning story, the child's own words or what the family told you. If you cannot say where you saw it, leave it out.",
+          "Every sentence should point to something you documented: a dated observation, a learning story, the child's own words or what the family told you. If you cannot say where you saw it, leave it out. The easiest summaries come from short stories written through the year.",
+        links: [{ label: "EYLF observation examples, from the rough note", href: "/eylf-observation-examples" }],
       },
       {
         title: "One page, outcome by outcome",
@@ -573,7 +574,8 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
       {
         title: "The outcomes section is a summary",
         body:
-          "The department's guide asks you to take the documentation gathered through the year and write a summary of strengths, emerging skills, interests, relationships and intentional teaching strategies for each EYLF V2.0 outcome.",
+          "The department's guide asks you to take the documentation gathered through the year and write a summary of strengths, emerging skills, interests, relationships and intentional teaching strategies for each EYLF V2.0 outcome. The easiest statements come from short stories written through the year.",
+        links: [{ label: "EYLF observation examples, from the rough note", href: "/eylf-observation-examples" }],
       },
       {
         title: "Strategies a teacher can use in week one",
@@ -660,7 +662,8 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
       {
         title: "Five areas, one child",
         body:
-          "Identity, connectedness, wellbeing, active learning and communicating. Describe what the child knows, can do and is disposed to do in each one, from moments you documented.",
+          "Identity, connectedness, wellbeing, active learning and communicating. Describe what the child knows, can do and is disposed to do in each one, from moments you documented. The easiest statements come from short stories written through the year.",
+        links: [{ label: "EYLF observation examples, from the rough note", href: "/eylf-observation-examples" }],
       },
       {
         title: "Families and children contribute",
@@ -915,7 +918,7 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
     kicker: "Educator guide · EYLF V2.0",
     heading: "EYLF learning story examples, from the quick note to the finished story.",
     intro:
-      "Six short examples, from a baby to a child about to start school. Each one shows the note an educator might jot down in the moment, the learning story written from it, the EYLF V2.0 outcome it shows, and what you might plan next. The children are imagined, to show the shape. Yours should come from what you noticed today.",
+      "Six EYLF learning stories, each from a rough note. Put yours in the box and get one written the same way, linked to the outcomes it shows. The examples run from a baby to a child about to start school. Each one shows the note an educator might jot down in the moment, the learning story written from it, the EYLF V2.0 outcome it shows, and what you might plan next. The children are imagined, to show the shape. Yours should come from what you noticed today.",
     reviewedAt: "2026-11-10",
     sections: [
       {
@@ -987,7 +990,7 @@ export const OCT_2026_PAGES: Record<string, SeoPage> = {
     kicker: "Kaiako guide · Te Whāriki",
     heading: "Learning story examples for Aotearoa, from the quick note to the story.",
     intro:
-      "Six short examples, from an infant to a child about to start school. Each one shows the note a kaiako might jot down in the moment, the learning story written from it, the Te Whāriki strand and learning outcome it shows, and how you might respond. The tamariki are imagined, to show the shape. Yours should come from what you noticed today.",
+      "Learning story examples from Aotearoa, linked to Te Whāriki. Got one due this week? Put your note in the box and StoryLoop drafts it for you to check. The six examples run from an infant to a child about to start school. Each one shows the note a kaiako might jot down in the moment, the learning story written from it, the Te Whāriki strand and learning outcome it shows, and how you might respond. The tamariki are imagined, to show the shape. Yours should come from what you noticed today.",
     reviewedAt: "2026-11-04",
     sections: [
       {

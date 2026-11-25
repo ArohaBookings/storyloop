@@ -53,6 +53,18 @@ export const GUIDE_PRODUCT: Record<string, GuideProductEntry> = {
       "StoryLoop turns a jotting from the room into a learning story linked to the EYLF or Te Whāriki, for the educator to check. Free for 3 stories a month.",
   },
   "eylf-observation-examples": { kind: "note", demo: "AU", label: NOTE_LABEL },
+  // Builder X3, 25 Nov 2026 (growth-ops.json search_next.actions 4, 5 and 7): the box sits under the
+  // intro, the slot every guide has; the actions asked for it under the first or third example, which
+  // needs a new slot in the page layout, so it is listed for the release step instead.
+  "learning-story-examples-eylf": { kind: "note", demo: "AU", label: NOTE_LABEL },
+  "learning-story-examples-nz": {
+    kind: "note",
+    demo: "NZ",
+    label: "Got one due this week? Put your note here.",
+    ownedSentence:
+      "StoryLoop drafts the learning story from a kaiako's quick note, linked to the Te Whāriki strand and learning outcome the moment shows, for the kaiako to check. Free for 3 stories a month.",
+  },
+  "learning-story-next-steps-examples": { kind: "note", demo: "visitor", label: "Put your note in and get the story with a next step." },
   "nqs-standards": {
     kind: "leader",
     text: "Your team's stories are your Quality Area 1 evidence. On a centre plan the educational leader sees the stories her team shares in one place. Centres are {centre_trial}.",
@@ -126,6 +138,12 @@ export const GUIDE_PRODUCT: Record<string, GuideProductEntry> = {
 /** Entries for held re-aims (lib/held-pages.ts): used only once that page's switch is on. */
 export const HELD_GUIDE_PRODUCT: Record<string, GuideProductEntry> = {
   "eylf-planning-cycle": { kind: "note", demo: "AU", label: "Got a note from this week? Put it here." },
+  // A leader with a visit coming: what a centre plan does for her Quality Area 1 evidence, and only that.
+  "assessment-and-rating-evidence": {
+    kind: "leader",
+    text: "Your team's learning stories are your Quality Area 1 evidence. On a centre plan you see the stories your team shares in one place, and you can check one with the educator's note beside it in about two minutes. Centres are {centre_trial}.",
+    link: { href: "/for-centres", label: "How StoryLoop works for a centre" },
+  },
 };
 
 export function guideProductFor(slug: string): GuideProductEntry | null {

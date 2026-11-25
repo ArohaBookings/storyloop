@@ -941,7 +941,8 @@ export const SEO_PAGES: Record<string, SeoPage> = {
       {
         title: "Write from strengths and evidence",
         body:
-          "Describe what the child does, how they learn best and what helps them, using moments you actually saw. Leave out labels you are not qualified to give, comparisons with other children and anything you could not point to in your documentation.",
+          "Describe what the child does, how they learn best and what helps them, using moments you actually saw. Leave out labels you are not qualified to give, comparisons with other children and anything you could not point to in your documentation. The easiest statements come from short stories written through the year.",
+        links: [{ label: "EYLF observation examples, from the rough note", href: "/eylf-observation-examples" }],
       },
       {
         title: "Bring the family and child in",
@@ -1001,19 +1002,26 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   // for paraphrases ACECQA's Guide to the NQF, Standard 1.3 (read 2026-09-17).
   "nqs-standard-1-3-assessment-and-planning": {
     slug: "nqs-standard-1-3-assessment-and-planning",
-    title: "NQS Standard 1.3: Assessment and Planning",
+    // Builder X3, 25 Nov 2026: leaders search "nqs quality area 1" (AU 100-1K a month); this page had 44 impressions at 8.1.
+    title: "NQS Quality Area 1, Standard 1.3: Assessment and Planning",
     description:
-      "What ACECQA's guidance says assessors look for in elements 1.3.1, 1.3.2 and 1.3.3, and how to show the planning cycle without more paperwork.",
+      "What assessors look for in NQS Quality Area 1, elements 1.3.1, 1.3.2 and 1.3.3, and how your team's learning stories show the planning cycle.",
     kicker: "Director guide · Australia",
     heading: "Show the whole planning cycle, not a pile of stories.",
     intro:
-      "Standard 1.3 asks whether educators take a planned and reflective approach to each child's program. Most services have plenty of documentation. What is often missing is the thread from an observation to what was planned, what happened next and what educators thought about it. This guide sets out what ACECQA's guidance says and how to make that thread visible.",
+      "Standard 1.3 is the part of NQS Quality Area 1 where documentation is read, and your team's learning stories are its evidence. It asks whether educators take a planned and reflective approach to each child's program. Most services have plenty of documentation. What is often missing is the thread from an observation to what was planned, what happened next and what educators thought about it. This guide sets out what ACECQA's guidance says and how to make that thread visible.",
     reviewedAt: "2026-09-17",
     sections: [
       {
         title: "1.3.1 Assessment and planning cycle",
         body:
           "Each child's learning is assessed as part of an ongoing cycle of observing, analysing, documenting, planning, implementing and reflecting. ACECQA is clear that there is no one way to document it. Assessors look for the cycle, not a format.",
+        links: [
+          { label: "The NQS in plain words, all 7 quality areas", href: "/nqs-standards" },
+          { label: "How to check a learning story in two minutes", href: "/how-to-check-a-learning-story" },
+          // Held until its switch is on (lib/held-pages.ts "qip-childcare"): liveLinks drops it until then.
+          { label: "Your QIP for Quality Area 1, with two examples", href: "/qip-childcare" },
+        ],
       },
       {
         title: "1.3.2 Critical reflection",
@@ -2088,10 +2096,19 @@ for (const page of Object.values(NOV_2026_PAGES)) {
 }
 
 // Re-aimed guides built and held, 25 Nov 2026 (lib/seo-pages-held.ts): same URL, new words, only when switched on.
-import { EYLF_PLANNING_CYCLE_REAIM } from "./seo-pages-held";
+import { ASSESSMENT_AND_RATING_REAIM, EYLF_PLANNING_CYCLE_REAIM } from "./seo-pages-held";
 import { heldPageOn } from "./held-pages";
 if (heldPageOn("eylf-planning-cycle")) {
   SEO_PAGES["eylf-planning-cycle"] = { ...EYLF_PLANNING_CYCLE_REAIM, faqs: [...EYLF_PLANNING_CYCLE_REAIM.faqs, ...sharedFaqs] };
+}
+// The live assessment and rating page, re-aimed at "assessment and rating" (builder X3): new opening, live sources kept.
+if (heldPageOn("assessment-and-rating-evidence")) {
+  const live = SEO_PAGES["assessment-and-rating-evidence"];
+  const sections = ASSESSMENT_AND_RATING_REAIM.sections.map((section) =>
+    // The QIP page, linked from the QIP section; dropped by liveLinks while that page is held.
+    section.title === "Your QIP and your stories" ? { ...section, links: [{ label: "Your QIP for Quality Area 1, with two examples", href: "/qip-childcare" }] } : section,
+  );
+  SEO_PAGES["assessment-and-rating-evidence"] = { ...live, ...ASSESSMENT_AND_RATING_REAIM, sections, faqs: [...ASSESSMENT_AND_RATING_REAIM.faqs, ...sharedFaqs] };
 }
 
 // Attach long-form bodies to the pages that have them. Kept separate so the

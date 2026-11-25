@@ -23,6 +23,8 @@ export const metadata: Metadata = {
 const FAQS = [
   // The plain answer assistants quote (lib/answer-blocks.ts, block F).
   { q: ANSWER_BLOCKS.F.question, a: ANSWER_BLOCKS.F.answer },
+  // Leaders ask assistants this beside the policy question (builder X3, 25 Nov 2026, block D).
+  { q: ANSWER_BLOCKS.D.question, a: ANSWER_BLOCKS.D.answer },
   {
     q: "Does an early childhood service need an AI policy?",
     a: "If any educator uses AI to help write documentation about children, yes. Many already do without one, which leaves both the educator and the service exposed. A short written policy sets out which tools are allowed, what information never goes into a general AI tool, and that a person reviews everything before it is shared.",

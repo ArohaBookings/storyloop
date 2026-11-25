@@ -74,6 +74,8 @@ export default function EylfOutcomesPage() {
               ))}
             </ol>
             <p className="mt-3">Each has sub-outcomes, 20 in all (the framework calls them key components), listed below in the framework&apos;s own words with what each can look like in play.</p>
+            {/* Builder X3, 25 Nov 2026 (growth-ops.json search_next.actions 2): the box is GuideProof's, straight after the quick list. */}
+            <p className="mt-3">Writing an observation this week? Put your note in the box under the list and StoryLoop links it to the outcomes it actually shows, for you to check.</p>
           </>
         }
         image="/images/scenes/team.jpg"

@@ -38,12 +38,13 @@ const EXPECTED_BUYER_SLUGS = [
   "ask-your-centre",
   "ai-policy-nz-early-childhood",
   "exceeding-nqs-documentation",
+  "qip-childcare",
 ];
 
 /** In the December release (the conductor's scope decision, 19 Nov 2026). */
 const RELEASED_BUYER_SLUGS = ["ai-for-early-childhood-educators", "ai-childcare-observations", "ai-policy-nz-early-childhood"];
 /** Held out of it, switched off: not routed, not in the sitemap, linked from nowhere. */
-const HELD = ["educational-leader-checklist", "documentation-workload-early-childhood", "exceeding-nqs-documentation", "ask-your-centre"];
+const HELD = ["educational-leader-checklist", "documentation-workload-early-childhood", "exceeding-nqs-documentation", "ask-your-centre", "qip-childcare"];
 
 /** Existing pages the re-aim gave a new title, description, heading or first screen. */
 const RE_AIMED_SEO_SLUGS = [
@@ -120,7 +121,7 @@ function routeExists(href: string) {
   return existsSync(`app/${path}/page.tsx`);
 }
 
-test("the seven buyer pages exist, each with its own route, metadata and share image", () => {
+test("the eight buyer pages exist, each with its own route, metadata and share image", () => {
   assert.deepEqual([...BUYER_PAGE_SLUGS].sort(), [...EXPECTED_BUYER_SLUGS].sort());
   for (const slug of BUYER_PAGE_SLUGS) {
     const page = BUYER_PAGES[slug];
@@ -341,7 +342,7 @@ test("every released buyer page and re-aimed page is in the sitemap and open to 
   }
 });
 
-test("the four held pages are switched off: 404, no share image, not in the sitemap, linked from nowhere", () => {
+test("the five held pages are switched off: 404, no share image, not in the sitemap, linked from nowhere", () => {
   assert.equal(HELD_BUYER_PAGES_ON, false, "held out of the December release");
   assert.deepEqual([...HELD_BUYER_SLUGS].sort(), [...HELD].sort());
   for (const slug of BUYER_PAGE_SLUGS) assert.equal(buyerPageLive(slug), RELEASED_BUYER_SLUGS.includes(slug), slug);

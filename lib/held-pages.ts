@@ -10,6 +10,12 @@
  *   carried through every step and the note box) is built beside it in
  *   lib/seo-pages.ts and replaces those words only when this is true. The URL
  *   and canonical never change.
+ * - "assessment-and-rating-evidence" (builder X3, 25 Nov): the live page re-aimed
+ *   at "assessment and rating" (lib/seo-pages-held.ts ASSESSMENT_AND_RATING_REAIM)
+ *   with a leader block. Same URL and canonical; off keeps the live words.
+ * - "qip-childcare" (builder X3, 25 Nov): a new page for "qip childcare", what a
+ *   Quality Area 1 entry in a QIP looks like (lib/buyer-pages.ts). Off: 404, not
+ *   in the sitemap, and no page links to it.
  */
 export const HELD_PAGE_ON = {
   "educational-leader-checklist": false,
@@ -17,6 +23,8 @@ export const HELD_PAGE_ON = {
   "exceeding-nqs-documentation": false,
   "ask-your-centre": false,
   "eylf-planning-cycle": false,
+  "assessment-and-rating-evidence": false,
+  "qip-childcare": false,
 } as const satisfies Record<string, boolean>;
 
 export type HeldPageSlug = keyof typeof HELD_PAGE_ON;

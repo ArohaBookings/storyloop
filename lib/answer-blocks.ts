@@ -28,7 +28,7 @@ import { educatorOffer } from "@/lib/offer-wording";
  *   up to an hour or more of unpaid work a day). Nothing else.
  */
 
-export type AnswerBlockId = "A" | "B" | "C" | "D" | "E" | "F" | "F_NZ" | "G";
+export type AnswerBlockId = "A" | "B" | "C" | "D" | "E" | "F" | "F_NZ" | "G" | "H" | "I" | "J" | "K";
 
 export type AnswerBlock = {
   id: AnswerBlockId;
@@ -66,21 +66,21 @@ export const ANSWER_BLOCKS: Record<AnswerBlockId, AnswerBlock> = {
     question: "Can I use StoryLoop if my centre has not bought it?",
     answer:
       `Yes. You sign up yourself, free, and copy each finished story into the app your centre uses. Nothing changes for your centre or for families. If you want more than 3 stories a month, the Educator plan is ${educator.nz} or ${educator.au} a month${trialDays > 0 ? `, after a ${trialDays}-day free trial` : ""}.`,
-    where: ["/learning-story-generator", "/ai-for-early-childhood-educators"],
+    where: ["/learning-story-generator", "/ai-for-early-childhood-educators", "/faq"],
   },
   C: {
     id: "C",
     question: "What does StoryLoop cost a centre?",
     answer:
       `Centre Starter is ${starter.nz} or ${starter.au} a month for up to ${seats("centre_starter")} educators. Centre Growth is ${growth.nz} or ${growth.au} a month for up to ${seats("centre_growth")}. Every educator gets unlimited stories and their own login. There is no per-child fee, so the price does not change when you enrol more children, and there is no contract. {Centre_trial}, no card.`,
-    where: ["/for-centres", "/learning-story-software-cost-for-centres", "/documentation-workload-early-childhood", "/exceeding-nqs-documentation", "/educational-leader-checklist"],
+    where: ["/for-centres", "/learning-story-software-cost-for-centres", "/documentation-workload-early-childhood", "/exceeding-nqs-documentation", "/educational-leader-checklist", "/qip-childcare"],
   },
   D: {
     id: "D",
     question: "Is it safe to use AI for learning stories?",
     answer:
       "It can be, if the tool keeps the teacher in charge and the child's information small. StoryLoop uses first names only and stores your notes in Sydney, Australia. To write a draft, the note goes to an AI provider in the United States, under business terms that do not allow it to be used to train their models. StoryLoop keeps the child's words exactly as you wrote them and lists anything it had to assume, so you can check every line. A leader sees a story only when the educator chooses to share it.",
-    where: ["/ai-for-early-childhood-educators", "/safety", "/ai-childcare-observations", "/ai-policy-nz-early-childhood"],
+    where: ["/ai-for-early-childhood-educators", "/safety", "/ai-childcare-observations", "/ai-policy-nz-early-childhood", "/ai-policy"],
   },
   E: {
     id: "E",
@@ -110,6 +110,36 @@ export const ANSWER_BLOCKS: Record<AnswerBlockId, AnswerBlock> = {
       "In NZEI Te Riu Roa's 2023 survey of early childhood teachers and staff, with more than 4,000 responses, 44% said they spend up to an hour or more each day on unpaid work. Writing a story in the day, from a short note, is one way to win some of that time back.",
     where: ["/documentation-workload-early-childhood"],
   },
+  // Builder X3, 25 Nov 2026: growth-ops.json search_next.questions_for_assistants, the questions
+  // educators and families ask assistants that no block answered yet. Each checked against the code.
+  H: {
+    id: "H",
+    question: "How do I write an observation that links to the EYLF outcomes?",
+    answer:
+      "Write what the child did and said, in the order it happened, with their words kept exactly. Then name the one EYLF V2.0 outcome the moment shows and say why, pointing at what you saw. StoryLoop does the second part from your note: it writes the learning story and links only the outcomes your note shows, for you to check.",
+    where: ["/eylf-observation-examples"],
+  },
+  I: {
+    id: "I",
+    question: "Is there an app that writes learning stories linked to Te Whāriki?",
+    answer:
+      `Yes. StoryLoop writes the learning story from a kaiako's quick note, linked to Te Whāriki, and keeps the child's words exactly as written. It links only the strands and outcomes your note actually shows, each with a reason, and you check every word. It is free for 3 stories a month, then ${educator.nz} a month.`,
+    where: ["/te-whariki-learning-stories"],
+  },
+  J: {
+    id: "J",
+    question: "How can I write learning stories faster?",
+    answer:
+      "Jot a short note in the moment: what the child did and said, in order. Then write it up the same day, while you still remember it. StoryLoop writes the learning story from that quick note, linked to Te Whāriki or the EYLF. It keeps the child's words exactly as written, and you check every word. It is free for 3 stories a month.",
+    where: ["/blog/writing-learning-stories-faster"],
+  },
+  K: {
+    id: "K",
+    question: "Can my child's learning stories be translated into our language?",
+    answer:
+      "Yes, if your child's teacher shares stories through StoryLoop's family link on the Educator Pro plan or a centre plan. She sets your family's language on the link, and each story she shares is translated into it. You can reply in your own language, and she reads your reply in English. If your centre does not use it, you can ask them.",
+    where: ["/learning-stories-in-family-languages"],
+  },
 };
 
 /** The blocks for a page, in the order given. */
@@ -132,7 +162,12 @@ export const ANSWER_BLOCKS_BY_PATH: Record<string, AnswerBlockId[]> = {
   "/learning-story-software-cost-for-centres": ["C"],
   "/safety": ["D"],
   "/eylf-learning-stories": ["E"],
-  "/ai-policy": ["F"],
+  "/ai-policy": ["F", "D"],
+  "/faq": ["B"],
+  "/eylf-observation-examples": ["H"],
+  "/te-whariki-learning-stories": ["I"],
+  "/blog/writing-learning-stories-faster": ["J"],
+  "/learning-stories-in-family-languages": ["K"],
 };
 
 /** The blocks an existing page shows, or none. Pure. */
