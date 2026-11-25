@@ -48,11 +48,13 @@ export const CLASS_SET_ON = true;
 export const CENTRE_START_NO_CHECKOUT = true;
 
 /**
- * The leader sees where each line of a story came from in the note.
- * Off until the matcher is built and its held-out fixtures reach precision
- * 0.90 or better with false flags 0.10 or fewer (deferred 24 Nov, A4).
+ * The leader sees where each line of a story came from in the note, when the
+ * educator ticks it after seeing the numbers in her preview.
+ * Why: only StoryLoop holds the note beside the draft (A4). On 25 Nov because
+ * the held-out fixtures passed the gate (precision 0.962, false flags 0.031;
+ * gate 0.90 and 0.10; tests/source-lines-accuracy.test.ts).
  */
-export const LEADER_SOURCES_ON = false;
+export const LEADER_SOURCES_ON = true;
 
 /** All five, for tests and the admin view. */
 export const BUILD_SWITCHES = {

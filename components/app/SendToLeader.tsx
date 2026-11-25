@@ -9,7 +9,7 @@ import type { SetView } from "@/lib/leader-sets";
 import { suggestEmailFix } from "@/lib/email-typo";
 import { trackEvent } from "@/lib/analytics/track-event";
 import { LEADER_SEND_PLACES } from "@/lib/analytics/events";
-import { LEADER_EMAIL_ON } from "@/lib/build-switches";
+import { LEADER_EMAIL_ON, LEADER_SOURCES_ON } from "@/lib/build-switches";
 import LeaderCheckPage from "@/components/marketing/LeaderCheckPage";
 
 /**
@@ -42,6 +42,9 @@ export const JOIN_WORDS = "If my leader starts our centre on StoryLoop, add me t
  */
 export const KEEP_WORDS = "To send this, StoryLoop keeps these statements for 14 days so your leader can open them, and deletes them a week after the link ends.";
 
+/** The tick that lets her leader see where each line came from (A4); it is offered only once she has seen the numbers in the preview. */
+export const SOURCES_WORDS = "Show my leader where each line came from";
+
 export type LeaderSendPlace = (typeof LEADER_SEND_PLACES)[number];
 
 /** Where the card is, as recorded: what the page passed, else a story's or a set's usual place. Pure. */
@@ -70,6 +73,9 @@ export default function SendToLeader(props: SendToLeaderProps) {
   const [email, setEmail] = useState<Email>({ asked: false });
   const [copied, setCopied] = useState(false);
   const [preview, setPreview] = useState<LeaderView | SetView | null>(null);
+  // A4: off until she ticks it, and offered only after she has seen the numbers herself.
+  const [sources, setSources] = useState(false);
+  const [seenSources, setSeenSources] = useState(false);
   // Escape closes the preview, as Close does.
   useEffect(() => {
     if (!preview) return;
@@ -102,6 +108,7 @@ export default function SendToLeader(props: SendToLeaderProps) {
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.view) { setError(data.error ?? "Could not show it. Try again."); return; }
       setPreview(data.view);
+      if (LEADER_SOURCES_ON) setSeenSources(true);
       trackEvent("leader_preview_opened", { kind: props.kind });
     } catch {
       setError("Could not show it. Check your connection and try again.");
@@ -112,6 +119,7 @@ export default function SendToLeader(props: SendToLeaderProps) {
     if (busy) return;
     setBusy(true); setError("");
     const body: Record<string, unknown> = { centreName: centreName.trim(), joinConsent: join };
+    if (LEADER_SOURCES_ON && sources) body.showSources = true;
     if (withEmail) body.email = typed;
     if (withEmail && firstName.trim()) body.firstName = firstName.trim();
     if (props.kind === "story") body.shareCounts = counts;
@@ -134,7 +142,7 @@ export default function SendToLeader(props: SendToLeaderProps) {
         pieces: props.kind === "set" ? data.pieces ?? pieces?.length ?? 0 : 1,
         emailed: outcome.asked && outcome.sent,
         join_consent: join,
-        sources: false,
+        sources: LEADER_SOURCES_ON && sources,
         centre_name: Boolean(centreName.trim()),
         counts: props.kind === "story" ? counts : false,
         ...(props.kind === "story" ? { story_id: props.storyId } : {}),
@@ -286,6 +294,7 @@ export default function SendToLeader(props: SendToLeaderProps) {
               {JOIN_WORDS}
             </label>
           )}
+          {LEADER_SOURCES_ON && seenSources && <SourcesTick checked={sources} onChange={setSources} />}
           {props.kind === "set" && <p className="text-xs leading-relaxed text-ink-600" data-testid="leader-set-keep">{KEEP_WORDS}</p>}
           <div className="mt-1 flex flex-wrap gap-2">
             {LEADER_EMAIL_ON && typed ? (
@@ -318,12 +327,30 @@ export default function SendToLeader(props: SendToLeaderProps) {
               <X className="h-4 w-4" /> Close
             </button>
           </div>
+          {LEADER_SOURCES_ON && (
+            <div className="border-b border-clay-100 bg-paper px-4 py-2">
+              <SourcesTick checked={sources} onChange={setSources} />
+            </div>
+          )}
           <div className="py-6">
-            <LeaderCheckPage preview={preview} />
+            {/* She always sees the numbers here; her leader sees them only if she ticks the box. */}
+            <LeaderCheckPage preview={LEADER_SOURCES_ON ? { ...preview, showSources: true } : preview} mine />
           </div>
         </div>,
         document.body,
       )}
     </div>
+  );
+}
+
+function SourcesTick({ checked, onChange }: { checked: boolean; onChange: (on: boolean) => void }) {
+  return (
+    <label className="flex min-h-[44px] cursor-pointer items-start gap-2.5 text-xs leading-relaxed text-ink-700">
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="mt-0.5 h-4 w-4 flex-none accent-clay-700" data-testid="leader-show-sources" />
+      <span>
+        {SOURCES_WORDS}
+        <span className="block text-ink-500" data-testid="leader-show-sources-note">{checked ? "Your leader will see them too." : "Only you see the numbers."}</span>
+      </span>
+    </label>
   );
 }

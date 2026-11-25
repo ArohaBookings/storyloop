@@ -1,0 +1,645 @@
+{
+  "about": "Invented notes and stories for the A4 matcher (25 Nov 2026). Every note, name and story here was made up for this file: none comes from a real account or a real child. note: one entry per note unit (a line, or a sentence of a longer line), joined by joiner. paras: the observation part, one array per paragraph, each sentence [text, gold]. gold: '1' or '1,3' = backed by those note units; 'x' = says something the note does not show; 'r' = the educator's reading with no source; 'r:2' = reading that points at unit 2. Labelled by hand before lib/source-lines.ts existed. Split: odd positions tune, even positions held out.",
+  "stories": [
+    {
+      "id": "s01", "child": "Aria", "framework": "nz", "joiner": "\n",
+      "note": [
+        "Aria at the playdough table rolling long snakes",
+        "cut them into pieces with the plastic knife and counted them 1 2 3 4 5",
+        "said \"I made five sausages for the barbecue\"",
+        "gave one to Leo and one to me"
+      ],
+      "title": "Five sausages for the barbecue",
+      "paras": [
+        [["Aria spent time at the playdough table rolling long snakes of dough.", "1"], ["She used the plastic knife to cut them into pieces.", "2"], ["Then she counted the pieces out loud, one to five.", "2"]],
+        [["Aria told us, \"I made five sausages for the barbecue\".", "3"], ["She shared them, giving one to Leo and one to her teacher.", "4"], ["This was a lovely moment of kindness and turn-taking.", "r"]]
+      ],
+      "reading": "Aria was using counting in her play and linking it to something she knows from home.",
+      "next": "We will add tongs and paper plates to the playdough table."
+    },
+    {
+      "id": "s02", "child": "Mateo", "framework": "au", "joiner": " ",
+      "note": [
+        "Mateo built a ramp with the long wooden block and a crate.",
+        "Rolled cars down it, the red one went furthest.",
+        "He moved the crate higher and tried again.",
+        "Called out \"faster now!\""
+      ],
+      "title": "How high can the ramp go?",
+      "paras": [
+        [["Mateo made a ramp by leaning the long wooden block against a crate.", "1"], ["He rolled cars down the ramp and watched where each one stopped.", "2"], ["The red car travelled the furthest.", "2"]],
+        [["Next Mateo lifted the crate higher and tested the ramp again.", "3"], ["\"Faster now!\" he called out.", "4"], ["He measured each car's distance with a metre ruler.", "x"]]
+      ],
+      "reading": "Mateo was testing a theory about height and speed.",
+      "next": "We will offer different surfaces for the ramp."
+    },
+    {
+      "id": "s03", "child": "Isla", "framework": "nz", "joiner": "\n",
+      "note": [
+        "Isla painting at the easel, only blue and yellow",
+        "mixed them on the paper and it went green",
+        "she gasped and said \"green came!\"",
+        "painted the whole page green then wanted to hang it up"
+      ],
+      "title": "Green came!",
+      "paras": [
+        [["Isla chose blue and yellow paint at the easel.", "1"], ["As she mixed the two colours on her paper, they turned green.", "2"], ["Isla gasped and said, \"green came!\"", "3"]],
+        [["She kept going until the whole page was green.", "4"], ["When she finished she asked to hang her painting up.", "4"], ["Isla was discovering how colours change when they meet.", "r:2"]]
+      ],
+      "reading": "Isla noticed a change she caused herself.",
+      "next": "We will put out red and white so she can try more mixing."
+    },
+    {
+      "id": "s04", "child": "Noah", "framework": "au", "joiner": "\n",
+      "note": [
+        "Noah at the sandpit digging a hole with the big spade",
+        "found a worm, held it in his palm",
+        "asked where it lives",
+        "we looked in the book about minibeasts together"
+      ],
+      "title": "Noah's worm",
+      "paras": [
+        [["Noah dug a deep hole in the sandpit with the big spade.", "1"], ["He found a worm and gently held it in his open palm.", "2"], ["Noah wanted to know where the worm lives.", "3"]],
+        [["Together we looked through the minibeasts book to find out.", "4"], ["Noah then dug a new home for the worm under the tree.", "x"], ["He showed great care and curiosity for living things.", "r:2"]]
+      ],
+      "reading": "Noah is curious about the natural world.",
+      "next": "We will set up a worm farm."
+    },
+    {
+      "id": "s05", "child": "Wiremu", "framework": "nz", "joiner": " ",
+      "note": [
+        "Wiremu on the climbing frame, went up the net for the first time.",
+        "Stopped halfway, looked down, said \"I'm scared\".",
+        "I said take your time, he kept going.",
+        "At the top he waved to his friends."
+      ],
+      "title": "To the top of the net",
+      "paras": [
+        [["Today Wiremu climbed the net on the climbing frame for the very first time.", "1"], ["Halfway up he stopped and looked down.", "2"], ["He said, \"I'm scared\".", "2"]],
+        [["I told him to take his time, and he kept climbing.", "3"], ["When he reached the top he waved to his friends.", "4"], ["His friends cheered and clapped for him.", "x"]],
+        [["Wiremu showed courage in pushing through his fear.", "r"]]
+      ],
+      "reading": "Wiremu was taking a risk and managing it.",
+      "next": "We will keep the net available and encourage him to try the rope ladder."
+    },
+    {
+      "id": "s06", "child": "Ruby", "framework": "au", "joiner": "\n",
+      "note": [
+        "Ruby in home corner, feeding the dolls",
+        "put a bib on baby and used a spoon",
+        "sang twinkle twinkle to put her to sleep",
+        "covered her with a blanket and whispered shh"
+      ],
+      "title": "Ruby cares for baby",
+      "paras": [
+        [["Ruby played in the home corner, feeding the dolls.", "1"], ["She put a bib on the baby and fed her with a spoon.", "2"], ["Then she sang Twinkle Twinkle to help the baby fall asleep.", "3"], ["Ruby covered her with a blanket and whispered, \"shh\".", "4"]],
+        [["Ruby was showing what she knows about caring for others.", "r"]]
+      ],
+      "reading": "Ruby re-created routines from her own life.",
+      "next": "We will add a doll bath and towels."
+    },
+    {
+      "id": "s07", "child": "Kai", "framework": "nz", "joiner": "\n",
+      "note": [
+        "Kai and Sam with the hose in the garden",
+        "Kai filled the watering can and watered the bean plants",
+        "noticed the beans had flowers, pointed and said \"look, pink!\"",
+        "counted the flowers, got to 8"
+      ],
+      "title": "Pink flowers on the beans",
+      "paras": [
+        [["Kai was in the garden with Sam and the hose.", "1"], ["He filled up the watering can and gave the bean plants a drink.", "2"], ["Kai spotted flowers on the beans and pointed.", "3"], ["\"Look, pink!\" he said.", "3"]],
+        [["He counted the flowers carefully and got to eight.", "4"], ["Kai then picked a bean and tasted it.", "x"]]
+      ],
+      "reading": "Kai is noticing how plants grow and change.",
+      "next": "We will look for beans together next week."
+    },
+    {
+      "id": "s08", "child": "Olivia", "framework": "au", "joiner": " ",
+      "note": [
+        "Olivia doing a 24 piece puzzle of a farm.",
+        "Did the edges first, all by herself.",
+        "Got stuck on the sky pieces, tried turning them around.",
+        "Asked Mia to help and they finished it together."
+      ],
+      "title": "The farm puzzle",
+      "paras": [
+        [["Olivia chose a 24 piece farm puzzle.", "1"], ["She did all the edge pieces first, on her own.", "2"], ["The sky pieces were tricky, so she turned them around to see where they might fit.", "3"]],
+        [["Olivia asked Mia for help.", "4"], ["Together the two girls finished the puzzle.", "4"], ["She was using problem-solving strategies and knew when to ask for help.", "r:3,4"]]
+      ],
+      "reading": "Olivia persisted with a hard task.",
+      "next": "We will offer a 35 piece puzzle."
+    },
+    {
+      "id": "s09", "child": "Hemi", "framework": "nz", "joiner": "\n",
+      "note": [
+        "Hemi at mat time joined in the waiata",
+        "did all the actions for Tutira mai",
+        "afterwards asked to sing it again",
+        "taught Ella the actions"
+      ],
+      "title": "Hemi leads the waiata",
+      "paras": [
+        [["At mat time Hemi joined in with our waiata.", "1"], ["He did every action for Tutira mai.", "2"], ["When it ended he asked if we could sing it again.", "3"]],
+        [["Later Hemi taught Ella how to do the actions.", "4"], ["He spoke to her in te reo Māori as he showed her.", "x"]]
+      ],
+      "reading": "Hemi is growing his confidence with te reo and waiata.",
+      "next": "We will invite Hemi to lead the waiata at mat time."
+    },
+    {
+      "id": "s10", "child": "Zoe", "framework": "au", "joiner": "\n",
+      "note": [
+        "Zoe at the writing table drew a card for her nana",
+        "drew a heart and a sun",
+        "wrote Z and O and said that's my name",
+        "asked for an envelope"
+      ],
+      "title": "A card for Nana",
+      "paras": [
+        [["Zoe sat at the writing table and made a card for her nana.", "1"], ["She drew a heart and a sun on the front.", "2"], ["Zoe wrote the letters Z and O and told us, \"that's my name\".", "3"], ["Then she asked for an envelope.", "4"]],
+        [["She is beginning to understand that writing carries a message.", "r:3"]]
+      ],
+      "reading": "Zoe is using marks and letters with purpose.",
+      "next": "We will add envelopes and stamps to the writing table."
+    },
+    {
+      "id": "s11", "child": "Tama", "framework": "nz", "joiner": " ",
+      "note": [
+        "Tama in the block corner building a tall tower.",
+        "It fell down twice, he laughed and started again.",
+        "Third time he put the big blocks at the bottom.",
+        "It stayed up and he said \"strong one\"."
+      ],
+      "title": "A strong one",
+      "paras": [
+        [["Tama built a tall tower in the block corner.", "1"], ["It fell down twice.", "2"], ["Each time Tama laughed and started again.", "2"]],
+        [["On his third try he placed the big blocks at the bottom.", "3"], ["This time the tower stayed up.", "4"], ["\"Strong one,\" Tama said.", "4"], ["He then added a flag on the top made from paper.", "x"]]
+      ],
+      "reading": "Tama was working out how to make a structure stable.",
+      "next": "We will offer photos of tall buildings."
+    },
+    {
+      "id": "s12", "child": "Charlotte", "framework": "au", "joiner": "\n",
+      "note": [
+        "Charlotte at lunch opened her own lunchbox and yoghurt",
+        "peeled her mandarin and shared pieces with Ava",
+        "put her rubbish in the bin without being asked"
+      ],
+      "title": "Charlotte does it herself",
+      "paras": [
+        [["At lunchtime Charlotte opened her lunchbox and her yoghurt by herself.", "1"], ["She peeled her mandarin and shared some pieces with Ava.", "2"], ["When she finished she put her rubbish in the bin without being asked.", "3"]],
+        [["Charlotte is becoming more independent in her self-care.", "r"]]
+      ],
+      "reading": "Charlotte manages routines with confidence.",
+      "next": "We will invite Charlotte to help set the table."
+    },
+    {
+      "id": "s13", "child": "Nikau", "framework": "nz", "joiner": "\n",
+      "note": [
+        "Nikau found a snail on the path after rain",
+        "watched it move very slowly",
+        "said \"it has a house on its back\"",
+        "put a leaf in front of it to see if it would eat"
+      ],
+      "title": "A house on its back",
+      "paras": [
+        [["After the rain Nikau found a snail on the path.", "1"], ["He crouched down and watched it slowly move along.", "1,2"], ["\"It has a house on its back,\" he said.", "3"]],
+        [["Nikau put a leaf in front of the snail to see if it would eat it.", "4"], ["The snail ate a small hole in the leaf.", "x"], ["Nikau was forming his own theories about the snail.", "r:3"]]
+      ],
+      "reading": "Nikau is curious and asks his own questions.",
+      "next": "We will make a snail home with Nikau."
+    },
+    {
+      "id": "s14", "child": "Harper", "framework": "au", "joiner": " ",
+      "note": [
+        "Harper at the light table with coloured shapes.",
+        "Made a pattern red blue red blue.",
+        "Said \"it goes again and again\".",
+        "Then made a house with a triangle roof."
+      ],
+      "title": "Again and again",
+      "paras": [
+        [["Harper explored the coloured shapes at the light table.", "1"], ["She made a repeating pattern of red, blue, red, blue.", "2"], ["\"It goes again and again,\" Harper explained.", "3"]],
+        [["Next she used the shapes to build a house with a triangle roof.", "4"], ["Harper is noticing and making patterns.", "r:2"]]
+      ],
+      "reading": "Harper is showing early algebraic thinking through pattern.",
+      "next": "We will offer three-colour patterns."
+    },
+    {
+      "id": "s15", "child": "Manaia", "framework": "nz", "joiner": "\n",
+      "note": [
+        "Manaia at the carpentry table with Jess",
+        "hammered three nails into the wood",
+        "held the hammer near the end like I showed him",
+        "said \"I'm making a boat for my dad\""
+      ],
+      "title": "A boat for Dad",
+      "paras": [
+        [["Manaia worked at the carpentry table alongside Jess.", "1"], ["He hammered three nails into a piece of wood.", "2"], ["Manaia held the hammer near the end, the way he had been shown.", "3"]],
+        [["\"I'm making a boat for my dad,\" he told me.", "4"], ["He painted the boat blue and took it home.", "x"], ["Manaia was using tools with skill and care.", "r:3"]]
+      ],
+      "reading": "Manaia is building confidence with real tools.",
+      "next": "We will add a saw for Manaia to try with support."
+    },
+    {
+      "id": "s16", "child": "Lily", "framework": "au", "joiner": "\n",
+      "note": [
+        "Lily at group time with the felt board story",
+        "put the three bears on the board in order big middle small",
+        "said the words with me \"who's been eating my porridge\"",
+        "wanted to be Goldilocks next time"
+      ],
+      "title": "Who's been eating my porridge?",
+      "paras": [
+        [["At group time Lily joined in with the felt board story.", "1"], ["She placed the three bears on the board in order: big, middle and small.", "2"], ["Lily said the words along with me, \"who's been eating my porridge\".", "3"]],
+        [["She asked to be Goldilocks next time.", "4"], ["Lily also retold the whole story to her friends at lunch.", "x"]]
+      ],
+      "reading": "Lily is building her knowledge of story structure and size order.",
+      "next": "We will act out the story with costumes."
+    },
+    {
+      "id": "s17", "child": "Ari", "framework": "nz", "joiner": " ",
+      "note": [
+        "Ari arrived upset, held onto mum.",
+        "We read his favourite truck book together on the couch.",
+        "He calmed down and waved bye to mum at the window.",
+        "Then went straight to the trucks in the sandpit."
+      ],
+      "title": "Ari settles in",
+      "paras": [
+        [["Ari was upset when he arrived and held on tight to his mum.", "1"], ["We sat on the couch and read his favourite truck book together.", "2"], ["Ari calmed and waved goodbye to his mum from the window.", "3"]],
+        [["Then he went straight to play with the trucks in the sandpit.", "4"], ["Ari is learning that he can feel safe here.", "r"]]
+      ],
+      "reading": "A familiar book helped Ari manage the goodbye.",
+      "next": "We will keep the truck book by the door for mornings."
+    },
+    {
+      "id": "s18", "child": "Grace", "framework": "au", "joiner": "\n",
+      "note": [
+        "Grace on the bikes, rode the trike around the track",
+        "stopped at the stop sign every time",
+        "let Max go first at the bridge",
+        "said \"you go, then me\""
+      ],
+      "title": "You go, then me",
+      "paras": [
+        [["Grace rode the trike around the bike track.", "1"], ["She stopped at the stop sign every time she came to it.", "2"], ["At the bridge she let Max go first.", "3"], ["\"You go, then me,\" said Grace.", "4"]],
+        [["Grace is learning about rules and taking turns.", "r:2,3"], ["She also helped Max when his bike got stuck in the grass.", "x"]]
+      ],
+      "reading": "Grace understands the rules of the track.",
+      "next": "We will add road signs she can set out herself."
+    },
+    {
+      "id": "s19", "child": "Tane", "framework": "nz", "joiner": "\n",
+      "note": [
+        "Tane at the water trough with jugs and funnels",
+        "poured from the big jug into the small jug, it overflowed",
+        "said \"too much!\" and laughed",
+        "tried the funnel and poured slower"
+      ],
+      "title": "Too much!",
+      "paras": [
+        [["Tane played at the water trough with the jugs and funnels.", "1"], ["He poured water from the big jug into the small jug until it overflowed.", "2"], ["\"Too much!\" Tane laughed.", "3"]],
+        [["Then he tried using the funnel and poured more slowly.", "4"], ["Tane was exploring capacity in a hands-on way.", "r:2"]]
+      ],
+      "reading": "Tane is learning about full, empty and too much.",
+      "next": "We will add measuring cups."
+    },
+    {
+      "id": "s20", "child": "Ella", "framework": "au", "joiner": " ",
+      "note": [
+        "Ella and Sophie in the dress ups being doctors.",
+        "Ella put the stethoscope on Sophie's tummy.",
+        "Said \"you need medicine, two spoons\".",
+        "Wrote a prescription with squiggles."
+      ],
+      "title": "Doctor Ella",
+      "paras": [
+        [["Ella and Sophie played doctors in the dress up corner.", "1"], ["Ella listened to Sophie's tummy with the stethoscope.", "2"], ["\"You need medicine, two spoons,\" she said.", "3"]],
+        [["Ella wrote Sophie a prescription with squiggles.", "4"], ["Then she gave her a pretend injection and a sticker for being brave.", "x"], ["Ella used her knowledge of the world in her play.", "r"]]
+      ],
+      "reading": "Ella is using writing for a purpose in her play.",
+      "next": "We will set up a doctor's clinic with appointment cards."
+    },
+    {
+      "id": "s21", "child": "Rawiri", "framework": "nz", "joiner": "\n",
+      "note": [
+        "Rawiri helped make bread with Kaye",
+        "measured flour with the cup, 3 cups",
+        "kneaded the dough and said it feels sticky",
+        "waited at the oven window"
+      ],
+      "title": "Making bread",
+      "paras": [
+        [["Rawiri helped Kaye make bread.", "1"], ["He measured three cups of flour with the cup.", "2"], ["As he kneaded the dough he told us it felt sticky.", "3"], ["Rawiri waited by the oven window to watch it bake.", "4"]],
+        [["He was so proud when he ate his own bread at afternoon tea.", "x"]]
+      ],
+      "reading": "Rawiri is learning about measurement through cooking.",
+      "next": "We will make pizza dough next week."
+    },
+    {
+      "id": "s22", "child": "Mia", "framework": "au", "joiner": "\n",
+      "note": [
+        "Mia on the swing, asked for a push",
+        "then tried to pump her legs by herself",
+        "said \"look I'm doing it\"",
+        "swung for a long time"
+      ],
+      "title": "Look, I'm doing it",
+      "paras": [
+        [["Mia asked for a push on the swing.", "1"], ["Then she tried to pump her legs by herself.", "2"], ["\"Look, I'm doing it,\" Mia called.", "3"], ["She kept swinging for a long time.", "4"]],
+        [["Mia was building strength and coordination.", "r"]]
+      ],
+      "reading": "Mia showed persistence in learning a new skill.",
+      "next": "We will encourage Mia to show a friend how to pump."
+    },
+    {
+      "id": "s23", "child": "Finn", "framework": "nz", "joiner": " ",
+      "note": [
+        "Finn with the magnifying glass looking at leaves.",
+        "Said the lines on the leaf look like roads.",
+        "Collected 5 different leaves in a basket.",
+        "Sorted them big to small on the mat."
+      ],
+      "title": "Roads on a leaf",
+      "paras": [
+        [["Finn used the magnifying glass to look closely at leaves.", "1"], ["He told me the lines on the leaf looked like roads.", "2"], ["Finn collected five different leaves in a basket.", "3"]],
+        [["He sorted them on the mat from biggest to smallest.", "4"], ["Finn then drew the leaves in his book with the lines on them.", "x"], ["Finn was making connections between nature and his own world.", "r:2"]]
+      ],
+      "reading": "Finn is a careful observer.",
+      "next": "We will make leaf rubbings together."
+    },
+    {
+      "id": "s24", "child": "Sienna", "framework": "au", "joiner": "\n",
+      "note": [
+        "Sienna in the music area with the drums",
+        "played loud then soft when I said quiet mouse",
+        "copied my rhythm clap clap tap",
+        "made up her own song about her dog Biscuit"
+      ],
+      "title": "A song for Biscuit",
+      "paras": [
+        [["Sienna explored the drums in the music area.", "1"], ["She played loudly, then softly when I said \"quiet mouse\".", "2"], ["Sienna copied my rhythm of clap, clap, tap.", "3"]],
+        [["She made up her own song about her dog, Biscuit.", "4"], ["Sienna is developing her musical skills.", "r"]]
+      ],
+      "reading": "Sienna listens and responds to sound.",
+      "next": "We will record Sienna's song."
+    },
+    {
+      "id": "s25", "child": "Ihaia", "framework": "nz", "joiner": "\n",
+      "note": [
+        "Ihaia made a hut with sheets over the table",
+        "invited Rua and Pita inside",
+        "they took books in and torches",
+        "said \"no grown ups allowed\" laughing"
+      ],
+      "title": "No grown-ups allowed",
+      "paras": [
+        [["Ihaia built a hut by draping sheets over the table.", "1"], ["He invited Rua and Pita to come inside.", "2"], ["The boys took books and torches in with them.", "3"], ["\"No grown-ups allowed,\" Ihaia laughed.", "4"]],
+        [["Inside the hut the boys read stories to each other in the dark.", "x"], ["Ihaia was leading his friends in play.", "r:2"]]
+      ],
+      "reading": "Ihaia is building friendships.",
+      "next": "We will leave sheets out for building."
+    },
+    {
+      "id": "s26", "child": "Jack", "framework": "au", "joiner": " ",
+      "note": [
+        "Jack at the train set joining tracks.",
+        "Made a big loop and a bridge.",
+        "When the train came off he fixed the gap.",
+        "Said \"now it goes all the way round\"."
+      ],
+      "title": "All the way round",
+      "paras": [
+        [["Jack joined the train tracks together.", "1"], ["He made a big loop with a bridge.", "2"], ["When the train came off the track, Jack found the gap and fixed it.", "3"], ["\"Now it goes all the way round,\" he said.", "4"]],
+        [["Jack was solving problems as they came up.", "r:3"]]
+      ],
+      "reading": "Jack is persistent and logical.",
+      "next": "We will add a second train so two can play."
+    },
+    {
+      "id": "s27", "child": "Anahera", "framework": "nz", "joiner": "\n",
+      "note": [
+        "Anahera at the collage table glued feathers and shells onto card",
+        "said it was a bird nest",
+        "asked for more glue, used a lot",
+        "showed her dad at pick up"
+      ],
+      "title": "A bird nest",
+      "paras": [
+        [["Anahera glued feathers and shells onto card at the collage table.", "1"], ["She told us it was a bird nest.", "2"], ["Anahera asked for more glue and used plenty of it.", "3"]],
+        [["At pick up she proudly showed her dad.", "4"], ["Her dad hung it on their fridge at home.", "x"]]
+      ],
+      "reading": "Anahera is expressing her ideas through art.",
+      "next": "We will go looking for real nests."
+    },
+    {
+      "id": "s28", "child": "Oscar", "framework": "au", "joiner": "\n",
+      "note": [
+        "Oscar fell off the balance beam, grazed knee",
+        "cried, came to me for a cuddle",
+        "said he wanted a bandaid with a dinosaur",
+        "went back and walked the beam again slowly"
+      ],
+      "title": "Back on the beam",
+      "paras": [
+        [["Oscar fell off the balance beam and grazed his knee.", "1"], ["He cried and came to me for a cuddle.", "2"], ["Oscar asked for a dinosaur bandaid.", "3"]],
+        [["Then he went back and walked along the beam again, slowly this time.", "4"], ["Oscar showed real resilience.", "r"]]
+      ],
+      "reading": "Oscar knows who to go to when he is hurt.",
+      "next": "We will practise on a lower beam."
+    },
+    {
+      "id": "s29", "child": "Maia", "framework": "nz", "joiner": " ",
+      "note": [
+        "Maia sorting the buttons into the muffin tin by colour.",
+        "Put all the red together then the blue.",
+        "Found one with two colours and said \"it can go in both\".",
+        "Counted the yellow ones, 7."
+      ],
+      "title": "It can go in both",
+      "paras": [
+        [["Maia sorted buttons by colour into the muffin tin.", "1"], ["She put all the red buttons together, then the blue.", "2"], ["Maia found a button with two colours.", "3"], ["\"It can go in both,\" she said.", "3"]],
+        [["She counted seven yellow buttons.", "4"], ["Maia then made a necklace with the buttons on string.", "x"], ["Maia was thinking about how things can belong to more than one group.", "r:3"]]
+      ],
+      "reading": "Maia is classifying and reasoning.",
+      "next": "We will sort by size as well as colour."
+    },
+    {
+      "id": "s30", "child": "Henry", "framework": "au", "joiner": "\n",
+      "note": [
+        "Henry at the art table cutting paper with scissors",
+        "held them the right way up, thumb on top",
+        "cut along the line on the strip",
+        "made a fringe and stuck it on a crown"
+      ],
+      "title": "Henry's crown",
+      "paras": [
+        [["Henry used the scissors at the art table to cut paper.", "1"], ["He held them correctly, with his thumb on top.", "2"], ["Henry cut along the line on a paper strip.", "3"], ["He made a fringe and stuck it onto a crown.", "4"]],
+        [["Henry wore his crown all afternoon and called himself the king.", "x"]]
+      ],
+      "reading": "Henry's fine motor skills are growing.",
+      "next": "We will offer curved lines to cut."
+    },
+    {
+      "id": "s31", "child": "Aroha", "framework": "nz", "joiner": "\n",
+      "note": [
+        "Aroha with the rākau sticks at mat time",
+        "tapped them together in time with the beat",
+        "passed the sticks to the next person in the circle",
+        "said \"ka pai\" to Wiremu when he did it"
+      ],
+      "title": "Ka pai, Wiremu",
+      "paras": [
+        [["Aroha joined in with the rākau at mat time.", "1"], ["She tapped the sticks together in time with the beat.", "2"], ["Aroha passed the sticks on to the next person in the circle.", "3"]],
+        [["When Wiremu had his turn she told him, \"ka pai\".", "4"], ["Aroha is showing manaakitanga towards her friends.", "r:4"]]
+      ],
+      "reading": "Aroha is growing her sense of rhythm.",
+      "next": "We will learn a new rākau game."
+    },
+    {
+      "id": "s32", "child": "William", "framework": "au", "joiner": " ",
+      "note": [
+        "William at the drawing table drew his family.",
+        "Mum, dad, baby and our dog.",
+        "Told me the baby is called Rosie and she cries a lot.",
+        "Gave the drawing to his mum."
+      ],
+      "title": "William's family",
+      "paras": [
+        [["William drew a picture of his family at the drawing table.", "1"], ["He drew his mum, his dad, the baby and the dog.", "2"], ["William told me the baby is called Rosie and that she cries a lot.", "3"]],
+        [["He gave his drawing to his mum.", "4"], ["His mum said she would frame it.", "x"], ["William is proud of his family and wanted to share about them.", "r"]]
+      ],
+      "reading": "William is talking about the people who matter to him.",
+      "next": "We will make a family wall with photos."
+    },
+    {
+      "id": "s33", "child": "Pania", "framework": "nz", "joiner": "\n",
+      "note": [
+        "Pania kicking the ball with Hugo on the field",
+        "kicked it into the goal and jumped up and down",
+        "Hugo said my turn and she gave him the ball",
+        "they took turns for about 10 minutes"
+      ],
+      "title": "Goal!",
+      "paras": [
+        [["Pania played ball with Hugo on the field.", "1"], ["She kicked the ball into the goal and jumped up and down.", "2"], ["When Hugo asked for a turn, Pania gave him the ball.", "3"], ["They took turns for around ten minutes.", "4"]],
+        [["Pania was learning to share and take turns.", "r:3"]]
+      ],
+      "reading": "Pania is building friendships through games.",
+      "next": "We will set up a small team game."
+    },
+    {
+      "id": "s34", "child": "Archie", "framework": "au", "joiner": "\n",
+      "note": [
+        "Archie at the science table with magnets",
+        "found that the magnet picked up the paperclips but not the pencil",
+        "said \"it only likes metal\"",
+        "tested the table leg and the door handle"
+      ],
+      "title": "It only likes metal",
+      "paras": [
+        [["Archie explored magnets at the science table.", "1"], ["He found the magnet picked up paperclips but not a pencil.", "2"], ["\"It only likes metal,\" Archie said.", "3"]],
+        [["He went on to test the table leg and the door handle.", "4"], ["The magnet stuck to the fridge in the kitchen too.", "x"], ["Archie was testing his theory.", "r:3,4"]]
+      ],
+      "reading": "Archie is using a scientific approach.",
+      "next": "We will make a magnet treasure hunt."
+    },
+    {
+      "id": "s35", "child": "Kiri", "framework": "nz", "joiner": " ",
+      "note": [
+        "Kiri helped feed the chickens with me.",
+        "Threw the grain and counted the chickens, 4.",
+        "Found an egg in the nesting box, still warm.",
+        "Carried it inside very carefully with two hands."
+      ],
+      "title": "A warm egg",
+      "paras": [
+        [["Kiri helped me feed the chickens.", "1"], ["She threw the grain and counted four chickens.", "2"], ["In the nesting box Kiri found an egg that was still warm.", "3"], ["She carried it inside very carefully, using both hands.", "4"]],
+        [["Kiri was showing respect and care for our animals.", "r"]]
+      ],
+      "reading": "Kiri takes responsibility for living things.",
+      "next": "We will make a chicken roster."
+    },
+    {
+      "id": "s36", "child": "Lucas", "framework": "au", "joiner": "\n",
+      "note": [
+        "Lucas in the sandpit making a road for the diggers",
+        "flattened the sand with his hand",
+        "made a tunnel and drove the digger through",
+        "the tunnel fell in, he said \"oh no, roadworks\""
+      ],
+      "title": "Roadworks",
+      "paras": [
+        [["Lucas made a road for the diggers in the sandpit.", "1"], ["He flattened the sand with his hand.", "2"], ["He made a tunnel and drove the digger through it.", "3"]],
+        [["When the tunnel fell in, Lucas said, \"oh no, roadworks\".", "4"], ["He called Noah over to help him rebuild it.", "x"]]
+      ],
+      "reading": "Lucas is bringing his knowledge of the world into play.",
+      "next": "We will add road cones and signs."
+    },
+    {
+      "id": "s37", "child": "Ana", "framework": "nz", "joiner": "\n",
+      "note": [
+        "Ana reading the book Where is the Green Sheep with Pita",
+        "pointed at each sheep and said its colour",
+        "turned the pages herself",
+        "at the end said \"there he is!\""
+      ],
+      "title": "There he is!",
+      "paras": [
+        [["Ana and Pita read Where is the Green Sheep together.", "1"], ["She pointed at each sheep and named its colour.", "2"], ["Ana turned the pages herself.", "3"], ["At the end she said, \"there he is!\"", "4"]],
+        [["Ana is learning to love books.", "r"]]
+      ],
+      "reading": "Ana is enjoying sharing books with friends.",
+      "next": "We will read more books by the same author."
+    },
+    {
+      "id": "s38", "child": "Leo", "framework": "au", "joiner": " ",
+      "note": [
+        "Leo at the obstacle course, crawled through the tunnel.",
+        "Jumped off the box with two feet.",
+        "Walked along the plank with arms out.",
+        "Did the whole course three times."
+      ],
+      "title": "Three times round",
+      "paras": [
+        [["Leo crawled through the tunnel on the obstacle course.", "1"], ["He jumped off the box landing on two feet.", "2"], ["Leo walked along the plank with his arms out for balance.", "3"]],
+        [["He went round the whole course three times.", "4"], ["On the last turn he timed himself with the sand timer.", "x"], ["Leo was building his gross motor skills.", "r"]]
+      ],
+      "reading": "Leo enjoys physical challenge.",
+      "next": "We will add a hopping section."
+    },
+    {
+      "id": "s39", "child": "Moana", "framework": "nz", "joiner": "\n",
+      "note": [
+        "Moana watering the seedlings in the planter box",
+        "noticed one had two leaves now",
+        "asked \"is it a baby tree?\"",
+        "we said it was a sunflower and it will grow very tall"
+      ],
+      "title": "Is it a baby tree?",
+      "paras": [
+        [["Moana watered the seedlings in the planter box.", "1"], ["She noticed one now had two leaves.", "2"], ["\"Is it a baby tree?\" she asked.", "3"], ["We told her it was a sunflower and would grow very tall.", "4"]],
+        [["Moana measured herself against the sunflower to compare.", "x"]]
+      ],
+      "reading": "Moana is noticing growth.",
+      "next": "We will measure the sunflower each week."
+    },
+    {
+      "id": "s40", "child": "Thomas", "framework": "au", "joiner": "\n",
+      "note": [
+        "Thomas got upset when Jack took his car",
+        "yelled \"mine!\" and grabbed it back",
+        "I helped him use words, he said \"I'm still using it\"",
+        "Jack gave it back and they played side by side"
+      ],
+      "title": "I'm still using it",
+      "paras": [
+        [["Thomas got upset when Jack took the car he was using.", "1"], ["He yelled, \"mine!\" and grabbed it back.", "2"], ["With support, Thomas used his words: \"I'm still using it\".", "3"]],
+        [["Jack gave the car back, and the two boys played side by side.", "4"], ["Thomas is learning to use words to solve problems.", "r:3"]]
+      ],
+      "reading": "Thomas is learning to manage big feelings.",
+      "next": "We will practise these words at group time."
+    }
+  ]
+}

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, ChevronDown, Download, FileText, Loader2, MessageSquareText, ShieldCheck } from "lucide-react";
 import StoryText from "@/components/app/StoryText";
+import SourceLines, { SourceNote } from "@/components/app/SourceLines";
 import { track } from "@/lib/analytics/client";
 import { CHECK_COMMENT_MAX, CHECK_DAYS, CHECK_NAME_MAX, leaderCountsSentence, OFFER_STORAGE_KEY, offerSignupHref, offerStorageValue, tokenFromHash, type CoverView, type LeaderView } from "@/lib/story-check";
 import { pieceKindLabel, type SetPieceView, type SetView } from "@/lib/leader-sets";
@@ -56,7 +57,7 @@ async function post(body: Record<string, unknown>) {
  * `preview`: the educator's "See what your leader will see". The same page
  * from her own data, every button inert, nothing fetched.
  */
-export default function LeaderCheckPage({ preview }: { preview?: PageView }) {
+export default function LeaderCheckPage({ preview, mine }: { preview?: PageView; mine?: boolean }) {
   const [phase, setPhase] = useState<Phase>(preview ? "ready" : "loading");
   const [cover, setCover] = useState<CoverView | null>(null);
   const [view, setView] = useState<PageView | null>(preview ?? null);
@@ -167,14 +168,14 @@ export default function LeaderCheckPage({ preview }: { preview?: PageView }) {
 
   if (!view) return null;
   return view.kind === "set"
-    ? <SetPage view={view} token={token} preview={Boolean(preview)} onView={setView} heading={heading} />
-    : <StoryPage view={view} token={token} preview={Boolean(preview)} onView={setView} heading={heading} />;
+    ? <SetPage view={view} token={token} preview={Boolean(preview)} onView={setView} heading={heading} mine={mine} />
+    : <StoryPage view={view} token={token} preview={Boolean(preview)} onView={setView} heading={heading} mine={mine} />;
 }
 
-type PageProps<V> = { view: V; token: string; preview: boolean; onView: (view: PageView) => void; heading: React.RefObject<HTMLHeadingElement> };
+type PageProps<V> = { view: V; token: string; preview: boolean; onView: (view: PageView) => void; heading: React.RefObject<HTMLHeadingElement>; mine?: boolean };
 
 /** The note, clamped to six lines with Show all, so the story is never far below. */
-function NoteCard({ educator, note, testId = "leader-check-note" }: { educator: string; note: string; testId?: string }) {
+function NoteCard({ educator, note, testId = "leader-check-note", numbered = false }: { educator: string; note: string; testId?: string; numbered?: boolean }) {
   const [all, setAll] = useState(false);
   const long = note.split("\n").length > 6 || note.length > 420;
   return (
@@ -182,8 +183,8 @@ function NoteCard({ educator, note, testId = "leader-check-note" }: { educator: 
       <h2 className="text-xs font-bold uppercase tracking-wider text-ink-500">What {educator} wrote down</h2>
       {note ? (
         <>
-          <p className={`mt-3 whitespace-pre-wrap font-mono text-sm leading-relaxed text-ink-800 ${long && !all ? "line-clamp-6" : ""}`} data-testid={testId}>{note}</p>
-          {long && !all && (
+          {numbered ? <SourceNote note={note} testId={testId} /> : <p className={`mt-3 whitespace-pre-wrap font-mono text-sm leading-relaxed text-ink-800 ${long && !all ? "line-clamp-6" : ""}`} data-testid={testId}>{note}</p>}
+          {long && !all && !numbered && (
             <button type="button" onClick={() => setAll(true)} className="mt-1 min-h-[44px] text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2">Show all</button>
           )}
         </>
@@ -271,7 +272,7 @@ function DataSheetLink({ answered }: { answered: boolean }) {
   );
 }
 
-function StoryPage({ view, token, preview, onView, heading }: PageProps<LeaderView>) {
+function StoryPage({ view, token, preview, onView, heading, mine }: PageProps<LeaderView>) {
   const [name, setName] = useState("");
   const [comment, setComment] = useState("");
   const [suggesting, setSuggesting] = useState(false);
@@ -309,11 +310,11 @@ function StoryPage({ view, token, preview, onView, heading }: PageProps<LeaderVi
         </p>
 
         <div className="mt-6 grid min-w-0 gap-5">
-          <NoteCard educator={view.educator} note={view.note} />
+          <NoteCard educator={view.educator} note={view.note} numbered={view.showSources} />
           <section className="card min-w-0 p-5 sm:p-6" aria-labelledby="check-story">
             <h2 id="check-story" className="text-xs font-bold uppercase tracking-wider text-ink-500">The story</h2>
             <div className="mt-3 min-w-0" data-testid="leader-check-story">
-              <StoryText text={view.story} />
+              {view.showSources ? <SourceLines note={view.note} text={view.story} kind="story" childName={view.childName} audience={mine ? "mine" : "leader"} /> : <StoryText text={view.story} />}
             </div>
             <details className="group mt-5 rounded-2xl border border-sage-200 bg-sage-50 p-4">
               <summary className="flex min-h-[28px] cursor-pointer list-none items-center gap-2 text-sm font-semibold text-sage-900 [&::-webkit-details-marker]:hidden">
@@ -395,14 +396,14 @@ function StoryPage({ view, token, preview, onView, heading }: PageProps<LeaderVi
   );
 }
 
-function PieceBody({ piece }: { piece: SetPieceView }) {
+function PieceBody({ piece, sources, mine }: { piece: SetPieceView; sources?: boolean; mine?: boolean }) {
   const label = keptStrategyLabel(piece.framework, piece.mode);
   return (
     <div className="space-y-3 text-sm leading-relaxed text-ink-800">
       {piece.draft.outcomes.map((o, i) => (
         <div key={i}>
           <p className="font-semibold text-ink-900">{o.outcome}</p>
-          <p>{o.seen ? `What I saw: ${o.seen}` : `Not in my notes yet: ${o.gap}`}</p>
+          {o.seen && sources ? <p>What I saw: <SourceLines note={piece.note} text={o.seen} kind="statement" childName={piece.childName} audience={mine ? "mine" : "leader"} /></p> : <p>{o.seen ? `What I saw: ${o.seen}` : `Not in my notes yet: ${o.gap}`}</p>}
           {o.strategy && <p className="text-ink-700">{label}: {o.strategy}</p>}
         </div>
       ))}
@@ -410,7 +411,7 @@ function PieceBody({ piece }: { piece: SetPieceView }) {
   );
 }
 
-function SetPage({ view, token, preview, onView, heading }: PageProps<SetView>) {
+function SetPage({ view, token, preview, onView, heading, mine }: PageProps<SetView>) {
   const [openAt, setOpenAt] = useState<number | null>(null);
   const [comment, setComment] = useState("");
   const [suggesting, setSuggesting] = useState(false);
@@ -489,11 +490,11 @@ function SetPage({ view, token, preview, onView, heading }: PageProps<SetView>) 
                   <div className="space-y-4 border-t border-clay-100 bg-cream-50/60 px-4 py-4" data-testid="leader-set-piece">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-ink-500">What {view.educator} wrote down</p>
-                      <p className="mt-2 whitespace-pre-wrap font-mono text-sm leading-relaxed text-ink-800">{piece.note}</p>
+                      {view.showSources ? <SourceNote note={piece.note} /> : <p className="mt-2 whitespace-pre-wrap font-mono text-sm leading-relaxed text-ink-800">{piece.note}</p>}
                     </div>
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-ink-500">The draft</p>
-                      <div className="mt-2"><PieceBody piece={piece} /></div>
+                      <div className="mt-2"><PieceBody piece={piece} sources={view.showSources} mine={mine} /></div>
                     </div>
                     {piece.decision ? (
                       <p className="text-sm font-semibold text-sage-900">{piece.decision === "approved" ? "You said it looks good." : `You suggested a change${piece.comment ? `: ${piece.comment}` : "."}`}</p>

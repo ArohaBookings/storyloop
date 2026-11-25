@@ -26,6 +26,8 @@
  * nothing (lib/story-check-token.ts offerRefFor, lib/leader-offer-server.ts).
  */
 
+import { LEADER_SOURCES_ON } from "@/lib/build-switches";
+
 export const CHECK_DAYS = 14;
 export const CHECK_NAME_MAX = 40;
 export const CHECK_COMMENT_MAX = 600;
@@ -314,6 +316,8 @@ export function leaderView(input: { story: StoryForLeader; check: CheckRow; educ
     centreName: cleanCentreName(check.centre_name ?? ""),
     // She ticked "add me to the team" when she sent it. Strictly true; an old row is a no.
     joinConsent: check.join_consent === true,
+    // She chose to show where each line came from (A4). Never with the switch off; an old row is a no.
+    showSources: LEADER_SOURCES_ON && check.show_sources === true,
     // The numbers only if she ticked the box, and only if there are enough of them.
     offer: offer === null
       ? null

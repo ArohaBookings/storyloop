@@ -1,7 +1,7 @@
 // Renders a plain-text learning story with styled section headings.
 // Presentation-only: the underlying text (used for copy/export/edit) is unchanged.
 
-const SECTION_HEADINGS = new Set([
+export const SECTION_HEADINGS = new Set([
   "learning story",
   "what learning we noticed",
   "what learning i noticed",

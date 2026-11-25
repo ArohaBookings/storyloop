@@ -24,7 +24,8 @@ test("the five switches exist, are plain booleans, and are set as ruled on 24 No
     LEADER_EMAIL_ON: true,
     CLASS_SET_ON: true,
     CENTRE_START_NO_CHECKOUT: true,
-    LEADER_SOURCES_ON: false,
+    // A4 passed its gate on 25 Nov (tests/source-lines-accuracy.test.ts), so it is on.
+    LEADER_SOURCES_ON: true,
   });
   const source = readFileSync("lib/build-switches.ts", "utf8");
   for (const name of Object.keys(switches.BUILD_SWITCHES)) {
@@ -55,6 +56,12 @@ const SWITCH_READERS: Record<string, string> = {
   [path.join("app", "api", "centres", "route.ts")]: "tests/centre-start.test.ts",
   [path.join("lib", "centre-start-client.ts")]: "tests/centre-start.test.ts",
   [path.join("app", "(auth)", "signup", "SignupForm.tsx")]: "tests/centre-start.test.ts",
+  // A4 (where each line came from). Off: the story and the note exactly as before, nothing stored, no tick.
+  [path.join("components", "app", "SourceLines.tsx")]: "tests/source-lines-off.test.ts",
+  [path.join("lib", "story-check.ts")]: "tests/source-lines-off.test.ts",
+  [path.join("lib", "leader-sets.ts")]: "tests/source-lines-off.test.ts",
+  [path.join("lib", "leader-sets-server.ts")]: "tests/source-lines-off.test.ts",
+  [path.join("app", "api", "stories", "[id]", "check", "route.ts")]: "tests/source-lines-off.test.ts",
 };
 
 function sourceFiles(dir: string): string[] {
@@ -80,7 +87,10 @@ test("every file that reads a switch has a test for the switch off", () => {
 test("the stubs change nothing a person sees", async () => {
   // SendToLeader is built now (lane A): an empty set still renders nothing.
   assert.equal(renderToStaticMarkup(React.createElement(SendToLeader, { kind: "set", pieces: [] })), "");
-  assert.equal(renderToStaticMarkup(React.createElement(SourceLines, { note: "n", text: "Mia & the tower", kind: "story" })), "Mia &amp; the tower");
+  // SourceLines is built now (A4): a story with no observation shows its words and no marks. Off: tests/source-lines-off.test.ts.
+  const lines = renderToStaticMarkup(React.createElement(SourceLines, { note: "n", text: "Mia & the tower", kind: "story" }));
+  assert.match(lines, /Mia &amp; the tower/);
+  assert.doesNotMatch(lines, /source-chip|source-not-in-note/);
   assert.equal(renderToStaticMarkup(React.createElement(GuideProductBlock, { page: { slug: "x" } as SeoPage })), "");
   assert.deepEqual(await joinFromLeaderOffer("a", "b"), { joined: false });
   // start-free is built now (lane B): tests/centre-start.test.ts.
