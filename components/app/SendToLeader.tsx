@@ -11,6 +11,7 @@ import { trackEvent } from "@/lib/analytics/track-event";
 import { LEADER_SEND_PLACES } from "@/lib/analytics/events";
 import { LEADER_EMAIL_ON, LEADER_SOURCES_ON } from "@/lib/build-switches";
 import LeaderCheckPage from "@/components/marketing/LeaderCheckPage";
+import { sourceCounts, sourcePiecesOfView } from "@/lib/source-lines";
 
 /**
  * "Check with my leader": one story, or a whole room's statements as one set
@@ -110,6 +111,8 @@ export default function SendToLeader(props: SendToLeaderProps) {
       setPreview(data.view);
       if (LEADER_SOURCES_ON) setSeenSources(true);
       trackEvent("leader_preview_opened", { kind: props.kind });
+      // Counts only (MERGE2 2d): how many sentences, how many backed, how many not in her note. Never text.
+      if (LEADER_SOURCES_ON) trackEvent("leader_sources_counts", { audience: "mine", kind: props.kind, ...sourceCounts(sourcePiecesOfView(data.view)) });
     } catch {
       setError("Could not show it. Check your connection and try again.");
     }

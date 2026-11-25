@@ -264,3 +264,44 @@ export function matchSources(input: { note: string; text: string; kind: "story" 
 export function observationSentences(result: SourceResult) {
   return result.blocks.flatMap((block) => (block.type === "para" && block.observation ? block.sentences : []));
 }
+
+export type SourceCounts = { sentences: number; backed: number; not_backed: number };
+
+/**
+ * Counts only, for the record kept when "where each line came from" is shown
+ * (MERGE2 2d): how many sentences were marked, how many a note line backs and
+ * how many read "Not in your note". Numbers, never text, so real accuracy can
+ * be read after release without any story leaving the page. The same sentences
+ * the page marks: a story's observation, a statement's "What I saw". A text
+ * the matcher cannot read counts as nothing.
+ */
+export function sourceCounts(pieces: Array<{ note: string; text: string; kind: "story" | "statement"; childName?: string }>): SourceCounts {
+  const counts: SourceCounts = { sentences: 0, backed: 0, not_backed: 0 };
+  for (const piece of pieces) {
+    if (!piece.text || !piece.note) continue;
+    let result: SourceResult;
+    try {
+      result = matchSources(piece);
+    } catch {
+      continue;
+    }
+    const sentences = piece.kind === "story" ? observationSentences(result) : result.blocks.flatMap((block) => (block.type === "para" ? block.sentences : []));
+    for (const sentence of sentences) {
+      if (sentence.status === "backed") counts.backed++;
+      else if (sentence.status === "unbacked") counts.not_backed++;
+      else continue;
+      counts.sentences++;
+    }
+  }
+  return counts;
+}
+
+type ViewForCounts =
+  | { kind: "story"; note: string; story: string; childName?: string }
+  | { kind: "set"; items: Array<{ note: string; childName?: string; draft: { outcomes: Array<{ seen?: string | null }> } }> };
+
+/** The pieces a leader's page (or her preview of it) marks, ready for sourceCounts. */
+export function sourcePiecesOfView(view: ViewForCounts) {
+  if (view.kind === "story") return [{ note: view.note, text: view.story, kind: "story" as const, childName: view.childName }];
+  return view.items.flatMap((item) => item.draft.outcomes.filter((o) => o.seen).map((o) => ({ note: item.note, text: String(o.seen), kind: "statement" as const, childName: item.childName })));
+}

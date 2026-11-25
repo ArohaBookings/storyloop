@@ -177,3 +177,20 @@ test("trackEvent holds the consent-only events without Allow", async () => {
     assert.deepEqual(sent.map((item) => item.event), ["wall_shown"]);
   });
 });
+
+test("where each line came from is recorded as counts only: no text, no note, no name (MERGE2 2d)", () => {
+  assert.ok(EVENT_NAMES.includes("leader_sources_counts"));
+  assert.ok(!CONSENT_REQUIRED_EVENTS.includes("leader_sources_counts"));
+  assert.deepEqual(Object.keys(EVENTS.leader_sources_counts.keys).sort(), ["audience", "backed", "kind", "not_backed", "sentences"]);
+  assert.deepEqual(
+    sanitizeEventMetadata("leader_sources_counts", { audience: "leader", kind: "story", sentences: 6, backed: 5, not_backed: 1, note: "Mia poured water", text: "Mia was curious.", child: "Mia" }),
+    { audience: "leader", kind: "story", sentences: 6, backed: 5, not_backed: 1 },
+  );
+  assert.deepEqual(sanitizeEventMetadata("leader_sources_counts", { audience: "Mia", kind: "story", sentences: "6", backed: -1 }), { kind: "story" });
+  // Both places fire it, with the counts helper and nothing else.
+  const panel = readFileSync("components/app/SendToLeader.tsx", "utf8");
+  const page = readFileSync("components/marketing/LeaderCheckPage.tsx", "utf8");
+  assert.match(panel, /trackEvent\("leader_sources_counts", \{ audience: "mine", kind: props\.kind, \.\.\.sourceCounts\(sourcePiecesOfView\(data\.view\)\) \}\)/);
+  assert.match(page, /trackEvent\("leader_sources_counts", \{ audience: "leader", kind: view\.kind, \.\.\.sourceCounts\(sourcePiecesOfView\(view\)\) \}\)/);
+  assert.match(page, /if \(preview \|\| countedSources\.current \|\| !view\?\.showSources\) return;/, "never from her preview, once per page");
+});

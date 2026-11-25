@@ -6,6 +6,8 @@ import { ArrowRight, CheckCircle2, ChevronDown, Download, FileText, Loader2, Mes
 import StoryText from "@/components/app/StoryText";
 import SourceLines, { SourceNote } from "@/components/app/SourceLines";
 import { track } from "@/lib/analytics/client";
+import { trackEvent } from "@/lib/analytics/track-event";
+import { sourceCounts, sourcePiecesOfView } from "@/lib/source-lines";
 import { CHECK_COMMENT_MAX, CHECK_DAYS, leaderTeamLine, CHECK_NAME_MAX, leaderCountsSentence, OFFER_STORAGE_KEY, offerSignupHref, offerStorageValue, tokenFromHash, type CoverView, type LeaderView } from "@/lib/story-check";
 import { pieceKindLabel, type SetPieceView, type SetView } from "@/lib/leader-sets";
 import { keptStrategyLabel } from "@/lib/keep-story";
@@ -64,6 +66,14 @@ export default function LeaderCheckPage({ preview, mine }: { preview?: PageView;
   const [token, setToken] = useState("");
   const [tapError, setTapError] = useState("");
   const heading = useRef<HTMLHeadingElement>(null) as React.RefObject<HTMLHeadingElement>;
+  const countedSources = useRef(false);
+
+  // The leader is shown where each line came from: one counts-only record per page (MERGE2 2d). Never in her preview.
+  useEffect(() => {
+    if (preview || countedSources.current || !view?.showSources) return;
+    countedSources.current = true;
+    trackEvent("leader_sources_counts", { audience: "leader", kind: view.kind, ...sourceCounts(sourcePiecesOfView(view)) });
+  }, [preview, view]);
 
   useEffect(() => {
     if (preview) return;

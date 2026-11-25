@@ -170,6 +170,12 @@ export const EVENTS = {
     isNew: true,
     keys: { kind: oneOf(...LEADER_KINDS) },
   },
+  leader_sources_counts: {
+    where: "where each line came from was shown: in her preview before sending ('mine') or on the leader's page ('leader'). Counts only, never a word of the note or the draft (MERGE2 2d, 25 Nov 2026)",
+    consent: "any",
+    isNew: true,
+    keys: { audience: oneOf("mine", "leader"), kind: oneOf(...LEADER_KINDS), sentences: num(1000), backed: num(1000), not_backed: num(1000) },
+  },
   leader_email_sent: {
     where: "server: StoryLoop emailed the leader for the educator, or sent the one reminder (A2)",
     consent: "any",

@@ -87,3 +87,20 @@ test("every heading StoryText styles is a section the matcher knows", () => {
     assert.ok(after.type === "para" && !after.observation, `${heading} is a reading section`);
   }
 });
+
+test("counts only: sentences, backed and not in the note, the same sentences the page marks, no text (MERGE2 2d)", async () => {
+  const { sourceCounts, sourcePiecesOfView } = await import("../lib/source-lines");
+  const text = story("Tama carried it to the water trough and watched it sink. Tama rode his bike around the track.");
+  const counts = sourceCounts(sourcePiecesOfView({ kind: "story", note: NOTE, story: text, childName: "Tama" }));
+  assert.deepEqual(counts, { sentences: 2, backed: 1, not_backed: 1 });
+  assert.deepEqual(Object.keys(counts).sort(), ["backed", "not_backed", "sentences"]);
+  for (const value of Object.values(counts)) assert.equal(typeof value, "number");
+  // A set: every "What I saw" line of every piece; an empty one or a missing note counts as nothing.
+  const set = sourcePiecesOfView({ kind: "set", items: [
+    { note: NOTE, childName: "Tama", draft: { outcomes: [{ seen: "Tama filled the red bucket with the scoop." }, { seen: null }] } },
+    { note: "", childName: "Ari", draft: { outcomes: [{ seen: "Ari sang." }] } },
+  ] });
+  assert.equal(set.length, 2);
+  assert.deepEqual(sourceCounts(set), { sentences: 1, backed: 1, not_backed: 0 });
+  assert.deepEqual(sourceCounts([]), { sentences: 0, backed: 0, not_backed: 0 });
+});
