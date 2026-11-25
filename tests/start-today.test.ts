@@ -58,7 +58,8 @@ test("checkout marks only the statement wall's pay-today checkout, and the webho
 import { startTodayState, wallPayPath, startTodayPlanName } from "../lib/start-today";
 
 const day = 86_400;
-const freeWeek = { id: "sub_1", status: "trialing", metadata: { plan: "educator" }, trial_start: 1_000_000, trial_end: 1_000_000 + 7 * day };
+const nowSec = Math.floor(Date.now() / 1000);
+const freeWeek = { id: "sub_1", status: "trialing", metadata: { plan: "educator" }, trial_start: nowSec - day, trial_end: nowSec + 6 * day };
 
 test("only a truly free account is sent to checkout from the statement wall (R1-1)", () => {
   assert.equal(startTodayState({ ...profile, subscription_status: "free", plan: "free", stripe_subscription_id: null }, null), "free");
@@ -77,6 +78,7 @@ test("the free month of Educator Pro is not the free week: no start today (R1-2)
   assert.equal(startTodayState({ ...profile, plan: "educator_pro" }, proMonth), "long_trial");
   assert.equal(canStartToday(profile, { ...freeWeek, trial_end: freeWeek.trial_start + 30 * day }), false, "any trial longer than a week");
   assert.equal(canStartToday(profile, freeWeek), true);
+  assert.equal(canStartToday(profile, { id: "sub_1", status: "trialing", metadata: { plan: "educator" }, trial_end: nowSec + 25 * day }), false, "no trial_start: 25 days still to run");
 });
 
 test("the wall names the plan she is on (R4-5)", () => {

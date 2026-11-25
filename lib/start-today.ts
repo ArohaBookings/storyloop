@@ -21,8 +21,9 @@ export type StartTodaySubscription = {
 const FREE_WEEK_MAX_SECONDS = 8 * 86_400;
 
 /** A trial that is the 7-day free week, not an offer's longer trial (the free month of Pro). Pure. */
-export function isFreeWeekTrial(sub: StartTodaySubscription): boolean {
+export function isFreeWeekTrial(sub: StartTodaySubscription, nowSeconds = Math.floor(Date.now() / 1000)): boolean {
   if (sub.metadata?.offer_id) return false;
+  if (typeof sub.trial_end === "number" && sub.trial_end - nowSeconds > FREE_WEEK_MAX_SECONDS) return false;
   if (typeof sub.trial_start === "number" && typeof sub.trial_end === "number") {
     return sub.trial_end - sub.trial_start <= FREE_WEEK_MAX_SECONDS;
   }
