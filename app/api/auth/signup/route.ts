@@ -44,8 +44,10 @@ export async function POST(request: NextRequest) {
     const plan = ALLOWED_PLANS.has(requestedPlan) ? requestedPlan : "free";
     const accessCodeGrant = plan === "free" && accessCode ? await resolveAccessCode(accessCode, email) : null;
 
-    // No name is asked at signup since 25 Nov 2026 (B4): StoryLoop asks for a
-    // first name only where one is needed (sending to a leader).
+    // The name is asked again from 26 Nov 2026 (Leo): an account with no name helps nobody.
+    if (!name) {
+      return NextResponse.json({ error: "Please add your name", code: "missing_name" }, { status: 400 });
+    }
 
     if (!email) {
       return NextResponse.json({ error: "Please add your email", code: "missing_email" }, { status: 400 });

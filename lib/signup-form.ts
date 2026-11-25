@@ -27,8 +27,7 @@ const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 /** The browser's own checks, in order, before anything is sent. Null when the form can go. */
 export function checkSignupForm(input: {
-  /** Optional since 25 Nov 2026 (B4): signup never stops on the name. */
-  name?: string;
+  name: string;
   email: string;
   password: string;
   /** suggestEmailFix(email): a likely mistyped domain, or null. */
@@ -36,6 +35,7 @@ export function checkSignupForm(input: {
   /** She has already seen "Did you mean" for this address and kept hers. */
   typoAccepted: boolean;
 }): SignupErrorView | null {
+  if (!input.name.trim()) return { code: "missing_name", field: "name", message: "Please add your name." };
   const email = input.email.trim();
   if (!email) return { code: "missing_email", field: "email", message: "Please add your email." };
   if (!EMAIL_SHAPE.test(email)) {

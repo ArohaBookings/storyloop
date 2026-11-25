@@ -63,6 +63,9 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | "timeout">
  * "Claim a founding spot" sees the centre wording from the first frame.
  */
 export default function SignupForm({ initialPlan = null, initialNext = null }: { initialPlan?: string | null; initialNext?: string | null }) {
+  // Her name is asked again from 26 Nov 2026: the 25 Nov release took the box away (B4) and new
+  // accounts arrived with no name. Leo: names stay. The check is inline, beside the box.
+  const [name, setName] = useState("");
   // Already signed in on this device: point them back into the app.
   const [signedIn, setSignedIn] = useState(false);
   const [email, setEmail] = useState("");
@@ -261,6 +264,7 @@ export default function SignupForm({ initialPlan = null, initialNext = null }: {
     const typo = suggestEmailFix(email);
     const linkMode = mode !== "password";
     const problem = checkSignupForm({
+      name: linkMode ? name || "-" : name,
       email,
       password: linkMode ? "------" : password,
       typo,
@@ -305,6 +309,7 @@ export default function SignupForm({ initialPlan = null, initialNext = null }: {
             headers: { "Content-Type": "application/json" },
             signal: controller.signal,
             body: JSON.stringify({
+              name,
               email,
               password,
               plan,
@@ -379,8 +384,8 @@ export default function SignupForm({ initialPlan = null, initialNext = null }: {
     async function afterAccount() {
       done.current = true;
       track("signup_completed", { plan, method: "email" });
-      // No name was asked (B4, 25 Nov 2026): it is asked later, only where it is needed.
-      trackEvent("signup_name_skipped", { method: "email" });
+      // Only the "email me a link" route can still leave the name empty.
+      if (!name.trim()) trackEvent("signup_name_skipped", { method: "email" });
       // Tell Google Ads (if this visit came from an ad) before the page changes.
       await reportSignupConversion();
 
@@ -423,7 +428,7 @@ export default function SignupForm({ initialPlan = null, initialNext = null }: {
       const res = await fetch("/api/auth/signup-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, plan, next: destination, website, ...(human && human !== "timeout" ? human : {}) }),
+        body: JSON.stringify({ name, email, plan, next: destination, website, ...(human && human !== "timeout" ? human : {}) }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -594,6 +599,11 @@ export default function SignupForm({ initialPlan = null, initialNext = null }: {
             <div aria-hidden="true" className="pointer-events-none absolute left-0 top-0 h-px w-px overflow-hidden opacity-0">
               <label htmlFor="signup-website">Website</label>
               <input id="signup-website" name="website" type="text" tabIndex={-1} autoComplete="off" defaultValue="" />
+            </div>
+            <div>
+              <label htmlFor="signup-name" className="label">Your name</label>
+              <input id="signup-name" data-field="name" value={name} onChange={e => { setName(e.target.value); typed(); if (error?.field === "name") setError(null); }} autoComplete="name" className="input" placeholder="Jane Smith" aria-invalid={Boolean(fieldError("name"))} aria-describedby={fieldError("name") ? "signup-name-error" : undefined} />
+              {errorLine(fieldError("name"), "signup-name-error")}
             </div>
             <div>
               <label htmlFor="signup-email" className="label">Email</label>

@@ -8,9 +8,8 @@ const ok = { name: "Aroha", email: "aroha@centre.co.nz", password: "kowhai-tui-4
 
 test("signup checks: each empty or wrong box names its rule and its box", () => {
   assert.equal(checkSignupForm(ok), null);
-  // B4 (25 Nov 2026): signup never stops on the name.
-  assert.equal(checkSignupForm({ ...ok, name: " " }), null);
-  assert.equal(checkSignupForm({ ...ok, name: undefined }), null);
+  // The name is asked again from 26 Nov 2026 (the 25 Nov release had taken the box away).
+  assert.deepEqual([checkSignupForm({ ...ok, name: " " })?.code, checkSignupForm({ ...ok, name: " " })?.field], ["missing_name", "name"]);
   assert.equal(checkSignupForm({ ...ok, email: "" })?.code, "missing_email");
   assert.equal(checkSignupForm({ ...ok, email: "aroha@centre" })?.code, "invalid_email");
   assert.equal(checkSignupForm({ ...ok, email: "aroha centre.co.nz" })?.code, "invalid_email");
