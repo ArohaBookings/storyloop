@@ -428,6 +428,12 @@ export const EVENTS = {
     isNew: true,
     keys: { page: PATH },
   },
+  app_statement_to_story: {
+    where: "/statement, under a finished draft: the button that carries the same note to the story screen (a flag only, never the note; B8, 25 Nov 2026)",
+    consent: "any",
+    isNew: true,
+    keys: { mode: oneOf("transition", "summary"), named: BOOL },
+  },
 
   // ---- Guides (public). ----
   guide_drafter_seen: {

@@ -51,6 +51,7 @@ export default function StatementGuideHero({ slug, drafter, example, officialLin
           followZone={slug === "end-of-year-learning-summary"}
           example={example}
           official={officialLinks?.heading}
+          weekly={form?.weekly}
         />
       )}
       {children}

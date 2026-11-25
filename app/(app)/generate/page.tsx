@@ -67,6 +67,7 @@ import {
 import { FRAMEWORK_LABELS, normalizeAnyFramework, type AnyFrameworkId } from "@/lib/international-frameworks";
 import type { PrivacyGuardianResult } from "@/lib/privacy-guardian";
 import { MIN_STORY_OBSERVATION_CHARACTERS } from "@/lib/story-clarification";
+import { CARRY_FROM_STATEMENT, CARRY_PARAM, takeCarriedStatement } from "@/lib/statement-to-story";
 
 const PLACEHOLDERS = [
   "Example only - replace this with your real notes:\nRuby (2yo) built a block tower. It fell twice, then she tried again with a wider base and clapped when it stayed up.",
@@ -164,6 +165,8 @@ export default function GeneratePage() {
   const [childName, setChildName] = useState("");
   // A story kept from the demo, arriving with this visit (read before KeepStoryImporter files it away).
   const keptStoryAtLoad = useRef(false);
+  // Arriving from a statement draft (B8, 25 Nov 2026): the note is read once, on the first load.
+  const statementCarryTaken = useRef(false);
   useEffect(() => {
     keptStoryAtLoad.current = Boolean(readKeptStory({ includeUnconfirmed: true }));
   }, []);
@@ -342,13 +345,26 @@ export default function GeneratePage() {
             signedUpAt: Number.isFinite(signedUp) ? signedUp : null,
           });
         }
+        // From a statement draft (B8, lib/statement-to-story.ts): the same note in the box, and the first name, never over her own typing.
+        let carried: { note: string; name: string } | null = null;
+        if (!statementCarryTaken.current && searchParams.get(CARRY_PARAM) === CARRY_FROM_STATEMENT && typeof window !== "undefined") {
+          statementCarryTaken.current = true;
+          carried = takeCarriedStatement();
+          if (carried && !observationsRef.current.trim()) {
+            setObservations(carried.note);
+            setInputMethod("typed");
+            if (carried.name && !searchParams.get("child")) setChildName(carried.name);
+          } else {
+            carried = null;
+          }
+        }
         if (loadedProfile && noStoryYet && typeof window !== "undefined") {
           // Arriving straight from signup (?welcome=1) always gets the guided
           // first-story wizard, even if it was dismissed in a past session.
           const justSignedUp = searchParams.get("welcome") === "1";
           // Not over a story she kept from before signing up (review 2, R2-10): she has just
           // written one, and its "saved" note is the one prompt on the screen.
-          setShowFirstStoryWizard(!keptStoryAtLoad.current && (justSignedUp || window.sessionStorage.getItem("storyloop-first-story-wizard") !== "dismissed"));
+          setShowFirstStoryWizard(!keptStoryAtLoad.current && !carried && (justSignedUp || window.sessionStorage.getItem("storyloop-first-story-wizard") !== "dismissed"));
 
           // Put the sample IN the box rather than behind a button. 61% of
           // signups never write a first story, and the landing page showed the
@@ -357,8 +373,10 @@ export default function GeneratePage() {
           // already does not. Only ever for an account with zero stories, and
           // never over text the educator has started typing.
           // Her own note from the demo's limit (B5, 25 Nov 2026) goes in the box instead of the sample.
-          const keptNote = justSignedUp ? takeKeptNote() : null;
-          if (keptNote && !observationsRef.current.trim()) {
+          const keptNote = justSignedUp && !carried ? takeKeptNote() : null;
+          if (carried) {
+            // Her statement note is already in the box: no sample over it.
+          } else if (keptNote && !observationsRef.current.trim()) {
             setObservations(keptNote);
             setInputMethod("typed");
           } else if (!observationsRef.current.trim()) {

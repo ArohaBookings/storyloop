@@ -11,6 +11,7 @@ import type { TransitionDraft, TransitionFramework, TransitionMode } from "@/lib
 import { STATEMENT_SIGNUP_HREF } from "@/lib/signup-next";
 import { addToClassSet } from "@/lib/class-set";
 import { CLASS_SET_ON } from "@/lib/build-switches";
+import { canCarryStatementNote, carryStatementToStory, statementToStoryLabel, STATEMENT_TO_STORY_HREF } from "@/lib/statement-to-story";
 
 /**
  * "Paste your notes, get the five outcomes drafted" on the TLDS, transition
@@ -401,6 +402,24 @@ export default function TransitionDemo({
                   </Link>
                   .
                 </p>
+                {/* From a statement to the weekly job (B8, 25 Nov 2026): the same note, carried to the story screen (lib/statement-to-story.ts). */}
+                {canCarryStatementNote(notes, usingSample) && (
+                  <div className="mt-4 border-t border-clay-100 pt-4" data-testid="statement-to-story">
+                    <p className="text-sm text-ink-700">The same note can be a learning story too.</p>
+                    <Link
+                      href={STATEMENT_TO_STORY_HREF}
+                      onClick={() => {
+                        const name = childName.trim() || draft.childName || "";
+                        carryStatementToStory(notes, name);
+                        trackEvent("app_statement_to_story", { mode: draft.mode, named: Boolean(name.trim()) });
+                      }}
+                      className="btn-secondary mt-2 min-h-[44px] justify-center px-4 py-2 text-sm"
+                      data-testid="statement-to-story-button"
+                    >
+                      {statementToStoryLabel(childName.trim() || draft.childName || "")}
+                    </Link>
+                  </div>
+                )}
                 </>
               ) : (
                 <>
