@@ -131,7 +131,7 @@ const ROWS: Row[] = [
       "A centre leader sees activity (how many stories, when last written), never content they were not given.",
       "A leader check link opens one story for 14 days. A Family link opens only the stories an educator chose to share about one child. Both can be cancelled.",
       "If an educator asks, StoryLoop emails her leader one link to check, and at most one reminder two days later.",
-      "Statements sent to a leader as a set are kept for the link's 14 days, then deleted about a week after the link ends or is cancelled. A leader's email address is deleted when the link is opened, or when the one reminder is due two days after the first email. If a leader asks StoryLoop to stop, it keeps only a one-way scrambled copy of her address, never the address, so it is never emailed again.",
+      "Statements sent to a leader as a set are kept for the link's 14 days, then deleted about a week after the link ends or is cancelled. A leader's email address is deleted when the link is opened, or when the one reminder is due two days after the first email. If a leader asks StoryLoop to stop, it keeps only a scrambled copy of her address that cannot be turned back into it, so it is never emailed again.",
     ],
   },
   {

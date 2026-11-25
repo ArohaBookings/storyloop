@@ -45,7 +45,7 @@ test("before the answer there is no start block; after it, the block with her ce
   assert.ok(after.includes('data-testid="leader-check-centre"'));
   assert.ok(after.includes("Start Kowhai Kindergarten free"));
   // MERGE2 2b: ticked and emailed, the page says exactly when the tick adds her, never "already in your team".
-  assert.ok(after.includes("Sam asked to be in your team. Start with a Google sign-in on the address this was emailed to and Sam joins straight away."));
+  assert.ok(after.includes("Sam asked to be in your team. Sign up with Google on the address this was sent to and Sam joins straight away."));
   assert.ok(!after.includes("already in your team"));
   const copied = render(leaderView({ story, check: row({ status: "approved" }), educatorName: "Sam", now: NOW, offer, emailed: false }));
   assert.ok(copied.includes("Sam is one tap away once you start."), "a link she copied herself: the one-tap invite");

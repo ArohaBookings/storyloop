@@ -29,7 +29,7 @@ test("joining by the tick needs her tick, an email that went, and the same verif
 
 test("the leader's page promises only what the rule does", () => {
   const emailed = leaderTeamLine("Sam", { joinConsent: true, sentByStoryLoop: true });
-  assert.match(emailed, /Google sign-in on the address this was emailed to/);
+  assert.match(emailed, /Sign up with Google on the address this was sent to/);
   assert.match(emailed, /one tap/);
   assert.ok(!/already in your team/.test(emailed));
   for (const view of [{ joinConsent: true, sentByStoryLoop: false }, { joinConsent: false, sentByStoryLoop: true }, { joinConsent: false, sentByStoryLoop: false }]) {

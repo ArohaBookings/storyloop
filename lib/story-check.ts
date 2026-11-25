@@ -397,7 +397,7 @@ export function tokenFromHash(hash: string) {
  */
 export function leaderTeamLine(educator: string, view: { joinConsent: boolean; sentByStoryLoop: boolean }): string {
   if (view.joinConsent && view.sentByStoryLoop) {
-    return `${educator} asked to be in your team. Start with a Google sign-in on the address this was emailed to and ${educator} joins straight away. Any other way, invite ${educator} with one tap.`;
+    return `${educator} asked to be in your team. Sign up with Google on the address this was sent to and ${educator} joins straight away. Otherwise, invite ${educator} with one tap once you start.`;
   }
   return `${educator} is one tap away once you start.`;
 }
