@@ -1175,7 +1175,9 @@ export const SEO_PAGES: Record<string, SeoPage> = {
   "for-centres": {
     slug: "for-centres",
     image: { src: "/images/scenes/team.jpg", alt: "Three educators planning together around a low table with a laptop showing StoryLoop", position: "50% 55%" },
-    title: "Learning story software for centres in NZ and Australia",
+    // 26 Nov 2026: Australians search "childcare"; Bing showed /for-centres nowhere for
+    // "learning story software for childcare centres australia" (five platforms in its answer).
+    title: "Learning story software for NZ and Australian childcare",
     description:
       "Your team writes learning stories in the day from a short note, linked to Te Whāriki or the EYLF. One flat price, no per-child fee, and no card to start.",
     kicker: "For directors, owners and head teachers",
