@@ -184,7 +184,7 @@ function NoteCard({ educator, note, testId = "leader-check-note", numbered = fal
       {note ? (
         <>
           {numbered ? <SourceNote note={note} testId={testId} /> : <p className={`mt-3 whitespace-pre-wrap font-mono text-sm leading-relaxed text-ink-800 ${long && !all ? "line-clamp-6" : ""}`} data-testid={testId}>{note}</p>}
-          {long && !all && (
+          {long && !all && !numbered && (
             <button type="button" onClick={() => setAll(true)} className="mt-1 min-h-[44px] text-sm font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2">Show all</button>
           )}
         </>
