@@ -16,7 +16,7 @@ import {
   type SetRow,
   type SetView,
 } from "@/lib/leader-sets";
-import { alreadyInCentre } from "@/lib/story-check-server";
+import { alreadyInCentre, wasEmailed } from "@/lib/story-check-server";
 import { forgetLeaderAddressOnOpen } from "@/lib/email/leader-check";
 
 /**
@@ -59,8 +59,11 @@ async function viewForSet(set: FoundSet, token: string, now: Date): Promise<SetV
   if (offerEnded(set.offer_ref_hash) || (await alreadyInCentre(set.user_id, educator.plan))) {
     return setView({ set, items, educatorName: educator.name, now, offer: null });
   }
-  const code = await getOrCreateReferralCode(set.user_id).catch(() => null);
-  return setView({ set, items, educatorName: educator.name, now, offer: { code, ref: offerRefFor(token), counts: null } });
+  const [code, emailed] = await Promise.all([
+    getOrCreateReferralCode(set.user_id).catch(() => null),
+    set.join_consent === true ? wasEmailed("set_id", set.id) : Promise.resolve(false),
+  ]);
+  return setView({ set, items, educatorName: educator.name, now, offer: { code, ref: offerRefFor(token), counts: null }, emailed });
 }
 
 /** The set a leader holding this key may read, recording the first open (the tap on the cover). */

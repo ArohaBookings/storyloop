@@ -12,5 +12,6 @@ begin
      and not has_table_privilege('authenticated', 'public.leader_stop_list', 'select')
      and not has_table_privilege('anon', 'public.leader_stop_list', 'insert'), '4 no access for the public keys';
   delete from public.leader_stop_list where recipient_hash = 'stop-h1';
-  raise notice 'leader_stop_list: 4 checks passed';
+  assert exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'centre_members' and column_name = 'joined_via'), '5 centre_members.joined_via must exist';
+  raise notice 'leader_stop_list: 5 checks passed';
 end $$;

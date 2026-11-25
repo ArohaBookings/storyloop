@@ -41,10 +41,14 @@ test("before the answer there is no start block; after it, the block with her ce
   assert.ok(before.includes("Looks good") && before.includes("Suggest a change"));
   assert.ok(!before.includes('data-testid="leader-check-centre"'), "no offer before the answer");
   assert.ok(!/\$|NZ\$|A\$/.test(before), "no price before the answer");
-  const after = render(leaderView({ story, check: row({ status: "approved", decided_at: NOW.toISOString() }), educatorName: "Sam", now: NOW, offer }));
+  const after = render(leaderView({ story, check: row({ status: "approved", decided_at: NOW.toISOString() }), educatorName: "Sam", now: NOW, offer, emailed: true }));
   assert.ok(after.includes('data-testid="leader-check-centre"'));
   assert.ok(after.includes("Start Kowhai Kindergarten free"));
-  assert.ok(after.includes("Sam is already in your team the moment you start."));
+  // MERGE2 2b: ticked and emailed, the page says exactly when the tick adds her, never "already in your team".
+  assert.ok(after.includes("Sam asked to be in your team. Start with a Google sign-in on the address this was emailed to and Sam joins straight away."));
+  assert.ok(!after.includes("already in your team"));
+  const copied = render(leaderView({ story, check: row({ status: "approved" }), educatorName: "Sam", now: NOW, offer, emailed: false }));
+  assert.ok(copied.includes("Sam is one tap away once you start."), "a link she copied herself: the one-tap invite");
   assert.ok(after.includes("No card needed."));
   const untick = render(leaderView({ story, check: row({ status: "approved", join_consent: false }), educatorName: "Sam", now: NOW, offer }));
   assert.ok(untick.includes("Sam is one tap away once you start.") && !untick.includes("already in your team"));

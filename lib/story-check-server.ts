@@ -111,6 +111,16 @@ export async function alreadyInCentre(userId: string, plan: string | null | unde
   }
 }
 
+/** Did StoryLoop email this link to an address (a leader_emails row)? A failed read says no, the safer sentence. */
+export async function wasEmailed(column: "check_id" | "set_id", id: string): Promise<boolean> {
+  try {
+    const { count } = await createAdminSupabase().from("leader_emails").select("id", { count: "exact", head: true }).eq(column, id);
+    return (count ?? 0) > 0;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * The page a leader holding this link sees, with the centre offer on it. The
  * offer reference is worked out from the link key the leader already holds
@@ -135,11 +145,12 @@ async function viewFor(check: CheckRow, now: Date, token: string, offerRefHash: 
     await admin.from("story_checks").update({ offer_ref_hash: hashOfferRef(ref) }).eq("id", check.id).is("offer_ref_hash", null)
       .then(undefined, (error: unknown) => console.error("Offer reference not stored:", error));
   }
-  const [code, counts] = await Promise.all([
+  const [code, counts, emailed] = await Promise.all([
     getOrCreateReferralCode(check.user_id).catch(() => null),
     check.share_counts === true ? countsFor(check.user_id, now) : Promise.resolve(null),
+    check.join_consent === true ? wasEmailed("check_id", check.id) : Promise.resolve(false),
   ]);
-  return leaderView({ story, check, educatorName, now, offer: { code, ref, counts } });
+  return leaderView({ story, check, educatorName, now, offer: { code, ref, counts }, emailed });
 }
 
 /**

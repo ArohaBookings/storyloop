@@ -15,3 +15,8 @@ create table if not exists public.leader_stop_list (
 
 alter table public.leader_stop_list enable row level security;
 revoke all on table public.leader_stop_list from anon, authenticated;
+
+-- Joined by the tick (MERGE2 2c). An educator added to a centre by her own
+-- tick, with no invitation to accept, is told once in her bell the next time
+-- she opens StoryLoop. This says how the row was made; nothing else reads it.
+alter table public.centre_members add column if not exists joined_via text;

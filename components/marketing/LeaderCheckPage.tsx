@@ -6,7 +6,7 @@ import { ArrowRight, CheckCircle2, ChevronDown, Download, FileText, Loader2, Mes
 import StoryText from "@/components/app/StoryText";
 import SourceLines, { SourceNote } from "@/components/app/SourceLines";
 import { track } from "@/lib/analytics/client";
-import { CHECK_COMMENT_MAX, CHECK_DAYS, CHECK_NAME_MAX, leaderCountsSentence, OFFER_STORAGE_KEY, offerSignupHref, offerStorageValue, tokenFromHash, type CoverView, type LeaderView } from "@/lib/story-check";
+import { CHECK_COMMENT_MAX, CHECK_DAYS, leaderTeamLine, CHECK_NAME_MAX, leaderCountsSentence, OFFER_STORAGE_KEY, offerSignupHref, offerStorageValue, tokenFromHash, type CoverView, type LeaderView } from "@/lib/story-check";
 import { pieceKindLabel, type SetPieceView, type SetView } from "@/lib/leader-sets";
 import { keptStrategyLabel } from "@/lib/keep-story";
 import { setFileName, setText } from "@/lib/leader-set-export";
@@ -235,9 +235,7 @@ function StartBlock({ view, answered, preview }: { view: PageView; answered: boo
       <ul className="mt-3 space-y-1.5 text-base leading-relaxed text-ink-700" data-testid="leader-offer-terms">
         <li><strong className="font-semibold text-ink-900"><CentreTrialWords capital />.</strong> No card needed.</li>
         <li data-testid="leader-offer-team">
-          {view.joinConsent
-            ? `${view.educator} is already in your team the moment you start.`
-            : `${view.educator} is one tap away once you start.`}
+          {leaderTeamLine(view.educator, { joinConsent: view.joinConsent, sentByStoryLoop: view.sentByStoryLoop === true })}
         </li>
         <li>Drafts stay private unless each educator shares them.</li>
       </ul>

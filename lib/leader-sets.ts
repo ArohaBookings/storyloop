@@ -168,7 +168,7 @@ function pieceView(item: SetItemRow): SetPieceView | null {
  * Exactly what the leader's page receives for a set. Built field by field, so
  * a column added to the tables can never leak through the link.
  */
-export function setView(input: { set: SetRow; items: SetItemRow[]; educatorName: string | null | undefined; now?: Date; offer?: LeaderOffer | null }) {
+export function setView(input: { set: SetRow; items: SetItemRow[]; educatorName: string | null | undefined; now?: Date; offer?: LeaderOffer | null; emailed?: boolean }) {
   const now = input.now ?? new Date();
   const items = [...input.items].sort((a, b) => a.position - b.position).map(pieceView).filter((p): p is SetPieceView => Boolean(p));
   const offer = input.offer;
@@ -178,6 +178,7 @@ export function setView(input: { set: SetRow; items: SetItemRow[]; educatorName:
     educator: educatorFirstName(input.educatorName),
     centreName: cleanCentreName(input.set.centre_name ?? ""),
     joinConsent: input.set.join_consent === true,
+    sentByStoryLoop: input.emailed === true,
     showSources: LEADER_SOURCES_ON && input.set.show_sources === true,
     expiresAt: input.set.expires_at,
     items,

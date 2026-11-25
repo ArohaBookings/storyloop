@@ -293,7 +293,7 @@ export function canUseOffer(row: Pick<CheckRow, "expires_at" | "revoked_at">, no
  * Exactly what the leader's page receives. Built field by field so that adding
  * a column to stories or profiles can never leak it through the link.
  */
-export function leaderView(input: { story: StoryForLeader; check: CheckRow; educatorName: string | null | undefined; now?: Date; offer?: LeaderOffer | null }) {
+export function leaderView(input: { story: StoryForLeader; check: CheckRow; educatorName: string | null | undefined; now?: Date; offer?: LeaderOffer | null; emailed?: boolean }) {
   const { story, check } = input;
   const now = input.now ?? new Date();
   // null: no offer block at all (she ended it, or she is already in a centre).
@@ -316,6 +316,8 @@ export function leaderView(input: { story: StoryForLeader; check: CheckRow; educ
     centreName: cleanCentreName(check.centre_name ?? ""),
     // She ticked "add me to the team" when she sent it. Strictly true; an old row is a no.
     joinConsent: check.join_consent === true,
+    // StoryLoop emailed this link to an address (MERGE2 2b): only then can the tick add her with no invitation.
+    sentByStoryLoop: input.emailed === true,
     // She chose to show where each line came from (A4). Never with the switch off; an old row is a no.
     showSources: LEADER_SOURCES_ON && check.show_sources === true,
     // The numbers only if she ticked the box, and only if there are enough of them.
@@ -386,4 +388,16 @@ export function checkUrl(origin: string, token: string) {
 export function tokenFromHash(hash: string) {
   const value = hash.replace(/^#/, "").trim();
   return looksLikeCheckToken(value) ? value : "";
+}
+
+/**
+ * The one line on the leader's page about the educator joining. The page does
+ * not know who is reading, so it says what happens in each case, and never
+ * promises more than the rule above.
+ */
+export function leaderTeamLine(educator: string, view: { joinConsent: boolean; sentByStoryLoop: boolean }): string {
+  if (view.joinConsent && view.sentByStoryLoop) {
+    return `${educator} asked to be in your team. Start with a Google sign-in on the address this was emailed to and ${educator} joins straight away. Any other way, invite ${educator} with one tap.`;
+  }
+  return `${educator} is one tap away once you start.`;
 }

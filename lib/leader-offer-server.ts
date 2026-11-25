@@ -3,6 +3,7 @@ import { canManageTeam, countActiveMembers, getCentre, getMembership, seatsRemai
 import { INVITE_DAYS, createCentreInvite } from "@/lib/centre-invites";
 import { canUseOffer, cleanCentreName, educatorFirstName, looksLikeOfferRef } from "@/lib/story-check";
 import { hashOfferRef } from "@/lib/story-check-token";
+import { mayJoinByTick, verifiedEmailOf } from "@/lib/leader-join";
 
 /**
  * The centre that starts from a story an educator sent (13 Nov 2026).
@@ -200,29 +201,42 @@ export async function inviteFromLeaderOffer(userId: string, now = new Date()): P
  * only what she sent. Lane B's /api/centres/start-free calls it.
  *
  * Nobody is added when: no live offer is claimed by this account, she did not
- * tick the box, she is already in a centre, the claimer does not run this
- * centre, or there is no seat. Each of those is simply { joined: false }; the
- * one-tap invitation stays for the leader as before.
+ * tick the box, the claimer's account does not have the VERIFIED address
+ * StoryLoop emailed this check or set to (a copied link, another address, a
+ * password signup nobody proved: lib/leader-join.ts, MERGE2 2b), she is
+ * already in a centre, the claimer does not run this centre, or there is no
+ * seat. Each of those is simply { joined: false }; the one-tap invitation
+ * stays for the leader as before, and she joins only by accepting it.
  */
 export async function joinFromLeaderOffer(claimerId: string, centreId: string, now = new Date()): Promise<{ joined: boolean }> {
   if (!claimerId || !centreId) return { joined: false };
   try {
     const row = await claimedOffer(claimerId, now);
     if (!row || row.join_consent !== true || row.user_id === claimerId) return { joined: false };
+    const admin = createAdminSupabase();
+    const [{ data: sends }, { data: claimer }] = await Promise.all([
+      admin.from("leader_emails").select("recipient_hash").eq(row.table === "story_checks" ? "check_id" : "set_id", row.id).limit(5),
+      admin.auth.admin.getUserById(claimerId),
+    ]);
+    const sentHashes = (sends ?? []).map((send) => String(send.recipient_hash ?? "")).filter(Boolean);
+    if (!mayJoinByTick({ consent: true, sentHashes, verifiedEmail: verifiedEmailOf(claimer?.user ?? null) })) return { joined: false };
     const membership = await getMembership(claimerId);
     if (!membership || membership.centreId !== centreId || !canManageTeam(membership)) return { joined: false };
     if (await getMembership(row.user_id)) return { joined: false };
     const centre = await getCentre(centreId);
     if (!centre) return { joined: false };
     if (seatsRemaining(centre.seatLimit, await countActiveMembers(centre.id)) <= 0) return { joined: false };
-    const { error } = await createAdminSupabase().from("centre_members").insert({
+    const member = {
       centre_id: centre.id,
       user_id: row.user_id,
       role: "educator",
       status: "active",
       // Joining never hands over her drafts: sharing is her own switch.
       shares_stories: false,
-    });
+    };
+    // joined_via (20261126) is what tells her, once, that her tick added her (MERGE2 2c).
+    let { error } = await admin.from("centre_members").insert({ ...member, joined_via: "leader_tick" });
+    if (error?.code === "42703") ({ error } = await admin.from("centre_members").insert(member));
     if (error) {
       console.error("Leader offer join failed:", error.message);
       return { joined: false };
