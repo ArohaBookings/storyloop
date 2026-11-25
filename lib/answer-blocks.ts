@@ -73,7 +73,7 @@ export const ANSWER_BLOCKS: Record<AnswerBlockId, AnswerBlock> = {
     question: "What does StoryLoop cost a centre?",
     answer:
       `Centre Starter is ${starter.nz} or ${starter.au} a month for up to ${seats("centre_starter")} educators. Centre Growth is ${growth.nz} or ${growth.au} a month for up to ${seats("centre_growth")}. Every educator gets unlimited stories and their own login. There is no per-child fee, so the price does not change when you enrol more children, and there is no contract. {Centre_trial}, no card.`,
-    where: ["/for-centres", "/learning-story-software-cost-for-centres", "/documentation-workload-early-childhood", "/exceeding-nqs-documentation", "/educational-leader-checklist"],
+    where: ["/for-centres", "/learning-story-software-cost-for-centres", "/documentation-workload-early-childhood", "/exceeding-nqs-documentation", "/educational-leader-checklist", "/qip-childcare"],
   },
   D: {
     id: "D",
