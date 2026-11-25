@@ -1,5 +1,7 @@
 "use client";
 
+import { useMounted } from "@/lib/use-mounted";
+import { dayLabel } from "@/lib/day-label";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { CheckCircle2, MessageSquareText, UserCheck } from "lucide-react";
 import SendToLeader from "@/components/app/SendToLeader";
@@ -79,10 +81,8 @@ function useOwnStoryCheck(storyId: string, review: StoryCheckInput | undefined, 
   return result;
 }
 
-function day(value: string | null | undefined) {
-  if (!value) return "";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-NZ", { day: "numeric", month: "short" });
+function day(value: string | null | undefined, local: boolean) {
+  return dayLabel(value, { day: "numeric", month: "short" }, local);
 }
 
 /**
@@ -111,6 +111,7 @@ export default function LeaderCheck({
   /** Changes when the story on screen was saved again (on /generate), so the check reads it again. */
   refreshKey?: string;
 }) {
+  const mounted = useMounted();
   const [check, setCheck] = useState<EducatorCheckView>(initial ?? { state: "none" });
   // SendToLeader shows its own link and Cancel once sent: this panel then hides its copies (R3-4).
   const [sendDone, setSendDone] = useState(false);
@@ -164,8 +165,8 @@ export default function LeaderCheck({
           <p className="flex items-start gap-2 text-sm font-semibold leading-relaxed text-sage-900">
             {check.decision === "approved" ? <CheckCircle2 className="mt-0.5 h-4 w-4 flex-none" /> : <MessageSquareText className="mt-0.5 h-4 w-4 flex-none" />}
             {check.decision === "approved"
-              ? `${who} checked this on ${day(check.decidedAt)}: looks good.`
-              : `${who} suggested a change on ${day(check.decidedAt)}:`}
+              ? `${who} checked this on ${day(check.decidedAt, mounted)}: looks good.`
+              : `${who} suggested a change on ${day(check.decidedAt, mounted)}:`}
           </p>
           {check.comment && <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-ink-800">{check.comment}</p>}
         </div>
@@ -175,8 +176,8 @@ export default function LeaderCheck({
         <p className="text-sm leading-relaxed text-ink-700">
           {waiting
             ? check.opened
-              ? `Your leader opened it. Waiting for their answer (link made ${day(check.sentAt)}).`
-              : `Waiting for your leader to open it (link made ${day(check.sentAt)}).`
+              ? `Your leader opened it. Waiting for their answer (link made ${day(check.sentAt, mounted)}).`
+              : `Waiting for your leader to open it (link made ${day(check.sentAt, mounted)}).`
             : answered
               ? "Edited it since? Send it again."
               : cancelled && hasAnswer

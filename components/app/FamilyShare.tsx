@@ -1,5 +1,7 @@
 "use client";
 
+import { useMounted } from "@/lib/use-mounted";
+import { dayLabel } from "@/lib/day-label";
 import { useEffect, useState } from "react";
 import { Check, Copy, HeartHandshake, Loader2, Share2, X } from "lucide-react";
 import { track } from "@/lib/analytics/client";
@@ -12,10 +14,8 @@ import { TELL_CENTRE_ON } from "@/lib/family-tell-centre";
 type State = { shared: boolean; child: { id: string; name: string } | null; family: EducatorFamilyView; tellCentre?: Record<string, boolean> };
 const WHO = ["Mum", "Dad", "Nana", "Grandad", "Caregiver"];
 
-function when(value: string | null | undefined) {
-  if (!value) return "";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-NZ", { day: "numeric", month: "short" });
+function when(value: string | null | undefined, local: boolean) {
+  return dayLabel(value, { day: "numeric", month: "short" }, local);
 }
 
 /**
@@ -28,6 +28,7 @@ function when(value: string | null | undefined) {
  * once, straight after it is made: it is never stored.
  */
 export default function FamilyShare({ storyId, childName }: { storyId: string; childName?: string | null }) {
+  const mounted = useMounted();
   const [state, setState] = useState<State | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState("");
@@ -167,7 +168,7 @@ export default function FamilyShare({ storyId, childName }: { storyId: string; c
                       <span className="min-w-0 flex-1 break-words">
                         <strong className="font-semibold text-ink-900">{link.label}</strong>
                         {link.language ? `, ${WALL_LANGUAGES.find((l) => l.code === link.language)?.english ?? link.language}` : ""}
-                        <span className="text-ink-500"> · {link.opened ? `opened ${when(link.lastOpenedAt)}` : "not opened yet"}</span>
+                        <span className="text-ink-500"> · {link.opened ? `opened ${when(link.lastOpenedAt, mounted)}` : "not opened yet"}</span>
                       </span>
                       <button type="button" onClick={() => cancelLink(link.id)} disabled={Boolean(busy)} aria-label={`Cancel ${link.label}'s link`} className="flex h-11 w-11 flex-none items-center justify-center rounded-full text-ink-400 hover:bg-cream-100 hover:text-ink-700">
                         {busy === link.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
@@ -252,7 +253,7 @@ export default function FamilyShare({ storyId, childName }: { storyId: string; c
                   <li key={reply.id} className="rounded-xl border border-sage-200 bg-sage-50 p-3 text-sm leading-relaxed text-ink-800">
                     <p className="whitespace-pre-wrap break-words">{reply.body}</p>
                     {reply.bodyEn && <p className="mt-2 whitespace-pre-wrap break-words border-t border-sage-200 pt-2 text-ink-700"><span className="font-semibold">In English (machine translation):</span> {reply.bodyEn}</p>}
-                    <p className="mt-1 text-xs text-ink-500">{reply.from}, {when(reply.at)}</p>
+                    <p className="mt-1 text-xs text-ink-500">{reply.from}, {when(reply.at, mounted)}</p>
                   </li>
                 ))}
               </ul>

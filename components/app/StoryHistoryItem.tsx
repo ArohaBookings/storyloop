@@ -1,5 +1,7 @@
 "use client";
 
+import { useMounted } from "@/lib/use-mounted";
+import { dayLabel } from "@/lib/day-label";
 import { useEffect, useState } from "react";
 import LeaderCheck from "@/components/app/LeaderCheck";
 import LeaderCard from "@/components/app/LeaderCard";
@@ -65,9 +67,8 @@ function asRecord(value: unknown) {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 }
 
-function formatDate(value?: string | null) {
-  if (!value) return "";
-  return new Date(value).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
+function formatDate(value: string | null | undefined, local: boolean) {
+  return dayLabel(value, { day: "numeric", month: "short", year: "numeric" }, local, "en-AU");
 }
 
 function toDownloadName(childName?: string | null) {
@@ -75,6 +76,7 @@ function toDownloadName(childName?: string | null) {
 }
 
 export default function StoryHistoryItem({ story, plan = "free", check, centreReview }: StoryHistoryItemProps) {
+  const mounted = useMounted();
   const router = useRouter();
   const initialMetadata = asRecord(story.metadata);
   const initialSettings = asRecord(initialMetadata.storySettings);
@@ -396,8 +398,8 @@ export default function StoryHistoryItem({ story, plan = "free", check, centreRe
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <p className="font-display font-bold text-ink-900">{story.child_name ?? "Learning story"}</p>
             {story.age_group && <span className="text-xs text-ink-500">· {story.age_group}</span>}
-            <span className="text-xs text-ink-400">· Created {formatDate(story.created_at)}</span>
-            {wasEdited && <span className="text-xs text-clay-600">· Edited {formatDate(currentUpdatedAt)}</span>}
+            <span className="text-xs text-ink-400">· Created {formatDate(story.created_at, mounted)}</span>
+            {wasEdited && <span className="text-xs text-clay-600">· Edited {formatDate(currentUpdatedAt, mounted)}</span>}
             {centreReview && <CentreReviewNote review={centreReview} compact />}
           </div>
           <p className="text-sm text-ink-600 line-clamp-2">{storyText.slice(0, 200)}...</p>
