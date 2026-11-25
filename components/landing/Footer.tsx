@@ -26,7 +26,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-display font-bold text-paper mb-4 text-sm">Product</h4>
+            <h2 className="font-display font-bold text-paper mb-4 text-sm">Product</h2>
             <ul className="space-y-2 text-sm text-ink-300">
               <li><Link href="/features" className="hover:text-paper transition-colors">Features</Link></li>
               <li><Link href="/pricing" className="hover:text-paper transition-colors">Pricing</Link></li>
@@ -40,7 +40,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-display font-bold text-paper mb-4 text-sm">Who it&apos;s for</h4>
+            <h2 className="font-display font-bold text-paper mb-4 text-sm">Who it&apos;s for</h2>
             <ul className="space-y-2 text-sm text-ink-300">
               <li><Link href="/for-educators" className="hover:text-paper transition-colors">For educators</Link></li>
               <li><Link href="/for-centres" className="hover:text-paper transition-colors">For centres</Link></li>
@@ -53,7 +53,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-display font-bold text-paper mb-4 text-sm">Guides</h4>
+            <h2 className="font-display font-bold text-paper mb-4 text-sm">Guides</h2>
             <ul className="space-y-2 text-sm text-ink-300">
               <li><Link href="/what-is-a-learning-story" className="hover:text-paper transition-colors">What is a learning story?</Link></li>
               <li><Link href="/learning-story-template" className="hover:text-paper transition-colors">Learning story template</Link></li>
@@ -79,7 +79,7 @@ export default function Footer() {
 
           {/* Family of products */}
           <div>
-            <h4 className="font-display font-bold text-paper mb-4 text-sm">Sister products</h4>
+            <h2 className="font-display font-bold text-paper mb-4 text-sm">Sister products</h2>
             <ul className="space-y-3 text-sm">
               <li>
                 <a href="https://ariacare.app" target="_blank" rel="noopener" className="group block">

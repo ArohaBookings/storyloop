@@ -8,7 +8,8 @@ import ExamplesBrowser from "@/components/examples/ExamplesBrowser";
 import { REAL_EXAMPLES, REAL_EXAMPLES_DATE } from "@/lib/real-examples";
 
 export const metadata: Metadata = {
-  title: "Learning story examples: 12 real notes and drafts",
+  // 26 Nov 2026: absolute, so the layout's " | StoryLoop" does not push it past 60 characters (Google shows the site name anyway).
+  title: { absolute: "Learning story examples: 12 real notes and drafts" },
   // 18 Nov 2026 re-aim: the page is also the best proof the product works, so it ends on trying it.
   description:
     "Twelve real educator notes, from babies to five-year-olds, and the unedited drafts StoryLoop wrote from them. Try it with your own note, free.",

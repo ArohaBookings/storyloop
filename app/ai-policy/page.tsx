@@ -9,7 +9,8 @@ import { ANSWER_BLOCKS } from "@/lib/answer-blocks";
 import { isHeldPath } from "@/lib/buyer-pages";
 
 export const metadata: Metadata = {
-  title: "Free AI Policy Template for Early Childhood Services",
+  // 26 Nov 2026: absolute, so the layout's " | StoryLoop" does not push it past 60 characters.
+  title: { absolute: "Free AI Policy Template for Early Childhood Services" },
   description:
     "Generate a responsible AI in documentation policy for your early childhood centre or kindergarten in New Zealand or Australia. Free, no signup, ready to adopt.",
   alternates: { canonical: "/ai-policy" },

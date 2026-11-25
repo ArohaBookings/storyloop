@@ -6,7 +6,8 @@ import Footer from "@/components/landing/Footer";
 import ReviewReadinessCheck from "@/components/tools/ReviewReadinessCheck";
 
 export const metadata: Metadata = {
-  title: "Review Visit Readiness Check for Early Childhood Services",
+  // 26 Nov 2026: absolute, so the layout's " | StoryLoop" does not push it past 60 characters.
+  title: { absolute: "Review Visit Readiness Check for Early Childhood Services" },
   description:
     "Ten honest questions about your documentation, answered in two minutes: the gaps a review conversation would surface, in the order to fix them. Free.",
   alternates: { canonical: "/review-readiness-check" },

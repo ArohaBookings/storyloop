@@ -33,7 +33,8 @@ import PageTracker from "@/components/analytics/PageTracker";
  */
 
 export const metadata: Metadata = {
-  title: { absolute: "StoryLoop data sheet" },
+  // 26 Nov 2026: the title says what the page answers for an owner or board (was 20 characters).
+  title: { absolute: "StoryLoop data sheet: where children's information goes" },
   description:
     "One printable page for owners, boards and approved providers: who runs StoryLoop, what goes in, where it is stored, who processes it, deletion and price.",
   alternates: { canonical: "/data-sheet" },

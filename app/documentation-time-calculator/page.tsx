@@ -5,7 +5,8 @@ import Footer from "@/components/landing/Footer";
 import DocumentationTimeCalculator from "@/components/tools/DocumentationTimeCalculator";
 
 export const metadata: Metadata = {
-  title: "Documentation Time Calculator for Early Childhood Centres",
+  // 26 Nov 2026: absolute, so the layout's " | StoryLoop" does not push it past 60 characters.
+  title: { absolute: "Documentation Time Calculator for Early Childhood Centres" },
   description:
     "Work out how many hours your educators spend writing learning stories each month, what that time costs and what a first draft would change. Free.",
   alternates: { canonical: "/documentation-time-calculator" },

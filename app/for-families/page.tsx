@@ -14,7 +14,7 @@ const ASK_LIVE = buyerPageLive("ask-your-centre");
 export const metadata: Metadata = {
   title: { absolute: "Learning stories about your child: what to look for" },
   description:
-    "What a learning story tells you about your child, how to read one, and how to ask your centre for more stories like it.",
+    "What a learning story tells you about your child, how to read one, and a short message to copy if you would like your centre to write more of them.",
   alternates: { canonical: "https://storyloop.space/for-families" },
   openGraph: { title: "StoryLoop for families", description: "More stories about your child's learning, in plain words and your own language.", url: "https://storyloop.space/for-families", type: "website" },
 };

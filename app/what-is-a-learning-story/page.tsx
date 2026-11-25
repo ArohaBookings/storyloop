@@ -158,6 +158,22 @@ export default function WhatIsALearningStoryPage() {
         </div>
       </GuideSection>
 
+      {/* 26 Nov 2026 (on-page SEO): answers "what is the purpose of learning stories" (Search Console position 57) and "learning stories" (27). */}
+      <GuideSection id="purpose" tone="white" kicker="What they are for" title="Why centres write learning stories">
+        <p>A learning story does four jobs at once, which is why so many services write them instead of filling in checklists:</p>
+        <ul className="list-disc space-y-1.5 pl-6">
+          <li><strong>It makes learning visible.</strong> It shows what a child did and what it tells you, in a moment anyone can picture, instead of a tick against a skill.</li>
+          <li><strong>It plans what comes next.</strong> The respond part becomes the next step for the whole teaching team.</li>
+          <li><strong>It brings families in.</strong> Parents and whānau read it, add what they see at home, and children revisit their own stories.</li>
+          <li>
+            <strong>It is the assessment record.</strong> In New Zealand it is how most services show assessment under Te Whāriki. In
+            Australia it is one way to document assessment for the educational program (regulation 74 of the National Regulations), and
+            the evidence an assessor reads for{" "}
+            <Link href="/nqs-standard-1-3-assessment-and-planning" className="font-semibold text-clay-700 underline">NQS Standard 1.3, assessment and planning</Link>.
+          </li>
+        </ul>
+      </GuideSection>
+
       <GuideSection id="reply" tone="cream" kicker="For parents and whānau" title="How to reply to your child's learning story">
         <p>
           A reply does not need to be long or clever. A line from home helps educators know your child better, and it
@@ -214,7 +230,7 @@ export default function WhatIsALearningStoryPage() {
           ))}
         </div>
         <p className="text-sm text-ink-500">
-          From StoryLoop&apos;s accuracy test run of 23 September 2026. <Link href="/examples" className="font-semibold text-clay-700 underline">Read 11 more</Link>.
+          From StoryLoop&apos;s accuracy test run of 23 September 2026. <Link href="/examples" className="font-semibold text-clay-700 underline">Read 11 more learning story examples</Link>.
         </p>
       </GuideSection>
 
@@ -289,7 +305,11 @@ export default function WhatIsALearningStoryPage() {
           <Link href="/ai-for-early-childhood-educators" className="font-semibold text-clay-700 underline" data-track="what_is_ai_educators">
             What AI helps with, what never goes in, and how to keep your own voice
           </Link>
-          .
+          . Or see how the{" "}
+          <Link href="/learning-story-generator" className="font-semibold text-clay-700 underline" data-track="what_is_generator">
+            learning story generator
+          </Link>{" "}
+          turns a two-line note into a draft you check and sign off.
         </p>
       </GuideSection>
 
