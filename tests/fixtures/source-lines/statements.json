@@ -1,0 +1,311 @@
+{
+  "about": "Invented notes and statement drafts for the A4 matcher (25 Nov 2026). Every note, name and draft here was made up for this file: none comes from a real account or a real child. note: one entry per note unit, joined by joiner. outcomes: each 'What I saw' as sentences [text, gold]; strategy is the educator's reading and never judged. gold as in stories.json. Labelled by hand before lib/source-lines.ts existed. Split: odd positions tune, even positions held out.",
+  "statements": [
+    {
+      "id": "t01", "child": "Amelia", "framework": "EYLF", "joiner": "\n",
+      "note": [
+        "Amelia separates from mum easily now, waves at the gate",
+        "plays with Zara and Ivy most days, mostly home corner",
+        "counts to 20 and knows most letters in her name",
+        "asks for help when she can't open her lunchbox",
+        "loves painting, uses lots of colours"
+      ],
+      "outcomes": [
+        {"outcome": "Children have a strong sense of identity", "seen": [["Amelia now says goodbye to her mum easily and waves at the gate.", "1"]], "strategy": "Offer a familiar greeting routine."},
+        {"outcome": "Children are connected with and contribute to their world", "seen": [["She plays with Zara and Ivy most days, mostly in the home corner.", "2"]], "strategy": "Pair her with a buddy on the first day."},
+        {"outcome": "Children are effective communicators", "seen": [["Amelia can count to 20 and knows most of the letters in her name.", "3"], ["She enjoys painting and uses many colours.", "5"]], "strategy": "Build on her interest in letters."},
+        {"outcome": "Children have a strong sense of wellbeing", "seen": [["She asks for help when she cannot open her lunchbox.", "4"]], "strategy": "Practise opening containers."}
+      ]
+    },
+    {
+      "id": "t02", "child": "Jayden", "framework": "TW", "joiner": " ",
+      "note": [
+        "Jayden is very physical, loves climbing and the bikes.",
+        "He finds mat time hard, often moves away after a few minutes.",
+        "He knows his colours and shapes.",
+        "He has started writing J and draws diggers.",
+        "He is gentle with the younger children and helps them on the slide."
+      ],
+      "outcomes": [
+        {"outcome": "Mana atua | Wellbeing", "seen": [["Jayden loves being active, especially climbing and riding the bikes.", "1"]], "strategy": "Offer movement breaks."},
+        {"outcome": "Mana tangata | Contribution", "seen": [["He is gentle with younger children and helps them on the slide.", "5"]], "strategy": "Give him a helper role."},
+        {"outcome": "Mana reo | Communication", "seen": [["Jayden has begun writing the letter J and likes to draw diggers.", "4"], ["He can name colours and shapes.", "3"]], "strategy": "Use diggers to spark writing."},
+        {"outcome": "Mana whenua | Belonging", "seen": [["Mat time is hard for Jayden and he often moves away after a few minutes.", "2"], ["He joins in best when there is a song with actions.", "x"]], "strategy": "Keep mat time short and active."}
+      ]
+    },
+    {
+      "id": "t03", "child": "Sofia", "framework": "VEYLDF", "joiner": "\n",
+      "note": [
+        "Sofia speaks Spanish at home, uses more English now",
+        "tells long stories about her abuela",
+        "very good at puzzles, does 30 pieces",
+        "sometimes cries at rest time",
+        "uses the toilet independently"
+      ],
+      "outcomes": [
+        {"outcome": "Identity", "seen": [["Sofia speaks Spanish at home and is using more and more English with us.", "1"], ["She often tells long stories about her abuela.", "2"]], "strategy": "Welcome Spanish in the classroom."},
+        {"outcome": "Learning", "seen": [["She is very capable with puzzles and completes 30 piece puzzles.", "3"]], "strategy": "Offer challenging puzzles."},
+        {"outcome": "Wellbeing", "seen": [["Sofia is independent with toileting.", "5"], ["She can sometimes be teary at rest time.", "4"]], "strategy": "A comfort item at rest time."}
+      ]
+    },
+    {
+      "id": "t04", "child": "Ethan", "framework": "QKLG", "joiner": "\n",
+      "note": [
+        "Ethan builds huge block towers with Max",
+        "can write his whole name",
+        "gets frustrated when things fall, sometimes throws blocks",
+        "is learning to take a breath and try again",
+        "loves dinosaur books, knows lots of names"
+      ],
+      "outcomes": [
+        {"outcome": "Identity and connectedness", "seen": [["Ethan builds very tall block towers together with Max.", "1"]], "strategy": "Offer larger construction projects."},
+        {"outcome": "Wellbeing", "seen": [["When his towers fall Ethan can get frustrated and has thrown blocks.", "3"], ["He is learning to take a breath and try again.", "4"]], "strategy": "Name feelings with him."},
+        {"outcome": "Communicating", "seen": [["Ethan writes his full name.", "2"], ["He loves dinosaur books and knows many dinosaur names.", "5"], ["He has also started reading simple words.", "x"]], "strategy": "Dinosaur fact books."}
+      ]
+    },
+    {
+      "id": "t05", "child": "Tia", "framework": "TW", "joiner": " ",
+      "note": [
+        "Tia leads karakia before kai most days.",
+        "She knows her pepeha and shared it at whānau day.",
+        "She is quiet with new adults and watches before joining.",
+        "She draws detailed pictures of her family.",
+        "She can cut with scissors along a line."
+      ],
+      "outcomes": [
+        {"outcome": "Mana whenua | Belonging", "seen": [["Tia leads karakia before kai on most days.", "1"], ["She knows her pepeha and shared it at our whānau day.", "2"]], "strategy": "Invite her to share her pepeha."},
+        {"outcome": "Mana atua | Wellbeing", "seen": [["With new adults Tia is quiet and likes to watch before she joins in.", "3"]], "strategy": "Introduce the teacher early."},
+        {"outcome": "Mana aotūroa | Exploration", "seen": [["She cuts along a line with scissors.", "5"], ["Her drawings of her family are detailed.", "4"]], "strategy": "Offer fine tools."}
+      ]
+    },
+    {
+      "id": "t06", "child": "Oliver", "framework": "EYLF", "joiner": "\n",
+      "note": [
+        "Oliver is new this term, came from another centre",
+        "took a few weeks to settle, now happy at drop off",
+        "best friends with Noah, they play trains",
+        "can count objects to 10 accurately",
+        "needs reminders to wash hands"
+      ],
+      "outcomes": [
+        {"outcome": "Children have a strong sense of identity", "seen": [["Oliver joined us this term from another centre.", "1"], ["After a few weeks of settling he is now happy at drop off.", "2"]], "strategy": "Plan a gentle start."},
+        {"outcome": "Children are connected with and contribute to their world", "seen": [["Oliver and Noah are best friends and play trains together.", "3"]], "strategy": "Keep friends together if possible."},
+        {"outcome": "Children are confident and involved learners", "seen": [["He counts objects accurately to ten.", "4"], ["He also adds small numbers using his fingers.", "x"]], "strategy": "Number games."},
+        {"outcome": "Children have a strong sense of wellbeing", "seen": [["Oliver needs reminders to wash his hands.", "5"]], "strategy": "Visual hand washing steps."}
+      ]
+    },
+    {
+      "id": "t07", "child": "Hana", "framework": "TW", "joiner": "\n",
+      "note": [
+        "Hana loves the garden, digs for worms every day",
+        "says \"look, he's wiggling\" and shows everyone",
+        "shares the spades without being asked",
+        "speaks in short sentences, mixes some Japanese words",
+        "holds a pencil with a good grip, draws circles and lines"
+      ],
+      "outcomes": [
+        {"outcome": "Mana aotūroa | Exploration", "seen": [["Every day Hana digs for worms in the garden.", "1"], ["She shows everyone, saying \"look, he's wiggling\".", "2"]], "strategy": "Bug hunts."},
+        {"outcome": "Mana tangata | Contribution", "seen": [["She shares the spades without being asked.", "3"]], "strategy": "Notice her kindness."},
+        {"outcome": "Mana reo | Communication", "seen": [["Hana talks in short sentences and uses some Japanese words.", "4"], ["She grips a pencil well and draws circles and lines.", "5"]], "strategy": "Value both languages."}
+      ]
+    },
+    {
+      "id": "t08", "child": "Lachlan", "framework": "VEYLDF", "joiner": " ",
+      "note": [
+        "Lachlan is a leader in outdoor games, makes up rules.",
+        "Sometimes upset when others don't follow his rules.",
+        "Very interested in space, asks about planets.",
+        "Recognises numbers to 20 and some sight words.",
+        "Dresses himself including shoes with velcro."
+      ],
+      "outcomes": [
+        {"outcome": "Community", "seen": [["Lachlan leads outdoor games and invents the rules.", "1"], ["He can be upset when other children do not follow his rules.", "2"]], "strategy": "Practise negotiating."},
+        {"outcome": "Learning", "seen": [["Space interests him a great deal and he asks questions about the planets.", "3"], ["He recognises numbers up to 20 and some sight words.", "4"]], "strategy": "Space books."},
+        {"outcome": "Wellbeing", "seen": [["He dresses himself, including his velcro shoes.", "5"], ["He also packs his own bag at the end of the day.", "x"]], "strategy": "Independence routines."}
+      ]
+    },
+    {
+      "id": "t09", "child": "Mere", "framework": "TW", "joiner": "\n",
+      "note": [
+        "Mere sings waiata all day, knows many songs",
+        "plays with older children, follows them",
+        "helps set the table for kai",
+        "uses words for feelings, says I'm cross",
+        "likes the swing, pumps her legs herself"
+      ],
+      "outcomes": [
+        {"outcome": "Mana reo | Communication", "seen": [["Mere knows many waiata and sings them throughout the day.", "1"], ["She uses words for her feelings, saying \"I'm cross\".", "4"]], "strategy": "Share waiata."},
+        {"outcome": "Mana tangata | Contribution", "seen": [["She helps to set the table for kai.", "3"], ["Mere often plays alongside older children and follows their lead.", "2"]], "strategy": "Tuakana teina."},
+        {"outcome": "Mana atua | Wellbeing", "seen": [["On the swing Mere pumps her legs by herself.", "5"]], "strategy": "Physical play."}
+      ]
+    },
+    {
+      "id": "t10", "child": "Zara", "framework": "EYLF", "joiner": " ",
+      "note": [
+        "Zara is a confident talker, tells news at group time.",
+        "Plays with Amelia and Ivy in home corner.",
+        "Writes her name and copies words from the board.",
+        "Gets upset with loud noise, covers her ears.",
+        "Likes to help the teachers pack away."
+      ],
+      "outcomes": [
+        {"outcome": "Children are effective communicators", "seen": [["Zara talks confidently and shares her news at group time.", "1"], ["She writes her name and copies words from the board.", "3"]], "strategy": "News sharing."},
+        {"outcome": "Children are connected with and contribute to their world", "seen": [["She enjoys home corner play with Amelia and Ivy.", "2"], ["Zara likes helping teachers pack away.", "5"]], "strategy": "Helper jobs."},
+        {"outcome": "Children have a strong sense of wellbeing", "seen": [["Loud noise upsets Zara and she covers her ears.", "4"], ["Headphones help her stay calm in assemblies.", "x"]], "strategy": "A quiet space."}
+      ]
+    },
+    {
+      "id": "t11", "child": "Rangi", "framework": "TW", "joiner": "\n",
+      "note": [
+        "Rangi builds marble runs, tests them again and again",
+        "explains how it works to friends",
+        "counted marbles to 15",
+        "gets frustrated when friends knock it over, then fixes it",
+        "goes to the toilet by himself"
+      ],
+      "outcomes": [
+        {"outcome": "Mana aotūroa | Exploration", "seen": [["Rangi builds marble runs and tests them many times.", "1"], ["He explains to his friends how his run works.", "2"]], "strategy": "Engineering challenges."},
+        {"outcome": "Mana atua | Wellbeing", "seen": [["When friends knock his run over he gets frustrated, then fixes it.", "4"], ["He uses the toilet on his own.", "5"]], "strategy": "Name frustration."},
+        {"outcome": "Mana reo | Communication", "seen": [["Rangi counted fifteen marbles.", "3"]], "strategy": "Counting games."}
+      ]
+    },
+    {
+      "id": "t12", "child": "Chloe", "framework": "QKLG", "joiner": "\n",
+      "note": [
+        "Chloe is shy in big groups, chats in small groups",
+        "loves craft, makes cards for her friends",
+        "can do up buttons on her cardigan",
+        "recognises her name and her friends' names",
+        "likes to be near a teacher outside"
+      ],
+      "outcomes": [
+        {"outcome": "Identity and connectedness", "seen": [["Chloe is shy in large groups but chats in small ones.", "1"], ["Outside she likes to stay near a teacher.", "5"]], "strategy": "Small group times."},
+        {"outcome": "Active learning", "seen": [["She loves craft and makes cards for her friends.", "2"], ["Chloe also makes cards for her teachers at Christmas.", "x"]], "strategy": "Craft table."},
+        {"outcome": "Wellbeing", "seen": [["She does up the buttons on her cardigan.", "3"]], "strategy": "Self-care."},
+        {"outcome": "Communicating", "seen": [["Chloe recognises her own name and her friends' names.", "4"]], "strategy": "Name games."}
+      ]
+    },
+    {
+      "id": "t13", "child": "Nathan", "framework": "VEYLDF", "joiner": " ",
+      "note": [
+        "Nathan talks a lot about his baby sister.",
+        "He likes cooking experiences, stirs and pours.",
+        "He finds sharing hard with the bikes.",
+        "He can hop on one foot and catch a big ball.",
+        "He asks why questions all day."
+      ],
+      "outcomes": [
+        {"outcome": "Identity", "seen": [["Nathan often talks about his baby sister.", "1"]], "strategy": "Family photos."},
+        {"outcome": "Community", "seen": [["Sharing the bikes is hard for Nathan.", "3"]], "strategy": "Turn-taking timers."},
+        {"outcome": "Wellbeing", "seen": [["He hops on one foot and catches a big ball.", "4"]], "strategy": "Ball games."},
+        {"outcome": "Learning", "seen": [["Nathan enjoys cooking, stirring and pouring.", "2"], ["He is full of why questions.", "5"]], "strategy": "Answer his questions with him."}
+      ]
+    },
+    {
+      "id": "t14", "child": "Kaia", "framework": "TW", "joiner": "\n",
+      "note": [
+        "Kaia confident at the carpentry table, uses hammer and saw",
+        "made a boat and sailed it in the water trough",
+        "speaks te reo at home, counts in Māori to 10",
+        "plays mostly alone, sometimes joins Tane",
+        "settles well for sleep"
+      ],
+      "outcomes": [
+        {"outcome": "Mana aotūroa | Exploration", "seen": [["Kaia uses the hammer and saw with confidence at the carpentry table.", "1"], ["She made a boat and sailed it in the water trough.", "2"]], "strategy": "Tools at school."},
+        {"outcome": "Mana reo | Communication", "seen": [["Kaia speaks te reo at home and counts to ten in Māori.", "3"]], "strategy": "Te reo at school."},
+        {"outcome": "Mana tangata | Contribution", "seen": [["She mostly plays on her own and sometimes joins Tane.", "4"], ["She has started inviting others to the carpentry table.", "x"]], "strategy": "Shared projects."}
+      ]
+    },
+    {
+      "id": "t15", "child": "Max", "framework": "EYLF", "joiner": "\n",
+      "note": [
+        "Max loves trains and builds big tracks with Oliver",
+        "can write M A X",
+        "gets upset at goodbyes, ok after 5 minutes",
+        "eats well, tries new foods",
+        "knows the days of the week"
+      ],
+      "outcomes": [
+        {"outcome": "Children are connected with and contribute to their world", "seen": [["Max builds big train tracks with Oliver.", "1"]], "strategy": "Shared building."},
+        {"outcome": "Children have a strong sense of wellbeing", "seen": [["Goodbyes upset Max but he is okay after about five minutes.", "3"], ["He eats well and tries new food.", "4"]], "strategy": "Goodbye routine."},
+        {"outcome": "Children are effective communicators", "seen": [["He writes his name, M A X.", "2"], ["Max knows the days of the week.", "5"]], "strategy": "Calendar jobs."}
+      ]
+    },
+    {
+      "id": "t16", "child": "Ivy", "framework": "QKLG", "joiner": " ",
+      "note": [
+        "Ivy is creative, dresses up as fairies with Zara.",
+        "She makes up long stories in her play.",
+        "She is learning to wait her turn.",
+        "She draws people with arms and legs.",
+        "She likes to be first in line."
+      ],
+      "outcomes": [
+        {"outcome": "Active learning", "seen": [["Ivy dresses up as a fairy with Zara.", "1"], ["She invents long stories as she plays.", "2"]], "strategy": "Story telling."},
+        {"outcome": "Wellbeing", "seen": [["Ivy is learning to wait for her turn.", "3"], ["She likes being first in line.", "5"]], "strategy": "Turn-taking."},
+        {"outcome": "Communicating", "seen": [["Her drawings of people have arms and legs.", "4"], ["She labels her drawings with letters.", "x"]], "strategy": "Drawing and writing."}
+      ]
+    },
+    {
+      "id": "t17", "child": "Ruben", "framework": "TW", "joiner": "\n",
+      "note": [
+        "Ruben is caring, notices when friends are sad and gets them a tissue",
+        "loves bikes, rides fast around the track",
+        "talks in full sentences",
+        "can't yet write his name, draws circles for letters",
+        "follows the routine without reminders"
+      ],
+      "outcomes": [
+        {"outcome": "Mana tangata | Contribution", "seen": [["Ruben notices when his friends are sad and fetches them a tissue.", "1"]], "strategy": "Celebrate kindness."},
+        {"outcome": "Mana atua | Wellbeing", "seen": [["He rides the bikes fast around the track.", "2"], ["Ruben follows the routine without needing reminders.", "5"]], "strategy": "Active play."},
+        {"outcome": "Mana reo | Communication", "seen": [["He speaks in full sentences.", "3"], ["He is not yet writing his name and draws circles for letters.", "4"]], "strategy": "Name tracing."}
+      ]
+    },
+    {
+      "id": "t18", "child": "Bella", "framework": "VEYLDF", "joiner": "\n",
+      "note": [
+        "Bella has grown in confidence this year",
+        "she now asks teachers for help instead of crying",
+        "loves the art easel, paints rainbows",
+        "counts to 30",
+        "plays with lots of different children"
+      ],
+      "outcomes": [
+        {"outcome": "Identity", "seen": [["Bella has become much more confident this year.", "1"], ["Instead of crying, she now asks a teacher for help.", "2"]], "strategy": "Show her who to ask."},
+        {"outcome": "Community", "seen": [["She plays with many different children.", "5"]], "strategy": "Mixed groups."},
+        {"outcome": "Learning", "seen": [["She paints rainbows at the art easel.", "3"], ["Bella can count to 30.", "4"], ["She has started to add numbers in her head.", "x"]], "strategy": "Number play."}
+      ]
+    },
+    {
+      "id": "t19", "child": "Matiu", "framework": "TW", "joiner": " ",
+      "note": [
+        "Matiu loves kapa haka, does the haka with the older boys.",
+        "He is learning to listen at mat time.",
+        "He enjoys building huts outside with crates.",
+        "He knows all the letters in his name.",
+        "He asks for help with his shoes."
+      ],
+      "outcomes": [
+        {"outcome": "Mana whenua | Belonging", "seen": [["Matiu loves kapa haka and does the haka with the older boys.", "1"]], "strategy": "Kapa haka at school."},
+        {"outcome": "Mana aotūroa | Exploration", "seen": [["Outside he enjoys building huts with crates.", "3"]], "strategy": "Building outside."},
+        {"outcome": "Mana reo | Communication", "seen": [["He knows every letter in his name.", "4"], ["He is learning to listen at mat time.", "2"]], "strategy": "Letter games."},
+        {"outcome": "Mana atua | Wellbeing", "seen": [["Matiu asks for help with his shoes.", "5"]], "strategy": "Shoe practice."}
+      ]
+    },
+    {
+      "id": "t20", "child": "Evie", "framework": "EYLF", "joiner": "\n",
+      "note": [
+        "Evie very independent, does everything herself",
+        "loves reading, sits with books for a long time",
+        "plays with Grace, they make up dances",
+        "sometimes bossy with younger kids",
+        "counts and writes numbers to 10"
+      ],
+      "outcomes": [
+        {"outcome": "Children have a strong sense of wellbeing", "seen": [["Evie is very independent and likes to do everything herself.", "1"]], "strategy": "Give responsibility."},
+        {"outcome": "Children are connected with and contribute to their world", "seen": [["She makes up dances with Grace.", "3"], ["With younger children she can sometimes be bossy.", "4"]], "strategy": "Leadership skills."},
+        {"outcome": "Children are effective communicators", "seen": [["Evie loves reading and sits with books for a long time.", "2"], ["She counts and writes numbers to ten.", "5"], ["She can read simple chapter books.", "x"]], "strategy": "Library visits."}
+      ]
+    }
+  ]
+}
