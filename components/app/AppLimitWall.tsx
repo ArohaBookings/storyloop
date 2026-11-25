@@ -162,7 +162,7 @@ export default function AppLimitWall({
       }
       // Her bank wants a confirmation (MERGE2 2f): Billing opens in a new tab, so this page and her notes stay as they are.
       // Not paid yet (26 Nov 2026): Stripe's secure invoice page finishes it, in a new tab, so this page and her notes stay as they are.
-      const url = data.code === "needs_action" && typeof data.url === "string" && /^https:\/\/[a-z0-9.-]*stripe\.com\//.test(data.url) ? data.url : undefined;
+      const url = data.code === "needs_action" && typeof data.url === "string" && /^https:\/\/([a-z0-9-]+\.)*stripe\.com\//.test(data.url) ? data.url : undefined;
       setStartError({ text: typeof data.error === "string" ? data.error : "That did not go through. Nothing was charged.", billing: true, newTab: data.code === "needs_action", url });
     } catch {
       setStartError({ text: "No connection. Nothing was charged. Try again.", billing: false });
