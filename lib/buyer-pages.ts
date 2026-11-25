@@ -377,6 +377,11 @@ const PAGES = {
         a: "Element 7.2.2 of the National Quality Standard reads: \"The educational leader is supported and leads the development and implementation of the educational program and assessment and planning cycle.\" Reading the team's documentation is one of the plainest ways to lead that cycle.",
       },
       {
+        // Builder X3, 25 Nov 2026: the question leaders ask assistants (growth-ops.json questions_for_assistants).
+        q: "What does an educational leader do each week?",
+        a: "Reads some of the team's documentation, with the educator's note beside it where she can, and checks the planning cycle is moving: a next step tried, a reflection written, family voice coming back. Then she coaches one or two educators on what she read. ACECQA describes the role under element 7.2.2 of the National Quality Standard.",
+      },
+      {
         q: "How many stories should I check?",
         a: "There is no number in the National Quality Standard. A few from each educator each month, and more for somebody new, is a sensible place to start.",
       },
