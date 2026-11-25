@@ -1,11 +1,20 @@
 /**
  * The 25 November 2026 build's switches: one constant per new behaviour.
  *
- * The leader path, the statement wall and the centre start read their switch
- * here. With all five false those behave as the live commit 776e537
- * (tests/build-switches.test.ts, and the five-case writer check).
+ * EVERY switch of this build is in this file (MERGE2 2g): the five behaviour
+ * switches below and HELD_PAGE_ON, one per held page (what each page does is
+ * in lib/held-pages.ts). THE PROMISE: with every switch here set to false the
+ * site behaves as the live commit 776e537. To check it, change every "true" in
+ * this file to "false" and nothing else (tests/build-switches.test.ts proves
+ * that this one edit reaches every switch, and that each reader has a test
+ * for its switch off).
  *
- * NOT behind a switch (R1-8, 25 Nov review): turning all five off does not
+ * Older switches that are already off on the live site keep their live value
+ * and are not part of this build: HELD_BUYER_PAGES_ON (lib/buyer-pages.ts),
+ * TELL_CENTRE_ON (lib/family-tell-centre.ts), SIGNUP_EMAIL_LINK_ON
+ * (lib/auth/signup-link.ts).
+ *
+ * NOT behind a switch (R1-8, 25 Nov review): turning them all off does not
  * undo these, so they cannot be ruled out that way:
  * - signup with no name box (B4) and the email-link signup's skipped name;
  * - the demo's once-a-day limit per browser and the note carried into signup (B5);
@@ -13,8 +22,13 @@
  * - the search re-aim (titles, first lines, note box, owned sentences) and the
  *   founder section and About copy (C);
  * - the /privacy and /data-sheet wording;
- * - the 20261125_leader_path.sql migration, which must be applied before this
- *   code is deployed (GET /api/centres reads leader_sets).
+ * - the 20261125_leader_path.sql and 20261126_leader_stop_list.sql migrations,
+ *   which must be applied before this code is deployed (GET /api/centres reads
+ *   leader_sets; the leader stop list and centre_members.joined_via);
+ * - the opaque stop link, joining by the tick only for the verified address the
+ *   email went to, the bell note after a tick join, the counts-only sources
+ *   record (it fires only where LEADER_SOURCES_ON shows the numbers), and the
+ *   /faq, /safety and "bank wants a confirmation" wording (MERGE2, 25 Nov).
  * Turning one switch off is a one-line change and a deploy.
  */
 
@@ -56,7 +70,26 @@ export const CENTRE_START_NO_CHECKOUT = true;
  */
 export const LEADER_SOURCES_ON = true;
 
-/** All five, for tests and the admin view. */
+/**
+ * One switch per held page (25 Nov 2026). The conductor's ruling for the
+ * release (25 Nov, after Leo approved the release and its wording at 17:50):
+ * ON the three pages that answer searches our buyers make, the educational
+ * leader page and the re-aimed /eylf-planning-cycle and
+ * /assessment-and-rating-evidence; OFF /qip-childcare (the search map says not
+ * to build it) and /exceeding-nqs-documentation (two of our pages must not
+ * split one search), and the workload and family pages held since 19 Nov.
+ */
+export const HELD_PAGE_ON = {
+  "educational-leader-checklist": true,
+  "documentation-workload-early-childhood": false,
+  "exceeding-nqs-documentation": false,
+  "ask-your-centre": false,
+  "eylf-planning-cycle": true,
+  "assessment-and-rating-evidence": true,
+  "qip-childcare": false,
+} as const satisfies Record<string, boolean>;
+
+/** The five behaviour switches, for tests and the admin view. */
 export const BUILD_SWITCHES = {
   STATEMENTS_PAY_TODAY,
   LEADER_EMAIL_ON,
@@ -64,3 +97,9 @@ export const BUILD_SWITCHES = {
   CENTRE_START_NO_CHECKOUT,
   LEADER_SOURCES_ON,
 } as const;
+
+/** Every switch of this build by name, the held pages as HELD_PAGE_ON.<slug>: the list the switches-off check turns off. */
+export const EVERY_SWITCH: Record<string, boolean> = {
+  ...BUILD_SWITCHES,
+  ...Object.fromEntries(Object.entries(HELD_PAGE_ON).map(([slug, on]) => [`HELD_PAGE_ON.${slug}`, on])),
+};

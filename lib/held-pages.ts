@@ -1,7 +1,8 @@
 /**
  * One switch per held page (25 Nov 2026), so the conductor and Leo can release
- * them one at a time. Every entry is false: the page stays as the live site has
- * it (a held buyer page answers 404; a held re-aim leaves the live words).
+ * them one at a time. Off, a page stays as the live site has it (a held buyer
+ * page answers 404; a held re-aim leaves the live words). The values are in
+ * lib/build-switches.ts; this file says what each one does.
  *
  * - The four buyer pages held since 19 Nov (lib/buyer-pages.ts): the master
  *   switch HELD_BUYER_PAGES_ON there still turns all of them on at once.
@@ -17,15 +18,9 @@
  *   Quality Area 1 entry in a QIP looks like (lib/buyer-pages.ts). Off: 404, not
  *   in the sitemap, and no page links to it.
  */
-export const HELD_PAGE_ON = {
-  "educational-leader-checklist": false,
-  "documentation-workload-early-childhood": false,
-  "exceeding-nqs-documentation": false,
-  "ask-your-centre": false,
-  "eylf-planning-cycle": false,
-  "assessment-and-rating-evidence": false,
-  "qip-childcare": false,
-} as const satisfies Record<string, boolean>;
+// The values live in lib/build-switches.ts (MERGE2 2g), the one file that holds every switch of this build.
+import { HELD_PAGE_ON } from "@/lib/build-switches";
+export { HELD_PAGE_ON };
 
 export type HeldPageSlug = keyof typeof HELD_PAGE_ON;
 

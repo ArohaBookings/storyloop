@@ -99,14 +99,17 @@ test("all 12 owned sentences from the search re-aim have a place", () => {
   assert.match(blog, /ProductBlockFor slug=\{`blog\/\$\{post\.slug\}`\}/);
 });
 
-test("the three held pages: every switch off, the live planning cycle page untouched, the re-aims fit a search result", async () => {
+test("the three pages built held: each follows its own switch, the planning cycle URL keeps one page, the re-aims fit a search result", async () => {
   const { HELD_PAGE_ON } = await import("../lib/held-pages");
   const { EYLF_PLANNING_CYCLE_REAIM } = await import("../lib/seo-pages-held");
   const { BUYER_PAGES, buyerPageLive, isHeldPath } = await import("../lib/buyer-pages");
-  assert.ok(Object.values(HELD_PAGE_ON).every((on) => on === false));
-  assert.equal(SEO_PAGES["eylf-planning-cycle"].title, "EYLF Planning Cycle: From Observation to Response");
-  assert.ok(!buyerPageLive("educational-leader-checklist") && !buyerPageLive("exceeding-nqs-documentation"));
-  assert.ok(isHeldPath("/educational-leader-checklist"));
+  // As the conductor ruled for the release (MERGE2 2h); tests/release-switches.test.ts holds the whole list.
+  assert.equal(HELD_PAGE_ON["eylf-planning-cycle"], true);
+  assert.equal(HELD_PAGE_ON["educational-leader-checklist"], true);
+  assert.equal(HELD_PAGE_ON["exceeding-nqs-documentation"], false);
+  assert.equal(SEO_PAGES["eylf-planning-cycle"].title, HELD_PAGE_ON["eylf-planning-cycle"] ? EYLF_PLANNING_CYCLE_REAIM.title : "EYLF Planning Cycle: From Observation to Response");
+  assert.ok(buyerPageLive("educational-leader-checklist") && !buyerPageLive("exceeding-nqs-documentation"));
+  assert.ok(!isHeldPath("/educational-leader-checklist") && isHeldPath("/exceeding-nqs-documentation"));
   const pages = [
     { title: EYLF_PLANNING_CYCLE_REAIM.title, description: EYLF_PLANNING_CYCLE_REAIM.description, words: JSON.stringify(EYLF_PLANNING_CYCLE_REAIM) },
     ...(["educational-leader-checklist", "exceeding-nqs-documentation"] as const).map((slug) => ({ title: BUYER_PAGES[slug].title, description: BUYER_PAGES[slug].description, words: JSON.stringify(BUYER_PAGES[slug]) })),

@@ -393,6 +393,7 @@ const PAGES = {
     related: [
       { href: "/how-to-check-a-learning-story", title: "How to check a learning story", body: "Five questions a leader can ask in two minutes, and feedback that helps." },
       { href: "/nqs-standard-1-3-assessment-and-planning", title: "NQS Standard 1.3", body: "What assessors look for in assessment and planning, element by element." },
+      { href: "/assessment-and-rating-evidence", title: "Assessment and rating", body: "What the assessor reads in Quality Area 1, and the evidence to have ready." },
       { href: "/exceeding-nqs-documentation", title: "Exceeding the NQS", body: "The three themes, and what your documentation has to show." },
       { href: "/critical-reflection-early-childhood", title: "Critical reflection", body: "Three examples, a filled-in template and the NQS 1.3.2 evidence list." },
     ],

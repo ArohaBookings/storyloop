@@ -10,11 +10,11 @@ import { rivalNames } from "../lib/blog-topics";
 
 // Builder X3, 25 Nov 2026: search round 2 (growth-ops.json search_next, the QIP page, the assessment and rating re-aim).
 
-test("both new switches are off, so the live site keeps its words and the QIP page is held", () => {
-  assert.equal(HELD_PAGE_ON["assessment-and-rating-evidence"], false);
+test("the assessment and rating re-aim is on for the release and the QIP page stays held (MERGE2 2h)", () => {
+  assert.equal(HELD_PAGE_ON["assessment-and-rating-evidence"], true);
   assert.equal(HELD_PAGE_ON["qip-childcare"], false);
-  assert.equal(SEO_PAGES["assessment-and-rating-evidence"].title, "Assessment and Rating: the evidence to have ready");
-  assert.equal(SEO_PAGES["assessment-and-rating-evidence"].heading, "You get a few days' notice, not a few weeks.");
+  assert.equal(SEO_PAGES["assessment-and-rating-evidence"].title, ASSESSMENT_AND_RATING_REAIM.title);
+  assert.equal(SEO_PAGES["assessment-and-rating-evidence"].heading, ASSESSMENT_AND_RATING_REAIM.heading);
   assert.ok(HELD_BUYER_SLUGS.includes("qip-childcare"));
   assert.ok(!buyerPageLive("qip-childcare"));
   assert.ok(!LIVE_BUYER_PAGE_SLUGS.includes("qip-childcare"));
@@ -37,7 +37,8 @@ test("every title fits 60 characters and every description 155, live and held, w
     assert.ok(page.title.length <= 60, `${page.slug} title ${page.title.length}`);
     assert.ok(page.description.length <= 155, `${page.slug} description ${page.description.length}`);
   }
-  const titles = [...pages, ...held].map((page) => page.title.toLowerCase());
+  // A held re-aim that is switched on IS its live page now, so it is counted once.
+  const titles = [...pages, ...held.filter((page) => !pages.some((live) => live.title === page.title))].map((page) => page.title.toLowerCase());
   assert.equal(new Set(titles).size, titles.length, "a title is used twice");
 });
 

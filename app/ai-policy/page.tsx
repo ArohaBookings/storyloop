@@ -6,6 +6,7 @@ import Footer from "@/components/landing/Footer";
 import PolicyGenerator from "@/components/policy/PolicyGenerator";
 import CentreTrialWords from "@/components/centre/CentreTrialWords";
 import { ANSWER_BLOCKS } from "@/lib/answer-blocks";
+import { isHeldPath } from "@/lib/buyer-pages";
 
 export const metadata: Metadata = {
   title: "Free AI Policy Template for Early Childhood Services",
@@ -109,6 +110,15 @@ export default function AiPolicyPage() {
               </Link>{" "}
               has the same generator, in kaiako, tamariki and whānau terms.
             </p>
+            {!isHeldPath("/educational-leader-checklist") && (
+              <p data-testid="ai-policy-leader-link">
+                Writing this as the educational leader?{" "}
+                <Link href="/educational-leader-checklist" className="font-semibold text-clay-700 underline underline-offset-2" data-track="ai_policy_leader_page">
+                  The role, and a checklist for the week
+                </Link>
+                .
+              </p>
+            )}
           </div>
         </section>
 

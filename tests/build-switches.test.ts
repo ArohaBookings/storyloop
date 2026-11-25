@@ -15,10 +15,12 @@ import type { SeoPage } from "../lib/seo-pages";
 (globalThis as unknown as { React: typeof React }).React = React; // the components use the classic JSX runtime
 
 // The 25 Nov 2026 build's switches (lib/build-switches.ts) and the groundwork
-// stubs. The rule: with all five switches false the site behaves exactly as
-// the live commit 776e537.
+// stubs. There are more than five now (MERGE2 2g): the five behaviour
+// switches and one per held page (HELD_PAGE_ON), every one of them in
+// lib/build-switches.ts. The rule: with EVERY switch in that file false, the
+// site behaves exactly as the live commit 776e537.
 
-test("the five switches exist, are plain booleans, and are set as ruled on 24 Nov", () => {
+test("the five behaviour switches exist, are plain booleans, and are set as ruled", () => {
   assert.deepEqual(switches.BUILD_SWITCHES, {
     STATEMENTS_PAY_TODAY: true,
     LEADER_EMAIL_ON: true,
@@ -31,6 +33,37 @@ test("the five switches exist, are plain booleans, and are set as ruled on 24 No
   for (const name of Object.keys(switches.BUILD_SWITCHES)) {
     assert.match(source, new RegExp(`export const ${name} = (true|false);`), `${name} is a one-line switch`);
   }
+});
+
+test("every switch of this build is in one file, and turning every true there to false turns every switch off (MERGE2 2g)", () => {
+  const source = readFileSync("lib/build-switches.ts", "utf8");
+  // The release, as the conductor ruled on 25 Nov after Leo's approval at 17:50.
+  assert.deepEqual(switches.HELD_PAGE_ON, {
+    "educational-leader-checklist": true,
+    "documentation-workload-early-childhood": false,
+    "exceeding-nqs-documentation": false,
+    "ask-your-centre": false,
+    "eylf-planning-cycle": true,
+    "assessment-and-rating-evidence": true,
+    "qip-childcare": false,
+  });
+  const names = Object.keys(switches.EVERY_SWITCH);
+  assert.equal(names.length, Object.keys(switches.BUILD_SWITCHES).length + Object.keys(switches.HELD_PAGE_ON).length);
+  // Each switch is one line ending in true or false, so the switches-off check is one edit of this file.
+  const lines = source.split("\n").filter((line) => /(=|:) (true|false)[;,]$/.test(line.trim()) && !line.trim().startsWith("*") && !line.trim().startsWith("//"));
+  assert.equal(lines.length, names.length, "every switch line, and only switch lines, end in true or false");
+  for (const name of Object.keys(switches.BUILD_SWITCHES)) assert.match(source, new RegExp(`export const ${name} = (true|false);`));
+  for (const slug of Object.keys(switches.HELD_PAGE_ON)) assert.match(source, new RegExp(`  "${slug}": (true|false),`));
+  const off = source.replace(/(=|:) true([;,])$/gm, "$1 false$2");
+  assert.ok(!/(=|:) true[;,]$/m.test(off), "nothing left on after the one edit");
+  // The held pages' own file only re-exports: no second place to forget.
+  const held = readFileSync("lib/held-pages.ts", "utf8");
+  assert.ok(!/(true|false),\s*$/m.test(held.replace(/\/\*[\s\S]*?\*\//g, "")), "lib/held-pages.ts holds no switch values");
+  assert.match(held, /import \{ HELD_PAGE_ON \} from "@\/lib\/build-switches";/);
+  // The older switches that are off on the live site stay off: this build never turns them on.
+  assert.match(readFileSync("lib/buyer-pages.ts", "utf8"), /export const HELD_BUYER_PAGES_ON = false;/);
+  assert.match(readFileSync("lib/family-tell-centre.ts", "utf8"), /export const TELL_CENTRE_ON = false;/);
+  assert.match(readFileSync("lib/auth/signup-link.ts", "utf8"), /export const SIGNUP_EMAIL_LINK_ON = false;/);
 });
 
 // Every file that reads a switch, and the test that proves what it does with
@@ -62,6 +95,8 @@ const SWITCH_READERS: Record<string, string> = {
   [path.join("lib", "leader-sets.ts")]: "tests/source-lines-off.test.ts",
   [path.join("lib", "leader-sets-server.ts")]: "tests/source-lines-off.test.ts",
   [path.join("app", "api", "stories", "[id]", "check", "route.ts")]: "tests/source-lines-off.test.ts",
+  // The held pages (MERGE2 2g, 2h). Off: 404, out of the sitemap, the live words on a re-aimed URL.
+  [path.join("lib", "held-pages.ts")]: "tests/release-switches.test.ts",
 };
 
 function sourceFiles(dir: string): string[] {

@@ -257,6 +257,7 @@ export const RELATED = {
   workload: { href: "/documentation-workload-early-childhood", title: "Documentation workload", body: "Getting documentation out of your team's evenings, and what a centre can change this term." },
   askCentre: { href: "/ask-your-centre", title: "Ask your centre", body: "A short message a family can send their centre about learning stories." },
   aiPolicyNz: { href: "/ai-policy-nz-early-childhood", title: "An AI policy for NZ services", body: "A free AI policy for your service in Aotearoa, ready in ten minutes." },
+  assessment: { href: "/assessment-and-rating-evidence", title: "Assessment and rating", body: "What the assessor reads in Quality Area 1, and the evidence to have ready." },
   exceeding: { href: "/exceeding-nqs-documentation", title: "Exceeding the NQS", body: "The three themes, and what your documentation has to show." },
 } as const;
 

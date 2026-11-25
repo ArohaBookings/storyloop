@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { HELD_PAGE_ON } from "../lib/build-switches";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import test from "node:test";
 import {
@@ -42,9 +43,12 @@ const EXPECTED_BUYER_SLUGS = [
 ];
 
 /** In the December release (the conductor's scope decision, 19 Nov 2026). */
-const RELEASED_BUYER_SLUGS = ["ai-for-early-childhood-educators", "ai-childcare-observations", "ai-policy-nz-early-childhood"];
-/** Held out of it, switched off: not routed, not in the sitemap, linked from nowhere. */
+/** Held out of it, each behind its own switch (lib/build-switches.ts HELD_PAGE_ON). */
 const HELD = ["educational-leader-checklist", "documentation-workload-early-childhood", "exceeding-nqs-documentation", "ask-your-centre", "qip-childcare"];
+/** The held pages whose switch is off: not routed, not in the sitemap, linked from nowhere. */
+const HELD_OFF = HELD.filter((slug) => !(HELD_PAGE_ON as Record<string, boolean>)[slug]);
+const RELEASED_BUYER_SLUGS = ["ai-for-early-childhood-educators", "ai-childcare-observations", "ai-policy-nz-early-childhood", ...HELD.filter((slug) => !HELD_OFF.includes(slug))];
+const RATING_REAIMED = HELD_PAGE_ON["assessment-and-rating-evidence"];
 
 /** Existing pages the re-aim gave a new title, description, heading or first screen. */
 const RE_AIMED_SEO_SLUGS = [
@@ -289,7 +293,8 @@ test("titles, headings and descriptions the check said to keep are unchanged", (
   assert.equal(SEO_PAGES["for-centres"].heading, "Documentation done in the day, and a calmer review visit.");
   assert.equal(SEO_PAGES.pricing.heading, "Start free. Upgrade when it is worth it.");
   assert.equal(SEO_PAGES["learning-story-software-cost-for-centres"].heading, "What does learning story software cost a centre?");
-  assert.equal(SEO_PAGES["assessment-and-rating-evidence"].heading, "You get a few days' notice, not a few weeks.");
+  // Re-aimed only while its switch is on (MERGE2 2h); off, the live heading.
+  assert.equal(SEO_PAGES["assessment-and-rating-evidence"].heading, RATING_REAIMED ? "Assessment and rating: what your documentation needs to show." : "You get a few days' notice, not a few weeks.");
   assert.equal(SEO_PAGES["ero-early-childhood-regulation-2026"].heading, "ERO regulates early childhood education now. Here is what changed.");
   assert.match(source("app/examples/page.tsx"), /title: "Learning story examples: 12 real notes and drafts"/);
 });
@@ -306,7 +311,7 @@ test("the re-aimed product pages open on the product, and the cost and checklist
   assert.doesNotMatch(table, /per educator|per-educator|platforms/i);
   // Review 2, R2-12: /assessment-and-rating-evidence is put back exactly as on the live site (not re-aimed).
   const rating = SEO_PAGES["assessment-and-rating-evidence"];
-  assert.equal(rating.title, "Assessment and Rating: the evidence to have ready");
+  assert.equal(rating.title, RATING_REAIMED ? "Assessment and Rating: The Documentation Assessors Read" : "Assessment and Rating: the evidence to have ready");
   assert.equal(rating.checklist, undefined);
   // The centre landing's first phone screen (scope decision, 19 Nov 2026): one line on the job, one
   // button, the day's free period with no card, and the flat price in her currency.
@@ -342,15 +347,15 @@ test("every released buyer page and re-aimed page is in the sitemap and open to 
   }
 });
 
-test("the five held pages are switched off: 404, no share image, not in the sitemap, linked from nowhere", () => {
+test("every held page whose switch is off: 404, no share image, not in the sitemap, linked from nowhere", () => {
   assert.equal(HELD_BUYER_PAGES_ON, false, "held out of the December release");
   assert.deepEqual([...HELD_BUYER_SLUGS].sort(), [...HELD].sort());
   for (const slug of BUYER_PAGE_SLUGS) assert.equal(buyerPageLive(slug), RELEASED_BUYER_SLUGS.includes(slug), slug);
-  for (const slug of HELD) {
+  for (const slug of HELD_OFF) {
     for (const href of [`/${slug}`, `/${slug}/`, `/${slug}#x`, `/${slug}?utm_source=family`, `https://storyloop.space/${slug}`]) assert.ok(isHeldPath(href), href);
   }
   for (const href of ["/", "/for-centres", "/ai-policy", "/ai-policy-nz-early-childhood", "/ask-your-centre-x", "/blog/ask-your-centre"]) assert.ok(!isHeldPath(href), href);
-  assert.deepEqual(liveLinks([{ href: "/for-centres" }, { href: "/educational-leader-checklist" }]), [{ href: "/for-centres" }]);
+  assert.deepEqual(liveLinks([{ href: "/for-centres" }, { href: "/exceeding-nqs-documentation" }]), [{ href: "/for-centres" }]);
   // The page, its metadata and its share image all answer 404 while held.
   const page = source("components/buyer/BuyerPage.tsx");
   assert.match(page, /export function buyerMetadata\(slug: BuyerSlug\): Metadata \{\s*if \(!buyerPageLive\(slug\)\) notFound\(\);/);
@@ -375,6 +380,7 @@ test("the five held pages are switched off: 404, no share image, not in the site
   // Nowhere else names a held page's address outside these known, switched places.
   const allowed = new Set([
     "lib/buyer-pages.ts",
+    "lib/build-switches.ts", // the switches and their comment, not a link
     "lib/answer-blocks.ts", // where each answer is shown (data for this test), not a link
     "lib/seo-pages.ts", // sibling and section links, rendered through liveLinks
     "components/marketing/Guide.tsx", // RELATED, rendered through relatedFor
@@ -386,12 +392,12 @@ test("the five held pages are switched off: 404, no share image, not in the site
   const files = (dir: string): string[] =>
     readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
       const path = `${dir}/${entry.name}`;
-      if (entry.isDirectory()) return HELD.some((slug) => path === `app/${slug}`) ? [] : files(path);
+      if (entry.isDirectory()) return HELD_OFF.some((slug) => path === `app/${slug}`) ? [] : files(path);
       return /\.(ts|tsx)$/.test(entry.name) ? [path] : [];
     });
   for (const file of [...files("app"), ...files("components"), ...files("lib")]) {
     if (allowed.has(file)) continue;
-    for (const slug of HELD) assert.ok(!source(file).includes(`/${slug}`), `${file} names /${slug}`);
+    for (const slug of HELD_OFF) assert.ok(!source(file).includes(`/${slug}`), `${file} names /${slug}`);
   }
 });
 
