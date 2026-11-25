@@ -20,10 +20,11 @@ export async function POST(request: NextRequest) {
     const value = form?.get("t");
     token = typeof value === "string" ? value : "";
   }
-  const address = verifyStopToken(token);
-  if (!address) return NextResponse.json({ error: "This link does not work." }, { status: 400 });
-  await stopLeaderEmails(address);
+  // The token names a send, never an address (MERGE2 2a), so nothing here can log one.
+  const sendId = verifyStopToken(token);
+  if (!sendId) return NextResponse.json({ error: "This link does not work." }, { status: 400 });
+  const stopped = await stopLeaderEmails(sendId);
   // The one-click header expects a plain 200; the form goes back to the page.
-  if (request.nextUrl.searchParams.get("t")) return NextResponse.json({ ok: true });
-  return NextResponse.redirect(new URL(`/stop?done=1`, request.url), 303);
+  if (request.nextUrl.searchParams.get("t")) return stopped ? NextResponse.json({ ok: true }) : NextResponse.json({ error: "This link has ended." }, { status: 410 });
+  return NextResponse.redirect(new URL(stopped ? "/stop?done=1" : "/stop?gone=1", request.url), 303);
 }

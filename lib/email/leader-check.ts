@@ -7,7 +7,7 @@ import { loadGlobalEmailState } from "@/lib/email/brain-state";
 import { recordServerEvent } from "@/lib/analytics/server";
 import { LEADER_EMAIL_ON } from "@/lib/build-switches";
 import { checkUrl, cleanCentreName } from "@/lib/story-check";
-import { canSendLeaderEmail, recipientHash, reminderDue, senderFirstName, stopToken, type HeldReason } from "@/lib/leader-email";
+import { canSendLeaderEmail, isStoppedAddress, recipientHash, reminderDue, senderFirstName, stopToken, type HeldReason } from "@/lib/leader-email";
 
 /**
  * The leader email and its one reminder (25 Nov 2026, A2).
@@ -112,8 +112,9 @@ export function renderLeaderEmail(input: LeaderEmailInput) {
   return { subject, html, text, fromName: `${who} via StoryLoop` };
 }
 
-export function leaderStopUrl(address: string) {
-  return `${SITE_URL}/stop?t=${encodeURIComponent(stopToken(address))}`;
+/** The stop link names the send, never the address (MERGE2 2a). */
+export function leaderStopUrl(sendId: string) {
+  return `${SITE_URL}/stop?t=${encodeURIComponent(stopToken(sendId))}`;
 }
 
 function fromHeader(name: string) {
@@ -122,9 +123,19 @@ function fromHeader(name: string) {
   return `${name.replace(/["<>]/g, "")} <${address}>`;
 }
 
+/**
+ * Held for ever when the leader pressed Stop (the hash on leader_stop_list), or
+ * when the address bounced or complained (email_unsubscribes, as for every
+ * StoryLoop email). A read that fails holds the email: never send on doubt.
+ */
 async function isSuppressed(address: string) {
-  const { data } = await createAdminSupabase().from("email_unsubscribes").select("id").eq("email", address).limit(1);
-  return Boolean(data?.length);
+  const sb = createAdminSupabase();
+  const [bounced, stopped] = await Promise.all([
+    sb.from("email_unsubscribes").select("id").eq("email", address).limit(1),
+    sb.from("leader_stop_list").select("recipient_hash").eq("recipient_hash", recipientHash(address)).limit(1),
+  ]);
+  if (stopped.error) return true;
+  return Boolean(bounced.data?.length) || isStoppedAddress(address, (stopped.data ?? []).map((row) => String(row.recipient_hash)));
 }
 
 type SendResult = { sent: true } | { sent: false; reason: HeldReason | "failed" };
@@ -246,7 +257,7 @@ export async function sendLeaderEmail(input: {
     .single();
   // Only the unique index means "already emailed"; any other error is a failure she can retry (R1-11).
   if (error || !row) return { sent: false, reason: error?.code === "23505" ? "duplicate" : "failed" };
-  const stopUrl = leaderStopUrl(input.address);
+  const stopUrl = leaderStopUrl(row.id);
   const rendered = renderLeaderEmail({
     firstName,
     centreName: input.centreName,
@@ -354,7 +365,7 @@ export async function sendLeaderReminders(now = new Date()): Promise<{ checked: 
       const { data: profile } = await sb.from("profiles").select("full_name, email").eq("id", row.user_id).maybeSingle();
       const firstName = senderFirstName(profile?.full_name ?? null, profile?.email ?? null) || "An educator";
       const pieces = row.set_id ? ((await sb.from("leader_set_items").select("id", { count: "exact", head: true }).eq("set_id", row.set_id)).count ?? 1) : 1;
-      const stopUrl = leaderStopUrl(row.recipient);
+      const stopUrl = leaderStopUrl(row.id);
       const rendered = renderLeaderEmail({ firstName, centreName: link.centre_name ?? "", kind: row.set_id ? "set" : "story", pieces, linkUrl: "", stopUrl, expiresAt: link.expires_at, sentAt: row.first_sent_at ?? undefined, reminder: true });
       const result = await deliver({ to: row.recipient, rendered, idempotencyKey: `leader-reminder-${row.id}`, type: LEADER_REMINDER_TYPE, sendId: row.id, stopUrl });
       await forgetLeaderAddress(sb, row.id, { reminder_event_id: result.eventId });
@@ -369,16 +380,22 @@ export async function sendLeaderReminders(now = new Date()): Promise<{ checked: 
   return { checked: rows.length, reminded, forgotten };
 }
 
-/** "Stop these emails": the address goes on the suppression list for ever, and any reminder still waiting is cancelled. */
-export async function stopLeaderEmails(address: string) {
+/**
+ * "Stop these emails" (MERGE2 2a). The token names one send; its address hash
+ * goes on leader_stop_list for ever, and every reminder still waiting for that
+ * address, from anyone, is cancelled. The address itself is never read or
+ * written here. False when the send no longer exists (her account was deleted),
+ * so the page can say so honestly.
+ */
+export async function stopLeaderEmails(sendId: string): Promise<boolean> {
   const sb = createAdminSupabase();
-  const email = address.trim().toLowerCase();
-  const { data: existing } = await sb.from("email_unsubscribes").select("id").eq("email", email).limit(1);
-  if (!existing?.length) {
-    await sb.from("email_unsubscribes").insert({ user_id: null, email, reason: "leader_stop", metadata: { source: "leader_email" } });
-  }
-  const { data: rows } = await sb.from("leader_emails").update({ status: "stopped", recipient: null }).eq("recipient_hash", recipientHash(email)).in("status", ["sent"]).select("id, set_id");
+  const { data: send } = await sb.from("leader_emails").select("recipient_hash, set_id").eq("id", sendId).maybeSingle();
+  if (!send?.recipient_hash) return false;
+  const hash = String(send.recipient_hash);
+  const { error } = await sb.from("leader_stop_list").upsert({ recipient_hash: hash }, { onConflict: "recipient_hash", ignoreDuplicates: true });
+  if (error) throw new Error(`Leader stop not saved: ${error.message}`);
+  const { data: rows } = await sb.from("leader_emails").update({ status: "stopped", recipient: null }).eq("recipient_hash", hash).in("status", ["sent"]).select("id");
   for (const row of rows ?? []) await sb.from("email_events").update({ recipient: null }).eq("metadata->>send_id", row.id);
-  const kind = rows?.[0]?.set_id ? "set" : "story";
-  await recordServerEvent(sb, { event: "leader_email_stopped", path: "/stop", metadata: { kind } });
+  await recordServerEvent(sb, { event: "leader_email_stopped", path: "/stop", metadata: { kind: send.set_id ? "set" : "story" } });
+  return true;
 }

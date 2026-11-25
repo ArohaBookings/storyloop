@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { canSendLeaderEmail, cleanLeaderAddress, firstNameToSave, reminderDue, senderFirstName, stopToken, verifyStopToken, type SendFacts } from "../lib/leader-email";
+import { canSendLeaderEmail, cleanLeaderAddress, firstNameToSave, isStoppedAddress, recipientHash, reminderDue, senderFirstName, stopToken, verifyStopToken, type SendFacts } from "../lib/leader-email";
 import { renderLeaderEmail } from "../lib/email/leader-check";
 
 const facts = (over: Partial<SendFacts> = {}): SendFacts => ({ switchOn: true, address: "jo@kowhai.nz", ownEmail: "sam@x.nz", firstName: "Sam", suppressed: false, sentLast24h: 0, alreadyForThisLink: false, paused: false, ...over });
@@ -45,14 +45,31 @@ test("the reminder: due at 48 hours, never when opened, answered, cancelled, end
   assert.equal(reminderDue({ ...row, status: "stopped" }, f, at(49)), false);
 });
 
-test("the stop token: any change fails, case does not matter", () => {
-  const token = stopToken("Jo@Kowhai.NZ");
-  assert.equal(verifyStopToken(token), "jo@kowhai.nz");
-  const value = JSON.parse(Buffer.from(token, "base64url").toString("utf8"));
-  assert.equal(verifyStopToken(Buffer.from(JSON.stringify({ ...value, e: "someone@else.nz" })).toString("base64url")), null);
-  assert.equal(verifyStopToken(Buffer.from(JSON.stringify({ ...value, e: "JO@KOWHAI.NZ" })).toString("base64url")), "jo@kowhai.nz");
+test("the stop token names the send, never the address, and any change fails (MERGE2 2a)", () => {
+  const send = "3f2b6c1e-8a4d-4c2b-9e1f-0a1b2c3d4e5f";
+  const token = stopToken(send);
+  assert.equal(verifyStopToken(token), send);
+  assert.equal(verifyStopToken(stopToken(send.toUpperCase())), send);
+  // Not the address, not the address encoded: nothing in it decodes to an @.
+  assert.ok(!token.includes("@"));
+  for (const part of token.split(".")) assert.ok(!Buffer.from(part, "base64url").toString("utf8").includes("@"));
+  const [id, signature] = token.split(".");
+  assert.equal(verifyStopToken(`${id.replace(/^3/, "4")}.${signature}`), null, "another send with the same signature");
+  assert.equal(verifyStopToken(`${id}.${signature.slice(0, -1)}${signature.endsWith("A") ? "B" : "A"}`), null, "a changed signature");
+  assert.equal(verifyStopToken(`${token}.x`), null);
+  // The old token shape (the address in base64 with its signature) no longer opens anything.
+  assert.equal(verifyStopToken(Buffer.from(JSON.stringify({ e: "jo@kowhai.nz", s: "x" })).toString("base64url")), null);
   assert.equal(verifyStopToken("nonsense"), null);
   assert.equal(verifyStopToken(undefined), null);
+});
+
+test("the stop list holds only the hash of the address and matches whatever the case (MERGE2 2a)", () => {
+  const list = [recipientHash("jo@kowhai.nz")];
+  assert.equal(isStoppedAddress("Jo@Kowhai.NZ", list), true);
+  assert.equal(isStoppedAddress(" jo@kowhai.nz ", list), true);
+  assert.equal(isStoppedAddress("sam@kowhai.nz", list), false);
+  assert.equal(isStoppedAddress("", list), false);
+  assert.ok(!list[0].includes("@") && /^[0-9a-f]{64}$/.test(list[0]));
 });
 
 // The render takes no child, note or story at all; "Mihi" stands for any child name.

@@ -136,28 +136,42 @@ function stopSecret() {
   return process.env.EMAIL_UNSUBSCRIBE_SECRET ?? process.env.ADMIN_SESSION_SECRET ?? process.env.CRON_SECRET ?? "storyloop-dev-unsubscribe";
 }
 
-function stopSignature(email: string) {
-  return createHmac("sha256", stopSecret()).update(`leader-stop:${email.trim().toLowerCase()}`).digest("base64url");
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+function stopSignature(sendId: string) {
+  return createHmac("sha256", stopSecret()).update(`leader-stop-send:${sendId}`).digest("base64url");
 }
 
-/** The "Stop these emails" token: the address and its signature, nothing else. */
-export function stopToken(email: string) {
-  const address = email.trim().toLowerCase();
-  return Buffer.from(JSON.stringify({ e: address, s: stopSignature(address) }), "utf8").toString("base64url");
+/**
+ * The "Stop these emails" token (MERGE2 2a): the send it came with and a
+ * signature, never the address, not even encoded. It goes into the link and the
+ * List-Unsubscribe header, so it reaches request logs; a send id says nothing
+ * about anyone. The reminder makes the same token again from the same send.
+ */
+export function stopToken(sendId: string) {
+  const id = sendId.trim().toLowerCase();
+  return `${id}.${stopSignature(id)}`;
 }
 
-/** The address a stop token is for, or null when it was changed in any way. Case does not matter. */
+/** The send a stop token names, or null when it was changed in any way. */
 export function verifyStopToken(token: unknown): string | null {
-  if (typeof token !== "string" || token.length > 1000) return null;
-  try {
-    const value = JSON.parse(Buffer.from(token, "base64url").toString("utf8")) as { e?: unknown; s?: unknown };
-    if (typeof value.e !== "string" || typeof value.s !== "string") return null;
-    const address = value.e.trim().toLowerCase();
-    const expected = Buffer.from(stopSignature(address));
-    const actual = Buffer.from(value.s);
-    if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) return null;
-    return address;
-  } catch {
-    return null;
-  }
+  if (typeof token !== "string" || token.length > 200) return null;
+  const [id, signature, extra] = token.trim().split(".");
+  if (extra !== undefined || !id || !signature || !UUID.test(id)) return null;
+  const expected = Buffer.from(stopSignature(id));
+  const actual = Buffer.from(signature);
+  if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) return null;
+  return id;
+}
+
+/**
+ * Is this address on the leader stop list? The list holds only the one-way
+ * hash of the lower-cased address (recipientHash), compared at send time, so
+ * a stop is honoured for ever without StoryLoop keeping the address. Pure.
+ */
+export function isStoppedAddress(address: string, stoppedHashes: Iterable<string>): boolean {
+  if (!address) return false;
+  const hash = recipientHash(address);
+  for (const value of stoppedHashes) if (value === hash) return true;
+  return false;
 }
