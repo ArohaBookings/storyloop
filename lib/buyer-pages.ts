@@ -615,21 +615,26 @@ const PAGES = {
     reviewedAt: REVIEWED,
   },
 
+  // Held, and aimed back at Exceeding (builder X3, 25 Nov 2026). Lane C re-aimed this page at
+  // "assessment and rating" that morning, but the live /assessment-and-rating-evidence already serves
+  // that search and is re-aimed at it behind its own switch (lib/seo-pages-held.ts). Two of our pages
+  // must not split one search, so this one keeps the Exceeding words it was built with on 19 Nov and
+  // stays held (lib/held-pages.ts "exceeding-nqs-documentation": false). Its sections stay as built.
   "exceeding-nqs-documentation": {
     slug: "exceeding-nqs-documentation",
     audience: {
       buyer: "centre",
-      who: "An Australian director or educational leader with an assessment and rating visit coming, or working towards Exceeding",
-      // 25 Nov 2026 re-aim (analysis/search.json new_pages): directors search the visit, not the theme guidance.
-      typed: ["assessment and rating", "assessment and rating childcare", "assessment and rating documentation", "exceeding nqs"],
-      firstScreen: "Read in one line what an assessor reads in her documentation and start her centre's free period with one button, no card.",
+      who: "An Australian director or educational leader working towards an Exceeding rating",
+      typed: ["exceeding nqs themes", "exceeding nqs meaning", "exceeding nqs theme guidance", "nqf exceeding themes"],
+      firstScreen: "Read the three Exceeding themes in one sentence and start her centre's free period with one button, no card (or jump to a real story that shows them).",
     },
-    title: "Assessment and Rating: The Documentation Assessors Read",
+    title: "Exceeding NQS: what your documentation needs to show",
     description:
-      "What happens at an assessment and rating visit, the Quality Area 1 documentation an assessor reads element by element, and what Exceeding looks like.",
+      "The three Exceeding themes in plain words, and what an assessor looks for in your learning stories, planning and reflection to see them.",
     kicker: "For directors and educational leaders · NQS",
-    h1: "Assessment and rating: what your documentation needs to show.",
-    lead: "At an assessment and rating visit, an authorised officer observes your practice, talks it through with your team and sights your documents. Quality Area 1 is where your documentation is read most closely.",
+    h1: "Exceeding the NQS: what your documentation has to show.",
+    // The three themes, as ACECQA names them (checked against ACECQA's own documents, 19 Nov 2026).
+    lead: "For a Standard to be rated Exceeding, an assessor must see three themes in practice: embedded in service operations, informed by critical reflection, and shaped by meaningful engagement with families and/or the community.",
     action: { kind: "centre" },
     sections: [
       {

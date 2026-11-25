@@ -126,6 +126,12 @@ export const GUIDE_PRODUCT: Record<string, GuideProductEntry> = {
 /** Entries for held re-aims (lib/held-pages.ts): used only once that page's switch is on. */
 export const HELD_GUIDE_PRODUCT: Record<string, GuideProductEntry> = {
   "eylf-planning-cycle": { kind: "note", demo: "AU", label: "Got a note from this week? Put it here." },
+  // A leader with a visit coming: what a centre plan does for her Quality Area 1 evidence, and only that.
+  "assessment-and-rating-evidence": {
+    kind: "leader",
+    text: "Your team's learning stories are your Quality Area 1 evidence. On a centre plan you see the stories your team shares in one place, and you can check one with the educator's note beside it in about two minutes. Centres are {centre_trial}.",
+    link: { href: "/for-centres", label: "How StoryLoop works for a centre" },
+  },
 };
 
 export function guideProductFor(slug: string): GuideProductEntry | null {

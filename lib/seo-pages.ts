@@ -2088,10 +2088,15 @@ for (const page of Object.values(NOV_2026_PAGES)) {
 }
 
 // Re-aimed guides built and held, 25 Nov 2026 (lib/seo-pages-held.ts): same URL, new words, only when switched on.
-import { EYLF_PLANNING_CYCLE_REAIM } from "./seo-pages-held";
+import { ASSESSMENT_AND_RATING_REAIM, EYLF_PLANNING_CYCLE_REAIM } from "./seo-pages-held";
 import { heldPageOn } from "./held-pages";
 if (heldPageOn("eylf-planning-cycle")) {
   SEO_PAGES["eylf-planning-cycle"] = { ...EYLF_PLANNING_CYCLE_REAIM, faqs: [...EYLF_PLANNING_CYCLE_REAIM.faqs, ...sharedFaqs] };
+}
+// The live assessment and rating page, re-aimed at "assessment and rating" (builder X3): new opening, live sources kept.
+if (heldPageOn("assessment-and-rating-evidence")) {
+  const live = SEO_PAGES["assessment-and-rating-evidence"];
+  SEO_PAGES["assessment-and-rating-evidence"] = { ...live, ...ASSESSMENT_AND_RATING_REAIM, faqs: [...ASSESSMENT_AND_RATING_REAIM.faqs, ...sharedFaqs] };
 }
 
 // Attach long-form bodies to the pages that have them. Kept separate so the
