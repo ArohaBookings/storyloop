@@ -10,9 +10,14 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
  */
 
 export const LEADER_EMAILS_PER_DAY = 3;
+/** One address, from every account together (R2-5): a day and a week. */
+export const LEADER_EMAILS_PER_RECIPIENT_DAY = 3;
+export const LEADER_EMAILS_PER_RECIPIENT_WEEK = 6;
+/** Every leader email from StoryLoop in a day: past this the sending domain is protected first. */
+export const LEADER_EMAILS_ALL_DAY = 300;
 export const REMINDER_AFTER_HOURS = 48;
 
-export type HeldReason = "cap" | "suppressed" | "paused" | "no_name" | "invalid" | "own" | "duplicate" | "off";
+export type HeldReason = "cap" | "recipient_cap" | "suppressed" | "paused" | "no_name" | "invalid" | "own" | "duplicate" | "off";
 
 /** A plain address check: one @, a dot in the domain, no spaces, not too long. */
 export function cleanLeaderAddress(raw: unknown): string {
@@ -63,6 +68,11 @@ export type SendFacts = {
   sentLast24h: number;
   alreadyForThisLink: boolean;
   paused: boolean;
+  /** Emails to this address (by recipient_hash) from any account. */
+  recipientLast24h?: number;
+  recipientLast7d?: number;
+  /** Every leader email in the last 24 hours. */
+  allLast24h?: number;
 };
 
 /** May the first email go? The first reason that holds it, in the order a person would want to hear it. */
@@ -75,7 +85,9 @@ export function canSendLeaderEmail(f: SendFacts): { ok: true } | { ok: false; re
   // Honoured for ever, whatever the reason the address is on the list.
   if (f.suppressed) return { ok: false, reason: "suppressed" };
   if (f.paused) return { ok: false, reason: "paused" };
+  if ((f.allLast24h ?? 0) >= LEADER_EMAILS_ALL_DAY) return { ok: false, reason: "paused" };
   if (f.sentLast24h >= LEADER_EMAILS_PER_DAY) return { ok: false, reason: "cap" };
+  if ((f.recipientLast24h ?? 0) >= LEADER_EMAILS_PER_RECIPIENT_DAY || (f.recipientLast7d ?? 0) >= LEADER_EMAILS_PER_RECIPIENT_WEEK) return { ok: false, reason: "recipient_cap" };
   return { ok: true };
 }
 
@@ -83,6 +95,7 @@ export function canSendLeaderEmail(f: SendFacts): { ok: true } | { ok: false; re
 export function heldMessage(reason: HeldReason) {
   switch (reason) {
     case "cap": return `StoryLoop sends at most ${LEADER_EMAILS_PER_DAY} of these a day for you. Copy the link and send it yourself.`;
+    case "recipient_cap": return "StoryLoop has emailed that address enough for now. Copy the link and send it yourself.";
     case "suppressed": return "That address asked StoryLoop not to email it. Copy the link and send it yourself.";
     case "paused": return "StoryLoop's email is paused just now. Copy the link and send it yourself.";
     case "no_name": return "Add your first name so your leader knows who it is from.";

@@ -34,7 +34,10 @@ const APP_PREFIXES = [
 // answer it, so they met a form they could not see. Without an answer nothing
 // beyond page views and funnel steps is recorded, so not asking here is the
 // privacy-safe default; the choice is still asked on the next marketing page.
-const NOT_ASKED_PREFIXES = ["/signup", "/login", "/forgot-password", "/reset-password", "/join", "/pause", "/unsubscribe"];
+// The leader's /check page and /stop (25 Nov review, R3-5) too: she came from an
+// email to answer, no advertising tag ever loads there (lib/analytics/ad-free-pages.ts),
+// and on a laptop 820px tall or less the sheet covered her answer bar.
+const NOT_ASKED_PREFIXES = ["/signup", "/login", "/forgot-password", "/reset-password", "/join", "/pause", "/unsubscribe", "/check", "/stop"];
 
 // On a phone, wait until the visitor has started reading, so the first screen
 // (headline and buttons) is never covered on arrival.

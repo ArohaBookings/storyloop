@@ -121,11 +121,13 @@ export function setExpiry(now = new Date()) {
   return new Date(now.getTime() + CHECK_DAYS * 86_400_000);
 }
 
-/** When a set's content is wiped: 7 days after it stopped opening. */
-export function setPurgeDue(row: Pick<SetRow, "expires_at" | "purged_at">, now = new Date()) {
+/** When a set's content is wiped: 7 days after it stopped opening, whether it ran out or was cancelled. */
+export function setPurgeDue(row: Pick<SetRow, "expires_at" | "purged_at"> & { revoked_at?: string | null }, now = new Date()) {
   if (row.purged_at) return false;
   const expires = new Date(row.expires_at).getTime();
-  return Number.isFinite(expires) && now.getTime() >= expires + SET_PURGE_DAYS * 86_400_000;
+  const revoked = row.revoked_at ? new Date(row.revoked_at).getTime() : NaN;
+  const ended = Number.isFinite(revoked) && (!Number.isFinite(expires) || revoked < expires) ? revoked : expires;
+  return Number.isFinite(ended) && now.getTime() >= ended + SET_PURGE_DAYS * 86_400_000;
 }
 
 /** Every piece answered? */

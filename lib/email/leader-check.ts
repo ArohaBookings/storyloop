@@ -195,13 +195,19 @@ export async function sendLeaderEmail(input: {
   const now = input.now ?? new Date();
   const sb = createAdminSupabase();
   const since = new Date(now.getTime() - 86_400_000).toISOString();
-  const [{ count }, existing, suppressed, global] = await Promise.all([
+  const weekAgo = new Date(now.getTime() - 7 * 86_400_000).toISOString();
+  const hash = input.address ? recipientHash(input.address) : "";
+  const [{ count }, existing, suppressed, global, toAddressDay, toAddressWeek, everyone] = await Promise.all([
     sb.from("leader_emails").select("id", { count: "exact", head: true }).eq("user_id", input.userId).gte("created_at", since),
     input.checkId
       ? sb.from("leader_emails").select("id").eq("check_id", input.checkId).limit(1)
       : sb.from("leader_emails").select("id").eq("set_id", input.setId ?? "").limit(1),
     input.address ? isSuppressed(input.address) : Promise.resolve(false),
     loadGlobalEmailState(now).catch(() => ({ pausedReason: "unknown" })),
+    // One address from every account together, and all of StoryLoop's leader email (R2-5).
+    sb.from("leader_emails").select("id", { count: "exact", head: true }).eq("recipient_hash", hash).gte("created_at", since),
+    sb.from("leader_emails").select("id", { count: "exact", head: true }).eq("recipient_hash", hash).gte("created_at", weekAgo),
+    sb.from("leader_emails").select("id", { count: "exact", head: true }).gte("created_at", since),
   ]);
   const firstName = senderFirstName(input.fullName, input.ownEmail);
   const verdict = canSendLeaderEmail({
@@ -213,9 +219,12 @@ export async function sendLeaderEmail(input: {
     sentLast24h: count ?? 0,
     alreadyForThisLink: Boolean(existing.data?.length),
     paused: Boolean(global.pausedReason),
+    recipientLast24h: toAddressDay.count ?? 0,
+    recipientLast7d: toAddressWeek.count ?? 0,
+    allLast24h: everyone.count ?? 0,
   });
   if (!verdict.ok) {
-    if (["cap", "suppressed", "paused", "no_name", "invalid"].includes(verdict.reason)) {
+    if (["cap", "recipient_cap", "suppressed", "paused", "no_name", "invalid"].includes(verdict.reason)) {
       await recordServerEvent(sb, { event: "leader_email_held", userId: input.userId, path: "/check", metadata: { reason: verdict.reason } });
     }
     return { sent: false, reason: verdict.reason };
@@ -235,7 +244,8 @@ export async function sendLeaderEmail(input: {
     })
     .select("id")
     .single();
-  if (error || !row) return { sent: false, reason: "duplicate" };
+  // Only the unique index means "already emailed"; any other error is a failure she can retry (R1-11).
+  if (error || !row) return { sent: false, reason: error?.code === "23505" ? "duplicate" : "failed" };
   const stopUrl = leaderStopUrl(input.address);
   const rendered = renderLeaderEmail({
     firstName,
@@ -256,11 +266,38 @@ export async function sendLeaderEmail(input: {
     // of her 3 a day, and no reminder is ever due for it. The email_events row keeps
     // the failure on record.
     await sb.from("leader_emails").delete().eq("id", row.id);
+    await sb.from("email_events").update({ recipient: null }).eq("metadata->>send_id", row.id);
     return { sent: false, reason: "failed" };
   }
   await sb.from("leader_emails").update({ first_event_id: result.eventId }).eq("id", row.id);
   await recordServerEvent(sb, { event: "leader_email_sent", userId: input.userId, path: "/check", metadata: { kind: input.kind, reminder: false } });
   return { sent: true };
+}
+
+type Admin = ReturnType<typeof createAdminSupabase>;
+
+/**
+ * Drop the leader's address from leader_emails AND from the email log
+ * (email_events, matched on metadata.send_id), so /privacy and /data-sheet are
+ * true: it is kept only while a reminder may still go (R2-2, R4-1).
+ */
+async function forgetLeaderAddress(sb: Admin, rowId: string, patch: Record<string, unknown>, options: { onlyWaiting?: boolean } = {}) {
+  let update = sb.from("leader_emails").update({ ...patch, recipient: null }).eq("id", rowId);
+  if (options.onlyWaiting) update = update.eq("status", "sent").is("reminder_sent_at", null);
+  await update;
+  await sb.from("email_events").update({ recipient: null }).eq("metadata->>send_id", rowId);
+}
+
+/** Her leader opened or answered the link: no reminder will go, so the address goes now. Never throws. */
+export async function forgetLeaderAddressOnOpen(link: { checkId?: string; setId?: string }) {
+  try {
+    const sb = createAdminSupabase();
+    const query = sb.from("leader_emails").update({ status: "opened", recipient: null }).eq("status", "sent").is("reminder_sent_at", null);
+    const { data } = await (link.checkId ? query.eq("check_id", link.checkId) : query.eq("set_id", link.setId ?? "")).select("id");
+    for (const row of data ?? []) await sb.from("email_events").update({ recipient: null }).eq("metadata->>send_id", row.id);
+  } catch (error) {
+    console.error("Leader address drop on open failed (the cron drops it later):", error);
+  }
 }
 
 type DueRow = { id: string; user_id: string; check_id: string | null; set_id: string | null; recipient: string | null; status: string; first_sent_at: string | null; reminder_sent_at: string | null };
@@ -280,6 +317,9 @@ export async function sendLeaderReminders(now = new Date()): Promise<{ checked: 
     .eq("status", "sent")
     .is("reminder_sent_at", null)
     .lte("reminder_due_at", now.toISOString())
+    // Rows whose address was already dropped never come back, so ended links cannot crowd out due ones (R1-5).
+    .not("recipient", "is", null)
+    .order("reminder_due_at", { ascending: true })
     .limit(50);
   const rows = (data ?? []) as DueRow[];
   const global = await loadGlobalEmailState(now).catch(() => ({ pausedReason: "unknown" }));
@@ -290,14 +330,20 @@ export async function sendLeaderReminders(now = new Date()): Promise<{ checked: 
       const link = row.check_id
         ? (await sb.from("story_checks").select("status, opened_at, revoked_at, expires_at, centre_name").eq("id", row.check_id).maybeSingle()).data
         : (await sb.from("leader_sets").select("status, opened_at, revoked_at, expires_at, centre_name").eq("id", row.set_id ?? "").maybeSingle()).data;
-      if (!link || !row.recipient) continue;
+      if (!row.recipient) continue;
+      if (!link) {
+        // The link row is gone: no reminder can go, so the address goes too.
+        await forgetLeaderAddress(sb, row.id, {});
+        forgotten++;
+        continue;
+      }
       const answered = ["approved", "changes", "answered"].includes(String(link.status));
       const suppressed = await isSuppressed(row.recipient);
       const due = reminderDue(row, { openedAt: link.opened_at, answered, revokedAt: link.revoked_at, expiresAt: link.expires_at, suppressed, paused: Boolean(global.pausedReason) }, now);
       if (!due) {
         // Opened, answered, ended or stopped: no reminder will ever go, so the address is not kept.
         if (link.opened_at || answered || link.revoked_at || suppressed || Date.parse(link.expires_at) <= now.getTime()) {
-          await sb.from("leader_emails").update({ status: link.opened_at || answered ? "opened" : suppressed ? "stopped" : "sent", recipient: null }).eq("id", row.id).eq("status", "sent").is("reminder_sent_at", null);
+          await forgetLeaderAddress(sb, row.id, { status: link.opened_at || answered ? "opened" : suppressed ? "stopped" : "sent" }, { onlyWaiting: true });
           forgotten++;
         }
         continue;
@@ -311,7 +357,7 @@ export async function sendLeaderReminders(now = new Date()): Promise<{ checked: 
       const stopUrl = leaderStopUrl(row.recipient);
       const rendered = renderLeaderEmail({ firstName, centreName: link.centre_name ?? "", kind: row.set_id ? "set" : "story", pieces, linkUrl: "", stopUrl, expiresAt: link.expires_at, sentAt: row.first_sent_at ?? undefined, reminder: true });
       const result = await deliver({ to: row.recipient, rendered, idempotencyKey: `leader-reminder-${row.id}`, type: LEADER_REMINDER_TYPE, sendId: row.id, stopUrl });
-      await sb.from("leader_emails").update({ recipient: null, reminder_event_id: result.eventId }).eq("id", row.id);
+      await forgetLeaderAddress(sb, row.id, { reminder_event_id: result.eventId });
       if (result.ok) {
         reminded++;
         await recordServerEvent(sb, { event: "leader_email_sent", userId: row.user_id, path: "/check", metadata: { kind: row.set_id ? "set" : "story", reminder: true } });
@@ -331,7 +377,8 @@ export async function stopLeaderEmails(address: string) {
   if (!existing?.length) {
     await sb.from("email_unsubscribes").insert({ user_id: null, email, reason: "leader_stop", metadata: { source: "leader_email" } });
   }
-  const { data: rows } = await sb.from("leader_emails").update({ status: "stopped", recipient: null }).eq("recipient_hash", recipientHash(email)).in("status", ["sent"]).select("set_id");
+  const { data: rows } = await sb.from("leader_emails").update({ status: "stopped", recipient: null }).eq("recipient_hash", recipientHash(email)).in("status", ["sent"]).select("id, set_id");
+  for (const row of rows ?? []) await sb.from("email_events").update({ recipient: null }).eq("metadata->>send_id", row.id);
   const kind = rows?.[0]?.set_id ? "set" : "story";
   await recordServerEvent(sb, { event: "leader_email_stopped", path: "/stop", metadata: { kind } });
 }

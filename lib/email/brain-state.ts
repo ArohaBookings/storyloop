@@ -50,7 +50,7 @@ export async function loadGlobalEmailState(now = new Date(), { fresh = false } =
     sent30: rows.length,
     bounced30: rows.filter((r) => status(r) === "bounced").length,
     complained30: rows.filter((r) => status(r) === "complained").length,
-    unsubscribed30: (unsubs.data ?? []).filter((u) => !["bounced", "complained"].includes(String(u.reason ?? ""))).length,
+    unsubscribed30: (unsubs.data ?? []).filter((u) => !["bounced", "complained", "leader_stop"].includes(String(u.reason ?? ""))).length,
   };
   const guard = deliverabilityGuard(stats30, process.env.EMAIL_MARKETING_PAUSED || null);
   const state = {

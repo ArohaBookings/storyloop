@@ -11,8 +11,9 @@ export const metadata = {
 /**
  * "Stop these emails" from a leader email (25 Nov 2026, A2). Opening this page
  * changes nothing: link scanners open every link in an email, so only the
- * button (a POST) stops the emails. Once stopped, StoryLoop never emails that
- * address for anyone again.
+ * button (a POST) stops the emails. Once stopped, StoryLoop sends that address
+ * no more check requests or reminders, from anyone (lifecycle email checks the
+ * same list; sign-in, billing and centre invitations do not, R4-3).
  */
 export default async function StopPage({ searchParams }: { searchParams?: Promise<{ t?: string; done?: string }> }) {
   const params = await searchParams;
@@ -27,12 +28,12 @@ export default async function StopPage({ searchParams }: { searchParams?: Promis
           <>
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-sage-100 text-sage-700"><CheckCircle2 className="h-6 w-6" /></div>
             <h1 className="font-display text-3xl font-bold text-ink-900">Done. No more of these emails.</h1>
-            <p className="mt-3 text-sm leading-relaxed text-ink-600">StoryLoop will not email this address for anyone again. Any link you already have still opens until it ends.</p>
+            <p className="mt-3 text-sm leading-relaxed text-ink-600">StoryLoop will not send this address another check request or reminder, from anyone. Any link you already have still opens until it ends.</p>
           </>
         ) : valid ? (
           <>
             <h1 className="font-display text-3xl font-bold text-ink-900">Stop these emails?</h1>
-            <p className="mt-3 text-sm leading-relaxed text-ink-600">An educator asked StoryLoop to send you something to check. Press the button and StoryLoop will never email this address again, for anyone.</p>
+            <p className="mt-3 text-sm leading-relaxed text-ink-600">An educator asked StoryLoop to send you something to check. Press the button and StoryLoop will not send this address another check request or reminder, from anyone.</p>
             <form method="post" action="/api/email/leader-stop" className="mt-6">
               <input type="hidden" name="t" value={token} />
               <button type="submit" className="btn-primary min-h-[48px] w-full justify-center" data-testid="leader-stop-button">Stop these emails</button>

@@ -16,23 +16,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const result = await runLifecycleAutomation();
-
-    // Backstop for the invoice.paid webhook: a founding centre's discount comes
-    // off after exactly three paid months even if that webhook was missed.
-    // Separate from the emails, and never allowed to fail them.
-    let founding: Awaited<ReturnType<typeof settleAllFoundingDiscounts>> | { error: string } | null = null;
-    if (process.env.STRIPE_SECRET_KEY) {
-      try {
-        founding = await settleAllFoundingDiscounts(createStripe());
-      } catch (error) {
-        founding = { error: error instanceof Error ? error.message : "founding settle failed" };
-      }
-    }
-
     // The leader path (25 Nov 2026): the one reminder to a leader who has not
     // opened, then wiping whole-room sets 7 days after their links ended. Each
-    // in its own try, never allowed to fail the emails above.
+    // in its own try, and BEFORE the lifecycle run, so a throw there can never
+    // skip the wipe the privacy page promises (R2-3).
     let leader: { reminded: number; forgotten: number; purged: number } | { error: string } = { reminded: 0, forgotten: 0, purged: 0 };
     try {
       const reminders = await sendLeaderReminders();
@@ -45,6 +32,20 @@ export async function GET(request: Request) {
       if (!("error" in leader)) leader.purged = purged;
     } catch (error) {
       console.error("Leader set purge failed:", error);
+    }
+
+    const result = await runLifecycleAutomation();
+
+    // Backstop for the invoice.paid webhook: a founding centre's discount comes
+    // off after exactly three paid months even if that webhook was missed.
+    // Separate from the emails, and never allowed to fail them.
+    let founding: Awaited<ReturnType<typeof settleAllFoundingDiscounts>> | { error: string } | null = null;
+    if (process.env.STRIPE_SECRET_KEY) {
+      try {
+        founding = await settleAllFoundingDiscounts(createStripe());
+      } catch (error) {
+        founding = { error: error instanceof Error ? error.message : "founding settle failed" };
+      }
     }
 
     const ranAt = new Date().toISOString();

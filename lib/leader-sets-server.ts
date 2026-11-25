@@ -16,6 +16,7 @@ import {
   type SetView,
 } from "@/lib/leader-sets";
 import { alreadyInCentre } from "@/lib/story-check-server";
+import { forgetLeaderAddressOnOpen } from "@/lib/email/leader-check";
 
 /**
  * Server side of a whole room on one link (lib/leader-sets.ts). Service role
@@ -72,7 +73,11 @@ export async function openLeaderSet(set: FoundSet, token: string, now = new Date
       .eq("status", "sent")
       .select(`${SET_COLUMNS}, offer_ref_hash`)
       .maybeSingle();
-    if (data) return viewForSet(data as FoundSet, token, now);
+    if (data) {
+      // First open: no reminder will go, so the leader's address is dropped now (R4-1).
+      await forgetLeaderAddressOnOpen({ setId: set.id });
+      return viewForSet(data as FoundSet, token, now);
+    }
   }
   return viewForSet(set, token, now);
 }
@@ -218,17 +223,19 @@ export async function recentSetsFor(userId: string, now = new Date()) {
 }
 
 /**
- * Wipe the content of sets 7 days after they stopped opening (RULINGS.txt
+ * Wipe the content of sets 7 days after they stopped opening, ran out or
+ * cancelled (RULINGS.txt
  * answer 4): first names, notes, drafts and comments become null; decisions,
  * the set row and its offer stay. Called from the email cron.
  */
 export async function purgeExpiredSets(now = new Date()): Promise<number> {
   const admin = createAdminSupabase();
   const before = new Date(now.getTime() - 7 * 86_400_000).toISOString();
-  const { data: due, error } = await admin.from("leader_sets").select("id, expires_at, purged_at").is("purged_at", null).lt("expires_at", before).limit(200);
+  // Ended means ran out OR cancelled: a cancelled set is wiped a week after the cancel (R1-12).
+  const { data: due, error } = await admin.from("leader_sets").select("id, expires_at, revoked_at, purged_at").is("purged_at", null).or(`expires_at.lt.${before},revoked_at.lt.${before}`).limit(200);
   if (error || !due) return 0;
   let purged = 0;
-  for (const row of due as Array<{ id: string; expires_at: string; purged_at: string | null }>) {
+  for (const row of due as Array<{ id: string; expires_at: string; revoked_at: string | null; purged_at: string | null }>) {
     if (!setPurgeDue(row, now)) continue;
     const { error: wipe } = await admin.from("leader_set_items").update({ child_first_name: null, note: null, draft: null, comment: null }).eq("set_id", row.id);
     if (wipe) { console.error("Set purge failed:", wipe.message); continue; }

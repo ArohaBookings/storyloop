@@ -7,7 +7,8 @@
  * - /check: a leader checking one story an educator sent them.
  * - /w/[code]: a wall card's story, opened from its QR code.
  * - /check-my-story: the public story check (held off in this release).
- * - /join: a team invitation; /unsubscribe: an emailed link.
+ * - /join: a team invitation; /unsubscribe and /stop: emailed links (the
+ *   leader's stop link carries her address, so nothing may read that URL).
  * - Every page of the signed-in app (app/(app)/*) and the admin pages: they
  *   show stories, notes, children and statements. tests/ad-free-pages.test.ts
  *   fails if a new app page is not on this list.
@@ -21,7 +22,7 @@
  * in the page at all, and arriving at one inside a session that already has
  * the tag withdraws ad consent. Pure.
  */
-export const AD_FREE_PUBLIC_PAGES: readonly string[] = ["/family", "/check", "/w", "/check-my-story", "/join", "/unsubscribe"];
+export const AD_FREE_PUBLIC_PAGES: readonly string[] = ["/family", "/check", "/w", "/check-my-story", "/join", "/unsubscribe", "/stop"];
 
 /** Every top-level page of the signed-in app (app/(app)) and the admin pages. */
 export const AD_FREE_APP_PAGES: readonly string[] = [

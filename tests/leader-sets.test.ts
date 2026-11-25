@@ -57,3 +57,18 @@ test("answer all touches only pieces with no decision, and purge keeps decisions
   assert.match(purge, /update\(\{ child_first_name: null, note: null, draft: null, comment: null \}\)/);
   assert.ok(!/decision: null/.test(purge), "decisions are kept");
 });
+
+test("a cancelled set is wiped a week after it was cancelled, not after its original end (R1-12, R2-3)", async () => {
+  const expires = new Date(NOW.getTime() + 14 * 86_400_000);
+  const revoked = new Date(NOW.getTime() + 86_400_000);
+  assert.equal(setPurgeDue({ expires_at: expires.toISOString(), revoked_at: revoked.toISOString(), purged_at: null }, new Date(revoked.getTime() + 7 * 86_400_000)), true);
+  assert.equal(setPurgeDue({ expires_at: expires.toISOString(), revoked_at: revoked.toISOString(), purged_at: null }, new Date(revoked.getTime() + 6 * 86_400_000)), false);
+  const { readFileSync } = await import("node:fs");
+  const server = readFileSync("lib/leader-sets-server.ts", "utf8");
+  assert.match(server.slice(server.indexOf("export async function purgeExpiredSets")), /\.or\(`expires_at\.lt\.\$\{before\},revoked_at\.lt\.\$\{before\}`\)/);
+  // The purge never waits on the lifecycle run: it goes first, so a throw there cannot skip it.
+  const cron = readFileSync("app/api/cron/email-automation/route.ts", "utf8");
+  assert.ok(cron.indexOf("await purgeExpiredSets()") < cron.indexOf("await runLifecycleAutomation()"));
+  const panel = readFileSync("components/app/SendToLeader.tsx", "utf8");
+  assert.match(panel, /deletes them a week after the link ends/);
+});

@@ -66,3 +66,7 @@ test("the paid conversion is sent only from /upgraded, then she goes back to the
   assert.match(readFileSync("components/analytics/PaidReturn.tsx", "utf8"), /reportPaidConversion\(/);
   assert.doesNotMatch(readFileSync("app/upgraded/page.tsx", "utf8"), /stories|child_name|observations|from\("/, "the stop shows nothing about a child");
 });
+
+test("the leader's stop page carries her address in its link: no advertising tag there (R2-1)", () => {
+  for (const path of ["/stop", "/stop?t=eyJlIjoiam9Aa293aGFpLm56In0", "/stop/"]) assert.equal(adsTagAllowedOn(path), false, path);
+});

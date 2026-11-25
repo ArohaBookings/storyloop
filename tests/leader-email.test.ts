@@ -102,3 +102,24 @@ test("her first name from the send panel is saved once, and then she is never as
   // The panel asks only when the server held the email for no_name.
   assert.match(readFileSync("components/app/SendToLeader.tsx", "utf8"), /outcome\.reason === "no_name"\) \{\s*\/\/[^\n]*\n\s*setAskName\(true\);/);
 });
+
+// Review fixes, 25 Nov (R2-5, R1-5/R2-6, R1-11, R2-2/R4-1).
+test("one address cannot be mailed past its own cap, from any number of accounts (R2-5)", () => {
+  assert.deepEqual(canSendLeaderEmail(facts({ recipientLast24h: 3 })), { ok: false, reason: "recipient_cap" });
+  assert.deepEqual(canSendLeaderEmail(facts({ recipientLast7d: 6 })), { ok: false, reason: "recipient_cap" });
+  assert.deepEqual(canSendLeaderEmail(facts({ allLast24h: 300 })), { ok: false, reason: "paused" });
+  assert.deepEqual(canSendLeaderEmail(facts({ recipientLast24h: 2, recipientLast7d: 5, allLast24h: 299 })), { ok: true });
+});
+
+test("the reminder run never picks up rows with no address, oldest due first; a failed insert is not 'already emailed'", async () => {
+  const { readFileSync } = await import("node:fs");
+  const src = readFileSync("lib/email/leader-check.ts", "utf8");
+  const query = src.slice(src.indexOf("export async function sendLeaderReminders"), src.indexOf("const rows = (data ?? [])"));
+  assert.match(query, /\.not\("recipient", "is", null\)/);
+  assert.match(query, /\.order\("reminder_due_at", \{ ascending: true \}\)/);
+  assert.match(src, /reason: error\?\.code === "23505" \? "duplicate" : "failed"/);
+  // Every place the leader's address is dropped from leader_emails also drops it from email_events.
+  assert.match(src, /async function forgetLeaderAddress/);
+  assert.doesNotMatch(src, /update\(\{ [^}]*recipient: null[^}]*\}\)\.eq\("id", row\.id\)/, "use forgetLeaderAddress");
+  assert.match(src, /from\("email_events"\)\.update\(\{ recipient: null \}\)/);
+});

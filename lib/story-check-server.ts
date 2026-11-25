@@ -24,6 +24,7 @@ import { getMembership } from "@/lib/centres";
 import { isCentrePlan } from "@/lib/centre-offer";
 import type { SetView } from "@/lib/leader-sets";
 import { coverForSet, findSet, openLeaderSet, type FoundSet } from "@/lib/leader-sets-server";
+import { forgetLeaderAddressOnOpen } from "@/lib/email/leader-check";
 
 // join_consent and show_sources (25 Nov 2026) have defaults, so every row made before them reads as a no.
 export const CHECK_COLUMNS = "id, story_id, user_id, status, leader_name, comment, created_at, opened_at, decided_at, expires_at, revoked_at, centre_name, share_counts, join_consent, show_sources";
@@ -31,9 +32,18 @@ const COLUMNS = CHECK_COLUMNS;
 
 type FoundCheck = CheckRow & { offer_ref_hash?: string | null };
 
+/** The columns every link had before 25 Nov 2026 (776e537). */
+export const CHECK_COLUMNS_BEFORE = "id, story_id, user_id, status, leader_name, comment, created_at, opened_at, decided_at, expires_at, revoked_at, centre_name, share_counts";
+
 async function findCheck(token: string): Promise<FoundCheck | null> {
   if (!looksLikeCheckToken(token)) return null;
-  const { data } = await createAdminSupabase().from("story_checks").select(`${COLUMNS}, offer_ref_hash`).eq("token_hash", hashCheckToken(token)).maybeSingle();
+  const admin = createAdminSupabase();
+  const { data, error } = await admin.from("story_checks").select(`${COLUMNS}, offer_ref_hash`).eq("token_hash", hashCheckToken(token)).maybeSingle();
+  if (error?.code === "42703") {
+    // The 25 Nov migration is not in yet (R1-7): every existing link still opens, read as a no to both new columns.
+    const { data: before } = await admin.from("story_checks").select(`${CHECK_COLUMNS_BEFORE}, offer_ref_hash`).eq("token_hash", hashCheckToken(token)).maybeSingle();
+    return before ? ({ ...(before as object), join_consent: false, show_sources: false } as FoundCheck) : null;
+  }
   return (data as FoundCheck | null) ?? null;
 }
 
@@ -151,7 +161,11 @@ export async function openLeaderCheck(token: string, now = new Date()): Promise<
       .eq("status", "sent")
       .select(COLUMNS)
       .maybeSingle();
-    if (data) return viewFor(data as CheckRow, now, token, check.offer_ref_hash);
+    if (data) {
+      // First open: no reminder will go, so the leader's address is dropped now (R4-1).
+      await forgetLeaderAddressOnOpen({ checkId: check.id });
+      return viewFor(data as CheckRow, now, token, check.offer_ref_hash);
+    }
   }
   return viewFor(check, now, token, check.offer_ref_hash);
 }

@@ -85,6 +85,7 @@ const ROWS: Row[] = [
     lines: [
       "Children's first names, the educator's note (written or recorded), the learning story drafted from it, and the child profiles an educator chooses to create.",
       "For the account: the educator's name, email address and a hashed password.",
+      "If an educator asks StoryLoop to email her leader: the leader's email address, kept for about two days at most.",
       "A voice memo is turned into text and not kept as audio. A photo of written notes is read into text and not kept.",
       "If an educator gives a family a Family link, what the family writes back is kept with the story and shown only to that educator.",
     ],
@@ -129,7 +130,8 @@ const ROWS: Row[] = [
       "Educators keep their drafts private unless they choose to share. Sharing is off by default and only the educator can turn it on.",
       "A centre leader sees activity (how many stories, when last written), never content they were not given.",
       "A leader check link opens one story for 14 days. A Family link opens only the stories an educator chose to share about one child. Both can be cancelled.",
-      "Statements sent to a leader as a set are kept for the link's 14 days, then deleted within 7 days of it ending. A leader's email address is kept only until the link is opened or ends.",
+      "If an educator asks, StoryLoop emails her leader one link to check, and at most one reminder two days later.",
+      "Statements sent to a leader as a set are kept for the link's 14 days, then deleted about a week after the link ends or is cancelled. A leader's email address is deleted when the link is opened, or when the one reminder is due two days after the first email. If a leader asks StoryLoop to stop, her address is kept on a stop list so it is never emailed again.",
     ],
   },
   {
