@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { ArrowDown } from "lucide-react";
+import type { StatementGuideForm } from "@/lib/statement-guide-forms";
 import DrafterSeen from "@/components/marketing/DrafterSeen";
 import TransitionDemo from "@/components/marketing/TransitionDemo";
 import type { TransitionFramework, TransitionMode } from "@/lib/ai/transition-draft";
@@ -32,6 +34,7 @@ export default function GuideHeroDrafter({
   official,
   followZone = false,
   desktopColumns = false,
+  weekly,
 }: {
   framework: TransitionFramework;
   mode: TransitionMode;
@@ -48,6 +51,8 @@ export default function GuideHeroDrafter({
    * 1024px nothing moves.
    */
   desktopColumns?: boolean;
+  /** B8: the guide data's line for the weekly writer, under the drafter. */
+  weekly?: StatementGuideForm["weekly"];
 }) {
   return (
     <div className={desktopColumns ? "mt-3 sm:mt-6 lg:contents" : "mt-3 sm:mt-6"} data-testid="guide-hero-drafter-block">
@@ -81,6 +86,21 @@ export default function GuideHeroDrafter({
       </div>
       <DrafterSeen id="transition-try" kind={mode === "summary" ? "summary" : "statement"} className={`mt-2 max-w-5xl scroll-mt-24 sm:mt-3${desktopColumns ? " lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:min-w-0" : ""}`}>
         <TransitionDemo framework={framework} mode={mode} choices={choices} hero followZone={followZone} />
+        {/* B8 (25 Nov 2026): the weekly job, in words from the guide data (lib/statement-guide-forms.ts). */}
+        {weekly && (
+          <p className="mt-3 text-sm leading-relaxed text-ink-600" data-testid="guide-weekly-line">
+            {weekly.lead}{" "}
+            {weekly.links.map((link, index) => (
+              <span key={link.href}>
+                {index > 0 && " or "}
+                <Link href={link.href} className="font-semibold text-clay-700 underline decoration-clay-300 underline-offset-2" data-track="guide_weekly_stories">
+                  {link.label}
+                </Link>
+              </span>
+            ))}
+            .
+          </p>
+        )}
       </DrafterSeen>
     </div>
   );
