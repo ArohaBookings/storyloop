@@ -22,6 +22,27 @@ export function offerJoinedIds(input: {
   return ids;
 }
 
-export function maskOfferMembers<T extends { user_id: string; full_name: string | null; email: string | null }>(members: T[], viaOffer: Set<string>): T[] {
-  return members.map((member) => (viaOffer.has(member.user_id) ? { ...member, full_name: educatorFirstName(member.full_name), email: null } : member));
+/** Members added by the tick beside Send only (not the one-tap invitation she accepted herself). */
+export function tickJoinedIds(input: {
+  memberIds: string[];
+  tickedOffers: { user_id: string | null; offer_claimed_by: string | null; join_consent: boolean | null }[];
+}): Set<string> {
+  return offerJoinedIds({ memberIds: input.memberIds, acceptedOfferInvites: [], tickedOffers: input.tickedOffers });
+}
+
+/**
+ * First name and no address for anyone met through a check. Someone added by
+ * the tick (activityHidden) also shows no activity numbers until she turns
+ * sharing on herself: the leader sees only what she sent (R2-4).
+ */
+export function maskOfferMembers<T extends { user_id: string; full_name: string | null; email: string | null; shares_stories?: boolean | null }>(
+  members: T[],
+  viaOffer: Set<string>,
+  activityHidden: Set<string> = new Set(),
+): T[] {
+  return members.map((member) => {
+    const masked = viaOffer.has(member.user_id) ? { ...member, full_name: educatorFirstName(member.full_name), email: null } : member;
+    if (!activityHidden.has(member.user_id) || member.shares_stories === true) return masked;
+    return { ...masked, stories_total: null, stories_30d: null, last_story_at: null, activity_hidden: true };
+  });
 }

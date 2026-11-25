@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
         shouldCreateUser: true,
         emailRedirectTo: `${origin}${signupLinkFinishPath(next)}`,
         // Only used when the link makes a new account (existing ones keep theirs).
-        data: { ...(name ? { full_name: name } : {}), plan_intent: plan, signup_via: "link" },
+        data: { ...(name ? { full_name: name } : { name_skipped: true }), plan_intent: plan, signup_via: "link" },
       },
     });
     if (error) {

@@ -15,11 +15,11 @@ export const STATEMENT_GUIDE_FORMS: Record<string, StatementGuideForm> = {
   },
   "tlds-examples": {
     formName: "Transition Learning and Development Statement (TLDS)",
-    ownedSentence: "StoryLoop drafts your TLDS from your own notes. You check it, then copy it into the Online TLDS.",
+    ownedSentence: "StoryLoop drafts your TLDS from your own notes. You check it, then copy it into the Online TLDS (in Insight).",
   },
   "nsw-transition-to-school-statement": {
     formName: "NSW Transition to School Digital Statement",
-    ownedSentence: "StoryLoop drafts your Transition to School Digital Statement from your own notes. You check it, then copy it into the official statement.",
+    ownedSentence: "StoryLoop drafts your Transition to School Digital Statement from your own notes. You check it, then copy it into the department's digital statement.",
   },
   "qld-kindergarten-transition-statement": {
     formName: "Kindergarten Transition Statement (KTS)",

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CLASS_SET_MAX, addToClassSet, clearClassSet, listClassSet, unnamedCount, type ClassPiece } from "../lib/class-set";
+import { CLASS_SET_MAX, addToClassSet, clearClassSet, fullCount, listClassSet, unnamedCount, type ClassPiece } from "../lib/class-set";
 
 function memory() {
   const data = new Map<string, string>();
@@ -13,22 +13,33 @@ const piece = (name: string, over: Partial<ClassPiece> = {}): ClassPiece => ({
   at: NOW, ...over,
 });
 
-test("add, list and clear, oldest first; the same child again replaces the earlier piece", () => {
+test("add, list and clear, oldest first; the same child from the same note again (Write it again) replaces the earlier piece", () => {
   const s = memory();
   assert.equal(addToClassSet(piece("Aria"), NOW, s), true);
   assert.equal(addToClassSet(piece("Nikau"), NOW + 1, s), true);
-  assert.equal(addToClassSet(piece("aria", { note: "again" }), NOW + 2, s), true);
+  assert.equal(addToClassSet(piece("aria", { note: "Aria built a tower." }), NOW + 2, s), true);
   const list = listClassSet(NOW + 3, s);
   assert.deepEqual(list.map((p) => p.childFirstName), ["Nikau", "aria"]);
   clearClassSet(s);
   assert.deepEqual(listClassSet(NOW, s), []);
 });
 
-test("the 31st piece is refused", () => {
+test("the 31st piece is refused, and counted so she is told (R1-6)", () => {
   const s = memory();
   for (let i = 0; i < CLASS_SET_MAX; i++) assert.equal(addToClassSet(piece(`Kid${i}`), NOW, s), true);
+  assert.equal(fullCount(s), 0);
   assert.equal(addToClassSet(piece("Extra"), NOW, s), false);
   assert.equal(listClassSet(NOW, s).length, 30);
+  assert.equal(fullCount(s), 1);
+  clearClassSet(s);
+  assert.equal(fullCount(s), 0);
+});
+
+test("two children with the same first name and different notes are both kept (R1-6)", () => {
+  const s = memory();
+  assert.equal(addToClassSet(piece("Olivia", { note: "Olivia P. painted the fence." }), NOW, s), true);
+  assert.equal(addToClassSet(piece("Olivia", { note: "Olivia K. counted the shells." }), NOW + 1, s), true);
+  assert.equal(listClassSet(NOW + 2, s).length, 2);
 });
 
 test("pieces older than 12 hours are dropped", () => {

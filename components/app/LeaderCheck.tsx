@@ -112,6 +112,8 @@ export default function LeaderCheck({
   refreshKey?: string;
 }) {
   const [check, setCheck] = useState<EducatorCheckView>(initial ?? { state: "none" });
+  // SendToLeader shows its own link and Cancel once sent: this panel then hides its copies (R3-4).
+  const [sendDone, setSendDone] = useState(false);
   const panel = useRef<HTMLElement>(null);
   const storyCheck = useOwnStoryCheck(storyId, review, refreshKey, useSeen(panel));
   const [busy, setBusy] = useState(false);
@@ -196,12 +198,13 @@ export default function LeaderCheck({
           where={where}
           again={waiting || answered || hasAnswer}
           onSent={(result) => { if (result?.check) setCheck(result.check); }}
+          onDoneChange={setSendDone}
         />
         {/* Answered too: the educator can always end a link, and the centre offer it carried (lib/story-check-server.ts endStoryLinks). */}
-        {(waiting || answered) && (
+        {(waiting || answered) && !sendDone && (
           <button type="button" onClick={cancel} disabled={busy} className="btn-ghost mt-2 px-3 py-2 text-xs" data-testid="leader-check-cancel">Cancel the link</button>
         )}
-        {waiting && <p className="mt-2 text-xs text-ink-500">A new link stops the old one working.</p>}
+        {waiting && !sendDone && <p className="mt-2 text-xs text-ink-500">A new link stops the old one working.</p>}
       </div>
 
       {error && <p className="mt-3 rounded-lg border border-clay-200 bg-clay-50 px-3 py-2 text-xs text-clay-800" role="alert">{error}</p>}

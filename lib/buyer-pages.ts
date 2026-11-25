@@ -343,7 +343,7 @@ const PAGES = {
         id: "leader-check",
         heading: "Check a story with the educator's note beside it",
         paragraphs: [
-          "In StoryLoop an educator taps Send it to my leader on a story. You get a private link that opens that one story with her note beside it, and you need no account to read it. Tap Looks good, or Suggest a change and say what, and she sees your answer. The link lasts 14 days and she can switch it off at any time.",
+          "In StoryLoop an educator taps Check with my leader on a story, and you get a private link, by email from StoryLoop or from her, that opens that one story with her note beside it. You need no account to read it. Tap Looks good, or Suggest a change and say what, and she sees your answer. The link lasts 14 days and she can stop it at any time.",
         ],
       },
       {
@@ -374,7 +374,7 @@ const PAGES = {
       },
       {
         q: "Do I need a StoryLoop account to check a story?",
-        a: "No. The educator sends you a private link that opens one story with her note beside it. It lasts 14 days, and she can switch it off at any time.",
+        a: "No. The educator sends you a private link that opens one story with her note beside it. It lasts 14 days, and she can stop it at any time.",
       },
     ],
     related: [

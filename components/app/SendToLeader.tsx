@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, Copy, Eye, Loader2, Mail, Share2, UserCheck, X } from "lucide-react";
 import type { ClassPiece } from "@/lib/class-set";
 import { CENTRE_NAME_MAX, CHECK_DAYS, type EducatorCheckView, type LeaderView } from "@/lib/story-check";
@@ -23,6 +24,8 @@ import LeaderCheckPage from "@/components/marketing/LeaderCheckPage";
  */
 export type SendToLeaderProps = ({ kind: "story"; storyId: string } | { kind: "set"; pieces: ClassPiece[] }) & {
   onSent?: (result?: { check?: EducatorCheckView; setId?: string }) => void;
+  /** Told when the panel shows its own link and Cancel (the done step), so a host hides its copies (R3-4). */
+  onDoneChange?: (done: boolean) => void;
   /** Where the card is shown (a story, the statement page, the statement wall), recorded on leader_send_offered and leader_check_sent. */
   where?: LeaderSendPlace;
   /** Story only: the existing "how many children I have written about lately" tick. */
@@ -33,8 +36,11 @@ export type SendToLeaderProps = ({ kind: "story"; storyId: string } | { kind: "s
 
 /** The join tick's words, exactly as ruled on 24 Nov (RULINGS.txt answer 1). */
 export const JOIN_WORDS = "If my leader starts our centre on StoryLoop, add me to the team. My drafts stay private, and if I pay for my own plan I keep paying until I change it.";
-/** What the set panel says before she sends (RULINGS.txt answer 4). */
-export const KEEP_WORDS = "To send this, StoryLoop keeps these statements for 14 days so your leader can open them, then deletes them.";
+/**
+ * What the set panel says before she sends (RULINGS.txt answer 4, made true of
+ * the code: the wipe is 7 days after the link ends or is cancelled, R1-12).
+ */
+export const KEEP_WORDS = "To send this, StoryLoop keeps these statements for 14 days so your leader can open them, and deletes them a week after the link ends.";
 
 export type LeaderSendPlace = (typeof LEADER_SEND_PLACES)[number];
 
@@ -49,6 +55,8 @@ type Email = { asked: false } | { asked: true; sent: true } | { asked: true; sen
 
 export default function SendToLeader(props: SendToLeaderProps) {
   const [step, setStep] = useState<Step>("form");
+  const onDoneChange = props.onDoneChange;
+  useEffect(() => { onDoneChange?.(step === "done"); }, [step, onDoneChange]);
   const [centreName, setCentreName] = useState("");
   const [address, setAddress] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -62,6 +70,13 @@ export default function SendToLeader(props: SendToLeaderProps) {
   const [email, setEmail] = useState<Email>({ asked: false });
   const [copied, setCopied] = useState(false);
   const [preview, setPreview] = useState<LeaderView | SetView | null>(null);
+  // Escape closes the preview, as Close does.
+  useEffect(() => {
+    if (!preview) return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") setPreview(null); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [preview]);
   const offered = useRef(false);
   const id = props.kind === "story" ? props.storyId : "set";
   const pieces = props.kind === "set" ? props.pieces : null;
@@ -240,6 +255,13 @@ export default function SendToLeader(props: SendToLeaderProps) {
         </div>
       ) : (
         <div className="grid gap-2 sm:max-w-md">
+          {place === "wall" && (
+            // From "Ask my centre to pay": the leader is asked to check, never to pay (no offer in the
+            // email, CONDUCTOR rule 6), so she is told to ask herself (R3-3, R4-8).
+            <p className="text-sm leading-relaxed text-ink-700" data-testid="leader-wall-ask">
+              Your leader gets these statements to check. Ask her yourself if the centre will pay: centres are free on StoryLoop until 31 January 2027.
+            </p>
+          )}
           <label htmlFor={`leader-centre-${id}`} className="text-xs font-semibold text-ink-700">
             Your centre&apos;s name <span className="font-normal text-ink-500">(optional)</span>
           </label>
@@ -287,8 +309,9 @@ export default function SendToLeader(props: SendToLeaderProps) {
 
       {error && <p className="mt-3 rounded-lg border border-clay-200 bg-clay-50 px-3 py-2 text-xs text-clay-800" role="alert">{error}</p>}
 
-      {preview && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-cream-50" role="dialog" aria-modal="true" aria-label="What your leader will see" data-testid="leader-preview">
+      {/* On document.body, above the app header's stacking context, so Close is always on top (R3-1). */}
+      {preview && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-cream-50" role="dialog" aria-modal="true" aria-label="What your leader will see" data-testid="leader-preview">
           <div className="sticky top-0 z-40 flex items-center justify-between gap-3 border-b border-clay-100 bg-paper px-4 py-2">
             <p className="text-sm font-semibold text-ink-800">This is what your leader will see. The buttons do nothing here.</p>
             <button type="button" onClick={() => setPreview(null)} className="btn-secondary min-h-[44px] flex-none px-3 text-xs" data-testid="leader-preview-close">
@@ -298,7 +321,8 @@ export default function SendToLeader(props: SendToLeaderProps) {
           <div className="py-6">
             <LeaderCheckPage preview={preview} />
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

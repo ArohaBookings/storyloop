@@ -125,7 +125,7 @@ export default function LeaderCheckPage({ preview }: { preview?: PageView }) {
         <div className="card mx-auto max-w-xl p-8 text-center" data-testid="leader-check-gone">
           <h1 className="font-display text-2xl font-bold text-ink-900">This link is not open any more</h1>
           <p className="mt-3 text-base leading-relaxed text-ink-600">
-            Links to check a story last {CHECK_DAYS} days and can be cancelled by the educator who sent them. Ask them to send you a new one.
+            Links to check a story or statements last {CHECK_DAYS} days and can be cancelled by the educator who sent them. Ask them to send you a new one.
           </p>
           <Link href="/for-centres" className="btn-secondary mt-6 inline-flex px-5 py-2.5 text-sm">What is StoryLoop?</Link>
         </div>

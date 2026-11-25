@@ -285,7 +285,7 @@ test("cancelling or replacing a link ends the offer on every check for the story
   assert.match(route, /endStoryLinks\(own\.storyId, own\.user\.id, "replace", now\)/);
   assert.match(route, /endStoryLinks\(own\.storyId, own\.user\.id, "cancel"\)/);
   const panel = readFileSync("components/app/LeaderCheck.tsx", "utf8");
-  assert.match(panel, /\(waiting \|\| answered\) && \(\s*<button[\s\S]{0,200}data-testid="leader-check-cancel"/, "Cancel the link shows on an answered check");
+  assert.match(panel, /\(waiting \|\| answered\)(?: && !sendDone)? && \(\s*<button[\s\S]{0,200}data-testid="leader-check-cancel"/, "Cancel the link shows on an answered check");
   const page = readFileSync("components/marketing/LeaderCheckPage.tsx", "utf8");
   // 25 Nov 2026: the offer is its own block, which renders nothing when the offer has ended.
   assert.match(page, /function StartBlock[\s\S]{0,200}const offer = view\.offer;\s*if \(!offer\) return null;/);
@@ -334,7 +334,7 @@ test("the one-tap invitation never hands the leader an address", () => {
   const roster = readFileSync("app/api/centres/route.ts", "utf8");
   // 25 Nov 2026: the masking moved to lib/centre-roster-privacy.ts (it also covers the tick beside Send);
   // tests/centre-roster-privacy.test.ts proves it on data.
-  assert.match(roster, /members = maskOfferMembers\(rows, viaOffer\)/);
+  assert.match(roster, /members = maskOfferMembers\(rows, viaOffer(?:, tickJoinedIds\(\{ memberIds, tickedOffers \}\))?\)/);
   const privacy = readFileSync("lib/centre-roster-privacy.ts", "utf8");
   assert.match(privacy, /viaOffer\.has\(member\.user_id\) \? \{ \.\.\.member, full_name: educatorFirstName\(member\.full_name\), email: null \}/);
 });

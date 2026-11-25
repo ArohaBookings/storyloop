@@ -1,10 +1,21 @@
 /**
  * The 25 November 2026 build's switches: one constant per new behaviour.
  *
- * Every new behaviour in this build reads its switch here. With all five
- * false the site behaves exactly as the live commit 776e537
- * (tests/build-switches.test.ts holds that rule). Turning one off is a
- * one-line change and a deploy; nothing else needs to move.
+ * The leader path, the statement wall and the centre start read their switch
+ * here. With all five false those behave as the live commit 776e537
+ * (tests/build-switches.test.ts, and the five-case writer check).
+ *
+ * NOT behind a switch (R1-8, 25 Nov review): turning all five off does not
+ * undo these, so they cannot be ruled out that way:
+ * - signup with no name box (B4) and the email-link signup's skipped name;
+ * - the demo's once-a-day limit per browser and the note carried into signup (B5);
+ * - the statement guides' drafter on the first desktop screen (B1);
+ * - the search re-aim (titles, first lines, note box, owned sentences) and the
+ *   founder section and About copy (C);
+ * - the /privacy and /data-sheet wording;
+ * - the 20261125_leader_path.sql migration, which must be applied before this
+ *   code is deployed (GET /api/centres reads leader_sets).
+ * Turning one switch off is a one-line change and a deploy.
  */
 
 /**

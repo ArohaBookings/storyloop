@@ -21,6 +21,8 @@ type Member = {
   stories_total: number;
   stories_30d: number;
   last_story_at: string | null;
+  /** Added by the tick beside Send and not sharing: no activity numbers (R2-4). */
+  activity_hidden?: boolean;
 };
 
 type TeamSummary = {
@@ -419,7 +421,9 @@ export default function CentrePage() {
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-ink-900">{m.full_name || m.email || "Educator"}</p>
                         <p className="text-xs text-ink-500">
-                          {m.stories_30d} stories in 30 days · last wrote {lastActive(m.last_story_at)}
+                          {m.activity_hidden
+                            ? "Joined from her check. Her activity shows if she turns on sharing."
+                            : <>{m.stories_30d} stories in 30 days · last wrote {lastActive(m.last_story_at)}</>}
                         </p>
                       </div>
                       <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${m.shares_stories ? "bg-sage-100 text-sage-800" : "bg-ink-100 text-ink-500"}`}>

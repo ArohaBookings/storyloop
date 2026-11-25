@@ -1732,7 +1732,7 @@ export const SEO_PAGES: Record<string, SeoPage> = {
     kicker: "Teaching practice · Australia and Aotearoa",
     heading: "Intentional teaching examples, by age.",
     intro:
-      "Intentional teaching is what you do on purpose to stretch a child's learning, inside play as much as in planned experiences. It does not mean adult-led lessons: it means knowing why you step in, how, and when to step back. Examples by age are below. Got a story to write about it? Put your note in the box.",
+      "Intentional teaching is what you do on purpose to stretch a child's learning, inside play as much as in planned experiences. It does not mean adult-led lessons: it means knowing why you step in, how, and when to step back. Examples by age are below.",
     image: { src: "/images/scenes/classroom.jpg", alt: "An educator in a centre with a tablet, children building with blocks in the background", position: "45% 60%" },
     sections: [
       {

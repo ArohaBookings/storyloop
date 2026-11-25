@@ -4,7 +4,7 @@ import { createAdminSupabase } from "@/lib/supabase/admin";
 import { getMembership, getCentre, countActiveMembers, canManageTeam, seatsRemaining } from "@/lib/centres";
 import { getPlanByKey } from "@/lib/plans";
 import { isCentrePlan } from "@/lib/centre-offer";
-import { maskOfferMembers, offerJoinedIds } from "@/lib/centre-roster-privacy";
+import { maskOfferMembers, offerJoinedIds, tickJoinedIds } from "@/lib/centre-roster-privacy";
 import { showsOnBoardCard } from "@/lib/work-role";
 import { workRoleFacts } from "@/lib/work-role-server";
 import { getTeamContext, loadTeamQueue } from "@/lib/centre-team-server";
@@ -49,7 +49,7 @@ export async function GET() {
         admin.rpc("centre_activity", { p_centre_id: centre.id }),
         admin.from("centre_invites").select("accepted_by").eq("centre_id", centre.id).eq("from_leader_offer", true).not("accepted_by", "is", null),
       ]);
-      const rows: { user_id: string; full_name: string | null; email: string | null }[] = Array.isArray(data) ? data : [];
+      const rows: { user_id: string; full_name: string | null; email: string | null; shares_stories?: boolean | null }[] = Array.isArray(data) ? data : [];
       const memberIds = rows.map((member) => member.user_id);
       // Somebody who joined from a leader check or a statement set (the one-tap
       // invitation, or the tick beside Send) is shown as the leader first met
@@ -58,12 +58,13 @@ export async function GET() {
         ? await Promise.all((["story_checks", "leader_sets"] as const).map((table) =>
             admin.from(table).select("user_id, offer_claimed_by, join_consent").in("offer_claimed_by", memberIds).eq("join_consent", true)))
         : [];
+      const tickedOffers = ticked.flatMap((result) => (result.data ?? []) as { user_id: string | null; offer_claimed_by: string | null; join_consent: boolean | null }[]);
       const viaOffer = offerJoinedIds({
         memberIds,
         acceptedOfferInvites: (fromOffer ?? []) as { accepted_by: string | null }[],
-        tickedOffers: ticked.flatMap((result) => (result.data ?? []) as { user_id: string | null; offer_claimed_by: string | null; join_consent: boolean | null }[]),
+        tickedOffers,
       });
-      members = maskOfferMembers(rows, viaOffer);
+      members = maskOfferMembers(rows, viaOffer, tickJoinedIds({ memberIds, tickedOffers }));
     }
 
     return NextResponse.json({

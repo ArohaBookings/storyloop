@@ -72,7 +72,7 @@ export const GUIDE_PRODUCT: Record<string, GuideProductEntry> = {
   "tlds-examples": {
     kind: "sentence",
     ownedSentence:
-      "StoryLoop drafts a Victorian TLDS from your own notes, written against the VEYLDF outcomes: you check every line, then copy it into Insight. Free to try on this page.",
+      "StoryLoop drafts a Victorian TLDS from your own notes, written against the VEYLDF outcomes: you check every line, then copy it into the Online TLDS (in Insight). Free to try on this page.",
   },
   "qld-kindergarten-transition-statement": {
     kind: "sentence",

@@ -119,5 +119,6 @@ test("the three held pages: every switch off, the live planning cycle page untou
     assert.deepEqual(rivalNames(page.words), [], page.title);
     assert.ok(!page.words.includes("—"), page.title);
   }
-  assert.match(JSON.stringify(BUYER_PAGES["educational-leader-checklist"]), /Send it to my leader/);
+  assert.match(JSON.stringify(BUYER_PAGES["educational-leader-checklist"]), /Check with my leader/);
+  assert.doesNotMatch(JSON.stringify(BUYER_PAGES["educational-leader-checklist"]), /Send it to my leader|switch it off/);
 });

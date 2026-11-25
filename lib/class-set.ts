@@ -28,6 +28,19 @@ export const CLASS_SET_HOURS = 12;
 /** How many drafts this sitting had no first name, so the panel can say why they are not in the set. */
 export const CLASS_SET_UNNAMED_KEY = "storyloop_class_set_unnamed";
 
+/** How many drafts were left out because the set was full (CLASS_SET_MAX), so the panel can say so. */
+export const CLASS_SET_FULL_KEY = "storyloop_class_set_full";
+
+/** Drafts left out of the set because it was full. */
+export function fullCount(s: Store | null = store()): number {
+  try {
+    const n = Number(s?.getItem(CLASS_SET_FULL_KEY) ?? 0);
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+  } catch {
+    return 0;
+  }
+}
+
 /** Drafts left out of the set because they had no first name. */
 export function unnamedCount(s: Store | null = store()): number {
   try {
@@ -79,9 +92,11 @@ function announce(count: number) {
 }
 
 /**
- * Add a finished draft. The same child drafted again replaces the earlier
- * piece (she pressed Write it again). Returns false when the set is full, the
- * piece has no first name, or storage is blocked.
+ * Add a finished draft. The same child drafted again from the same note
+ * replaces the earlier piece (she pressed Write it again); two children with
+ * the same first name and different notes are both kept (R1-6). Returns false
+ * when the set is full (counted, so the panel tells her), the piece has no
+ * first name, or storage is blocked.
  */
 export function addToClassSet(piece: ClassPiece, now = Date.now(), s: Store | null = store()): boolean {
   if (!s || !piece.draft) return false;
@@ -92,9 +107,13 @@ export function addToClassSet(piece: ClassPiece, now = Date.now(), s: Store | nu
     return false;
   }
   const list = listClassSet(now, s);
-  const key = (p: ClassPiece) => `${p.childFirstName.trim().toLocaleLowerCase("en-NZ")}|${p.mode}`;
+  const key = (p: ClassPiece) => `${p.childFirstName.trim().toLocaleLowerCase("en-NZ")}|${p.mode}|${p.note.trim()}`;
   const rest = list.filter((p) => key(p) !== key(piece));
-  if (rest.length >= CLASS_SET_MAX) return false;
+  if (rest.length >= CLASS_SET_MAX) {
+    try { s.setItem(CLASS_SET_FULL_KEY, String(fullCount(s) + 1)); } catch { /* storage blocked */ }
+    announce(list.length);
+    return false;
+  }
   try {
     s.setItem(CLASS_SET_KEY, JSON.stringify([...rest, { ...piece, at: now }]));
   } catch {
@@ -109,6 +128,7 @@ export function clearClassSet(s: Store | null = store()) {
   try {
     s?.removeItem(CLASS_SET_KEY);
     s?.removeItem(CLASS_SET_UNNAMED_KEY);
+    s?.removeItem(CLASS_SET_FULL_KEY);
   } catch {
     /* nothing to clear */
   }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, MessageSquareText, UserCheck } from "lucide-react";
 import SendToLeader from "@/components/app/SendToLeader";
-import { CLASS_SET_EVENT, clearClassSet, listClassSet, unnamedCount, type ClassPiece } from "@/lib/class-set";
+import { CLASS_SET_EVENT, CLASS_SET_MAX, clearClassSet, fullCount, listClassSet, unnamedCount, type ClassPiece } from "@/lib/class-set";
 
 type SentSet = { id: string; sentAt: string; opened: boolean; pieces: number; approved: number; changes: number; open: boolean; comments: Array<{ childName: string; comment: string }> };
 
@@ -17,13 +17,14 @@ type SentSet = { id: string; sentAt: string; opened: boolean; pieces: number; ap
 export default function ClassSetPanel() {
   const [pieces, setPieces] = useState<ClassPiece[]>([]);
   const [unnamed, setUnnamed] = useState(0);
+  const [leftOut, setLeftOut] = useState(0);
   const [open, setOpen] = useState(false);
   const [sets, setSets] = useState<SentSet[]>([]);
   // What was just sent stays on screen with its link (shown once) after the tab's set is emptied.
   const [sent, setSent] = useState<ClassPiece[] | null>(null);
 
   useEffect(() => {
-    const read = () => { setPieces(listClassSet()); setUnnamed(unnamedCount()); };
+    const read = () => { setPieces(listClassSet()); setUnnamed(unnamedCount()); setLeftOut(fullCount()); };
     read();
     window.addEventListener(CLASS_SET_EVENT, read);
     fetch("/api/leader-sets").then((r) => (r.ok ? r.json() : null)).then((data) => { if (data?.sets) setSets(data.sets); }).catch(() => {});
@@ -55,6 +56,11 @@ export default function ClassSetPanel() {
               {unnamed === 1
                 ? "1 draft has no first name, so it is not in this set. Add a first name and draft it again to include it."
                 : `${unnamed} drafts have no first name, so they are not in this set. Add a first name and draft them again to include them.`}
+            </p>
+          )}
+          {leftOut > 0 && !sent && (
+            <p className="mt-2 text-xs leading-relaxed text-clay-800" data-testid="class-set-full">
+              {`This set holds ${CLASS_SET_MAX}. ${leftOut === 1 ? "1 draft is" : `${leftOut} drafts are`} not in it. Send this set, then draft the rest again for a new one.`}
             </p>
           )}
           {open && (
