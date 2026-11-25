@@ -57,7 +57,7 @@ export async function GET() {
   const extra = (resetRow[0] ?? {}) as { last_reset_at?: string | null; trial_ends_at?: string | null };
 
   const email = (user.email ?? "").trim().toLowerCase();
-  const [referrals, wallCards, invites, children] = await Promise.all([
+  const [referrals, wallCards, invites, children, tickJoins] = await Promise.all([
     settle(
       admin
         .from("referrals")
@@ -81,6 +81,8 @@ export async function GET() {
         )
       : Promise.resolve([]),
     settle(admin.from("child_profiles").select("id, name").eq("user_id", user.id).limit(500)),
+    // Added to a centre by her own tick (MERGE2 2c). joined_via arrives with 20261126: missing means nothing to say.
+    settle(admin.from("centre_members").select("centre_id, joined_at, centres(name)").eq("user_id", user.id).eq("status", "active").eq("joined_via", "leader_tick").limit(3)),
   ]);
 
   // Quiet children and the end of term. The term note is only given when the
@@ -178,6 +180,10 @@ export async function GET() {
     wall: wallRows.length ? { scans: wallScans, lastScannedAt } : null,
     familyReplies: await unseenFamilyReplies(user.id),
     term,
+    tickJoins: (tickJoins as Array<{ centre_id: string; joined_at: string | null; centres: { name?: string } | Array<{ name?: string }> | null }>).map((row) => {
+      const centre = Array.isArray(row.centres) ? row.centres[0] : row.centres;
+      return { centreId: row.centre_id, centreName: centre?.name?.trim() || "your centre", joinedAt: row.joined_at ?? now.toISOString() };
+    }),
     invites: (invites as Array<{ id: string; token: string; created_at: string; centres: { name?: string } | Array<{ name?: string }> | null }>).map((row) => {
       const centre = Array.isArray(row.centres) ? row.centres[0] : row.centres;
       return { id: row.id, token: row.token, createdAt: row.created_at, centreName: centre?.name?.trim() || "A centre" };

@@ -93,6 +93,7 @@ const ICONS: Record<NotificationKind, typeof Bell> = {
   allowance: CreditCard,
   invite: Users,
   family: HeartHandshake,
+  team: Users,
 };
 
 function ago(date: string) {

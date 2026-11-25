@@ -168,3 +168,19 @@ test("read state: seen ids are remembered, bounded, and counted", () => {
   assert.deepEqual(mergeSeen("not an array", ["a"]), ["a"]);
   assert.deepEqual(mergeSeen(["a", "b"], ["a"]), ["b", "a"], "re-seeing moves an id to the end rather than duplicating it");
 });
+
+test("added to a centre by her tick: one plain note with the centre's name, private drafts, and where to leave (MERGE2 2c)", () => {
+  const list = buildNotifications(facts({ tickJoins: [{ centreId: "c1", centreName: "Kowhai Kindergarten", joinedAt: "2026-09-22T02:00:00Z" }] }));
+  assert.equal(list.length, 1);
+  const [note] = list;
+  assert.equal(note.id, "team:c1", "a stable id, so it is new only once");
+  assert.equal(note.kind, "team");
+  assert.match(note.title, /Kowhai Kindergarten's team/);
+  assert.match(note.body, /drafts stay private until you share them/);
+  assert.match(note.body, /Leave this team/);
+  assert.equal(note.href, "/centre");
+  assert.ok(!/—/.test(note.title + note.body));
+  // Joined by accepting an invitation is not passed in; and after 30 days the note has done its job.
+  assert.deepEqual(buildNotifications(facts({ tickJoins: [{ centreId: "c1", centreName: "Kowhai", joinedAt: "2026-08-01T00:00:00Z" }] })), []);
+  assert.deepEqual(buildNotifications(facts({ tickJoins: [] })), []);
+});

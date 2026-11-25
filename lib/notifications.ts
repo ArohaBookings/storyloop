@@ -25,7 +25,7 @@
 import { hasFeatureAccess, type PlanKey } from "@/lib/plans";
 import { billingDay } from "@/lib/billing-dates";
 
-export type NotificationKind = "billing" | "trial" | "referral" | "quiet" | "wall" | "term" | "allowance" | "invite" | "family";
+export type NotificationKind = "billing" | "trial" | "referral" | "quiet" | "wall" | "term" | "allowance" | "invite" | "family" | "team";
 
 export type AppNotification = {
   /** Stable. Read state is keyed on it, so the same fact is never "new" twice. */
@@ -72,6 +72,12 @@ export type NotificationFacts = {
   /** Only passed when the term calendar is known to be the educator's own. */
   term: { number: number; end: string; childrenWithNoMomentThisTerm: number | null } | null;
   invites: Array<{ id: string; centreName: string; token: string; createdAt: string }>;
+  /**
+   * Centres she was added to by her own tick when she sent her leader a check
+   * (centre_members.joined_via = 'leader_tick', MERGE2 2c). She never accepted
+   * an invitation, so the bell tells her once where she is and how to leave.
+   */
+  tickJoins?: Array<{ centreId: string; centreName: string; joinedAt: string }>;
   /** What families wrote back through a Family link and the educator has not read yet (lib/family-link.ts). */
   familyReplies?: Array<{ id: string; storyId: string | null; childName: string; at: string }>;
 };
@@ -81,6 +87,8 @@ export const WALL_MILESTONES = [1, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000];
 export const TRIAL_NOTICE_DAYS = 3;
 /** Days before a term ends that the note appears. */
 export const TERM_NOTICE_DAYS = 10;
+/** How long the "you are in the team" note stays in the bell after her tick added her. */
+export const TICK_JOIN_NOTICE_DAYS = 30;
 /** The bell never shows more than this many; older ones drop off. */
 export const MAX_NOTIFICATIONS = 8;
 
@@ -180,6 +188,19 @@ export function buildNotifications(facts: NotificationFacts): AppNotification[] 
       body: "Joining shares who is writing and when, never what you wrote, unless you turn sharing on yourself.",
       href: `/join?token=${encodeURIComponent(invite.token)}`,
       date: invite.createdAt,
+    });
+  }
+
+  for (const join of facts.tickJoins ?? []) {
+    const joined = Date.parse(join.joinedAt);
+    if (!Number.isFinite(joined) || now.getTime() - joined > TICK_JOIN_NOTICE_DAYS * DAY) continue;
+    out.push({
+      id: `team:${join.centreId}`,
+      kind: "team",
+      title: `You are in ${join.centreName}'s team on StoryLoop`,
+      body: "You ticked the box when you asked your leader to check your work. Your drafts stay private until you share them. To leave, open My centre and tap Leave this team.",
+      href: "/centre",
+      date: join.joinedAt,
     });
   }
 
