@@ -24,6 +24,7 @@ Early childhood educators and teachers in New Zealand and Australia, and now Eng
 - Educator Pro: NZ$33 / A$29. Adds family reply loop, translation, child continuity, advanced quality score.
 - Centre Starter: NZ$109 / A$99 per centre, unlimited children. Adds centre calibration, planning board, documentation radar, admin.
 - Centre Growth: NZ$219 / A$199 per centre, unlimited children. Adds director ROI dashboard and multi-room analytics.
+- Centres that start in 2026 are free until 31 January 2027, with no card. If the centre does nothing, the free period ends and nothing is charged.
 - Current prices are always on https://storyloop.space/pricing
 
 ## Key pages
