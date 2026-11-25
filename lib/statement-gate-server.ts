@@ -5,9 +5,29 @@ import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfile } from "@/lib/supabase/profiles";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { STATEMENT_FREE_DAY_LIMIT, STATEMENT_FREE_LIMIT, STATEMENT_FREE_WINDOW_SECONDS } from "@/lib/child-statement";
-import { gateDecision, gateRefusal, isTrialingIndividual } from "@/lib/statement-gate";
+import { gateDecision, gateRefusal, isFreeWeekProfile, isTrialingIndividual, type GateProfile } from "@/lib/statement-gate";
+import { createAdminSupabase } from "@/lib/supabase/admin";
+import { PRO_MONTH_OFFER_ID } from "@/lib/offers";
 
 type Supabase = Awaited<ReturnType<typeof createClient>>;
+
+/**
+ * Her own account is in the 7-day free week, so statements past the free
+ * allowance need her plan (R1-2, 25 Nov review): not the free month of Pro (its
+ * redeemed grant names this subscription), not any trial with more than a week
+ * to run. Also used by the child page so its drafter shows the wall (R1-3).
+ */
+export async function isGatedFreeWeek(userId: string, profile: GateProfile): Promise<boolean> {
+  if (!STATEMENTS_PAY_TODAY || !isTrialingIndividual(profile)) return false;
+  const admin = createAdminSupabase();
+  const [{ data: proMonth }, { data: trial }] = await Promise.all([
+    admin.from("offer_grants").select("stripe_subscription_id").eq("user_id", userId).eq("offer_id", PRO_MONTH_OFFER_ID).not("redeemed_at", "is", null).maybeSingle(),
+    admin.from("profiles").select("trial_ends_at").eq("id", userId).maybeSingle(),
+  ]);
+  const proMonthSubscriptionId = typeof proMonth?.stripe_subscription_id === "string" ? proMonth.stripe_subscription_id : null;
+  const trialEndsAt = typeof trial?.trial_ends_at === "string" ? trial.trial_ends_at : null;
+  return isFreeWeekProfile({ ...profile, trial_ends_at: trialEndsAt }, { now: new Date(), proMonthSubscriptionId });
+}
 
 /**
  * The gate in front of a protected statement route (lib/statement-gate.ts).
@@ -32,7 +52,7 @@ export async function gateStatement(
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return inner(untouched);
     const profile = await getOrCreateProfile(user);
-    if (!isTrialingIndividual(profile)) return inner(untouched);
+    if (!(await isGatedFreeWeek(user.id, profile))) return inner(untouched);
     let body: Record<string, unknown> = {};
     try {
       const parsed = JSON.parse(raw) as unknown;

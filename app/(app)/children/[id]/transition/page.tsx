@@ -20,6 +20,7 @@ import PrintButton from "@/components/app/PrintButton";
 import TransitionPackView from "@/components/app/TransitionPackView";
 import ChildStatementDrafter from "@/components/app/ChildStatementDrafter";
 import { statementFrameworkFor } from "@/lib/child-statement";
+import { isGatedFreeWeek } from "@/lib/statement-gate-server";
 
 export const metadata = { title: "Transition pack" };
 
@@ -64,13 +65,16 @@ export default async function TransitionPackPage({
     .select("id", { count: "exact", head: true })
     .eq("user_id", user.id)
     .eq("child_id", child.id);
+  // In her free week statements past the free allowance need her plan (lib/statement-gate.ts):
+  // the drafter then shows the wall with Start my plan today, not a bare error (R1-3).
+  const freeWeekGated = statementFramework ? await isGatedFreeWeek(user.id, profile).catch(() => false) : false;
   const drafter = statementFramework ? (
     <ChildStatementDrafter
       childId={child.id as string}
       childName={child.name as string}
       storyCount={childStoryCount ?? 0}
       defaultFramework={statementFramework}
-      paid={hasFeatureAccess(profile.plan, "transitionPack")}
+      paid={hasFeatureAccess(profile.plan, "transitionPack") && !freeWeekGated}
     />
   ) : null;
   const back = (

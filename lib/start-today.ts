@@ -13,15 +13,64 @@ export type StartTodaySubscription = {
   id: string;
   status: string;
   metadata?: Record<string, string> | null;
+  trial_start?: number | null;
+  trial_end?: number | null;
 };
 
-/** Only her own trialing Educator or Educator Pro subscription, the one on her profile. Pure. */
+/** The free week is 7 days; a day of slack for time zones. The free month of Pro (30 days) is not it. */
+const FREE_WEEK_MAX_SECONDS = 8 * 86_400;
+
+/** A trial that is the 7-day free week, not an offer's longer trial (the free month of Pro). Pure. */
+export function isFreeWeekTrial(sub: StartTodaySubscription): boolean {
+  if (sub.metadata?.offer_id) return false;
+  if (typeof sub.trial_start === "number" && typeof sub.trial_end === "number") {
+    return sub.trial_end - sub.trial_start <= FREE_WEEK_MAX_SECONDS;
+  }
+  return true;
+}
+
+/** Only her own trialing Educator or Educator Pro subscription in its free week, the one on her profile. Pure. */
 export function canStartToday(profile: GateProfile | null | undefined, sub: StartTodaySubscription | null | undefined): boolean {
   if (!isTrialingIndividual(profile) || !sub) return false;
   if (sub.id !== profile?.stripe_subscription_id) return false;
   if (sub.status !== "trialing") return false;
+  if (!isFreeWeekTrial(sub)) return false;
   const plan = sub.metadata?.plan;
   return !plan || plan === "educator" || plan === "educator_pro";
+}
+
+/**
+ * What the statement wall may offer this account (R1-1, 25 Nov review).
+ *   free           no subscription on her profile: checkout, no free week
+ *   eligible       her free week: start it today on the card on file
+ *   failed         Stripe did not answer: Billing, never a second checkout
+ *   already_paying the profile and Stripe disagree (Stripe says the plan runs): Billing
+ *   long_trial     an offer's longer trial (the free month of Pro): Billing
+ *   not_eligible   anything else with a subscription: Billing
+ * Pure.
+ */
+export type StartTodayState = "free" | "eligible" | "failed" | "already_paying" | "long_trial" | "not_eligible";
+
+export function startTodayState(profile: GateProfile | null | undefined, sub: StartTodaySubscription | "error" | null | undefined): StartTodayState {
+  if (!profile?.stripe_subscription_id) return "free";
+  if (sub === "error") return "failed";
+  if (!sub || sub.id !== profile.stripe_subscription_id) return "not_eligible";
+  if (canStartToday(profile, sub)) return "eligible";
+  if (sub.status === "trialing" && !isFreeWeekTrial(sub)) return "long_trial";
+  if (sub.status !== "trialing" && !["canceled", "incomplete_expired"].includes(sub.status)) return "already_paying";
+  return "not_eligible";
+}
+
+/** Where the wall's "Start my plan today" goes. Only a free account ever reaches checkout. Pure. */
+export function wallPayPath(state: StartTodayState): "checkout" | "start_today" | "billing" {
+  if (state === "free") return "checkout";
+  if (state === "eligible") return "start_today";
+  return "billing";
+}
+
+/** The plan's own name for the wall's price line (Educator or Educator Pro). Pure. */
+export function startTodayPlanName(sub: StartTodaySubscription): "Educator" | "Educator Pro" {
+  return sub.metadata?.plan === "educator_pro" ? "Educator Pro" : "Educator";
 }
 
 /** Stripe's lowercase currency as ours, or null for anything else. Pure. */

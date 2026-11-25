@@ -53,9 +53,10 @@ export async function POST(request: NextRequest) {
 
   const now = checkoutNow(request.headers.get("x-storyloop-test-now"));
   const admin = createAdminSupabase();
+  const stripe = createStripe();
+  let customerId: string | null = null;
   try {
     const profile = await getOrCreateProfile(user);
-    const stripe = createStripe();
     const membership = await getMembership(user.id);
     let hadCentreBefore = false;
     if (profile.stripe_customer_id) {
@@ -75,26 +76,31 @@ export async function POST(request: NextRequest) {
     const terms = checkoutTerms({ plan, spotsLeft: await foundingSpotsLeft(stripe), hadCentreBefore, couponId: foundingCouponId(), now });
     if (!terms.noCardNeeded || terms.trialDays <= 0) return needsCheckout();
     const trialEnd = startFreeTrialEnd(now);
-    const customerId = await ensureCustomer({ stripe, supabase, user, profile });
+    customerId = await ensureCustomer({ stripe, supabase, user, profile });
 
     const cents = getPlanByKey(plan).price[currency] * 100;
     let priceId = await resolveVerifiedPriceId(stripe, plan, currency, cents, { live: (process.env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live") });
     if (!priceId) {
       // The same price checkout would build inline, made once here because a
       // subscription made by API needs a price object.
-      const price = await stripe.prices.create({
-        currency: currency.toLowerCase(),
-        unit_amount: cents,
-        recurring: { interval: "month" },
-        product_data: { name: `StoryLoop ${getPlanByKey(plan).name}`, metadata: { plan } },
-      });
+      // One price per plan, currency and amount (R1-9): a second call at the same moment gets the
+      // same price, so the subscription's idempotency key sees the same request and makes one.
+      const price = await stripe.prices.create(
+        {
+          currency: currency.toLowerCase(),
+          unit_amount: cents,
+          recurring: { interval: "month" },
+          product_data: { name: `StoryLoop ${getPlanByKey(plan).name}`, metadata: { plan } },
+        },
+        { idempotencyKey: `start-free-price-${plan}-${currency}-${cents}-${now.toISOString().slice(0, 10)}` },
+      );
       priceId = price.id;
     }
 
     const create = (founding: string | null) =>
       stripe.subscriptions.create(
         {
-          customer: customerId,
+          customer: customerId as string,
           items: [{ price: priceId as string }],
           trial_end: Math.floor(trialEnd.getTime() / 1000),
           // With no card on file, the free period ends in a clean cancellation, never a failed charge.
@@ -132,9 +138,23 @@ export async function POST(request: NextRequest) {
     await updateProfileForSubscription(admin, subscription, { userId: user.id, plan, customerId }).catch((error) => console.error("Start-free profile sync failed (the webhook repeats it):", error));
     return NextResponse.json<StartFreeResponse>(await afterSubscription({ userId: user.id, body, now, trialEnd }));
   } catch (error) {
+    // The subscription may exist although something after it, or the answer, failed (R1-9):
+    // then she is started, and checkout would make a second one.
+    const started = customerId ? await liveStartFree(stripe, customerId).catch(() => null) : null;
+    if (started) {
+      await updateProfileForSubscription(admin, started, { userId: user.id, plan, customerId: customerId as string }).catch((e) => console.error("Start-free profile sync failed (the webhook repeats it):", e));
+      const trialEnd = started.trial_end ? new Date(started.trial_end * 1000) : startFreeTrialEnd(now);
+      return NextResponse.json<StartFreeResponse>(await afterSubscription({ userId: user.id, body, now, trialEnd }));
+    }
     // Never a dead end: today's no-card checkout page takes over.
     return needsCheckout(String(error instanceof Error ? error.message : error));
   }
+}
+
+/** Her live centre subscription made by this route, if one exists. */
+async function liveStartFree(stripe: Stripe, customerId: string): Promise<Stripe.Subscription | null> {
+  const list = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 20 });
+  return list.data.find((sub) => sub.metadata?.source === "start_free" && isLiveStatus(sub.status)) ?? null;
 }
 
 /** The centre, the offer and the join, once the subscription exists. Never throws. */

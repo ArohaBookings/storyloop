@@ -45,3 +45,15 @@ test("the gate reads her OWN profile, so a member covered by a trialing centre i
   assert.match(server, /scope: "child-statement-free", key: user\.id, limit: STATEMENT_FREE_LIMIT, windowSeconds: STATEMENT_FREE_WINDOW_SECONDS/);
   assert.match(server, /scope: "child-statement-free-day", key: user\.id, limit: STATEMENT_FREE_DAY_LIMIT, windowSeconds: 86_400/);
 });
+
+// R1-2 (25 Nov review): the free month of Educator Pro is not the free week.
+import { isFreeWeekProfile } from "../lib/statement-gate";
+test("the free month of Pro, or any trial more than a week from its end, is not gated as the free week", () => {
+  const now = new Date("2026-12-01T00:00:00Z");
+  const p = { plan: "educator", subscription_status: "trialing", stripe_subscription_id: "sub_1", applied_access_code: null, trial_ends_at: "2026-12-06T00:00:00Z" };
+  assert.equal(isFreeWeekProfile(p, { now, proMonthSubscriptionId: null }), true);
+  assert.equal(isFreeWeekProfile({ ...p, trial_ends_at: "2026-12-25T00:00:00Z" }, { now, proMonthSubscriptionId: null }), false, "30-day trial");
+  assert.equal(isFreeWeekProfile({ ...p, plan: "educator_pro" }, { now, proMonthSubscriptionId: "sub_1" }), false, "last week of the Pro month");
+  assert.equal(isFreeWeekProfile(p, { now, proMonthSubscriptionId: "sub_other" }), true);
+  assert.equal(isFreeWeekProfile({ ...p, subscription_status: "active" }, { now, proMonthSubscriptionId: null }), false);
+});

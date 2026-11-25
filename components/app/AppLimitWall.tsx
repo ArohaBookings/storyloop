@@ -14,7 +14,7 @@ import { STATEMENTS_PAY_TODAY } from "@/lib/build-switches";
 import { statementTodayLine } from "@/lib/wall-offer";
 
 /** What "Start my plan today" will charge a trialing account, from Stripe's preview (app/api/stripe/start-today). */
-type StartToday = { eligible: true; line: string; currency: "NZD" | "AUD" } | { eligible: false; failed?: boolean };
+type StartToday = { eligible: true; line: string; currency: "NZD" | "AUD"; planName: string } | { eligible: false; failed?: boolean; billing?: boolean };
 
 /** This sitting's statements, if lane A's class set is there (lib/class-set.ts). Never throws. */
 async function readClassSet(): Promise<ClassPiece[]> {
@@ -90,16 +90,22 @@ export default function AppLimitWall({
       .then((data) => {
         if (!live) return;
         const ok = data?.eligible === true && typeof data.line === "string" && (data.currency === "NZD" || data.currency === "AUD");
-        // "failed": her free week is on but Stripe's preview did not answer. Never checkout then
-        // (that would be a second plan): Billing is the way on.
-        setStartToday(ok ? { eligible: true, line: data.line, currency: data.currency } : { eligible: false, failed: data?.code === "failed" });
+        // Only a free account (code "free": no subscription on her profile) may use checkout.
+        // Anything else that is not her free week (a Stripe error, a plan Stripe says already
+        // runs, the free month of Pro) goes to Billing: checkout there would be a second plan.
+        setStartToday(
+          ok
+            ? { eligible: true, line: data.line, currency: data.currency, planName: typeof data.planName === "string" ? data.planName : "Educator" }
+            : { eligible: false, failed: data?.code === "failed" || !data, billing: data?.code !== "free" },
+        );
       })
-      .catch(() => { if (live) setStartToday({ eligible: false, failed: true }); });
+      .catch(() => { if (live) setStartToday({ eligible: false, failed: true, billing: true }); });
     return () => { live = false; };
   }, [payToday]);
   const trialing = startToday?.eligible === true;
   const previewFailed = startToday?.eligible === false && startToday.failed === true;
-  const todayLine = !payToday || !startToday || previewFailed ? null : startToday.eligible ? startToday.line : discount ? statementTodayLine(lineCurrency, discount) : null;
+  const billingOnly = startToday?.eligible === false && startToday.billing === true;
+  const todayLine = !payToday || !startToday || previewFailed || billingOnly ? null : startToday.eligible ? startToday.line : discount ? statementTodayLine(lineCurrency, discount) : null;
   const payTodayShown = useRef(false);
   useEffect(() => {
     if (!payToday || !todayLine || payTodayShown.current) return;
@@ -152,10 +158,6 @@ export default function AppLimitWall({
       const data = await response.json().catch(() => ({}));
       if (response.ok && data.ok) {
         setStarted(true);
-        return;
-      }
-      if (data.needsAction && typeof data.hostedInvoiceUrl === "string") {
-        window.location.assign(data.hostedInvoiceUrl);
         return;
       }
       setStartError({ text: typeof data.error === "string" ? data.error : "That did not go through. Nothing was charged.", billing: true });
@@ -224,6 +226,20 @@ export default function AppLimitWall({
   };
   const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
 
+  // "Ask my centre to pay" with nothing drafted in this tab (another tab, an earlier sitting):
+  // the centre page, which she can send her leader now (R3-2).
+  const centrePageUrl = typeof window === "undefined" ? "/for-centres" : `${window.location.origin}/for-centres`;
+  const [centrePageCopied, setCentrePageCopied] = useState(false);
+  const copyCentrePage = async () => {
+    try {
+      await navigator.clipboard.writeText(centrePageUrl);
+      setCentrePageCopied(true);
+      window.setTimeout(() => setCentrePageCopied(false), 2000);
+    } catch {
+      /* the link is in the box to press and hold */
+    }
+  };
+
   const dismiss = () => {
     trackEvent("wall_dismissed", { wall });
     onDismiss?.();
@@ -257,21 +273,25 @@ export default function AppLimitWall({
             <p className="mt-1.5 text-sm leading-relaxed text-ink-600" data-testid="wall-line">
               {trialing
                 ? "Your free week covers stories. More statements today need your plan. Your notes are still here."
-                : "Free statements are 3 an hour and 9 a day. Educator covers as many as you need. Your notes are still here."}
+                : "Free statements are 3 an hour and 9 a day. Educator covers up to 30 a day. Your notes are still here."}
             </p>
             <p className="mt-3 min-h-[1.5rem] text-base font-semibold text-ink-900" data-testid="wall-offer">
-              {todayLine ? `Educator: ${todayLine}` : " "}
+              {todayLine ? `${startToday?.eligible ? startToday.planName : "Educator"}: ${todayLine}` : " "}
             </p>
-            {previewFailed && (
+            {previewFailed ? (
               <p role="alert" className="mt-2 text-sm text-clay-700" data-testid="wall-preview-failed">
                 The amount could not be checked just now. <Link href="/billing" className="font-semibold underline">Start your plan on Billing</Link>.
               </p>
-            )}
+            ) : billingOnly ? (
+              <p className="mt-2 text-sm text-ink-700" data-testid="wall-billing-only">
+                Your plan is on Billing. <Link href="/billing" className="font-semibold underline">Start or check it there</Link>.
+              </p>
+            ) : null}
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               <button
                 type="button"
                 onClick={trialing ? startPlanToday : startCheckout}
-                disabled={!todayLine || busy || (!trialing && !offer)}
+                disabled={!todayLine || billingOnly || busy || (!trialing && !offer)}
                 className="btn-primary w-full justify-center py-3 text-base"
                 data-testid={trialing ? "wall-start-today" : "wall-checkout"}
               >
@@ -307,9 +327,17 @@ export default function AppLimitWall({
                 {centrePieces.length > 0 ? (
                   <SendToLeader kind="set" pieces={centrePieces} where="wall" />
                 ) : (
-                  <p className="flex items-start gap-1.5 text-sm text-sage-800" data-testid="wall-reason-thanks">
-                    <Check className="mt-0.5 h-4 w-4 flex-none" /> Thanks. Draft a statement first, then send it to your leader from under it.
-                  </p>
+                  <div data-testid="wall-centre-page">
+                    <p className="flex items-start gap-1.5 text-sm text-sage-800" data-testid="wall-reason-thanks">
+                      <Check className="mt-0.5 h-4 w-4 flex-none" /> Send your leader this page. Centres are free on StoryLoop until 31 January 2027.
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <input readOnly value={centrePageUrl} onFocus={(e) => e.currentTarget.select()} className="input min-w-0 flex-1 font-mono text-xs" aria-label="The page for your leader" data-testid="wall-centre-page-link" />
+                      <button type="button" onClick={copyCentrePage} className="btn-secondary min-h-[44px] px-4 text-xs" data-testid="wall-centre-page-copy">
+                        {centrePageCopied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />} {centrePageCopied ? "Copied" : "Copy link"}
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
@@ -328,7 +356,7 @@ export default function AppLimitWall({
                           key={choice.key}
                           type="button"
                           onClick={() => answer(choice.key)}
-                          className="min-h-[36px] rounded-full border border-clay-200 bg-cream-50 px-3 py-1 text-xs font-semibold text-ink-700 hover:bg-cream-100"
+                          className="min-h-[44px] rounded-full border border-clay-200 bg-cream-50 px-3 py-1 text-xs font-semibold text-ink-700 hover:bg-cream-100"
                           data-testid={`wall-reason-${choice.key}`}
                         >
                           {choice.label}
@@ -431,7 +459,7 @@ export default function AppLimitWall({
                   key={choice.key}
                   type="button"
                   onClick={() => answer(choice.key)}
-                  className="min-h-[36px] rounded-full border border-clay-200 bg-cream-50 px-3 py-1 text-xs font-semibold text-ink-700 hover:bg-cream-100"
+                  className="min-h-[44px] rounded-full border border-clay-200 bg-cream-50 px-3 py-1 text-xs font-semibold text-ink-700 hover:bg-cream-100"
                   data-testid={`wall-reason-${choice.key}`}
                 >
                   {choice.label}

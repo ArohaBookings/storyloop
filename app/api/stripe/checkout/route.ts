@@ -15,9 +15,11 @@ import { createAdminSupabase } from "@/lib/supabase/admin";
 import { recordServerEvent } from "@/lib/analytics/server";
 import { checkoutReturnPath } from "@/lib/app-wall";
 import { paidReturnSuccessUrl } from "@/lib/paid-return";
-import { STATEMENTS_PAY_TODAY } from "@/lib/build-switches";
+import { CENTRE_START_NO_CHECKOUT, STATEMENTS_PAY_TODAY } from "@/lib/build-switches";
 import { ensureCustomer } from "@/lib/stripe-customer";
 import { statementWallPaysToday } from "@/lib/wall-offer";
+import { hasLiveStripeSubscription } from "@/lib/admin-guards";
+import { isLiveStatus } from "@/lib/centre-start";
 import { STATEMENT_WALL_KEY } from "@/lib/start-today";
 
 function getStripe() {
@@ -176,13 +178,20 @@ export async function POST(request: NextRequest) {
     // had a centre subscription before is not a new centre. See
     // lib/centre-offer.ts for the reasoning behind each number.
     let hadCentreBefore = false;
+    let liveCentre = false;
     if (isCentrePlan(selectedPlan) && profile?.stripe_customer_id) {
       try {
         const previous = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 20 });
         hadCentreBefore = previous.data.some((sub) => isCentrePlan(sub.metadata?.plan));
+        liveCentre = previous.data.some((sub) => isCentrePlan(sub.metadata?.plan) && isLiveStatus(sub.status));
       } catch {
         hadCentreBefore = false;
       }
+    }
+    // A centre started with no payment page (start-free) whose answer was lost must not be sent
+    // through checkout into a second centre subscription (R1-9).
+    if (CENTRE_START_NO_CHECKOUT && liveCentre && !offer) {
+      return NextResponse.json({ error: "Your centre is already started. See Billing.", reason: "already_started" }, { status: 409 });
     }
     const baseTerms = offer === "pro_month"
       ? { trialDays: PRO_MONTH_TRIAL_DAYS, noCardNeeded: false, foundingCoupon: null }
@@ -200,6 +209,11 @@ export async function POST(request: NextRequest) {
     // statements past the free allowance need the first payment, so this checkout
     // has no free week and charges the first month today. Stories keep theirs.
     const paysToday = statementWallPaysToday({ switchOn: STATEMENTS_PAY_TODAY, wall: fromWall, specialOffer: Boolean(offer), centrePlan: isCentrePlan(selectedPlan) });
+    // Never a second plan from the statement wall (R1-1, 25 Nov review): an account with a
+    // subscription Stripe may still charge starts or checks it on Billing instead.
+    if (paysToday && hasLiveStripeSubscription(profile)) {
+      return NextResponse.json({ error: "You already have a plan. Start or check it on Billing.", reason: "already_subscribed" }, { status: 409 });
+    }
     const terms = paysToday ? { ...baseTerms, trialDays: 0 } : baseTerms;
     // A centre starting in 2026 is free until the end of 31 January 2027 (New
     // Zealand time). Stripe is given that exact moment rather than a count of

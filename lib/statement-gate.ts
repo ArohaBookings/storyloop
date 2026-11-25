@@ -34,6 +34,25 @@ export function isTrialingIndividual(profile: GateProfile | null | undefined): b
   return plan === "educator" || plan === "educator_pro";
 }
 
+/** A day of slack over the 7-day free week. */
+const FREE_WEEK_MAX_MS = 8 * 86_400_000;
+
+/**
+ * Her trial is the 7-day free week (R1-2, 25 Nov review): not the free month of
+ * Educator Pro (its redeemed grant names this subscription), and not any trial
+ * that still has more than a week to run. Only the free week is gated. Pure.
+ */
+export function isFreeWeekProfile(
+  profile: (GateProfile & { trial_ends_at?: string | null }) | null | undefined,
+  input: { now: Date; proMonthSubscriptionId: string | null },
+): boolean {
+  if (!isTrialingIndividual(profile)) return false;
+  if (input.proMonthSubscriptionId && input.proMonthSubscriptionId === profile?.stripe_subscription_id) return false;
+  const ends = profile?.trial_ends_at ? Date.parse(profile.trial_ends_at) : NaN;
+  if (Number.isFinite(ends) && ends - input.now.getTime() > FREE_WEEK_MAX_MS) return false;
+  return true;
+}
+
 export type GateDecision = "delegate" | "hour_limit" | "day_limit";
 
 /**

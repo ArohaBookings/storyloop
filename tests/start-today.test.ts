@@ -53,3 +53,54 @@ test("checkout marks only the statement wall's pay-today checkout, and the webho
   assert.match(webhook, /statementPlanStartedFromCheckout\(session\)/);
   assert.match(webhook, /event: "statement_plan_started"/);
 });
+
+// Review fixes, 25 Nov (R1-1, R1-2, R4-5).
+import { startTodayState, wallPayPath, startTodayPlanName } from "../lib/start-today";
+
+const day = 86_400;
+const freeWeek = { id: "sub_1", status: "trialing", metadata: { plan: "educator" }, trial_start: 1_000_000, trial_end: 1_000_000 + 7 * day };
+
+test("only a truly free account is sent to checkout from the statement wall (R1-1)", () => {
+  assert.equal(startTodayState({ ...profile, subscription_status: "free", plan: "free", stripe_subscription_id: null }, null), "free");
+  assert.equal(startTodayState(profile, freeWeek), "eligible");
+  assert.equal(startTodayState(profile, "error"), "failed", "Stripe did not answer: never checkout");
+  assert.equal(startTodayState(profile, { ...freeWeek, status: "active" }), "already_paying", "the profile says trialing, Stripe says active");
+  assert.equal(startTodayState({ ...profile, subscription_status: "active" }, { ...freeWeek, status: "active" }), "already_paying");
+  assert.equal(wallPayPath("free"), "checkout");
+  assert.equal(wallPayPath("eligible"), "start_today");
+  for (const code of ["failed", "already_paying", "long_trial", "not_eligible"] as const) assert.equal(wallPayPath(code), "billing", code);
+});
+
+test("the free month of Educator Pro is not the free week: no start today (R1-2)", () => {
+  const proMonth = { ...freeWeek, metadata: { plan: "educator_pro", offer_id: "pro_free_month_2026_10" }, trial_end: freeWeek.trial_start + 30 * day };
+  assert.equal(canStartToday({ ...profile, plan: "educator_pro" }, proMonth), false);
+  assert.equal(startTodayState({ ...profile, plan: "educator_pro" }, proMonth), "long_trial");
+  assert.equal(canStartToday(profile, { ...freeWeek, trial_end: freeWeek.trial_start + 30 * day }), false, "any trial longer than a week");
+  assert.equal(canStartToday(profile, freeWeek), true);
+});
+
+test("the wall names the plan she is on (R4-5)", () => {
+  assert.equal(startTodayPlanName({ ...freeWeek, metadata: { plan: "educator_pro" } }), "Educator Pro");
+  assert.equal(startTodayPlanName(freeWeek), "Educator");
+  assert.equal(startTodayPlanName({ ...freeWeek, metadata: {} }), "Educator");
+});
+
+test("the wall never sends a subscribed account to checkout, and checkout refuses it (R1-1, R1-4)", async () => {
+  const { readFileSync } = await import("node:fs");
+  const wall = readFileSync("components/app/AppLimitWall.tsx", "utf8");
+  assert.match(wall, /billing: data\?\.code !== "free"/);
+  assert.match(wall, /disabled=\{!todayLine \|\| billingOnly/);
+  assert.doesNotMatch(wall, /hostedInvoiceUrl/, "a needs-action answer keeps her on the page with her notes");
+  const route = readFileSync("app/api/stripe/start-today/route.ts", "utf8");
+  assert.doesNotMatch(route, /invoices\.list/);
+  const checkout = readFileSync("app/api/stripe/checkout/route.ts", "utf8");
+  assert.match(checkout, /if \(paysToday && hasLiveStripeSubscription\(profile\)\)/);
+});
+
+test("the paid wall line matches the paid daily limit (R4-4)", async () => {
+  const { readFileSync } = await import("node:fs");
+  const wall = readFileSync("components/app/AppLimitWall.tsx", "utf8");
+  const limit = Number(/STATEMENT_PAID_LIMIT = (\d+)/.exec(readFileSync("lib/child-statement.ts", "utf8"))?.[1]);
+  assert.match(wall, new RegExp(`Educator covers up to ${limit} a day\\.`));
+  assert.doesNotMatch(wall, /as many as you need/);
+});
