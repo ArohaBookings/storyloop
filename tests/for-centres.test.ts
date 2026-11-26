@@ -31,7 +31,7 @@ function routeExists(href: string) {
 test("the centre page fits in a search result", () => {
   assert.ok(page.title.length <= 60, `title is ${page.title.length} characters`);
   // Re-aimed 18 Nov 2026 (search research, check.json: low risk, 25 impressions): both countries in the title.
-  assert.match(page.title, /learning story software for centres in NZ and Australia/i);
+  assert.match(page.title, /learning story software for NZ and Australian childcare/i);
   assert.ok(page.description.length >= 150 && page.description.length <= 160, `description is ${page.description.length} characters`);
 });
 
